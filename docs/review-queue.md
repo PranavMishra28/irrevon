@@ -29,6 +29,7 @@ sources; these are refinements, not corrections of fabrications.
 | AM-13 | §15 M1 | Two-stage preregistration: M1's "preregistered and hash-stamped" is satisfied by a Stage-A **design** freeze (hypotheses, matrix, metrics, analysis rules — no sandbox names); Stage-B **execution** freeze (adapters, artifact hashes, sealed holdout hash) happens before M7 runs. Resolves the sequencing tension that full freeze depends on M4/M5-adjacent work. | Registered-report staging practice `[EI]` — design already in the DRAFT preregistration §0 |
 | AM-14 | §8.6 | Replace "overlapping CIs" as the indistinguishability test in the falsification criterion with a pre-specified equivalence procedure (TOST with a declared margin). CI overlap is a statistically weak sameness test. | Statistical-methods review `[EI]` — flagged in the DRAFT preregistration §5 |
 | AM-15 | §5.4 | Clarify the "dashboard" non-goal: §5.4 rejects a hosted multi-tenant SaaS dashboard. A local-first developer workbench UI (no auth layer, no billing, no hosted service) is in scope per the owner's written directive of 2026-07-21; formal master-doc integration pending ratification. | Owner written directive, 2026-07-21 `[DD]` |
+| AM-16 | whole document | **Sanitization amendment (RATIFIED and APPLIED 2026-07-21):** redact personal material from the master doc — §3.1 builder-row personal details, §13 clearance specifics, and related framing in §1.3/§3.2/§3.3/§5.3/§5.4/§14/§15/§16 — replaced with neutral "external clearances" wording. Hash re-pinned: `91cc52fa…ad6c` → `5a452199…1c10` (full values in `scripts/master-doc.sha256` history). Pre-redaction wording persists in git history and in accepted ADR-0000 (append-only); see the §3 history-rewrite item. | Owner written ratification, 2026-07-21 `[DD]` |
 
 ## 2. Open uncertainties and negative results
 
@@ -56,8 +57,8 @@ Recorded so they are not re-researched or silently assumed away.
 
 | # | Item | Blocks |
 |---|---|---|
-| 1 | **TOP PRIORITY — environment red flag:** the development machine is employer-MDM-managed and the IDE is signed into an employer team account. Move development to a personal machine and personal account before any implementation work. | All implementation (execution-plan P1 gate) |
-| 2 | Send written requests: employer IP clearance + immigration guidance (master doc §13). | All publication |
+| 1 | **TOP PRIORITY — development-environment review item DE-1 (details held privately):** complete the environment migration before any implementation work. | All implementation (execution-plan P1 gate) |
+| 2 | Send the written external-clearance requests (master doc §13; details tracked privately). | All publication |
 | 3 | Countersign [ADR-0000 scope freeze](decisions/0000-scope-freeze.md) (recorded as accepted on master-doc authority; explicit countersign requested). | — |
 | 4 | Run the name screen for "Detent" (GitHub/PyPI/npm/company/trademark); adopt fallback if it collides. | First public commit |
 | 5 | Ratify or reject each amendment in section 1; ratified ones get integrated into a new master-doc version with a re-pinned hash. | P3 (for §8-touching amendments AM-7/AM-13/AM-14) |
