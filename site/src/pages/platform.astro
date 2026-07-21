@@ -1,0 +1,358 @@
+---
+import Base from "../layouts/Base.astro";
+import Badge from "../components/Badge.astro";
+import Source from "../components/Source.astro";
+import { SITE_NAME, REPO_URL, repoDoc } from "../config";
+import { asset } from "../lib/url";
+
+const components = [
+  {
+    name: "Intent Registrar",
+    role: "Validates the business-intent contract; requires at least one stable upstream identifier; creates the ledger record (INTENDED → PERSISTED). Rejects intents lacking a stable identifier.",
+  },
+  {
+    name: "Effect Ledger",
+    role: "Append-only Postgres store of effect records, dispatch receipts, and reconciliation findings. Single writer in the POC — a documented scaling limit.",
+  },
+  {
+    name: "Commit Gate",
+    role: "Deterministic pre-dispatch checks: authority freshness and binding, dedup, branch-lineage validity. Owns the deny-list for incident containment.",
+  },
+  {
+    name: "Dispatcher",
+    role: "Executes adapter dispatch with derived idempotency evidence; records receipts; classifies transport outcomes as SETTLED or AMBIGUOUS.",
+  },
+  {
+    name: "Reconciliation Engine",
+    role: "Deterministically resolves AMBIGUOUS effects by querying destination status; assigns reconciliation classifications; runs the out-of-ledger Orphan Sweep.",
+  },
+  {
+    name: "Outcome Classifier (advisory)",
+    role: "Optional model-assisted triage proposing classifications for human review. Advisory only — architecturally unable to reach gate or resolve APIs.",
+  },
+  {
+    name: "Adapters",
+    role: "Per-destination dispatch, status-query, and dedup-check, plus a version-pinned, cited capability declaration.",
+  },
+];
+
+// Verbatim from schemas/examples/capability-declaration/valid-refdest-c2.json.
+const declaration = `{
+  "adapter": "refdest-c2",
+  "destination": "Detent reference destination (C2 profile)",
+  "api_version": "refdest-1",
+  "tier": "C2",
+  "idempotency": { "supported": false },
+  "queryable": {
+    "supported": true,
+    "by": ["destination_ref", "client_ref"]
+  },
+  "client_ref_field": "client_ref",
+  "list_queryable": true,
+  "consistency": {
+    "status_settlement_lag": "PT0S",
+    "listing_lag": "PT0S"
+  },
+  "compensation_hook": null,
+  "citations": ["https://detent.invalid/refdest/contract#c2"],
+  "evidence_quality": "VF"
+}`;
+---
+
+<Base
+  title={`Engine — ${SITE_NAME}`}
+  description="The Detent reference reconciliation engine: intent registrar, append-only effect ledger, commit gate, dispatcher, reconciliation engine, orphan sweep — local-first, no hosted service, no accounts."
+>
+  <section class="section">
+    <div class="container">
+      <span class="kicker">Engine</span>
+      <h1>A deterministic layer between the agent and the irreversible call</h1>
+      <p class="lead" style="margin-top: 18px;">
+        {SITE_NAME} is an open-source reference engine and benchmark — local-first, no hosted service, no
+        accounts. The engine is the “proposed system” baseline inside the benchmark, not a product: it
+        registers intent, persists before dispatch, gates deterministically, and reconciles ambiguity by
+        querying the destination.
+      </p>
+      <div style="margin-top: 14px;">
+        <Source id="non-goals" also={["components-responsibilities"]} />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Architecture</span>
+        <h2>One path in, one authority out</h2>
+        <div class="badge-row">
+          <Badge kind="conceptual" />
+        </div>
+      </div>
+
+      <figure class="diagram" role="img" aria-labelledby="arch-caption">
+        <svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L8,4 L0,8 z" fill="var(--ref-ink-3)"></path>
+            </marker>
+          </defs>
+          <g font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="0.05em">
+            <!-- Agent -->
+            <rect x="10" y="120" width="130" height="56" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border-strong)" stroke-dasharray="4 3"></rect>
+            <text x="75" y="144" text-anchor="middle" fill="var(--ref-ink-1)">AGENT /</text>
+            <text x="75" y="160" text-anchor="middle" fill="var(--ref-ink-1)">WORKFLOW</text>
+            <!-- Registrar -->
+            <rect x="190" y="120" width="130" height="56" rx="2" fill="var(--ref-surface-1)" stroke="var(--ref-border-strong)"></rect>
+            <text x="255" y="144" text-anchor="middle" fill="var(--ref-ink-1)">INTENT</text>
+            <text x="255" y="160" text-anchor="middle" fill="var(--ref-ink-1)">REGISTRAR</text>
+            <!-- Ledger -->
+            <rect x="370" y="120" width="130" height="56" rx="2" fill="var(--ref-surface-1)" stroke="var(--ref-border-strong)"></rect>
+            <text x="435" y="144" text-anchor="middle" fill="var(--ref-ink-1)">EFFECT</text>
+            <text x="435" y="160" text-anchor="middle" fill="var(--ref-ink-1)">LEDGER</text>
+            <!-- Gate -->
+            <rect x="550" y="120" width="110" height="56" rx="2" fill="var(--ref-surface-1)" stroke="var(--ref-border-strong)" stroke-width="2"></rect>
+            <text x="605" y="144" text-anchor="middle" fill="var(--ref-ink-1)">COMMIT</text>
+            <text x="605" y="160" text-anchor="middle" fill="var(--ref-ink-1)">GATE</text>
+            <!-- Dispatcher -->
+            <rect x="710" y="120" width="110" height="56" rx="2" fill="var(--ref-surface-1)" stroke="var(--ref-border-strong)"></rect>
+            <text x="765" y="152" text-anchor="middle" fill="var(--ref-ink-1)">DISPATCHER</text>
+            <!-- Destination -->
+            <rect x="860" y="120" width="90" height="56" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border-strong)" stroke-dasharray="4 3"></rect>
+            <text x="905" y="152" text-anchor="middle" fill="var(--ref-ink-1)">DEST.</text>
+            <!-- Reconciliation -->
+            <rect x="480" y="230" width="180" height="52" rx="2" fill="var(--ref-surface-1)" stroke="var(--ref-border-strong)"></rect>
+            <text x="570" y="252" text-anchor="middle" fill="var(--ref-ink-1)">RECONCILIATION</text>
+            <text x="570" y="268" text-anchor="middle" fill="var(--ref-ink-1)">+ ORPHAN SWEEP</text>
+            <!-- Classifier -->
+            <rect x="130" y="230" width="180" height="52" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border-strong)" stroke-dasharray="4 3"></rect>
+            <text x="220" y="252" text-anchor="middle" fill="var(--ref-ink-1)">OUTCOME CLASSIFIER</text>
+            <text x="220" y="268" text-anchor="middle" fill="var(--ref-ink-3)">ADVISORY ONLY</text>
+            <!-- Edges -->
+            <g stroke="var(--ref-ink-3)" fill="none" marker-end="url(#arr)">
+              <line x1="140" y1="148" x2="184" y2="148"></line>
+              <line x1="320" y1="148" x2="364" y2="148"></line>
+              <line x1="500" y1="148" x2="544" y2="148"></line>
+              <line x1="660" y1="148" x2="704" y2="148"></line>
+              <line x1="820" y1="148" x2="854" y2="148"></line>
+              <path d="M570 230 V 190 H 460 V 180"></path>
+              <path d="M660 256 H 905 V 182"></path>
+            </g>
+            <g stroke="var(--ref-ink-3)" fill="none" stroke-dasharray="3 4" marker-end="url(#arr)">
+              <line x1="316" y1="256" x2="474" y2="256"></line>
+            </g>
+            <text x="162" y="112" text-anchor="middle" fill="var(--ref-ink-3)" font-size="9">intent</text>
+            <text x="905" y="210" text-anchor="middle" fill="var(--ref-ink-3)" font-size="9">status query</text>
+            <text x="395" y="244" text-anchor="middle" fill="var(--ref-ink-3)" font-size="9">advice only</text>
+          </g>
+        </svg>
+        <figcaption id="arch-caption">
+          Conceptual rendering of the architecture in master doc §6.2 — not fixture data. Dashed boxes sit
+          outside the deterministic core; the classifier’s edge is advice only and carries no authority.
+        </figcaption>
+      </figure>
+
+      <details class="prose" style="margin-top: 20px;">
+        <summary>Prose twin: components and responsibilities</summary>
+        <dl class="component-list">
+          {
+            components.map((c) => (
+              <>
+                <dt>{c.name}</dt>
+                <dd>{c.role}</dd>
+              </>
+            ))
+          }
+        </dl>
+      </details>
+      <div style="margin-top: 14px;">
+        <Source id="components-responsibilities" also={["classifier-advisory", "single-writer-scope"]} />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Implemented today</span>
+        <h2>The first slice is code, not slideware</h2>
+        <p class="lead">
+          The M3 core is implemented and tested: identity derivation, the append-only ledger with locked
+          transition functions in plain SQL, the commit gate, dispatch and receipts, reconciliation with
+          confirmed-absence, crash recovery, and the orphan sweep — plus reference destinations, the CLI, and
+          the read-only workbench.
+        </p>
+      </div>
+      <div class="grid-3">
+        <article class="panel-subtle">
+          <h3>Ledger in plain SQL</h3>
+          <p class="muted" style="margin-top: 8px;">
+            The state tables and locked transition functions live in reviewable migrations; the ledger is the
+            sole transition writer.
+          </p>
+          <p style="margin-top: 10px;"><a href={`${REPO_URL}/tree/HEAD/migrations`}>migrations/</a></p>
+        </article>
+        <article class="panel-subtle">
+          <h3>Design on the record</h3>
+          <p class="muted" style="margin-top: 8px;">
+            The mechanics — claim protocol, commit gate, confirmed-absence protocol, recovery order — are
+            specified in RFC-002 and implemented from it.
+          </p>
+          <p style="margin-top: 10px;"><a href={repoDoc("docs/rfc-002-engine-design.md")}>RFC-002</a></p>
+        </article>
+        <article class="panel-subtle">
+          <h3>Machine-readable contracts</h3>
+          <p class="muted" style="margin-top: 8px;">
+            Intent contracts, effect records, receipts, findings, and capability declarations are JSON-schema
+            pinned, with valid and invalid example suites enforced in CI.
+          </p>
+          <p style="margin-top: 10px;"><a href={repoDoc("schemas/README.md")}>schemas/</a></p>
+        </article>
+      </div>
+      <div style="margin-top: 16px;">
+        <Source id="implemented-first-slice" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Capability declarations</span>
+        <h2>Adapters must prove their destination’s semantics, in writing</h2>
+        <p class="lead">
+          Every adapter ships a version-pinned, cited declaration of what its destination actually guarantees:
+          the tier, the idempotency semantics, what is queryable, and the consistency bounds. Contract drift
+          forces a declaration update, a retest, and a deviation record before any benchmark use.
+        </p>
+      </div>
+      <div class="decl-grid">
+        <pre><code>{declaration}</code></pre>
+        <div class="prose">
+          <p>
+            This is the loaded declaration for the reference C2 destination the recorded demo runs against —
+            verbatim from the repository’s example suite. <code>"idempotency": {"{"} "supported": false {"}"}</code>
+            plus <code>"queryable": true</code> is exactly the C2 shape: the destination won’t honor your key,
+            but it will answer for what exists.
+          </p>
+          <p>
+            Where a destination’s docs list parameters but never state “no idempotency,” the C2 classification
+            is an evidence-backed inference and the declaration says so (<code>evidence_quality</code>).
+          </p>
+          <Source id="capability-declaration" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">The workbench</span>
+        <h2>Evidence you can open locally</h2>
+      </div>
+      <figure class="screenshot themed-shot">
+        <img
+          class="shot-light"
+          src={asset("/images/workbench-inspect-light.png")}
+          alt="Detent workbench inspecting the flagship effect: identity, lifecycle, classification and resolution panels with the recorded transition history."
+          width="1440"
+          height="900"
+          loading="lazy"
+        />
+        <img
+          class="shot-dark"
+          src={asset("/images/workbench-inspect-dark.png")}
+          alt="Detent workbench inspecting the flagship effect in dark theme: identity, lifecycle, classification and resolution panels with the recorded transition history."
+          width="1440"
+          height="900"
+          loading="lazy"
+        />
+        <figcaption>
+          The flagship effect opened in the workbench. Read-only by construction: no build of this app can
+          mutate anything. The workbench pictured is running against schema-validated fixtures captured from a
+          real engine run — the SYNTHETIC FIXTURE banner is part of the product.
+        </figcaption>
+      </figure>
+      <div class="badge-row" style="margin-top: 12px;">
+        <Badge kind="recorded" />
+      </div>
+      <Source id="workbench-fixture-screens" />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Roadmap boundary</span>
+        <h2>What exists, and what is gated</h2>
+      </div>
+      <div class="table-wrap">
+        <p class="table-scroll-hint">Scroll table horizontally</p>
+        <table>
+          <thead>
+            <tr><th scope="col">Stage</th><th scope="col">Contents</th><th scope="col">Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>M3 core</strong></td>
+              <td>Identity, ledger, gate, dispatcher, reconciliation, recovery, sweep, reference destinations, CLI, workbench</td>
+              <td><strong>Implemented</strong></td>
+            </tr>
+            <tr>
+              <td>M4 adapters</td>
+              <td>Real sandbox adapters (C1 Stripe test mode; one C2 sandbox) with cited capability declarations</td>
+              <td>Gated — sandbox selection and API-version pins are open decision records</td>
+            </tr>
+            <tr>
+              <td>M5+ benchmark harness</td>
+              <td>Seeded workloads, fault schedules, oracle, the full baseline ladder</td>
+              <td>Gated — nothing runs before the preregistration freeze</td>
+            </tr>
+            <tr>
+              <td>Release</td>
+              <td>Package publication, license, preprint</td>
+              <td>Gated — human-only publish gate; no license granted yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 14px;">
+        <Source id="implemented-first-slice" also={["license-pending"]} />
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .component-list {
+    display: grid;
+    gap: 4px;
+    margin-top: 16px;
+  }
+  .component-list dt {
+    font-weight: 600;
+    margin-top: 12px;
+  }
+  .component-list dd {
+    margin: 2px 0 0;
+    color: var(--ref-ink-2);
+  }
+  summary {
+    cursor: pointer;
+    font-weight: 500;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .decl-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .decl-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,303 @@
+---
+import Base from "../layouts/Base.astro";
+import Badge from "../components/Badge.astro";
+import Source from "../components/Source.astro";
+import { SITE_NAME, BENCH_NAME, repoDoc } from "../config";
+
+const baselines = [
+  { id: "B0", name: "No protection", solves: "nothing", residual: "all duplicates / orphans / lost" },
+  { id: "B1", name: "Model-argument hashing", solves: "identical-retry dedup", residual: "breaks under re-synthesis (different args)" },
+  { id: "B2", name: "Agent-generated idempotency keys", solves: "some retries", residual: "key changes when the model regenerates it" },
+  { id: "B3", name: "Stable workflow-issued operation IDs", solves: "caller-side identity", residual: "destination still may not honor the key (C2)" },
+  { id: "B4", name: "Destination-native idempotency", solves: "C1 duplicates", residual: "unavailable on C2/C3" },
+  { id: "B5", name: "Durable runtime + native idempotency", solves: "C1 + own-state exactly-once", residual: "punts external APIs to idempotency keys; no C2 adjudication" },
+  { id: "B6", name: "Provider-native status check / reconcile", solves: "some detection", residual: "not general; varies by provider" },
+  { id: "B7", name: "Model-assisted semantic matching", solves: "flags likely dupes", residual: "probabilistic; unsafe as sole authority" },
+  { id: "R", name: `Proposed system (${SITE_NAME})`, solves: "C2 detection + safe re-dispatch + orphan/lost surfacing", residual: "none beyond destination capability (C3 unsolvable)" },
+];
+
+const metrics = [
+  ["Duplicate-effect rate", "surplus destination effects per true intent ÷ intents eligible for dispatch (oracle-fixed denominator; never computed from finding counts)"],
+  ["Orphaned-effect rate", "destination effects with no corresponding true fixture intent ÷ total destination effects at read-back"],
+  ["Lost-legitimate-effect rate", "legitimate intended effects absent at read-back ÷ legitimate intended effects"],
+  ["False-suppression rate", "legitimate effects blocked ÷ legitimate effects"],
+  ["Unresolved-ambiguous rate", "AMBIGUOUS unresolved at run end ÷ dispatched (descriptive, arm-conditional)"],
+  ["Precision / recall", "vs the oracle, per classification (descriptive)"],
+  ["Human-review rate & mean time", "escalations ÷ effects; wall-clock per escalation"],
+  ["Time-to-detect", "dispatch → detection interval"],
+  ["Compensation correctness", "correct compensations ÷ compensations attempted (N/A when none)"],
+];
+---
+
+<Base
+  title={`${BENCH_NAME} — preregistered, no results yet`}
+  description="DetentBench: a preregistered fault-injection benchmark for irreversible AI-agent effects. Draft methodology, the full baseline ladder, and a pre-committed kill criterion. No results exist yet, by design."
+>
+  <section class="section">
+    <div class="container">
+      <span class="kicker">{BENCH_NAME}</span>
+      <h1>The methodology is the product. The results don’t exist yet.</h1>
+
+      <div class="status-banner" role="note" style="margin-top: 28px;">
+        <span class="status-title">No results yet — by design</span>
+        <p>
+          The preregistration is a <strong>DRAFT</strong> — nothing is frozen, and no benchmark run, sandbox
+          spike, or fault trial may occur before the design freeze (a human act: signed tag, external
+          timestamp, OSF registration). There are no numbers on this page and there will be none until the
+          plan is frozen, executed, and independently recomputed. Results, when they exist, will be
+          reproducible from a tagged commit and pinned containers.
+        </p>
+        <Source id="prereg-draft-status" also={["no-results-exist", "stamping-planned"]} />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Why this shape</span>
+        <h2>Benchmark credibility failed publicly in 2026</h2>
+      </div>
+      <div class="prose">
+        <p>
+          OpenAI stopped reporting SWE-bench Verified (February 23, 2026) after an audit found gains
+          “increasingly reflect how much the model was exposed to the benchmark at training time,” and
+          retracted its SWE-bench Pro recommendation (July 8, 2026) after flagging roughly 27–34% of public
+          tasks as broken. A benchmark whose hypotheses, metrics, and analysis are written
+          down <em>after the runs</em> is an instrument for confirming whatever its author hoped.
+        </p>
+      </div>
+      <div style="margin-top: 14px;"><Source id="benchmark-crisis" /></div>
+
+      <div class="grid-3" style="margin-top: 32px;">
+        <article class="panel-subtle discipline">
+          <h3>Preregistered, two-stage</h3>
+          <p>
+            Hypotheses, matrix, metrics, and analysis rules freeze before any sandbox observation; adapter and
+            baseline operationalizations, artifact hashes, and environment pins freeze before any confirmatory
+            run. Frozen content is append-only; amendments are numbered and stamped.
+          </p>
+          <div class="badge-row"><Badge kind="preregistered" /></div>
+        </article>
+        <article class="panel-subtle discipline">
+          <h3>Sealed private holdout</h3>
+          <p>
+            The held-out fault-seed split is sealed as complete, labeled artifacts — both ciphertext and
+            plaintext root hashes committed — and never enters the repository or any agent context. The
+            holdout split governs the publish threshold and the kill criterion.
+          </p>
+          <div class="badge-row"><Badge kind="preregistered" /></div>
+        </article>
+        <article class="panel-subtle discipline">
+          <h3>Statistics that can say “no”</h3>
+          <p>
+            At least 5 seeds per cell (10 planned); confidence intervals and effect sizes, never point
+            estimates; every executed cell reported; INVALID runs retained and marked, never deleted;
+            second-machine reproduction and independent recomputation before any public claim. BetterBench
+            self-scoring, Datasheets, and Croissant metadata ship with results.
+          </p>
+          <div class="badge-row"><Badge kind="preregistered" /></div>
+        </article>
+      </div>
+      <div style="margin-top: 16px;">
+        <Source id="credibility-controls" also={["stats-discipline", "oracle-design"]} />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">The baseline ladder</span>
+        <h2>“Never weakened so the proposed system wins” is a design rule, not a slogan</h2>
+        <p class="lead">
+          Every rung is preregistered. The preselected primary comparator is the <strong>composite
+          B5+B3+B6</strong> — the strongest realistic conventional stack — with B5 reported alongside;
+          superiority must reject against both. The ladder is rendered whole, residual failure modes included.
+        </p>
+        <div class="badge-row"><Badge kind="preregistered" /></div>
+      </div>
+      <div class="table-wrap">
+        <p class="table-scroll-hint">Scroll table horizontally</p>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Baseline</th>
+              <th scope="col">Solves</th>
+              <th scope="col">Residual failure mode</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              baselines.map((b) => (
+                <tr>
+                  <td>
+                    <strong>{b.id}</strong>
+                  </td>
+                  <td>
+                    <strong>{b.name}</strong>
+                  </td>
+                  <td>{b.solves}</td>
+                  <td>{b.residual}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 14px;">
+        <Source id="baseline-ladder" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">The kill criterion</span>
+        <h2>The result that ends the project is written down first</h2>
+        <p class="lead">
+          Verbatim from the draft preregistration (§1, implementing master doc §8.6 as amended by AM-14):
+        </p>
+      </div>
+      <blockquote class="kill-quote">
+        <p>
+          “the kill fires iff, for <strong>every</strong> primary metric on the confirmatory stratum, either
+          (a) the preselected composite comparator is statistically <strong>equivalent</strong> to R — TOST
+          against the §5.3 margin, never CI overlap — or (b) it is statistically <strong>better</strong> than
+          R; <strong>and</strong> (c) no confirmatory cell shows the comparator worse than R by at least the
+          worst-cell gate (§5.3) — a pooled equivalence coexisting with a large local regression is reported
+          as <em>inconclusive with a localized signal</em>, not as a kill and not as a win. If the kill fires,
+          Detent is unnecessary and the project is reframed as a teaching artifact (master doc §14). The
+          benchmark is explicitly not designed so the system must win; clause (b) exists so a baseline that
+          beats R kills at least as surely as one that ties it.”
+        </p>
+      </blockquote>
+      <div class="grid-2" style="margin-top: 24px;">
+        <div class="panel-subtle">
+          <h3>The pre-committed C1 null</h3>
+          <p class="muted" style="margin-top: 8px;">
+            On destinations with dependable native idempotency, {SITE_NAME} is expected to
+            show <strong>no advantage</strong> on duplicate rate. That null is a registered hypothesis (H0-C1)
+            and will be reported as prominently as any win.
+          </p>
+          <div style="margin-top: 10px;"><Source id="c1-null-precommit" /></div>
+        </div>
+        <div class="panel-subtle">
+          <h3>The C3 impossibility demonstration</h3>
+          <p class="muted" style="margin-top: 8px;">
+            On opaque destinations every method — including {SITE_NAME} — must fail to detect lost and
+            orphaned effects. The boundary is documented, not excused.
+          </p>
+          <div style="margin-top: 10px;"><Source id="tiers-table" /></div>
+        </div>
+      </div>
+      <div style="margin-top: 14px;">
+        <Source id="kill-criterion" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Metrics glossary</span>
+        <h2>Denominators fixed by the oracle, not by the arm</h2>
+        <p class="lead">
+          An arm cannot change the denominator it is judged by, and no metric rewards adopting {SITE_NAME}’s
+          internal data model.
+        </p>
+        <div class="badge-row"><Badge kind="preregistered" /></div>
+      </div>
+      <div class="table-wrap">
+        <p class="table-scroll-hint">Scroll table horizontally</p>
+        <table>
+          <thead>
+            <tr><th scope="col">Metric</th><th scope="col">Definition</th></tr>
+          </thead>
+          <tbody>
+            {
+              metrics.map(([name, def]) => (
+                <tr>
+                  <td>
+                    <strong>{name}</strong>
+                  </td>
+                  <td>{def}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 14px;">
+        <Source id="metrics-definitions" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Research integrity</span>
+        <h2>Read the plan, not a summary of it</h2>
+      </div>
+      <div class="grid-3">
+        <article class="panel-subtle">
+          <h3>The draft, in the open</h3>
+          <p class="muted" style="margin-top: 8px;">
+            The full preregistration — hypotheses, strata, analysis plan, invalid-run rules, holdout protocol —
+            is a public document in the repository, labeled DRAFT until a human freezes it.
+          </p>
+          <p style="margin-top: 10px;">
+            <a href={repoDoc("docs/benchmark-preregistration.md")}>benchmark-preregistration.md</a>
+          </p>
+        </article>
+        <article class="panel-subtle">
+          <h3>Epistemic labels, everywhere</h3>
+          <p class="muted" style="margin-top: 8px;">
+            Every project document labels its claims: <code>[VF]</code> verified fact, <code>[EI]</code>
+            evidence-backed inference, <code>[TH]</code> testable hypothesis, <code>[DD]</code> design
+            decision, <code>[OQ]</code> open question. This site follows the same discipline — each claim
+            carries its source and label.
+          </p>
+          <div style="margin-top: 10px;"><Source id="epistemic-labels" /></div>
+        </article>
+        <article class="panel-subtle">
+          <h3>Publication path — a plan</h3>
+          <p class="muted" style="margin-top: 8px;">
+            arXiv preprint → agents/reliability workshop → NeurIPS Datasets &amp; Benchmarks track, only if
+            the preregistered criteria and independent recomputation hold. <strong>No preprint exists
+            today.</strong>
+          </p>
+          <div style="margin-top: 10px;"><Source id="venue-plan" /></div>
+        </article>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .discipline {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  .discipline p {
+    color: var(--ref-ink-2);
+  }
+  .kill-quote {
+    margin: 0;
+    border: 1px solid var(--ref-border);
+    border-left: 3px solid var(--ref-accent);
+    border-radius: 2px;
+    background: var(--ref-surface-1);
+    padding: clamp(20px, 3vw, 32px);
+    max-width: 80ch;
+  }
+  .kill-quote p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--ref-ink-1);
+  }
+</style>
