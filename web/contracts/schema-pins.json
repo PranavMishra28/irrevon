@@ -10,6 +10,18 @@
       "sha256": "97286032a74ba06a4757ad333fe4c153f98fea17ccff233526b169c63e0f295a",
       "role": "capabilityDeclaration"
     },
+    "schemas/effect-record.schema.json": {
+      "sha256": "fb5de2f0b4d0ab705293e29ad5378a140b212e0f6e4aaf132adedec9712d3ce5",
+      "role": "effectRecord"
+    },
+    "schemas/dispatch-receipt.schema.json": {
+      "sha256": "3c9eba85281fa88184868ea11d18d5665c221910e7714d753febf714045827a6",
+      "role": "dispatchReceipt"
+    },
+    "schemas/reconciliation-finding.schema.json": {
+      "sha256": "078b704ab9f3db939bd6aec2ea313653908adad18af9d43b4db4ee470ba90d60",
+      "role": "reconciliationFinding"
+    },
     "docs/rfc-002-engine-design.md": {
       "sha256": "d8ee9a6996ae0fcf917e8e4e3faf7e972c7ad42da9e8318ecd9bd0184ce5d12a",
       "role": "rfc002"

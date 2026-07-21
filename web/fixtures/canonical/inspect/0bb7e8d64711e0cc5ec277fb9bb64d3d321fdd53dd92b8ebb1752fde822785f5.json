@@ -1,0 +1,252 @@
+{
+  "schema_version": "1",
+  "kind": "effect",
+  "record": {
+    "effect_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5",
+    "effect_type": "order.create",
+    "effect_class": "IRREVERSIBLE",
+    "scope": "acme-store/prod",
+    "stable_ids": {
+      "order_id": "<redacted; --reveal to show>",
+      "customer_ref": "<redacted; --reveal to show>"
+    },
+    "adapter_id": "refdest-c2",
+    "lifecycle": "SETTLED_COMMITTED"
+  },
+  "timeline": [
+    {
+      "transition_seq": 1,
+      "step": 0,
+      "operation_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5:0",
+      "from_state": null,
+      "to_state": "INTENDED",
+      "cause": "register",
+      "actor": "registrar",
+      "evidence": {
+        "opened_by": "register"
+      },
+      "created_at": "2026-07-21 10:28:52.476585+00:00"
+    },
+    {
+      "transition_seq": 2,
+      "step": 0,
+      "operation_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5:0",
+      "from_state": "INTENDED",
+      "to_state": "PERSISTED",
+      "cause": "durable_write",
+      "actor": "registrar",
+      "evidence": {
+        "opened_by": "register"
+      },
+      "created_at": "2026-07-21 10:28:52.476585+00:00"
+    },
+    {
+      "transition_seq": 3,
+      "step": 0,
+      "operation_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5:0",
+      "from_state": "PERSISTED",
+      "to_state": "DISPATCHED",
+      "cause": "gate_allow",
+      "actor": "gate",
+      "evidence": {
+        "attempt_id": 1,
+        "decision_id": 1
+      },
+      "created_at": "2026-07-21 10:28:52.489012+00:00"
+    },
+    {
+      "transition_seq": 4,
+      "step": 0,
+      "operation_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5:0",
+      "from_state": "DISPATCHED",
+      "to_state": "AMBIGUOUS",
+      "cause": "receipt_lost",
+      "actor": "dispatcher",
+      "evidence": {
+        "receipt_id": 1
+      },
+      "created_at": "2026-07-21 10:28:52.506527+00:00"
+    },
+    {
+      "transition_seq": 5,
+      "step": 0,
+      "operation_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5:0",
+      "from_state": "AMBIGUOUS",
+      "to_state": "SETTLED_COMMITTED",
+      "cause": "reconciled_present",
+      "actor": "recovery",
+      "evidence": {
+        "probe_ids": [
+          1
+        ]
+      },
+      "created_at": "2026-07-21 10:28:52.621273+00:00"
+    }
+  ],
+  "receipts": [
+    {
+      "receipt_id": 1,
+      "operation_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5:0",
+      "attempt_no": 1,
+      "kind": "primary",
+      "idempotency_key": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5:0",
+      "transport_outcome": "LOST",
+      "failure_kind": null,
+      "destination_ref": null,
+      "recorded_by": "dispatcher",
+      "recorded_at": "2026-07-21 10:28:52.506527+00:00"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": 1,
+      "effect_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5",
+      "adapter_id": "refdest-c2",
+      "destination_ref": "dest_4dec67739b2a3b88d94e7f9502227114",
+      "classification": "CONFIRMED_UNIQUE",
+      "excess_effect_count": null,
+      "evidence": {
+        "probe_ids": [
+          1
+        ]
+      },
+      "evidence_digest": "sha256:b686e76dc0b9cc9fd079ac281029ec0282a4d643c099d68e5112297e3ed9e735",
+      "created_by": "recovery",
+      "created_at": "2026-07-21 10:28:52.621273+00:00"
+    }
+  ],
+  "resolutions": [
+    {
+      "resolution_seq": 1,
+      "finding_id": 1,
+      "from_status": "OPEN",
+      "to_status": "ACCEPTED_AS_IS",
+      "evidence": {
+        "auto": "confirmed_unique_settle"
+      },
+      "actor": "system",
+      "created_at": "2026-07-21 10:28:52.621273+00:00"
+    },
+    {
+      "resolution_seq": 2,
+      "finding_id": 1,
+      "from_status": "ACCEPTED_AS_IS",
+      "to_status": "CLOSED",
+      "evidence": {
+        "auto": "confirmed_unique_settle"
+      },
+      "actor": "system",
+      "created_at": "2026-07-21 10:28:52.621273+00:00"
+    }
+  ],
+  "gate_decisions": [
+    {
+      "decision_id": 1,
+      "variant": "dispatch",
+      "outcome": "ALLOW",
+      "deny_check": null,
+      "checks": [
+        {
+          "check": "deny_list",
+          "status": "passed"
+        },
+        {
+          "check": "authority",
+          "status": "passed"
+        },
+        {
+          "check": "branch_lineage",
+          "status": "passed"
+        },
+        {
+          "check": "dedup",
+          "status": "passed"
+        }
+      ],
+      "evidence": {
+        "input_digest": "sha256:478944a7c5f3ccc1a47a4d03b87499e0a5f1d566da8702dd1693aefb71382337"
+      },
+      "created_at": "2026-07-21 10:28:52.489012+00:00"
+    },
+    {
+      "decision_id": 2,
+      "variant": "dispatch",
+      "outcome": "DENY",
+      "deny_check": "dedup",
+      "checks": [
+        {
+          "check": "deny_list",
+          "status": "passed"
+        },
+        {
+          "check": "authority",
+          "status": "passed"
+        },
+        {
+          "check": "branch_lineage",
+          "status": "passed"
+        },
+        {
+          "check": "dedup",
+          "status": "denied",
+          "evidence": {
+            "cause": "duplicate_intent",
+            "parameter_variants": [
+              "sha256:074abd639c1ad62f7ad769c6261bfa1f7b93021f8171644ebe3d4ce3df98c2cd"
+            ],
+            "blocking_executions": [
+              {
+                "step": 0,
+                "frontier": "SETTLED_COMMITTED",
+                "finding_ids": [
+                  1
+                ],
+                "receipt_ids": [
+                  1
+                ],
+                "execution_id": 1,
+                "operation_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5:0"
+              }
+            ]
+          }
+        }
+      ],
+      "evidence": {
+        "cause": "duplicate_intent",
+        "input_digest": "sha256:1fe5092bda8f2465f4f6f8eec73f685bd610808637f77a43b308e2d0d366d4c2",
+        "parameter_variants": [
+          "sha256:074abd639c1ad62f7ad769c6261bfa1f7b93021f8171644ebe3d4ce3df98c2cd"
+        ],
+        "blocking_executions": [
+          {
+            "step": 0,
+            "frontier": "SETTLED_COMMITTED",
+            "finding_ids": [
+              1
+            ],
+            "receipt_ids": [
+              1
+            ],
+            "execution_id": 1,
+            "operation_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5:0"
+          }
+        ]
+      },
+      "created_at": "2026-07-21 10:28:52.650016+00:00"
+    }
+  ],
+  "probes": [
+    {
+      "probe_id": 1,
+      "probe_kind": "reconcile_open",
+      "result": "PRESENT",
+      "n_found": 1,
+      "queried_at": "2026-07-21 10:28:52.618842+00:00"
+    }
+  ],
+  "classification": "CONFIRMED_UNIQUE",
+  "integrity": {
+    "recomputed_intent_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5",
+    "matches": true
+  }
+}

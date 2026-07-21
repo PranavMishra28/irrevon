@@ -28,7 +28,8 @@
     "codegen:check": "node scripts/codegen.mjs --check",
     "fonts:sync": "node scripts/sync-fonts.mjs",
     "size": "size-limit",
-    "check": "pnpm typecheck && pnpm lint && pnpm lint:styles && pnpm format:check && pnpm codegen:check && pnpm fonts:sync --check && pnpm test"
+    "check": "pnpm typecheck && pnpm lint && pnpm lint:styles && pnpm format:check && pnpm codegen:check && pnpm fixtures:check && pnpm fonts:sync --check && pnpm test",
+    "fixtures:check": "node scripts/verify-fixtures.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.6.0",

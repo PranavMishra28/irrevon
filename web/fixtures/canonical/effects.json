@@ -1,0 +1,152 @@
+{
+  "schema_version": "1",
+  "data": [
+    {
+      "schema_version": "1",
+      "effect_id": "f18adfccc0bfa6fabc817c15e2afd305a80c5d119f1c7101567cf43f28a913b0",
+      "operation_id": "f18adfccc0bfa6fabc817c15e2afd305a80c5d119f1c7101567cf43f28a913b0:0",
+      "step": 0,
+      "effect_type": "subscription.cancel",
+      "effect_class": "REVERSIBLE",
+      "scope": "acme-store/prod",
+      "stable_ids": {
+        "subscription_id": "SUB-77",
+        "workflow_command_id": "wf_cmd_00104"
+      },
+      "adapter_id": "refdest-c2",
+      "declaration_digest": "sha256:ac957d63ec55844c1b82b92a52f2273e1853620e9751babb602b3a60c5e06b37",
+      "parameters_digest": "sha256:21fe9a252715b9e522d56caaa63a6c8af14f911975515b8a8d1519215ab46fb4",
+      "authority_ref": "auth_approved_task_63",
+      "stamped_at": "2026-07-21T10:37:48.517870Z",
+      "lifecycle": "AMBIGUOUS",
+      "lifecycle_at": "2026-07-21T10:37:48.526519Z",
+      "created_at": "2026-07-21T10:37:48.517062Z"
+    },
+    {
+      "schema_version": "1",
+      "effect_id": "371a59b8452dd4fe659e9dd4ef78fd8cac90b5dd36583aea1dff9e99b4f74f6c",
+      "operation_id": "371a59b8452dd4fe659e9dd4ef78fd8cac90b5dd36583aea1dff9e99b4f74f6c:0",
+      "step": 0,
+      "effect_type": "payout.create",
+      "effect_class": "IRREVERSIBLE",
+      "scope": "acme-finance/prod",
+      "stable_ids": {
+        "payout_id": "PO-3307"
+      },
+      "adapter_id": "refdest-c2",
+      "declaration_digest": "sha256:ac957d63ec55844c1b82b92a52f2273e1853620e9751babb602b3a60c5e06b37",
+      "parameters_digest": "sha256:1217aedc9d46506d6615d3eee94ba2cd4ad5f49d87a9f4ae2ce1caade150d2a8",
+      "authority_ref": "auth_approved_task_61",
+      "stamped_at": "2026-07-21T10:37:48.515766Z",
+      "lifecycle": "PERSISTED",
+      "lifecycle_at": "2026-07-21T10:37:48.514966Z",
+      "created_at": "2026-07-21T10:37:48.514966Z"
+    },
+    {
+      "schema_version": "1",
+      "effect_id": "efcd86f31233098669466ff0afef22407bb52cb9f557d352685c8e7e785b7954",
+      "operation_id": "efcd86f31233098669466ff0afef22407bb52cb9f557d352685c8e7e785b7954:0",
+      "step": 0,
+      "effect_type": "order.create",
+      "effect_class": "IRREVERSIBLE",
+      "scope": "acme-store/prod",
+      "stable_ids": {
+        "order_id": "9411",
+        "customer_ref": "C-0019"
+      },
+      "adapter_id": "refdest-c2",
+      "declaration_digest": "sha256:ac957d63ec55844c1b82b92a52f2273e1853620e9751babb602b3a60c5e06b37",
+      "parameters_digest": "sha256:f86af5eae3c6b695249a403b78d7cf89ee6ff6b14f5dc4f98b46d4dbc6d75145",
+      "authority_ref": "auth_approved_task_52",
+      "stamped_at": "2026-07-21T10:37:48.494620Z",
+      "lifecycle": "SETTLED_COMMITTED",
+      "lifecycle_at": "2026-07-21T10:37:48.506771Z",
+      "created_at": "2026-07-21T10:37:48.493835Z"
+    },
+    {
+      "schema_version": "1",
+      "effect_id": "c85c01dc4fe6fd581e7b528ac1baacc59490e5d195f3a16c427e3ee516214817",
+      "operation_id": "c85c01dc4fe6fd581e7b528ac1baacc59490e5d195f3a16c427e3ee516214817:0",
+      "step": 0,
+      "effect_type": "notification.send",
+      "effect_class": "IDEMPOTENT",
+      "scope": "acme-store/prod",
+      "stable_ids": {
+        "notification_id": "NTF-501",
+        "workflow_command_id": "wf_cmd_00088"
+      },
+      "adapter_id": "refdest-c2",
+      "declaration_digest": "sha256:ac957d63ec55844c1b82b92a52f2273e1853620e9751babb602b3a60c5e06b37",
+      "parameters_digest": "sha256:27e57600cd1e76f04fa60c186fbd2ae32279a1ba36c0e6f2b83dc0ff414e4668",
+      "authority_ref": "auth_approved_task_47",
+      "stamped_at": "2026-07-21T10:37:48.469081Z",
+      "lifecycle": "SETTLED_FAILED",
+      "lifecycle_at": "2026-07-21T10:37:48.491873Z",
+      "created_at": "2026-07-21T10:37:48.468277Z"
+    },
+    {
+      "schema_version": "1",
+      "effect_id": "e216ca270fe757cdc2c2f435a06c8f42855056a8220cb63c2ea789caaaf70b20",
+      "operation_id": "e216ca270fe757cdc2c2f435a06c8f42855056a8220cb63c2ea789caaaf70b20:0",
+      "step": 0,
+      "effect_type": "shipment.create",
+      "effect_class": "COMPENSABLE",
+      "scope": "acme-logistics/prod",
+      "stable_ids": {
+        "shipment_id": "SHP-88121"
+      },
+      "adapter_id": "refdest-c2",
+      "declaration_digest": "sha256:ac957d63ec55844c1b82b92a52f2273e1853620e9751babb602b3a60c5e06b37",
+      "parameters_digest": "sha256:0a35fc391975a14c57eec6baf9b93f6890f0cde930ccb1d953a27fa39e2a5c21",
+      "authority_ref": "auth_approved_task_44",
+      "stamped_at": "2026-07-21T10:37:48.457908Z",
+      "lifecycle": "SETTLED_FAILED",
+      "lifecycle_at": "2026-07-21T10:37:48.466301Z",
+      "created_at": "2026-07-21T10:37:48.457123Z"
+    },
+    {
+      "schema_version": "1",
+      "effect_id": "c4ea734f26decc15b551c4d91fb7a27dcaa4f1005cc9b4d1d17adf0bd0cb5ed7",
+      "operation_id": "c4ea734f26decc15b551c4d91fb7a27dcaa4f1005cc9b4d1d17adf0bd0cb5ed7:0",
+      "step": 0,
+      "effect_type": "refund.create",
+      "effect_class": "COMPENSABLE",
+      "scope": "acme-store/prod",
+      "stable_ids": {
+        "invoice_id": "INV-2201"
+      },
+      "adapter_id": "refdest-c2",
+      "declaration_digest": "sha256:ac957d63ec55844c1b82b92a52f2273e1853620e9751babb602b3a60c5e06b37",
+      "parameters_digest": "sha256:e8789b40902f121b96eccc91e1f42a6d83f1ef7eb21e9bd5d76770165b62d5fc",
+      "authority_ref": "auth_approved_task_31",
+      "stamped_at": "2026-07-21T10:37:48.445766Z",
+      "lifecycle": "SETTLED_COMMITTED",
+      "lifecycle_at": "2026-07-21T10:37:48.455111Z",
+      "created_at": "2026-07-21T10:37:48.445003Z"
+    },
+    {
+      "schema_version": "1",
+      "effect_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5",
+      "operation_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5:0",
+      "step": 0,
+      "effect_type": "order.create",
+      "effect_class": "IRREVERSIBLE",
+      "scope": "acme-store/prod",
+      "stable_ids": {
+        "order_id": "9410",
+        "customer_ref": "C-0007"
+      },
+      "adapter_id": "refdest-c2",
+      "declaration_digest": "sha256:ac957d63ec55844c1b82b92a52f2273e1853620e9751babb602b3a60c5e06b37",
+      "parameters_digest": "sha256:c11f201bdcaf3470b2fbea97ac111bd09bcc314d5b3745b57d54cd96b7c4bf6b",
+      "authority_ref": "auth_approved_task_18",
+      "stamped_at": "2026-07-21T10:28:52.475413Z",
+      "lifecycle": "SETTLED_COMMITTED",
+      "lifecycle_at": "2026-07-21T10:28:52.621273Z",
+      "created_at": "2026-07-21T10:28:52.476585Z"
+    }
+  ],
+  "has_more": false,
+  "next_cursor": null,
+  "as_of": "2026-07-21T10:37:48.648823Z"
+}

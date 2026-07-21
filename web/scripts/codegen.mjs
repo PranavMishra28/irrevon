@@ -22,6 +22,9 @@ const check = process.argv.includes("--check");
 const SOURCES = {
   intentContract: join(repoRoot, "schemas", "intent-contract.schema.json"),
   capabilityDeclaration: join(repoRoot, "schemas", "capability-declaration.schema.json"),
+  effectRecord: join(repoRoot, "schemas", "effect-record.schema.json"),
+  dispatchReceipt: join(repoRoot, "schemas", "dispatch-receipt.schema.json"),
+  reconciliationFinding: join(repoRoot, "schemas", "reconciliation-finding.schema.json"),
   rfc002: join(repoRoot, "docs", "rfc-002-engine-design.md"),
   exampleOrderCreate: join(
     repoRoot,
@@ -52,6 +55,9 @@ async function generateSchemaTypes() {
   for (const [name, file] of [
     ["intent-contract", SOURCES.intentContract],
     ["capability-declaration", SOURCES.capabilityDeclaration],
+    ["effect-record", SOURCES.effectRecord],
+    ["dispatch-receipt", SOURCES.dispatchReceipt],
+    ["reconciliation-finding", SOURCES.reconciliationFinding],
   ]) {
     const schema = JSON.parse(readFileSync(file, "utf8"));
     const ts = await compile(schema, schema.title ?? name, {

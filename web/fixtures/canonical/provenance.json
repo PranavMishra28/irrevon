@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-07-21T10:37:48.648823Z",
+  "engine_commit": "a3dd5832a954fb6b0da62203f5017f64ede8c421",
+  "seed": 777,
+  "source": "real engine run (src/detent) against the refdest-c2 reference destination",
+  "notes": [
+    "effects.json/findings.json items are exchange shapes assembled from the run's ledger rows and validated against schemas/*.schema.json",
+    "inspect/*.json and demo-artifact.json and health.json are verbatim CLI outputs (stable ids redacted by CLI default)",
+    "resolution evidence_digest values are RFC 8785 canonical digests of the stored resolution evidence (no Q2 producer exists yet)",
+    "scenario labels: {\"flagship\": \"0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5\", \"clean-settle\": \"c4ea734f26decc15b551c4d91fb7a27dcaa4f1005cc9b4d1d17adf0bd0cb5ed7\", \"rejected\": \"e216ca270fe757cdc2c2f435a06c8f42855056a8220cb63c2ea789caaaf70b20\", \"lost\": \"c85c01dc4fe6fd581e7b528ac1baacc59490e5d195f3a16c427e3ee516214817\", \"duplicate\": \"efcd86f31233098669466ff0afef22407bb52cb9f557d352685c8e7e785b7954\", \"persisted\": \"371a59b8452dd4fe659e9dd4ef78fd8cac90b5dd36583aea1dff9e99b4f74f6c\", \"ambiguous-open\": \"f18adfccc0bfa6fabc817c15e2afd305a80c5d119f1c7101567cf43f28a913b0\"}"
+  ]
+}
