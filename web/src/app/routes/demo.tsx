@@ -1,20 +1,49 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { ContractPendingState, Page } from "@/shared/ui/layout/page";
+import { DemoPlayer } from "@/features/demo/player";
+import { apiGet } from "@/shared/api/client";
+import { queryKeys } from "@/shared/api/query-keys";
+import type { DemoArtifact } from "@/shared/api/types";
+import { Page } from "@/shared/ui/layout/page";
 
 export const Route = createFileRoute("/demo")({ component: DemoPage });
 
 function DemoPage() {
+  const artifact = useQuery({
+    queryKey: queryKeys.demoArtifact(),
+    queryFn: () => apiGet<DemoArtifact>("/api/v1/demo/artifact"),
+  });
+
   return (
     <Page
       title="Demo"
-      lead="Read-only playback of the flagship recovery story: a response lost, a crash survived, an ambiguous outcome adjudicated by query — replayed from a recorded artifact, never started from the browser."
+      lead="Guided replay of a recorded flagship run: a response lost, a real SIGKILL, recovery by query, and a re-synthesized retry denied with evidence — beside the strongest conventional baseline under the identical fault schedule."
     >
-      <div className="max-w-3xl">
-        <ContractPendingState
-          what="Playback renders each step from the corrected demo artifact schema (three fault legs plus the B5 contrast). The step count and event names come from the artifact, not from prose."
-          blockedOn="BI-2, BI-3, BI-5 (demo JSONL/artifact schema)"
-        />
-      </div>
+      {artifact.isPending ? (
+        <div className="min-h-64" aria-busy="true" />
+      ) : artifact.isError ? (
+        <div
+          className="max-w-2xl rounded-(--radius-structural) border-2 border-border-strong bg-surface-1 p-5"
+          role="alert"
+        >
+          <p className="font-mono text-2xs font-medium tracking-wide text-text-primary uppercase">
+            Demo artifact unavailable
+          </p>
+          <p className="mt-2 text-sm text-text-primary">{artifact.error.message}</p>
+          <p className="mt-1 text-sm text-text-secondary">
+            Playback renders only a recorded artifact; nothing is simulated in its place.
+          </p>
+        </div>
+      ) : (
+        <div className="max-w-3xl">
+          <p className="mb-4 text-xs text-text-tertiary">
+            Replaying the artifact of{" "}
+            <span className="font-mono">detent demo --seed {artifact.data.summary.seed}</span> —
+            a real engine run with a real crash. The browser never starts an effect.
+          </p>
+          <DemoPlayer artifact={artifact.data} />
+        </div>
+      )}
     </Page>
   );
 }
