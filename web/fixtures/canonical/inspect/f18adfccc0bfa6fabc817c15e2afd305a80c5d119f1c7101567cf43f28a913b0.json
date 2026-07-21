@@ -1,0 +1,123 @@
+{
+  "schema_version": "1",
+  "kind": "effect",
+  "record": {
+    "effect_id": "f18adfccc0bfa6fabc817c15e2afd305a80c5d119f1c7101567cf43f28a913b0",
+    "effect_type": "subscription.cancel",
+    "effect_class": "REVERSIBLE",
+    "scope": "acme-store/prod",
+    "stable_ids": {
+      "subscription_id": "<redacted; --reveal to show>",
+      "workflow_command_id": "<redacted; --reveal to show>"
+    },
+    "adapter_id": "refdest-c2",
+    "lifecycle": "AMBIGUOUS"
+  },
+  "timeline": [
+    {
+      "transition_seq": 25,
+      "step": 0,
+      "operation_id": "f18adfccc0bfa6fabc817c15e2afd305a80c5d119f1c7101567cf43f28a913b0:0",
+      "from_state": null,
+      "to_state": "INTENDED",
+      "cause": "register",
+      "actor": "registrar",
+      "evidence": {
+        "opened_by": "register"
+      },
+      "created_at": "2026-07-21 10:37:48.517062+00:00"
+    },
+    {
+      "transition_seq": 26,
+      "step": 0,
+      "operation_id": "f18adfccc0bfa6fabc817c15e2afd305a80c5d119f1c7101567cf43f28a913b0:0",
+      "from_state": "INTENDED",
+      "to_state": "PERSISTED",
+      "cause": "durable_write",
+      "actor": "registrar",
+      "evidence": {
+        "opened_by": "register"
+      },
+      "created_at": "2026-07-21 10:37:48.517062+00:00"
+    },
+    {
+      "transition_seq": 27,
+      "step": 0,
+      "operation_id": "f18adfccc0bfa6fabc817c15e2afd305a80c5d119f1c7101567cf43f28a913b0:0",
+      "from_state": "PERSISTED",
+      "to_state": "DISPATCHED",
+      "cause": "gate_allow",
+      "actor": "gate",
+      "evidence": {
+        "attempt_id": 6,
+        "decision_id": 7
+      },
+      "created_at": "2026-07-21 10:37:48.520468+00:00"
+    },
+    {
+      "transition_seq": 28,
+      "step": 0,
+      "operation_id": "f18adfccc0bfa6fabc817c15e2afd305a80c5d119f1c7101567cf43f28a913b0:0",
+      "from_state": "DISPATCHED",
+      "to_state": "AMBIGUOUS",
+      "cause": "receipt_lost",
+      "actor": "dispatcher",
+      "evidence": {
+        "receipt_id": 6
+      },
+      "created_at": "2026-07-21 10:37:48.526519+00:00"
+    }
+  ],
+  "receipts": [
+    {
+      "receipt_id": 6,
+      "operation_id": "f18adfccc0bfa6fabc817c15e2afd305a80c5d119f1c7101567cf43f28a913b0:0",
+      "attempt_no": 1,
+      "kind": "primary",
+      "idempotency_key": "f18adfccc0bfa6fabc817c15e2afd305a80c5d119f1c7101567cf43f28a913b0:0",
+      "transport_outcome": "LOST",
+      "failure_kind": null,
+      "destination_ref": null,
+      "recorded_by": "dispatcher",
+      "recorded_at": "2026-07-21 10:37:48.526519+00:00"
+    }
+  ],
+  "findings": [],
+  "resolutions": [],
+  "gate_decisions": [
+    {
+      "decision_id": 7,
+      "variant": "dispatch",
+      "outcome": "ALLOW",
+      "deny_check": null,
+      "checks": [
+        {
+          "check": "deny_list",
+          "status": "passed"
+        },
+        {
+          "check": "authority",
+          "status": "passed"
+        },
+        {
+          "check": "branch_lineage",
+          "status": "passed"
+        },
+        {
+          "check": "dedup",
+          "status": "passed"
+        }
+      ],
+      "evidence": {
+        "input_digest": "sha256:b72e8b3d8acd65600b26d4421028186db2cbd7586751da543e19a3d0ec4ede94"
+      },
+      "created_at": "2026-07-21 10:37:48.520468+00:00"
+    }
+  ],
+  "probes": [],
+  "classification": "UNRECONCILED",
+  "integrity": {
+    "recomputed_intent_id": "f18adfccc0bfa6fabc817c15e2afd305a80c5d119f1c7101567cf43f28a913b0",
+    "matches": true
+  }
+}

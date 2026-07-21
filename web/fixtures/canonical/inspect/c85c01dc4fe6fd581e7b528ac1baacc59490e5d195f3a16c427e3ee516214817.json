@@ -1,0 +1,172 @@
+{
+  "schema_version": "1",
+  "kind": "effect",
+  "record": {
+    "effect_id": "c85c01dc4fe6fd581e7b528ac1baacc59490e5d195f3a16c427e3ee516214817",
+    "effect_type": "notification.send",
+    "effect_class": "IDEMPOTENT",
+    "scope": "acme-store/prod",
+    "stable_ids": {
+      "notification_id": "<redacted; --reveal to show>",
+      "workflow_command_id": "<redacted; --reveal to show>"
+    },
+    "adapter_id": "refdest-c2",
+    "lifecycle": "SETTLED_FAILED"
+  },
+  "timeline": [
+    {
+      "transition_seq": 14,
+      "step": 0,
+      "operation_id": "c85c01dc4fe6fd581e7b528ac1baacc59490e5d195f3a16c427e3ee516214817:0",
+      "from_state": null,
+      "to_state": "INTENDED",
+      "cause": "register",
+      "actor": "registrar",
+      "evidence": {
+        "opened_by": "register"
+      },
+      "created_at": "2026-07-21 10:37:48.468277+00:00"
+    },
+    {
+      "transition_seq": 15,
+      "step": 0,
+      "operation_id": "c85c01dc4fe6fd581e7b528ac1baacc59490e5d195f3a16c427e3ee516214817:0",
+      "from_state": "INTENDED",
+      "to_state": "PERSISTED",
+      "cause": "durable_write",
+      "actor": "registrar",
+      "evidence": {
+        "opened_by": "register"
+      },
+      "created_at": "2026-07-21 10:37:48.468277+00:00"
+    },
+    {
+      "transition_seq": 16,
+      "step": 0,
+      "operation_id": "c85c01dc4fe6fd581e7b528ac1baacc59490e5d195f3a16c427e3ee516214817:0",
+      "from_state": "PERSISTED",
+      "to_state": "DISPATCHED",
+      "cause": "gate_allow",
+      "actor": "gate",
+      "evidence": {
+        "attempt_id": 4,
+        "decision_id": 5
+      },
+      "created_at": "2026-07-21 10:37:48.474570+00:00"
+    },
+    {
+      "transition_seq": 17,
+      "step": 0,
+      "operation_id": "c85c01dc4fe6fd581e7b528ac1baacc59490e5d195f3a16c427e3ee516214817:0",
+      "from_state": "DISPATCHED",
+      "to_state": "AMBIGUOUS",
+      "cause": "receipt_lost",
+      "actor": "dispatcher",
+      "evidence": {
+        "receipt_id": 4
+      },
+      "created_at": "2026-07-21 10:37:48.481362+00:00"
+    },
+    {
+      "transition_seq": 18,
+      "step": 0,
+      "operation_id": "c85c01dc4fe6fd581e7b528ac1baacc59490e5d195f3a16c427e3ee516214817:0",
+      "from_state": "AMBIGUOUS",
+      "to_state": "SETTLED_FAILED",
+      "cause": "reconciled_absent",
+      "actor": "reconciler",
+      "evidence": {
+        "probe_ids": [
+          2,
+          3
+        ]
+      },
+      "created_at": "2026-07-21 10:37:48.491873+00:00"
+    }
+  ],
+  "receipts": [
+    {
+      "receipt_id": 4,
+      "operation_id": "c85c01dc4fe6fd581e7b528ac1baacc59490e5d195f3a16c427e3ee516214817:0",
+      "attempt_no": 1,
+      "kind": "primary",
+      "idempotency_key": "c85c01dc4fe6fd581e7b528ac1baacc59490e5d195f3a16c427e3ee516214817:0",
+      "transport_outcome": "LOST",
+      "failure_kind": null,
+      "destination_ref": null,
+      "recorded_by": "dispatcher",
+      "recorded_at": "2026-07-21 10:37:48.481362+00:00"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": 2,
+      "effect_id": "c85c01dc4fe6fd581e7b528ac1baacc59490e5d195f3a16c427e3ee516214817",
+      "adapter_id": "refdest-c2",
+      "destination_ref": null,
+      "classification": "LOST",
+      "excess_effect_count": null,
+      "evidence": {
+        "probe_ids": [
+          2,
+          3
+        ]
+      },
+      "evidence_digest": "sha256:bba074d27c01252cd5cf855c2a301197225a68589c8398656d7dcc2b713cb2c6",
+      "created_by": "reconciler",
+      "created_at": "2026-07-21 10:37:48.491873+00:00"
+    }
+  ],
+  "resolutions": [],
+  "gate_decisions": [
+    {
+      "decision_id": 5,
+      "variant": "dispatch",
+      "outcome": "ALLOW",
+      "deny_check": null,
+      "checks": [
+        {
+          "check": "deny_list",
+          "status": "passed"
+        },
+        {
+          "check": "authority",
+          "status": "passed"
+        },
+        {
+          "check": "branch_lineage",
+          "status": "passed"
+        },
+        {
+          "check": "dedup",
+          "status": "passed"
+        }
+      ],
+      "evidence": {
+        "input_digest": "sha256:c6b66ee3c90a2d702448a4cbeda6eca5a1d4edcb4bc3882e9e4b892e9b6746f7"
+      },
+      "created_at": "2026-07-21 10:37:48.474570+00:00"
+    }
+  ],
+  "probes": [
+    {
+      "probe_id": 2,
+      "probe_kind": "reconcile_open",
+      "result": "ABSENT",
+      "n_found": 0,
+      "queried_at": "2026-07-21 10:37:48.488708+00:00"
+    },
+    {
+      "probe_id": 3,
+      "probe_kind": "reconcile_open",
+      "result": "ABSENT",
+      "n_found": 0,
+      "queried_at": "2026-07-21 10:37:48.490997+00:00"
+    }
+  ],
+  "classification": "LOST",
+  "integrity": {
+    "recomputed_intent_id": "c85c01dc4fe6fd581e7b528ac1baacc59490e5d195f3a16c427e3ee516214817",
+    "matches": true
+  }
+}

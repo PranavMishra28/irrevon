@@ -1,0 +1,38 @@
+{
+  "$comment": "SHA-256 pins of every contract source consumed by web codegen. A mismatch means a schema or the ratified state table changed: regenerate, revalidate fixtures, review.",
+  "generated_by": "scripts/codegen.mjs",
+  "sources": {
+    "schemas/intent-contract.schema.json": {
+      "sha256": "93dd8e904dbe4bdb5c90aeefb613bebcc2ee81a8a3d1f7ceb16e6bc4c6ae267d",
+      "role": "intentContract"
+    },
+    "schemas/capability-declaration.schema.json": {
+      "sha256": "97286032a74ba06a4757ad333fe4c153f98fea17ccff233526b169c63e0f295a",
+      "role": "capabilityDeclaration"
+    },
+    "schemas/effect-record.schema.json": {
+      "sha256": "fb5de2f0b4d0ab705293e29ad5378a140b212e0f6e4aaf132adedec9712d3ce5",
+      "role": "effectRecord"
+    },
+    "schemas/dispatch-receipt.schema.json": {
+      "sha256": "3c9eba85281fa88184868ea11d18d5665c221910e7714d753febf714045827a6",
+      "role": "dispatchReceipt"
+    },
+    "schemas/reconciliation-finding.schema.json": {
+      "sha256": "078b704ab9f3db939bd6aec2ea313653908adad18af9d43b4db4ee470ba90d60",
+      "role": "reconciliationFinding"
+    },
+    "docs/rfc-002-engine-design.md": {
+      "sha256": "d8ee9a6996ae0fcf917e8e4e3faf7e972c7ad42da9e8318ecd9bd0184ce5d12a",
+      "role": "rfc002"
+    },
+    "schemas/examples/intent-contract/valid-order-create.json": {
+      "sha256": "7711c3cef81808b68d0fb16f387d91b405ff41b6203b73e2bdcb61e4ee1cfe14",
+      "role": "exampleOrderCreate"
+    },
+    "schemas/examples/intent-contract/valid-refund-single-id.json": {
+      "sha256": "5f65a43b8aa55a79e838495ec2619da6d5d49e2422ad6df485b806b114f467ae",
+      "role": "exampleRefund"
+    }
+  }
+}

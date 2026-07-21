@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@import "./shared/ui/tokens/reference.css";
+@import "./shared/ui/tokens/semantic.css";
+@import "./shared/ui/tokens/density.css";
+@import "./shared/ui/tokens/motion.css";
+
+/* Self-hosted IBM Plex (Latin1 subsets, weights 400/500/600). No network fonts. */
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("/fonts/ibm-plex-sans-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url("/fonts/ibm-plex-sans-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url("/fonts/ibm-plex-sans-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("/fonts/ibm-plex-mono-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url("/fonts/ibm-plex-mono-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url("/fonts/ibm-plex-mono-600.woff2") format("woff2");
+}
+
+@layer base {
+  html {
+    /* Root stacking context so portaled layers always sit above app content. */
+    isolation: isolate;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: var(--sys-text-sm);
+    line-height: var(--sys-leading-sm);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-selection);
+  }
+
+  :focus-visible {
+    outline: var(--sys-focus-width) solid var(--color-border-focus);
+    outline-offset: var(--sys-focus-offset);
+  }
+
+  h1:focus {
+    outline: none;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}

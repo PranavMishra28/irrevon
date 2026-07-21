@@ -1,0 +1,26 @@
+# pnpm settings only — this is a single-app tree, not a JS monorepo.
+packages:
+  - "."
+
+# Supply-chain hardening per the ratified stack policy:
+# - no lifecycle scripts execute, ever (every allowBuilds entry is false)
+# - 7-day publish-to-installable delay
+# - no provenance downgrades, no git/tarball transitive deps
+# Fonts and the MSW worker are consumed as static files; esbuild's binary
+# arrives via its platform optional dependency — none of these need scripts.
+allowBuilds:
+  "@ibm/plex-mono": false
+  "@ibm/plex-sans": false
+  esbuild: false
+  msw: false
+  unrs-resolver: false
+minimumReleaseAge: 10080
+trustPolicy: no-downgrade
+blockExoticSubdeps: true
+
+# Narrow, reviewed exclusions from trustPolicy only (NOT from allowBuilds or
+# minimumReleaseAge). These are years-old transitive pins that predate npm
+# provenance; the "downgrade" signal is an artifact of newer lines having
+# attestation, not an incident. Each entry names the exact version.
+trustPolicyExclude:
+  - semver@6.3.1
