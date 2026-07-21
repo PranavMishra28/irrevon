@@ -55,7 +55,9 @@ function TierMeterStatic({ tier }: { tier: Tier }) {
           key={i}
           className={
             "h-2.5 w-4 rounded-[1px] border " +
-            (i < filled ? "border-border-strong bg-surface-3" : "border-border bg-surface-1")
+            (i < filled
+              ? "border-border-strong bg-layer-sunken"
+              : "border-border bg-layer-panel")
           }
         />
       ))}
@@ -73,7 +75,7 @@ function TiersPage() {
         {TIERS.map((tier) => (
           <section
             key={tier.id}
-            className="rounded-(--radius-structural) border border-border bg-surface-1 p-5"
+            className="rounded-(--radius-structural) border border-border bg-layer-panel p-5"
           >
             <div className="flex items-center gap-3">
               <span className="font-mono text-sm font-semibold text-text-primary">

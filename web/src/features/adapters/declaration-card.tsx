@@ -7,7 +7,7 @@ const dd = "text-sm text-text-primary";
 /** Field-for-field view of a real, schema-validated capability declaration. */
 export function DeclarationCard({ declaration }: { declaration: CapabilityDeclaration }) {
   return (
-    <section className="rounded-(--radius-structural) border border-border bg-surface-1 p-5">
+    <section className="rounded-(--radius-structural) border border-border-subtle bg-layer-panel p-5 shadow-(--sys-edge-light)">
       <div className="flex flex-wrap items-center gap-3">
         <h2 className="font-mono text-base font-semibold text-text-primary">
           {declaration.adapter}

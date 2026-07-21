@@ -63,7 +63,7 @@ export function EffectsFilterBar({
             }
           }}
           className={
-            "h-7 w-56 rounded-(--radius-control) border border-border bg-surface-1 px-2 " +
+            "h-7 w-56 rounded-(--radius-control) border border-border bg-layer-panel px-2 " +
             "font-mono text-xs text-text-primary placeholder:font-sans " +
             "placeholder:text-text-tertiary"
           }
@@ -93,7 +93,7 @@ export function EffectsFilterBar({
               "font-medium tracking-wide uppercase " +
               (active.has(value)
                 ? "border-accent bg-accent-bg text-text-primary"
-                : "border-border bg-surface-1 text-text-secondary hover:border-border-strong")
+                : "border-border bg-layer-panel text-text-secondary hover:border-border-strong")
             }
           >
             {value}

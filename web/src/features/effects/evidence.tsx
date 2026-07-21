@@ -47,7 +47,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-(--radius-structural) border border-border bg-surface-1 p-4">
+    <section className="rounded-(--radius-structural) border border-border-subtle bg-layer-panel p-4 shadow-(--sys-edge-light)">
       <h3 className="text-base font-semibold text-text-primary">{title}</h3>
       {lead !== undefined ? <p className="mt-1 text-xs text-text-secondary">{lead}</p> : null}
       <div className="mt-3">{children}</div>
@@ -350,7 +350,7 @@ export function ResynthesisSection({
       lead="Same stable business identity, different model-generated arguments. Digest inequality is the whole claim — payload text is never reconstructed."
     >
       {/* Identity-convergence band */}
-      <div className="rounded-t-(--radius-structural) border border-border-strong bg-surface-2 p-3">
+      <div className="rounded-t-(--radius-structural) border border-border-strong bg-layer-sunken p-3">
         <p className={dt}>identity — convergent</p>
         <p className="mt-1 font-mono text-xs break-all text-text-primary">
           {payload.record.effect_id}
@@ -438,7 +438,7 @@ export function RawJsonSection({ payload }: { payload: InspectPayload }) {
         <summary className="cursor-default text-xs text-accent hover:underline">
           Show exact JSON ({(JSON.stringify(payload).length / 1024).toFixed(1)} KB)
         </summary>
-        <pre className="mt-2 max-h-96 overflow-auto rounded-(--radius-control) border border-border-subtle bg-surface-2 p-3 font-mono text-2xs leading-relaxed">
+        <pre className="mt-2 max-h-96 overflow-auto rounded-(--radius-control) border border-border-subtle bg-layer-sunken p-3 font-mono text-2xs leading-relaxed">
           {highlightJson(JSON.stringify(payload, null, 2))}
         </pre>
       </details>

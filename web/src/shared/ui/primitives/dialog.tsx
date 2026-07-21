@@ -28,7 +28,7 @@ export function Dialog({
           className={
             "fixed top-[15vh] left-1/2 z-(--sys-z-modal) w-full -translate-x-1/2 " +
             (wide ? "max-w-2xl " : "max-w-lg ") +
-            "rounded-(--radius-structural) border border-border-strong bg-surface-1 " +
+            "rounded-(--radius-structural) border border-border-strong bg-layer-overlay " +
             "shadow-overlay outline-none"
           }
         >

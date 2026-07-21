@@ -206,8 +206,8 @@ export function EffectsGrid({
                 openRow(rowIndex);
               }}
               className={
-                "h-(--dt-row-h) border-b border-border-subtle hover:bg-surface-2 " +
-                "focus-within:bg-surface-2 " +
+                "h-(--dt-row-h) border-b border-border-subtle hover:bg-(--sys-state-hover) " +
+                "focus-within:bg-(--sys-state-hover) " +
                 "focus:outline-2 focus:-outline-offset-2 focus:outline-(--color-border-focus) " +
                 (isInspected ? "relative bg-layer-panel" : "")
               }

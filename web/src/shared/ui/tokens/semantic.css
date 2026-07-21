@@ -11,10 +11,6 @@
   --font-mono: "IBM Plex Mono", monospace;
 
   --color-canvas: var(--ref-canvas);
-  /* Deprecated aliases — remove after every call site is classified onto a layer role. */
-  --color-surface-1: var(--ref-surface-1);
-  --color-surface-2: var(--ref-surface-2);
-  --color-surface-3: var(--ref-surface-3);
   --color-layer-sunken: var(--ref-layer-sunken);
   --color-layer-nav: var(--ref-layer-nav);
   --color-layer-workspace: var(--ref-layer-workspace);
@@ -35,7 +31,9 @@
 
   --color-accent: var(--ref-accent);
   --color-accent-hover: var(--ref-accent-hover);
+  --color-accent-active: var(--ref-accent-active);
   --color-accent-bg: var(--ref-accent-bg);
+  --color-accent-bg-strong: var(--ref-accent-bg-strong);
   --color-selection: var(--ref-selection);
 
   /* Status utilities are lint-restricted to src/shared/domain/status. */

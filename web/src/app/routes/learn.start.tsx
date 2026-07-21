@@ -11,7 +11,7 @@ function StartPage() {
       lead="Agents retry; destinations don't forgive. Detent persists a stable business identity before dispatch, and queries ambiguous outcomes instead of guessing."
     >
       <div className="flex max-w-3xl flex-col gap-5">
-        <section className="rounded-(--radius-structural) border border-border bg-surface-1 p-5">
+        <section className="rounded-(--radius-structural) border border-border bg-layer-panel p-5">
           <h2 className="text-lg font-semibold text-text-primary">
             The mechanism, in one pass
           </h2>
@@ -36,13 +36,13 @@ function StartPage() {
           </ol>
         </section>
 
-        <section className="rounded-(--radius-structural) border border-border bg-surface-1 p-5">
+        <section className="rounded-(--radius-structural) border border-border bg-layer-panel p-5">
           <h2 className="text-lg font-semibold text-text-primary">Produce a demo artifact</h2>
           <p className="mt-2 text-sm text-text-secondary">
             The walkthrough replays a recorded artifact. The command that produces it runs in
             your terminal — the browser never starts an effect:
           </p>
-          <pre className="mt-3 overflow-x-auto rounded-(--radius-control) border border-border-subtle bg-surface-2 px-3 py-2 font-mono text-xs text-text-primary">
+          <pre className="mt-3 overflow-x-auto rounded-(--radius-control) border border-border-subtle bg-layer-sunken px-3 py-2 font-mono text-xs text-text-primary">
             detent demo --keep
           </pre>
           {isMockMode ? (

@@ -35,7 +35,14 @@ export const Route = createFileRoute("/taxonomy")({
   component: TaxonomyPage,
 });
 
-const SURFACES = ["canvas", "surface-1", "surface-2", "surface-3"] as const;
+const SURFACES = [
+  ["canvas", "bg-canvas"],
+  ["layer-sunken", "bg-layer-sunken"],
+  ["layer-nav", "bg-layer-nav"],
+  ["layer-workspace", "bg-layer-workspace"],
+  ["layer-panel", "bg-layer-panel"],
+  ["layer-overlay", "bg-layer-overlay"],
+] as const;
 const TEXT_ROLES = ["primary", "secondary", "tertiary", "disabled"] as const;
 const TYPE_SCALE = [
   ["text-2xs", "11px — uppercase micro-labels only"],
@@ -50,7 +57,7 @@ const TYPE_SCALE = [
 function StatusMatrix({ grayscale = false }: { grayscale?: boolean }) {
   return (
     <div
-      className="flex flex-col gap-3 rounded-(--radius-structural) border border-border bg-surface-1 p-5"
+      className="flex flex-col gap-3 rounded-(--radius-structural) border border-border bg-layer-panel p-5"
       style={grayscale ? { filter: "grayscale(1)" } : undefined}
     >
       <div className="flex flex-wrap items-center gap-2">
@@ -112,7 +119,7 @@ function TaxonomyPage() {
 
         <section>
           <h2 className="text-lg font-semibold text-text-primary">Composition (A · B · C)</h2>
-          <div className="mt-3 flex flex-col gap-3 rounded-(--radius-structural) border border-border bg-surface-1 p-5">
+          <div className="mt-3 flex flex-col gap-3 rounded-(--radius-structural) border border-border bg-layer-panel p-5">
             <StatusTriplet lifecycle="AMBIGUOUS" classification="UNRECONCILED" />
             <StatusTriplet
               lifecycle="SETTLED_COMMITTED"
@@ -138,7 +145,7 @@ function TaxonomyPage() {
         </section>
         <section>
           <h2 className="text-lg font-semibold text-text-primary">Mark</h2>
-          <div className="mt-3 flex items-end gap-6 rounded-(--radius-structural) border border-border bg-surface-1 p-5 text-text-primary">
+          <div className="mt-3 flex items-end gap-6 rounded-(--radius-structural) border border-border bg-layer-panel p-5 text-text-primary">
             <SeatMark size={64} standalone />
             <SeatMark size={32} standalone />
             <SeatMark size={24} standalone />
@@ -149,10 +156,10 @@ function TaxonomyPage() {
         <section>
           <h2 className="text-lg font-semibold text-text-primary">Surfaces and text</h2>
           <div className="mt-3 grid grid-cols-4 gap-3">
-            {SURFACES.map((surface) => (
+            {SURFACES.map(([surface, surfaceClass]) => (
               <div
                 key={surface}
-                className={`rounded-(--radius-structural) border border-border p-3 bg-${surface}`}
+                className={`rounded-(--radius-structural) border border-border p-3 ${surfaceClass}`}
               >
                 <p className="font-mono text-2xs text-text-tertiary">{surface}</p>
                 {TEXT_ROLES.map((role) =>
@@ -180,7 +187,7 @@ function TaxonomyPage() {
 
         <section>
           <h2 className="text-lg font-semibold text-text-primary">Type scale</h2>
-          <dl className="mt-3 flex flex-col gap-1 rounded-(--radius-structural) border border-border bg-surface-1 p-5">
+          <dl className="mt-3 flex flex-col gap-1 rounded-(--radius-structural) border border-border bg-layer-panel p-5">
             {TYPE_SCALE.map(([cls, label]) => (
               <div key={cls} className="flex items-baseline gap-4">
                 <dt className="w-20 shrink-0 font-mono text-2xs text-text-tertiary">{cls}</dt>
@@ -192,7 +199,7 @@ function TaxonomyPage() {
 
         <section>
           <h2 className="text-lg font-semibold text-text-primary">Controls</h2>
-          <div className="mt-3 flex items-center gap-3 rounded-(--radius-structural) border border-border bg-surface-1 p-5">
+          <div className="mt-3 flex items-center gap-3 rounded-(--radius-structural) border border-border bg-layer-panel p-5">
             <Button>Default</Button>
             <Button variant="accent">Accent</Button>
             <Button variant="ghost">Ghost</Button>

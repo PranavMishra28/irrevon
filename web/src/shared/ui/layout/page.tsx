@@ -49,7 +49,7 @@ export function ContractPendingState({
   children?: ReactNode;
 }) {
   return (
-    <div className="rounded-(--radius-structural) border border-border bg-surface-1 px-5 py-6">
+    <div className="rounded-(--radius-structural) border border-border bg-layer-panel px-5 py-6">
       <p className="font-mono text-2xs font-medium tracking-wide text-text-tertiary uppercase">
         Contract pending
       </p>
