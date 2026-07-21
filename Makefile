@@ -100,7 +100,7 @@ py-db-down:
 	docker compose down -v
 
 check-all: check py-check py-test py-test-integration
-	@echo "OK: all validation gates passed (docs + python)"
+	@echo "OK: all validation gates passed (docs + python + web)"
 
 # ── CI gates (appended block — keep contiguous; see docs/ci.md) ───────────────
 # Tested tool versions (update deliberately, in one commit with the pin table in
@@ -127,3 +127,31 @@ frozen:
 # table CI and cloud agents use. `make tools` keeps brew as macOS convenience.
 tools-pinned:
 	bash scripts/bootstrap-tools.sh
+
+# ── Web workbench gates (appended at integration; taxonomy per ADR-0017) ──────
+# Recipes cd into web/ so corepack resolves the pinned pnpm from web/package.json.
+# `check` stays node-free by design (docs/ci.md tier table); `check-all` folds the
+# web gates in below. web-vrt is authoritative only inside the pinned container.
+.PHONY: web-check web-test web-e2e web-vrt
+check-all: web-check web-test
+
+# F0 static: typecheck, lint, stylelint, format, codegen drift, fixture pins,
+# font drift, unit tests (the `check` script bundles the unit project).
+web-check:
+	cd web && pnpm install --frozen-lockfile && pnpm run check
+
+# F1/F2: unit + Storybook browser-mode story tests (axe violations are errors).
+web-test:
+	cd web && pnpm install --frozen-lockfile && pnpm run test && pnpm run test:stories
+
+# F3: Playwright workflows + a11y against the built review app.
+web-e2e:
+	cd web && pnpm install --frozen-lockfile && pnpm exec playwright test --project=e2e --project=a11y
+
+# F4: pixel baselines — only meaningful inside the pinned Linux container
+# (see web/README.md); a bare local run skips the vrt project by design.
+web-vrt:
+	cd web && docker run --rm --ipc=host -v "$$PWD":/work -w /work \
+	  mcr.microsoft.com/playwright:v1.61.1-noble \
+	  bash -lc 'corepack enable && pnpm install --frozen-lockfile && \
+	            DETENT_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
