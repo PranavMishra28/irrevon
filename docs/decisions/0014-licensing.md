@@ -14,10 +14,10 @@ becomes active at first public release, so nothing is gained by closing earlier,
 one-way doors below are real. This ADR is the decision record; [../../LICENSING.md](../../LICENSING.md)
 is the short posture notice. This is research synthesis, not legal advice.
 
-Forces (from the master doc): benchmark neutrality is the #1 asset (§17); the career signal
-requires maximum adoption with zero legal friction (§14.1); the commercial path is weak,
-optional, and G0-gated (§3.2/§3.3/§5.3); no revenue-bearing activity is permitted until
-written immigration guidance (§13).
+Forces (from the master doc): benchmark neutrality is the #1 asset (§17); the adoption
+goal requires zero legal friction for the project's primary audience (§14.1); the
+commercial path is weak, optional, and G0-gated (§3.2/§3.3/§5.3); no revenue-bearing
+activity is permitted until external clearances (§13).
 
 ### The legal mechanics that constrain the choice `[VF]`
 
@@ -80,19 +80,34 @@ be called a "DetentBench result"), not a license problem.
 
 **OPEN — decide at the public-release gate** (execution-plan, gate item 3; human queue item 7).
 
-Current leaning `[EI]` (~85% confidence, consistent with the master doc's assumption):
+Recommended path `[EI]` (~85% confidence, consistent with the master doc's assumption;
+revised 2026-07-21 — DCO tooling correction, relicensing-claim correction per the validity
+review, interim wording updated for the now-public repository):
 
-- **Outbound:** Apache-2.0 for all code (engine, harness, adapters, in-repo fixtures) — the
-  explicit patent grant + defensive termination lowers enterprise legal-review friction for
-  exactly the adopters that matter; its one cost (GPL-2.0-only incompatibility) has no
-  plausible Detent consumer. CC-BY-4.0 for standalone dataset/doc artifacts if ever released
-  separately.
-- **Inbound (once public):** inbound=outbound + **DCO enforced by bot**. **No CLA** — adopt
-  one only if genuine dual licensing is ever decided (requires G0 + immigration clearance + a
-  deliberate, recorded reversal of the neutrality posture).
-- **Interim (now):** private repo, **no LICENSE file** (all rights reserved is the correct
-  maximal-optionality state), no contributions accepted. Adding a provisional license now
-  would grant nothing useful and pre-commit the narrative.
+- **Outbound:** Apache-2.0 for all code and in-repo fixtures (engine, harness, adapters).
+  Rationale against the evaluation criteria: matches the dominant benchmark norm
+  (AgentBench/HELM/BIG-bench Apache-2.0; SWE-bench/τ-bench MIT); the §3 explicit patent
+  grant + defensive termination lowers enterprise legal-review friction (MIT's patent
+  silence is the runner-up's only deficit); proprietary embedding is the adoption path,
+  not a leak; hosting risk is accepted as near-zero pre-G0.
+- **Data/docs:** CC-BY-4.0 for standalone dataset artifacts (e.g. a fixture release with
+  Croissant metadata) and docs/preprint. Never apply CC licenses to code. The held-out
+  fault-seed split is never published and never licensed.
+- **Inbound (once contributions open):** inbound=outbound plus **DCO sign-off, enforced**
+  via GitHub's native required-signoff setting **plus a maintained DCO status check
+  required on the default branch** (the status check is the enforcement control; the
+  probot DCO app is unmaintained as of 2026 and must not be the mechanism). **No CLA** —
+  adopt one only if genuine dual licensing is ever decided (requires G0 + external
+  clearances + a recorded reversal of the neutrality posture in a superseding ADR).
+- **Relicensing honesty (correction):** published versions remain under their license
+  forever, and incompatible relicensing of outside contributions may require contributor
+  consent absent a CLA/assignment — permissive inbound eases but does not unconditionally
+  guarantee relicensing of combined works. No claim to the contrary is made.
+- **Neutrality enforcement is name control, not license terms:** what may be called a
+  "DetentBench result" is governed by a conformance policy under the (screened) name.
+- **Interim (now):** the repository is publicly readable but unlicensed — all rights
+  reserved; no contributions accepted; dependencies permissive-only. LICENSING.md carries
+  the public-facing notice.
 
 ## Alternatives
 
@@ -106,9 +121,16 @@ Current leaning `[EI]` (~85% confidence, consistent with the master doc's assump
 
 ## Consequences
 
-Open-core remains fully available without CLAs or relicensing (the G0-gated product would be
-new, separate code). LICENSE/NOTICE, CONTRIBUTING with DCO policy, and per-artifact licensing
-are release-gate deliverables.
+Open-core remains fully available without CLAs (the G0-gated product would be new, separate
+code). Ordered actions before accepting any outside contribution: (1) name screen passed
+(P2); (2) this ADR closed by the human; (3) LICENSE (Apache-2.0) + NOTICE landed — a
+released repository must never exist in an unlicensed state; (4) CONTRIBUTING.md published
+(inbound=outbound, DCO, no CLA, pre-1.0 large-contribution policy); (5) DCO enforcement
+live before the first external PR (required-signoff setting + required DCO status check);
+(6) rulesets requiring the DCO check and review before merge; (7) dependency policy in CI:
+permissive-only licenses. At first release the repository must also record the copyright
+holder's legal name in LICENSE/NOTICE ("the repository owner" is not a valid public
+copyright notice) and replace LICENSING.md with the standard LICENSE/CONTRIBUTING pair.
 
 ## Risks
 
@@ -119,5 +141,6 @@ costly) restriction decision for future versions could still be taken.
 ## Reopen trigger
 
 G0 evidence gate satisfied; a funded competitor commercializes a hosted Detent; industry
-consensus on benchmark/data licensing shifts materially; counsel or employer-IP review
-contradicts a premise above.
+consensus on benchmark/data licensing shifts materially; counsel or the external-clearance
+review contradicts a premise above; the chosen DCO enforcement mechanism becomes
+unmaintained (re-verify at release).
