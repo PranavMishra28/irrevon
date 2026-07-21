@@ -142,7 +142,9 @@ jobs:
     needs: [changes, py-check]
     if: needs.changes.outputs.py_exists == 'true' && needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Measured 2026-07-21: ~13s locally at the ci profile; 10 minutes is
+    # generous headroom for slower runners without masking a hang.
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -153,6 +155,10 @@ jobs:
         with:
           enable-cache: true
       - run: make py-test
+        env:
+          # The >=1,000 cases/invariant floor (master doc section 12.2) is spec:
+          # profiles registered in tests/conftest.py; dev(100) is local-only.
+          HYPOTHESIS_PROFILE: ci
 
   # F0 frontend static gate — activates when web/ lands. Node is preinstalled on
   # ubuntu runners; pnpm comes via corepack (no extra action until web/ exists
