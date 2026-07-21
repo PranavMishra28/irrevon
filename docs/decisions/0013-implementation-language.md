@@ -1,7 +1,7 @@
 ---
 id: ADR-0013
 title: Choose the implementation language and core stack
-status: open
+status: accepted (ratified in writing by the owner, 2026-07-21)
 date: 2026-07-20
 supersedes: —
 ---
@@ -14,7 +14,7 @@ may be written before this closes. Evidence gathered pre-scaffold:
 - **Ecosystem gravity is Python-first** `[EI]`: the integration surface (LangGraph, CrewAI),
   the OSS twins (agent-ledger, SafeAgent), the closest academic system (Atomix), and the
   nearest funded entrant's SDK (Bylaw) are all Python. Python maximizes integration
-  credibility and contributor pool for the audience that matters (§14.1 career signal).
+  credibility and contributor pool for the project's primary audience (§3.1, §14.1).
 - **Property testing is a hard requirement** (§12.2: ≥1,000 cases/invariant): candidate
   ecosystems must have a mature framework (Hypothesis / proptest / fast-check / jqwik-class).
 - **Storage:** Postgres is an inherited constraint (ADR-002/§6.1 — single-writer append-only
@@ -28,18 +28,27 @@ may be written before this closes. Evidence gathered pre-scaffold:
 
 ## Decision
 
-**OPEN — NOT decided.** Current leaning `[EI]`: **Python** for the POC, with the ledger
-schema kept language-neutral (SQL migrations) so a second SDK remains possible.
-
-Process: [tasks/T-000](../../tasks/T-000-language-stack-spike.md) (a recommendation spike, not
-code) produces the comparison and proposed decision text for this ADR; **the human ratifies**
-by filling in the Decision section and flipping status to accepted. The first code task is
-blocked on that ratification (execution-plan P6→P8).
+**Accepted — ratified in writing by the owner on 2026-07-21** (human queue item 6), adopting
+the T-000 proposal appended below: implement the POC core, benchmark harness, and first
+adapters in **Python (CPython 3.13.x)**, with `uv` for packaging/lockfile and the stranger
+quickstart; **pytest + Hypothesis** (`@given` + stateful `RuleBasedStateMachine`) satisfying
+§12.2's ≥1,000 cases/invariant; **psycopg 3** (sync — single-writer POC per ADR-002);
+ledger schema as plain-SQL, language-neutral migrations (runner chosen at M2 bootstrap
+`[OQ]`); **`rfc8785`** as the RFC 8785/JCS encoder, version-pinned, guarded by
+cross-implementation conformance vectors in CI, and vendor-ready; stdlib `hashlib.sha256`;
+and a strict type-checking gate in CI (checker chosen at M2 `[OQ]`). One deviation from the
+proposal, per the same 2026-07-21 reconciliation: OpenTelemetry SDK adoption is **deferred**
+— v0.1 ships JSONL structured logging plus ledger-backed inspection only (see
+docs/rfc-002-engine-design.md; observability instrumentation was cut from the first slice).
+A second-language SDK stays possible by construction (frozen schemas + SQL) and is deferred
+until demand exists.
 
 ## Alternatives
 
-To be evaluated by T-000 against the criteria above; candidates at minimum: Python,
-TypeScript/Node, Go, Rust. Each rejection gets its one-line reason here at ratification.
+One-line reasons recorded in the ratified proposal below: TypeScript/Node (no winning
+criterion; npm supply-chain posture), Go (cross-language integration cost; property-testing
+and telemetry gaps), Rust (slowest solo iteration; no performance case), hybrid
+(premature second surface).
 
 ## Consequences
 
@@ -55,19 +64,21 @@ contracts).
 
 ## Reopen trigger
 
-Start of M3 implementation without ratification (blocks); or the frontier-lab audience signal
-shifts materially away from the chosen ecosystem.
+The primary integration ecosystem (agent frameworks, §11 ADR-009 audience) shifts materially
+away from the chosen language; or a load-bearing stack component (Hypothesis, psycopg,
+`rfc8785`) becomes unmaintained without a viable pin/vendor path.
 
 ---
 
-## T-000 proposal — **PROPOSED — awaiting ratification**
+## T-000 proposal — **RATIFIED 2026-07-21** (adopted into the Decision above)
 
-*Appended 2026-07-20 by [T-000](../../tasks/T-000-language-stack-spike.md). This section is a
-recommendation only; the Decision section above remains OPEN until a human ratifies. Full
-comparison with the scored criteria matrix and spike transcripts: `.scratch/rc/stack.md`
-(local-only). Verification is against primary sources current as of July 2026; disposable
-spikes in gitignored `.scratch/spikes/` were owner-authorized in writing (superseding this
-task's "no toolchains" review trigger); no product code was written.*
+*Appended 2026-07-20 by [T-000](../../tasks/T-000-language-stack-spike.md); ratified in
+writing by the owner on 2026-07-21 and adopted into the Decision section above. The full
+comparison with the scored criteria matrix and spike transcripts lived in local-only scratch
+material (consumed and discarded at integration). Verification is against primary sources
+current as of July 2026; disposable spikes in gitignored `.scratch/spikes/` were
+owner-authorized in writing (superseding this task's "no toolchains" review trigger); no
+product code was written.*
 
 ### Proposed Decision text
 

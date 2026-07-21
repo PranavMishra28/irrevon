@@ -27,7 +27,7 @@ existence.
 | 0010 | Stripe API version pin | **OPEN** | [0010-stripe-api-version.md](0010-stripe-api-version.md) |
 | 0011 | Working name "Detent" | accepted (screen pending, §13) | master doc §11 |
 | 0012 | C2 sandbox selection | **OPEN** | [0012-c2-sandbox.md](0012-c2-sandbox.md) |
-| 0013 | Implementation language and stack | **OPEN** | [0013-implementation-language.md](0013-implementation-language.md) |
+| 0013 | Implementation language and stack | accepted (ratified 2026-07-21) | [0013-implementation-language.md](0013-implementation-language.md) |
 | 0014 | Licensing and contributor governance | **OPEN** | [0014-licensing.md](0014-licensing.md) |
 | 0015 | Schema dialect and validation tooling | accepted | [0015-schema-validation-tooling.md](0015-schema-validation-tooling.md) |
 
