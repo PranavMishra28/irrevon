@@ -28,6 +28,7 @@ sources; these are refinements, not corrections of fabrications.
 | AM-12 | §8.1 | BetterBench "46 criteria" vs the camera-ready abstract's "40 practices": keep 46, cite betterbench.stanford.edu + arXiv:2411.12990, note the version drift. | Source comparison `[VF]` |
 | AM-13 | §15 M1 | Two-stage preregistration: M1's "preregistered and hash-stamped" is satisfied by a Stage-A **design** freeze (hypotheses, matrix, metrics, analysis rules — no sandbox names); Stage-B **execution** freeze (adapters, artifact hashes, sealed holdout hash) happens before M7 runs. Resolves the sequencing tension that full freeze depends on M4/M5-adjacent work. | Registered-report staging practice `[EI]` — design already in the DRAFT preregistration §0 |
 | AM-14 | §8.6 | Replace "overlapping CIs" as the indistinguishability test in the falsification criterion with a pre-specified equivalence procedure (TOST with a declared margin). CI overlap is a statistically weak sameness test. | Statistical-methods review `[EI]` — flagged in the DRAFT preregistration §5 |
+| AM-15 | §5.4 | Clarify the "dashboard" non-goal: §5.4 rejects a hosted multi-tenant SaaS dashboard. A local-first developer workbench UI (no auth layer, no billing, no hosted service) is in scope per the owner's written directive of 2026-07-21; formal master-doc integration pending ratification. | Owner written directive, 2026-07-21 `[DD]` |
 
 ## 2. Open uncertainties and negative results
 
@@ -63,3 +64,5 @@ Recorded so they are not re-researched or silently assumed away.
 | 6 | Ratify [ADR-0013](decisions/0013-implementation-language.md) after T-000 produces its recommendation. | First code task |
 | 7 | Close the licensing decision ([ADR-0014](decisions/0014-licensing.md)). | Any public step |
 | 8 | Decide on GitHub Pro (enforced branch protection on the private repo — the one paid feature with real security payoff for agent-driven development) when code lands. | — (M2) |
+| 9 | Ratify the workbench-scope amendment (AM-15) and the frontend-stack ADR (proposed separately). | Frontend implementation |
+| 10 | Owner decision 2026-07-21: repository made public while planning docs still contain personal material — sanitization proposals exist in the docs workstream; apply or accept. | — |

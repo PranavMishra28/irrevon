@@ -2,7 +2,7 @@
 
 ---
 id: T-000
-status: ready
+status: blocked-human-review
 depends_on: []
 invariant: "none — this is a decision task, not code; no product code may be written"
 ---
