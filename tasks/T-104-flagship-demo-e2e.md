@@ -9,30 +9,23 @@ invariant: "master doc §8.3 — the B5 contrast leg is never weakened so the de
 
 ## Objective
 
-The runnable first public artifact: `detent init` / `doctor` / `demo` / `inspect`, JSONL
-structured logging, and the automated two-leg E2E test (Detent leg + B5 contrast leg)
-implementing RFC-001 §9's acceptance script against the reference destination.
+The runnable first public artifact: `detent init`/`doctor`/`demo`/`inspect`, JSONL logging,
+and the two-leg E2E test (Detent + B5 contrast) implementing RFC-001 §9's acceptance script.
 
 ## Why
 
-RFC-001's acceptance test is the slice's definition of done (master doc §16, item 6: the
-lost-response + crash + re-synthesized retry that B5 mishandles and Detent reconciles).
-The CLI surface is deliberately trimmed to four commands for the first slice
-(RFC-002 §12); bench commands arrive at M5/M7.
+RFC-001's acceptance test is the slice's definition of done (master doc §16, item 6); the
+CLI is four commands for the first slice (RFC-002 §12); bench commands arrive at M5/M7.
 
 ## Context — read these first
 
-- [docs/rfc-001-first-slice.md](../docs/rfc-001-first-slice.md) §3 (demo story), §9 (test
-  plan incl. the B5 contrast leg)
-- [docs/rfc-002-engine-design.md](../docs/rfc-002-engine-design.md) §11 (logging +
-  inspect), §12 (CLI conventions, exit codes), §5.2 (the evidenced dedup deny the demo
-  must surface)
+- [docs/rfc-001-first-slice.md](../docs/rfc-001-first-slice.md) §3 (demo story), §9 (tests)
+- [docs/rfc-002-engine-design.md](../docs/rfc-002-engine-design.md) §5.2, §11, §12
 
 ## Scope
 
-**Allowed to write:** `src/detent/{cli,api,advisory}/**` (advisory = the isolation seam
-only, no classifier), `src/detent/logging/**`, `tests/e2e/**`, `compose.yaml` template +
-`detent.toml` template + `.env.example` written by `init`, this file's status.
+**Allowed to write:** `src/detent/{cli,api,advisory,logging}/**` (advisory = the isolation
+seam only, no classifier), `tests/e2e/**`, the `init`-written templates, this file's status.
 **Forbidden:** `bench` commands, `serve`, real-sandbox anything, CI workflows, `web/`.
 
 ## Acceptance criteria
@@ -40,20 +33,18 @@ only, no classifier), `src/detent/logging/**`, `tests/e2e/**`, `compose.yaml` te
 - [ ] `detent demo` exits 0: Detent leg ends with 1 destination effect, a reconciled
       SETTLED_COMMITTED + CONFIRMED_UNIQUE, and an evidenced dedup deny for the
       re-synthesized retry; B5 leg produces 2 destination effects, proven by read-back.
-- [ ] Edge case: the E2E test **fails** if the B5 leg does not duplicate (assertion
-      direction pinned in a code comment citing master doc §8.6) — verified by mutating
-      the refdest profile to honor keys in a test-of-the-test.
-- [ ] `detent inspect <effect_id>` shows the timeline, deny evidence, and a passing
-      integrity section (recomputed `intent_id` matches); values redacted by default.
-- [ ] `detent doctor` is read-only (no ledger writes, no network without `--probe`) and
-      the identity self-test reproduces the pinned vectors on this machine.
+- [ ] Edge case: the E2E test **fails** if the B5 leg does not duplicate (direction pinned
+      in a comment citing §8.6) — verified by a test-of-the-test with keys honored.
+- [ ] `detent inspect <effect_id>` shows timeline, deny evidence, and a passing integrity
+      section (recomputed `intent_id` matches); values redacted by default.
+- [ ] `detent doctor` is read-only (no writes; no network without `--probe`); identity
+      self-test reproduces the pinned vectors.
 - [ ] Classifier-isolation conformance test green (import-linter + type-level, RFC-002 §14).
-- [ ] `make check` and all `py-*` gates pass; quickstart from clean checkout ≤15 min.
+- [ ] All gates pass; quickstart from clean checkout ≤15 min.
 
 ## Required validation
 
-`make check && make py-check py-test py-test-integration`; run `detent demo --jsonl` and
-attach the summary line + the E2E evidence bundle path.
+All make gates; `detent demo --jsonl` summary line + E2E evidence bundle path attached.
 
 ## Documentation updates
 
@@ -66,5 +57,4 @@ README quickstart section (install → demo → inspect); this file's status.
 
 ## Definition of done
 
-All criteria checked; validation output attached; documentation updates made; no writes
-outside allowed scope; status set.
+All criteria checked; validation attached; docs updated; no out-of-scope writes; status set.
