@@ -1,0 +1,69 @@
+/* Semantic tokens — the only tier that generates Tailwind utilities.
+   Every value points at a reference token; components never see raw values. */
+
+@theme inline {
+  /* Wipe Tailwind's default palette/font stacks so only semantic utilities exist. */
+  --color-*: initial;
+  --font-*: initial;
+  --shadow-*: initial;
+
+  --font-sans: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --color-canvas: var(--ref-canvas);
+  --color-surface-1: var(--ref-surface-1);
+  --color-surface-2: var(--ref-surface-2);
+  --color-surface-3: var(--ref-surface-3);
+
+  --color-text-primary: var(--ref-ink-1);
+  --color-text-secondary: var(--ref-ink-2);
+  --color-text-tertiary: var(--ref-ink-3);
+  --color-text-disabled: var(--ref-ink-disabled);
+  --color-text-inverse: var(--ref-ink-inverse);
+
+  --color-border-subtle: var(--ref-border-subtle);
+  --color-border: var(--ref-border);
+  --color-border-strong: var(--ref-border-strong);
+  --color-border-focus: var(--ref-accent);
+
+  --color-accent: var(--ref-accent);
+  --color-accent-hover: var(--ref-accent-hover);
+  --color-accent-bg: var(--ref-accent-bg);
+  --color-selection: var(--ref-selection);
+
+  /* Status utilities are lint-restricted to src/shared/domain/status. */
+  --color-status-green: var(--ref-green);
+  --color-status-green-bg: var(--ref-green-bg);
+  --color-status-red: var(--ref-red);
+  --color-status-red-bg: var(--ref-red-bg);
+  --color-status-amber: var(--ref-amber);
+  --color-status-amber-bg: var(--ref-amber-bg);
+  --color-status-blue: var(--ref-blue);
+  --color-status-blue-bg: var(--ref-blue-bg);
+  --color-status-violet: var(--ref-violet);
+  --color-status-violet-bg: var(--ref-violet-bg);
+  --color-status-cyan: var(--ref-cyan);
+  --color-status-cyan-bg: var(--ref-cyan-bg);
+  --color-status-neutral: var(--ref-neutral);
+  --color-status-neutral-bg: var(--ref-neutral-bg);
+
+  --shadow-overlay: var(--ref-overlay-shadow);
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.35;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.4;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.25;
+
+  --radius-structural: 2px;
+  --radius-control: 4px;
+}
