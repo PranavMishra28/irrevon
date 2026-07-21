@@ -78,6 +78,7 @@ export default tseslint.config(
         { type: "shared-ui", pattern: "src/shared/ui/**" },
         { type: "shared-lib", pattern: "src/shared/lib/**" },
         { type: "mocks", pattern: "src/mocks/**" },
+        { type: "fixtures", pattern: "fixtures/**" },
       ],
       "boundaries/dependency-nodes": ["import", "dynamic-import"],
     },
@@ -148,6 +149,10 @@ export default tseslint.config(
               allow: [
                 { element: { type: "mocks" } },
                 { element: { type: "shared-contracts" } },
+                // envelope TYPES only; the fixture element is the sanctioned
+                // mock data source — production code never imports fixtures
+                { element: { type: "shared-api" } },
+                { element: { type: "fixtures" } },
               ],
             },
           ],
@@ -181,6 +186,14 @@ export default tseslint.config(
     rules: {
       // TanStack Router control flow: `throw redirect()` / `throw notFound()`.
       "@typescript-eslint/only-throw-error": "off",
+    },
+  },
+  {
+    files: ["src/features/effects/effects-grid.tsx"],
+    rules: {
+      // The WAI-ARIA APG grid pattern is a native <table role="grid"> with a
+      // roving tabindex; jsx-a11y flags the role remap generically, axe passes it.
+      "jsx-a11y/no-noninteractive-element-to-interactive-role": "off",
     },
   },
   {
