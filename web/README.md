@@ -106,7 +106,7 @@ Baselines live in `e2e/visual/__baselines__` and are Linux-only, generated insid
 pinned Playwright container:
 
 ```sh
-docker run --rm --ipc=host -v "$PWD":/work -w /work \
+docker run --rm --ipc=host -e CI=1 -v "$PWD":/work -w /work \
   mcr.microsoft.com/playwright:v1.61.1-noble \
   bash -lc 'corepack enable && pnpm install --frozen-lockfile && \
             DETENT_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
