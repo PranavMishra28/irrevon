@@ -7,7 +7,7 @@ session, scope enforced, exit criteria verifiable.
 ## Process
 
 - Files are `T-NNN-short-title.md`; ids chronological by creation, never reused. Completed
-  tasks are kept, not deleted (append-only records ethos, master doc §12.5).
+  tasks are kept, not deleted (append-only records policy, master doc §12.5).
 - **Statuses** (frontmatter): `draft → ready → in-progress → done | blocked`.
   `blocked-human-review` marks a task whose output awaits ratification.
 - Cross-task sequencing and gates live in [docs/execution-plan.md](../docs/execution-plan.md),

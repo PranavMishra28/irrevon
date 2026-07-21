@@ -1,0 +1,53 @@
+{
+  "schema_version": "1",
+  "kind": "effect",
+  "record": {
+    "effect_id": "371a59b8452dd4fe659e9dd4ef78fd8cac90b5dd36583aea1dff9e99b4f74f6c",
+    "effect_type": "payout.create",
+    "effect_class": "IRREVERSIBLE",
+    "scope": "acme-finance/prod",
+    "stable_ids": {
+      "payout_id": "<redacted; --reveal to show>"
+    },
+    "adapter_id": "refdest-c2",
+    "lifecycle": "PERSISTED"
+  },
+  "timeline": [
+    {
+      "transition_seq": 23,
+      "step": 0,
+      "operation_id": "371a59b8452dd4fe659e9dd4ef78fd8cac90b5dd36583aea1dff9e99b4f74f6c:0",
+      "from_state": null,
+      "to_state": "INTENDED",
+      "cause": "register",
+      "actor": "registrar",
+      "evidence": {
+        "opened_by": "register"
+      },
+      "created_at": "2026-07-21 10:37:48.514966+00:00"
+    },
+    {
+      "transition_seq": 24,
+      "step": 0,
+      "operation_id": "371a59b8452dd4fe659e9dd4ef78fd8cac90b5dd36583aea1dff9e99b4f74f6c:0",
+      "from_state": "INTENDED",
+      "to_state": "PERSISTED",
+      "cause": "durable_write",
+      "actor": "registrar",
+      "evidence": {
+        "opened_by": "register"
+      },
+      "created_at": "2026-07-21 10:37:48.514966+00:00"
+    }
+  ],
+  "receipts": [],
+  "findings": [],
+  "resolutions": [],
+  "gate_decisions": [],
+  "probes": [],
+  "classification": "UNRECONCILED",
+  "integrity": {
+    "recomputed_intent_id": "371a59b8452dd4fe659e9dd4ef78fd8cac90b5dd36583aea1dff9e99b4f74f6c",
+    "matches": true
+  }
+}

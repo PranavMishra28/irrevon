@@ -1,0 +1,18 @@
+{
+  "schema_version": "1",
+  "effect_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5",
+  "operation_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5:0",
+  "step": 0,
+  "effect_type": "order.create",
+  "effect_class": "IRREVERSIBLE",
+  "scope": "acme-store/prod",
+  "stable_ids": { "order_id": "9410" },
+  "adapter_id": "refdest-c2",
+  "declaration_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "parameters_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "authority_ref": "auth_approved_task_18",
+  "stamped_at": "2026-07-21T09:00:00Z",
+  "lifecycle": "RESOLVED",
+  "lifecycle_at": "2026-07-21T09:00:12Z",
+  "created_at": "2026-07-21T09:00:01Z"
+}

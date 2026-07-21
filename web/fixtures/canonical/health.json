@@ -1,0 +1,48 @@
+{
+  "schema_version": "1",
+  "checks": [
+    {
+      "name": "config",
+      "status": "ok",
+      "message": "loaded /private/tmp/detent-demo-run/detent.toml",
+      "hint": null
+    },
+    {
+      "name": "identity_selftest",
+      "status": "ok",
+      "message": "pinned vectors reproduce byte-for-byte",
+      "hint": null
+    },
+    {
+      "name": "ledger_db",
+      "status": "ok",
+      "message": "reachable; 4 migrations; 25 append-only triggers",
+      "hint": null
+    },
+    {
+      "name": "ledger_write",
+      "status": "ok",
+      "message": "write round-trip OK (rolled back)",
+      "hint": null
+    },
+    {
+      "name": "clock",
+      "status": "ok",
+      "message": "skew 0.0s",
+      "hint": null
+    },
+    {
+      "name": "capability_declarations",
+      "status": "ok",
+      "message": "valid: refdest-c1, refdest-c2, refdest-c3",
+      "hint": null
+    },
+    {
+      "name": "credentials",
+      "status": "ok",
+      "message": "all named env vars present",
+      "hint": null
+    }
+  ],
+  "ok": true
+}

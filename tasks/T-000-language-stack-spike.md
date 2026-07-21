@@ -2,10 +2,14 @@
 
 ---
 id: T-000
-status: ready
+status: done
 depends_on: []
 invariant: "none — this is a decision task, not code; no product code may be written"
 ---
+
+> **Completed 2026-07-21:** the proposal appended to ADR-0013 was ratified in writing by
+> the owner; ADR-0013 is accepted (Python 3.13 / uv / pytest+Hypothesis / psycopg 3 /
+> rfc8785). This file is retained as the append-only task record.
 
 ## Objective
 
@@ -35,15 +39,16 @@ toolchain file; any other file.
 
 ## Acceptance criteria
 
-- [ ] Candidate set evaluated: at least Python, TypeScript/Node, Go, Rust.
-- [ ] Each candidate scored, with citations to current primary sources, on: property-testing
+- [x] Candidate set evaluated: at least Python, TypeScript/Node, Go, Rust.
+- [x] Each candidate scored, with citations to current primary sources, on: property-testing
       framework maturity (must sustain ≥1,000 cases/invariant), Postgres driver quality,
-      RFC 8785 (JCS) encoder availability, coding-agent fluency, solo maintainability,
-      credibility with the frontier-lab audience.
-- [ ] A single recommendation with the one-line reason each alternative lost (ADR
+      RFC 8785 (JCS) encoder availability, coding-agent fluency, solo maintainability, and
+      adoption credibility with the project's primary audience — engineers and researchers
+      in the agent-framework ecosystem (master doc §3.1, §14.1).
+- [x] A single recommendation with the one-line reason each alternative lost (ADR
       Alternatives format), plus proposed Decision text for ADR-0013.
-- [ ] Negative findings recorded (anything that surprised against the Python leaning).
-- [ ] `make check` passes.
+- [x] Negative findings recorded (anything that surprised against the Python leaning).
+- [x] `make check` passes.
 
 ## Required validation
 

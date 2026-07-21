@@ -1,0 +1,5 @@
+{
+  "scope": "acme-store/prod",
+  "effect_type": "order.create",
+  "stable_ids": {"customer_ref": "C-0007", "order_id": "9410"}
+}

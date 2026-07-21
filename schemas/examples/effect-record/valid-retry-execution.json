@@ -1,0 +1,20 @@
+{
+  "schema_version": "1",
+  "effect_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5",
+  "operation_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5:1",
+  "step": 1,
+  "effect_type": "payment.refund",
+  "effect_class": "COMPENSABLE",
+  "scope": "account:acct_314",
+  "stable_ids": { "invoice_id": "inv_2207" },
+  "adapter_id": "refdest-c2",
+  "declaration_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "parameters_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "authority_ref": "auth_human_approval_55",
+  "stamped_at": "2026-07-21T10:00:00Z",
+  "lifecycle": "PERSISTED",
+  "lifecycle_at": "2026-07-21T10:00:02Z",
+  "branch_ref": "wf_branch_7",
+  "event_time": "2026-07-20T18:04:09Z",
+  "created_at": "2026-07-20T18:04:11Z"
+}

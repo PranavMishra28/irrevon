@@ -1,4 +1,5 @@
 {
+  "schema_version": "1",
   "stable_ids": {
     "order_id": "ord_9410",
     "workflow_command_id": "wf_cmd_00042"
@@ -6,6 +7,13 @@
   "effect_type": "order.create",
   "effect_class": "IRREVERSIBLE",
   "scope": "customer:cust_771",
+  "adapter_id": "stub-c2",
+  "parameters": {
+    "line_items": [{ "sku": "SKU-118", "quantity": 2 }],
+    "shipping_method": "standard"
+  },
+  "branch_ref": "wf_branch_7",
+  "event_time": "2026-07-20T18:04:09Z",
   "authority_ref": "auth_approved_task_18",
   "stamped_at": "2026-07-20T18:04:11Z"
 }

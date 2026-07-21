@@ -1,11 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://detent.invalid/schemas/intent-contract.schema.json",
-  "$comment": "draft — see ADR-0015. $id host is a placeholder identifier (not a locator) pending the name screen (master doc §13). Shape changes require an ADR.",
+  "$comment": "See ADR-0015 (tooling) and ADR-0019 (shape: dispatchable request model — schema_version, adapter_id, parameters, branch_ref, event_time). $id host is a placeholder identifier (not a locator) pending the name screen (master doc §13). Shape changes require an ADR.",
   "title": "Intent contract",
-  "description": "The validated input to registerIntent — the ONLY channel through which model-generated content reaches the deterministic core (master doc §6.3, §7.2, §7.3). Identity derives exclusively from stable_ids + effect_type + scope; the contract carries NO model-output-derived fields, and additionalProperties is closed to keep it that way.",
+  "description": "The validated input to registerIntent — the ONLY channel through which model-generated content reaches the deterministic core (master doc §6.3, §7.2, §7.3; RFC-002 §1). Identity derives exclusively from stable_ids + effect_type + scope; adapter_id, parameters, branch_ref, and event_time are carriers, never identity inputs (conformance-tested at M3), and additionalProperties is closed to keep undeclared members out.",
   "type": "object",
   "properties": {
+    "schema_version": {
+      "description": "Payload contract version (ADR-0019). Additive changes do not bump it; removals/renames/semantic changes do, via ADR.",
+      "const": "1"
+    },
     "stable_ids": {
       "description": "Stable upstream business identifiers keyed by identifier type (e.g. order_id, invoice_id, approved_task_id, workflow_command_id, authorization_id). At least one is required — the Intent Registrar rejects intents lacking a stable identifier (§6.1).",
       "type": "object",
@@ -25,12 +29,31 @@
       "enum": ["IDEMPOTENT", "REVERSIBLE", "COMPENSABLE", "IRREVERSIBLE"]
     },
     "scope": {
-      "description": "Serialization scope: one in-flight dispatch per (scope, effect_type) (§7.4.3).",
+      "description": "Serialization scope: one in-flight dispatch per (scope, effect_type) (§7.4 item 3).",
       "type": "string",
       "minLength": 1
     },
+    "adapter_id": {
+      "description": "The configured adapter/destination binding for this effect (ADR-0019, C1 finding B1). NOT an identity input.",
+      "type": "string",
+      "minLength": 1
+    },
+    "parameters": {
+      "description": "Effect payload the adapter builds the destination request from; may be empty. Validated against the adapter's per-effect-type parameter schema before persistence; stored with a canonical digest as evidence. NEVER an input to identity or idempotency-key derivation (RFC-001 §1; conformance-tested).",
+      "type": "object"
+    },
+    "branch_ref": {
+      "description": "Optional workflow branch-lineage carrier for the commit gate's branch check (RFC-001 §4 check 3). Absent means a vacuous pass.",
+      "type": "string",
+      "minLength": 1
+    },
+    "event_time": {
+      "description": "Optional upstream business time (RFC 3339). Evidence only; never used in control decisions.",
+      "type": "string",
+      "format": "date-time"
+    },
     "authority_ref": {
-      "description": "Reference to the upstream authorization for this effect; freshness/binding is checked deterministically at the commit gate (§7.4.4).",
+      "description": "Reference to the upstream authorization for this effect; freshness/binding is checked deterministically at the commit gate (§7.4 item 4).",
       "type": "string",
       "minLength": 1
     },
@@ -40,6 +63,6 @@
       "format": "date-time"
     }
   },
-  "required": ["stable_ids", "effect_type", "effect_class", "scope", "authority_ref", "stamped_at"],
+  "required": ["schema_version", "stable_ids", "effect_type", "effect_class", "scope", "adapter_id", "parameters", "authority_ref", "stamped_at"],
   "additionalProperties": false
 }

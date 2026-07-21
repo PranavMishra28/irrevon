@@ -7,6 +7,7 @@
   "queryable": { "supported": true, "by": ["destination_ref"] },
   "client_ref_field": null,
   "list_queryable": false,
+  "consistency": { "status_settlement_lag": null, "listing_lag": null },
   "citations": [],
   "evidence_quality": "EI"
 }

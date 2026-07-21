@@ -1,0 +1,15 @@
+{
+  "schema_version": "1",
+  "receipt_id": "rcpt_00000000000000000047",
+  "effect_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5",
+  "attempt_no": 1,
+  "kind": "primary",
+  "adapter_id": "refdest-c2",
+  "declaration_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "idempotency_key": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5:0",
+  "sent_at": "2026-07-21T09:00:05Z",
+  "transport_outcome": "OK",
+  "evidence_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "recorded_by": "dispatcher",
+  "recorded_at": "2026-07-21T09:00:06Z"
+}

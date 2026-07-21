@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://detent.invalid/schemas/capability-declaration.schema.json",
-  "$comment": "draft — see ADR-0015. $id host is a placeholder identifier pending the name screen. Fields client_ref_field and list_queryable implement proposed amendment AM-9 (docs/review-queue.md) as draft fields. Shape changes require an ADR.",
+  "$comment": "See ADR-0015 (tooling) and ADR-0019 (shape: consistency bounds). $id host is a placeholder identifier pending the name screen. Fields client_ref_field and list_queryable implement amendment AM-9 (docs/review-queue.md, ratified 2026-07-21). Shape changes require an ADR.",
   "title": "Capability declaration",
-  "description": "A destination's version-pinned, cited capability declaration (master doc §7.3, §7.5, §7.6): what tier it is, what idempotency it honors, what can be queried, and whether the caller can stamp its own reference into the destination object. client_ref_field and list_queryable determine whether ORPHANED and LOST are even detectable for this destination.",
+  "description": "A destination's version-pinned, cited capability declaration (master doc §7.3, §7.5, §7.6): what tier it is, what idempotency it honors, what can be queried, whether the caller can stamp its own reference into the destination object, and what consistency bounds govern absence evidence. client_ref_field and list_queryable determine whether ORPHANED and LOST are even detectable; consistency bounds determine whether confirmed-absence can ever support automatic redispatch (RFC-002 §6).",
   "type": "object",
   "properties": {
     "adapter": { "type": "string", "minLength": 1 },
@@ -58,6 +58,22 @@
       "description": "Whether destination effects can be LISTED in a window (distinct from status-by-id) — determines orphan-sweep feasibility (draft field, AM-9).",
       "type": "boolean"
     },
+    "consistency": {
+      "description": "Cited or measured destination consistency bounds (ADR-0019, C1 finding M3). A null bound means no finite documented/measured value exists — confirmed-absence then supports human escalation only, never automatic redispatch (RFC-002 §6).",
+      "type": "object",
+      "properties": {
+        "status_settlement_lag": {
+          "description": "Maximum documented/measured lag before a created effect is visible to the status query (ISO 8601 duration), or null when unbounded/unknown.",
+          "type": ["string", "null"]
+        },
+        "listing_lag": {
+          "description": "Maximum documented/measured lag before a created effect appears in list queries (ISO 8601 duration), or null when unbounded/unknown. Consumed by orphan-sweep windowing.",
+          "type": ["string", "null"]
+        }
+      },
+      "required": ["status_settlement_lag", "listing_lag"],
+      "additionalProperties": false
+    },
     "compensation_hook": {
       "description": "Destination-native compensation operation, if any. Compensation is a new intent, never rollback (ADR-007).",
       "type": ["string", "null"]
@@ -73,6 +89,6 @@
       "enum": ["VF", "EI"]
     }
   },
-  "required": ["adapter", "destination", "api_version", "tier", "idempotency", "queryable", "client_ref_field", "list_queryable", "citations", "evidence_quality"],
+  "required": ["adapter", "destination", "api_version", "tier", "idempotency", "queryable", "client_ref_field", "list_queryable", "consistency", "citations", "evidence_quality"],
   "additionalProperties": false
 }

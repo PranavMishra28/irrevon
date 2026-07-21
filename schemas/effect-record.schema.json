@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://detent.invalid/schemas/effect-record.schema.json",
+  "$comment": "Admitted at M3 (T-102) by ADR-0021 per the ADR-0019 item-4 criteria. Exchange/view shape (Q1 item core); storage DDL lives in migrations/. Lifecycle enum is generated from the ratified state table (RFC-002 §3.1 / detent.statetable — cross-checked by tests/schemas/test_enum_sync.py, never hand-copied). $id host is a placeholder pending the name screen. Shape changes require an ADR.",
+  "title": "Effect record",
+  "description": "One effect's ledger view: identity, intent members, destination binding, and the latest execution's lifecycle (dimension A). Dimension-B classification lives on findings, not here (ORPHANED is representable only as a finding — master doc §7.1). Append-only discipline: this exchange shape presents the current view; corrections are new rows.",
+  "type": "object",
+  "properties": {
+    "schema_version": { "const": "1" },
+    "effect_id": {
+      "description": "= intent_id: lowercase-hex SHA-256 over the RFC 8785-canonical identity tuple (RFC-001 §1; ADR-0020).",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "operation_id": {
+      "description": "Latest execution's operation id: intent_id ':' step; step is LEDGER-allocated, zero-based (RFC-002 §1). Idempotency evidence derives ONLY from this.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}:(0|[1-9][0-9]*)$"
+    },
+    "step": {
+      "description": "Latest execution's step.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "effect_type": { "type": "string", "minLength": 1 },
+    "effect_class": {
+      "enum": ["IDEMPOTENT", "REVERSIBLE", "COMPENSABLE", "IRREVERSIBLE"]
+    },
+    "scope": { "type": "string", "minLength": 1 },
+    "stable_ids": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "adapter_id": {
+      "description": "Destination binding recorded at registration (ADR-0019; destination identity per C1 finding M5).",
+      "type": "string",
+      "minLength": 1
+    },
+    "declaration_digest": {
+      "description": "Capability declaration in force at registration.",
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "parameters_digest": {
+      "description": "Canonical digest of the dispatchable payload (evidence; never an identity input).",
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "authority_ref": { "type": "string", "minLength": 1 },
+    "stamped_at": { "type": "string", "format": "date-time" },
+    "lifecycle": {
+      "description": "Dimension A frontier of the latest execution (RFC-002 §3.1).",
+      "enum": [
+        "INTENDED",
+        "PERSISTED",
+        "DISPATCHED",
+        "SETTLED_COMMITTED",
+        "SETTLED_FAILED",
+        "AMBIGUOUS",
+        "CANCELLED"
+      ]
+    },
+    "lifecycle_at": {
+      "description": "When the current lifecycle became true (transaction time of the frontier transition).",
+      "type": "string",
+      "format": "date-time"
+    },
+    "branch_ref": { "type": "string", "minLength": 1 },
+    "event_time": {
+      "description": "Optional upstream business time (ADR-0019); evidence only. Absent ≠ null.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "as_of_time": {
+      "$comment": "Conditional bi-temporality per ADR-002: optional so later activation is additive, not a shape break.",
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "schema_version",
+    "effect_id",
+    "operation_id",
+    "step",
+    "effect_type",
+    "effect_class",
+    "scope",
+    "stable_ids",
+    "adapter_id",
+    "declaration_digest",
+    "parameters_digest",
+    "authority_ref",
+    "stamped_at",
+    "lifecycle",
+    "lifecycle_at",
+    "created_at"
+  ],
+  "additionalProperties": false
+}

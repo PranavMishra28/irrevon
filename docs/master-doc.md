@@ -36,7 +36,7 @@ The project survived adversarial revalidation with one material reframe: **lead 
 
 ### 1.3 What the adversarial revalidation changed
 
-- **Benchmark-first, not runtime-first.** The benchmark is the durable, hard-to-absorb asset and the career signal; the reference engine is the "proposed system" baseline within it. `[EI]`
+- **Benchmark-first, not runtime-first.** The benchmark is the durable, hard-to-absorb asset; the reference engine is the "proposed system" baseline within it. `[EI]`
 - **Scoped tightly to C2.** C1 is solved by native idempotency; C3 is an impossibility boundary you can only demonstrate. The defensible contribution lives on C2. `[VF]`
 - **Reframed from "frequent" to "high-severity, low-frequency."** Anthropic's measurement (below) shows irreversible actions are rare as a share of traffic; the value proposition is per-incident severity, which favors a reliability/benchmark artifact over a metered always-on product. `[VF]`
 - **Named the real C2 APIs** (Amadeus, Twilio, EasyPost, Shippo, Shopify `orderCreate`) so the wedge is concrete and falsifiable, not asserted. `[VF]`
@@ -77,16 +77,16 @@ Agents crossed into the write path in 2025–26; card networks activated agent p
 | Secondary user         | Agent-reliability / platform / SRE owners who must explain and prevent duplicate or orphaned effects.                                                                                         |
 | Researchers            | Agent-safety and systems researchers who need a credible benchmark for irreversible-effect handling.                                                                                          |
 | Possible buyer (later) | Merchants and PSPs adopting agentic-commerce protocols at scale. Willingness-to-pay is inferred, not observed `[OQ]`.                                                                         |
-| This builder           | Solo, nights/weekends ~10 hrs/wk, unlimited AI coding agents, no GPUs, F-1/STEM OPT (no revenue until written immigration guidance). Career target: agent-reliability roles at frontier labs. |
+| This builder           | Solo, nights/weekends ~10 hrs/wk, unlimited AI coding agents, no GPUs. No revenue-bearing activity pending external clearances (Section 13).                                                  |
 
 
 ### 3.2 Business hypothesis (honest)
 
-`[EI]` This is a feature/library and a benchmark, **not a company.** Frequency is bounded (0.8% irreversible), the reconcile logic is thin per-destination, and incumbents (Formance, Modern Treasury) already own financial reconciliation. Productization would be justified **only** if a design partner shows recurring, material duplicate-effect losses (Gate G0, Section 3.3). Until then the honest framing is: open-source reliability contribution + credible benchmark + career signal. The commerce TAM is a *motivating example*, not the thesis, and no unsupported market figures are relied upon here.
+`[EI]` This is a feature/library and a benchmark, **not a company.** Frequency is bounded (0.8% irreversible), the reconcile logic is thin per-destination, and incumbents (Formance, Modern Treasury) already own financial reconciliation. Productization would be justified **only** if a design partner shows recurring, material duplicate-effect losses (Gate G0, Section 3.3). Until then the honest framing is: open-source reliability contribution + credible benchmark. The commerce TAM is a *motivating example*, not the thesis, and no unsupported market figures are relied upon here.
 
 ### 3.3 Commercial-validation gate (only if a commercial path is ever pursued)
 
-Proceed toward any commercial step only when **≥3 independent qualified sources** each confirm: a named incident in the last 12 months with measurable cost; an existing paid workaround; and a budget-owning buyer. The decisive question — "would you expect this free from your durable-execution or agent-platform vendor?" — is the primary kill signal. All discovery is interview-only (OPT-safe); anything revenue-shaped is blocked pending written immigration guidance (Section 13).
+Proceed toward any commercial step only when **≥3 independent qualified sources** each confirm: a named incident in the last 12 months with measurable cost; an existing paid workaround; and a budget-owning buyer. The decisive question — "would you expect this free from your durable-execution or agent-platform vendor?" — is the primary kill signal. All discovery is interview-only; anything revenue-shaped is blocked pending external clearances (Section 13).
 
 ---
 
@@ -151,14 +151,14 @@ Smallest version that proves the thesis and the honest null: the Detent core (in
 
 ### 5.3 Future product (only if G0 is met)
 
-A hosted reconciliation service or a supported adapter suite for a specific C2-heavy vertical (travel, logistics, or commerce order-creation). Explicitly deferred and gated on evidence and immigration guidance.
+A hosted reconciliation service or a supported adapter suite for a specific C2-heavy vertical (travel, logistics, or commerce order-creation). Explicitly deferred and gated on evidence and external clearances.
 
 ### 5.4 Non-goals (binding)
 
 - Not a durable-execution runtime, auth/identity layer, approval gateway, dashboard, or hosted SaaS; no billing.
 - No universal exactly-once claim (impossible per Two Generals / FLP). Compensation is not rollback. The LLM never holds sole authority over an irreversible action.
 - Not a payments/clearing protocol (that is RAILS / ACP).
-- No revenue-bearing activity until written immigration guidance permits it.
+- No revenue-bearing activity until pending external clearances permit it.
 
 ---
 
@@ -455,10 +455,10 @@ Invariant-affecting changes (state model, guarantees, identity rules, ledger pro
 
 ---
 
-## 13. Blockers (technical, legal, employment, immigration)
+## 13. Blockers (technical, legal, external)
 
-- [ ] Written employer IP position — blocks any code publication. No employer code, data, customers, systems, or work time. (Legal/employment.)
-- [ ] Written immigration guidance (F-1/STEM OPT) — open-source non-revenue work proceeds; anything revenue-shaped is blocked until cleared. Operational blocker, not a legal conclusion. (Immigration.)
+- [ ] External clearance (publication) granted in writing — blocks any code publication. Details tracked privately.
+- [ ] External clearance (revenue) granted in writing — open-source non-revenue work proceeds; anything revenue-shaped is blocked until cleared. Operational blocker, not a legal conclusion. Details tracked privately.
 - [ ] Two named independent reviewers — benchmark claims (M7) and release (M8).
 - [ ] ADR-010: Stripe API version pinned after the M4 spike, before contract tests. (Technical.)
 - [ ] C2 sandbox provider selected (Amadeus / Shopify / Twilio / EasyPost); if a self-hosted reference destination substitutes, disclose it (weakens the "real API" claim for that adapter). (Technical.)
@@ -472,8 +472,8 @@ Invariant-affecting changes (state model, guarantees, identity rules, ledger pro
 ### 14.1 Success definitions
 
 - **Technical:** DetentBench meets the capability-stratified criteria (8.6) with reproducible, independently recomputed results — including an honest C1 null and a significant C2 win.
-- **Career:** a repo + benchmark + essay a frontier agent-reliability engineer inspects and concludes the author understands real production-agent failure. Requires no revenue.
-- **Optional commercial:** G0 satisfied (3.3) — deferred behind immigration guidance.
+- **Professional:** a repo + benchmark + essay a senior agent-reliability engineer inspects and concludes the author understands real production-agent failure. Requires no revenue.
+- **Optional commercial:** G0 satisfied (3.3) — deferred behind external clearances.
 
 ### 14.2 Risks and rules
 
@@ -490,7 +490,7 @@ Invariant-affecting changes (state model, guarantees, identity rules, ledger pro
 
 ### 14.3 Kill / pivot
 
-**KILL/REFRAME** if R shows no statistically significant C2 advantage over B5 across all effect classes (publish the negative result as the contribution). **PIVOT** to a narrower C2-vertical reconciliation offering only if G0 is met and immigration guidance permits. **REMAIN-OSS** is a legitimate, non-failure end state: a validated benchmark and reference engine plus career signal.
+**KILL/REFRAME** if R shows no statistically significant C2 advantage over B5 across all effect classes (publish the negative result as the contribution). **PIVOT** to a narrower C2-vertical reconciliation offering only if G0 is met and external clearances permit. **REMAIN-OSS** is a legitimate, non-failure end state: a validated benchmark and reference engine.
 
 ---
 
@@ -502,7 +502,7 @@ Solo, ~10 hrs/week; each milestone is independently shippable with an exit test 
 | Milestone               | Deliverable                                                                                                                                                                                                           | Exit / kill                                                                   |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | M1 Freeze               | Competitor re-check; scope-freeze note; **benchmark plan preregistered and hash-stamped**; ADR-000                                                                                                                    | Plan hash committed / kill only on adopted competitor covering the wedge      |
-| M2 Env                  | Apache-2.0 repo, CI + secret scan, local Postgres, sandbox projects, runbook. Employer IP clearance on file before anything public                                                                                    | Green pipeline / stop if inseparable from employer systems                    |
+| M2 Env                  | Apache-2.0 repo, CI + secret scan, local Postgres, sandbox projects, runbook. External clearances on file before anything public                                                                                      | Green pipeline / stop if the clearance review fails                           |
 | M3 Core                 | Three-dimensional state model; intent contract + identity derivation; persist-before-dispatch ledger; commit gate; crash-recovery replay; orphan sweep                                                                | Happy path + recovery + sweep tests green / redesign on unrepresentable state |
 | M4 Adapters             | C1 (Stripe test mode; version pinned by ADR-010 after a spike) + one C2 (Amadeus/Shopify/Twilio/EasyPost) + optional C3; version-aware capability declarations with citations                                         | Shared harness green vs. live sandboxes                                       |
 | M5 Fixtures & oracle    | Seeded workloads incl. frozen re-synthesis variants; seeded fault schedules; byte-stable 3-run reproducibility on two machines                                                                                        | Reproducibility log complete                                                  |
@@ -517,7 +517,7 @@ Solo, ~10 hrs/week; each milestone is independently shippable with an exit test 
 
 ## 16. Immediate Next Actions
 
-1. Send the two clearance requests today — employer IP position and immigration guidance. These are the true critical path; nothing publishes without them.
+1. Send the external clearance requests (Section 13) today. These are the true critical path; nothing publishes without them.
 2. Screen the name "Detent" across GitHub, PyPI, npm, company names, and a basic trademark search; claim the org/package/repo names if clear, else adopt a runner-up.
 3. Write ADR-000 (scope freeze) and **preregister + hash-stamp the DetentBench plan** — including the full baseline ladder and the private held-out fault-seed split — before any experiment.
 4. Select the C2 sandbox (recommend starting with whichever of Amadeus / Shopify dev store / Twilio / EasyPost has the fastest sandbox onboarding) and resolve ADR-010 (Stripe version) with a short spike.

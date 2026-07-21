@@ -5,7 +5,7 @@
   "tier": "C2",
   "idempotency": {
     "supported": false,
-    "replay_semantics": "no caller-supplied idempotency documented anywhere in the API docs (full-doc scan; only webhook-handler idempotency is discussed)"
+    "replay_semantics": "no caller-supplied idempotency documented anywhere in the API docs (full-doc scan, re-confirmed 2026-07-20; only webhook-handler idempotency is discussed)"
   },
   "queryable": {
     "supported": true,
@@ -13,9 +13,14 @@
   },
   "client_ref_field": "reference",
   "list_queryable": true,
+  "consistency": {
+    "status_settlement_lag": null,
+    "listing_lag": null
+  },
   "compensation_hook": null,
   "citations": [
-    "https://docs.easypost.com/"
+    "https://docs.easypost.com/docs/shipments",
+    "https://support.easypost.com/hc/en-us/articles/360042847591-Data-Retention"
   ],
   "evidence_quality": "VF"
 }

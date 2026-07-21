@@ -1,0 +1,26 @@
+# Local test/dev ledger database — PostgreSQL 17, digest-pinned (RFC-002 §2.1).
+# Postgres only; Detent itself runs on the host. Loopback binding, trust auth:
+# the container is local-only test infrastructure and holds no real data, so no
+# password exists to leak (no-secrets policy, master doc §9).
+#
+# `detent init` scaffolds a separate compose.yaml for users; this file serves the
+# test suite (`make py-test-integration`).
+services:
+  ledger-db-test:
+    # postgres:17-alpine @ 17.10, digest-pinned 2026-07-21
+    image: postgres@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "127.0.0.1:54329:5432" # non-default host port; never exposed off-host
+    tmpfs:
+      # Test databases are disposable; tmpfs keeps template clones fast.
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 5s

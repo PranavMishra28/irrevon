@@ -1,0 +1,676 @@
+# RFC-002: Engine design — state model, ledger, and reconciliation mechanics
+
+- **Status:** Accepted for implementation (owner reconciliation, 2026-07-21). Amendments to
+  the master doc that this design implies are tracked as AM-17/AM-18 in
+  [review-queue.md](review-queue.md); the contracts in [schemas/](../schemas/README.md) and
+  this RFC govern implementation meanwhile.
+- **Date:** 2026-07-21
+- **Scope:** the implementation-ready mechanics behind [RFC-001](rfc-001-first-slice.md)
+  (which remains the slice definition and acceptance test): request model, ledger storage
+  and transition enforcement, the canonical state tables, gate, dispatch/retry/replay
+  semantics, reconciliation and calibrated absence, recovery, sweep, compensation, the
+  first-slice observability and CLI surface, and the M3 test plan.
+- **Provenance:** distilled from the 2026-07 engine-design working papers with every
+  blocker fix from the adversarial validity review (C1) applied and the simplification
+  review's (C2) cuts adopted; §16 records what was cut or deferred, §17 maps findings to
+  sections. Reads with master doc §6–§7, §9, §12 (canonical; not restated).
+- Epistemic labels per master doc §0. Unlabeled statements are design decisions of this RFC.
+
+## 0. Design principles
+
+1. **Claims are data, not locks.** Any fact that must survive a crash — "an attempt is in
+   flight", "recovery is mid-pass" — is durable rows. Row locks serialize short *claim*
+   transactions only and are never held across wire I/O (a lock dies with its connection —
+   exactly when serialization matters most).
+2. **The ledger is the sole transition writer.** Lifecycle history is enforced by a locked
+   database function (§2.3), not by static constraints alone — static `CHECK`/`UNIQUE`
+   constraints reject some illegal rows but cannot enforce a contiguous single history
+   (C1 finding B2); they remain as defense in depth.
+3. **Adjudicate before redispatch** (master doc §7.4 item 2, verbatim invariant), enforced
+   in three layers: recovery boot order (§7.1), gate dedup (§4), slot in-flight check (§5).
+4. **Anything unrecognized is AMBIGUOUS, never FAILED** (master doc §9; RFC-001 §7).
+5. **Evidence is metadata plus digests.** Raw destination payload bodies are not stored in
+   ledger rows; evidence fields carry canonical metadata and SHA-256 digests. If raw-body
+   retention is ever needed for adjudication it goes to a separate, retention-limited
+   store, decided before any real-sandbox use (C1 M18) `[OQ]`.
+
+### Vocabulary
+
+| Term | Meaning |
+|---|---|
+| **execution** | One lifecycle thread of an intent: `(effect_id, step)` ⇒ one `operation_id`. The record's user-visible lifecycle is its latest execution's state ("frontier"). |
+| **attempt** | One wire-level try within an execution; `operation_id` (hence the idempotency key) is constant across attempts of one execution. |
+| **claim** | The durable pre-wire record (gate decision + attempt row) committed before any bytes leave the process. |
+| **open attempt** | An attempt row with no receipt row — the durable representation of "in flight or crashed mid-flight". |
+| **slot** | The `(scope, effect_type)` serialization unit (§7.4 item 3). |
+
+## 1. Request model and identity
+
+The intent contract is the only channel by which model-generated content reaches the
+deterministic core (master doc §6.3). Per
+[ADR-0019](decisions/0019-record-schemas-and-api-contracts.md) it carries, beyond the
+original six fields: `schema_version`, `adapter_id` (destination binding), `parameters`
+(the effect payload, validated against the adapter's per-effect-type parameter schema
+before persistence), and optional `branch_ref` / `event_time`. **Identity is unchanged**
+(RFC-001 §1, byte-level procedure pinned there): `intent_id = SHA-256(JCS({stable_ids,
+effect_type, scope}))`; `operation_id = intent_id ‖ ":" ‖ step`; idempotency evidence
+derives only from `operation_id`. None of the new members is an identity input; the M3
+property tests cover them explicitly.
+
+**Member classes at re-registration** (same identity tuple ⇒ same `effect_id`):
+
+| Members | Divergence handling |
+|---|---|
+| `stable_ids`, `effect_type`, `scope` | identity — same tuple, same record |
+| `effect_class`, `adapter_id`, `branch_ref` | must match the persisted record; mismatch → `identity_conflict` error citing the stored record (a re-synthesized retry with a different effect class or destination is a red flag, not a dedup case) |
+| `authority_ref` + `stamped_at` | a fresh authority alone is accepted as an authority-refresh append (the sanctioned path that legitimate redispatch needs) |
+| `parameters`, `event_time` | non-identity payload: divergence is **recorded as a parameter-variant row** (canonical digest, evidence only) and the call returns the existing `effect_id` with `replayed: true`. The first registration's parameters are the dispatchable payload; variants are evidence for the dedup deny (§5). |
+
+`step` is 0 at registration. Later steps are **allocated by the ledger** for the explicit
+retry paths (§5.3) — a refinement of RFC-001 §1 item 4's "workflow-assigned" wording,
+recorded as a deviation: the workflow never picks step values; the ledger's
+`UNIQUE (effect_id, step)` is the allocator of record.
+
+## 2. Ledger storage
+
+### 2.1 Platform and discipline
+
+- **PostgreSQL, major version 17, pinned for dev, test, and benchmark environments**
+  `[DD]` (resolves the 16/17/18 drift across earlier drafts; requires ≥15 for
+  `UNIQUE NULLS NOT DISTINCT`). Plain-SQL migrations per ADR-0013; runner chosen at M2.
+- **Insert-only by privilege:** the application role (`detent_app`) is granted
+  `INSERT`/`SELECT` only on evidence tables and **no direct write** on lifecycle tables
+  (§2.3). `UPDATE`/`DELETE` are granted to no application role on any fact table.
+  Corrections are new rows.
+- `text` + `CHECK` (not enums); `timestamptz` everywhere; the DB clock is the single time
+  authority for gate freshness and windows. Gate determinism is therefore *conditional on
+  clock inputs*: same ledger state + same contract + same clock reading → same outcome
+  (the honest form of RFC-001 §4's determinism sentence).
+- Bi-temporality stays conditional (ADR-002): all tables carry transaction time; adding
+  `as_of_time` later is additive.
+
+### 2.2 Table inventory
+
+Core (DDL sketch below): `effect_records` (immutable identity + contract digest +
+`adapter_id` + declaration digest at registration), `parameter_variants`,
+`effect_executions`, `effect_transitions` (locked; §2.3), `scope_slots`, `gate_decisions`,
+`dispatch_attempts`, `dispatch_receipts`, `late_responses`, `status_probes`, `findings`,
+`finding_resolutions`. Adjuncts (shapes follow the same append-only rules):
+`authorities` / `authority_revocations` / `authority_policies` / `effect_authorities`
+(authority model — expiry = issuer `expires_at`, else `stamped_at + policy max_age`, else
+deny), `branches` / `branch_cancellations` (+ the `cancelBranch` admin operation),
+`deny_entries` / `deny_lifts` (incident containment), `sweep_runs` / `sweep_sightings` /
+`recovery_runs` (journals; never load-bearing).
+
+```sql
+CREATE TABLE effect_records (
+  effect_id           text PRIMARY KEY CHECK (effect_id ~ '^[0-9a-f]{64}$'),
+  effect_type         text NOT NULL,
+  effect_class        text NOT NULL CHECK (effect_class IN
+                        ('IDEMPOTENT','REVERSIBLE','COMPENSABLE','IRREVERSIBLE')),
+  scope               text NOT NULL,
+  stable_ids          jsonb NOT NULL,
+  adapter_id          text NOT NULL,             -- ADR-0019; C1 B1/M5
+  declaration_digest  text NOT NULL,             -- capability declaration in force at registration
+  parameters_digest   text NOT NULL,             -- canonical digest of the dispatchable payload
+  contract_canonical  bytea NOT NULL,            -- exact JCS bytes hashed into effect_id
+  branch_ref          text,
+  event_time          timestamptz,
+  created_at          timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE effect_executions (
+  execution_id  bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  effect_id     text    NOT NULL REFERENCES effect_records(effect_id),
+  step          integer NOT NULL CHECK (step >= 0),
+  operation_id  text    NOT NULL,
+  opened_by     text    NOT NULL CHECK (opened_by IN
+                  ('register','retry_after_failure','resolve_redispatch')),
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (effect_id, step), UNIQUE (operation_id),
+  CHECK (operation_id = effect_id || ':' || step::text)
+);
+
+CREATE TABLE effect_transitions (          -- INSERT only via ledger_transition() (§2.3)
+  transition_seq bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  execution_id   bigint NOT NULL REFERENCES effect_executions(execution_id),
+  from_state     text,                     -- NULL = genesis
+  to_state       text NOT NULL,
+  cause          text NOT NULL,            -- closed set, §3.1
+  actor          text NOT NULL CHECK (actor IN
+                   ('registrar','gate','dispatcher','reconciler','recovery','human')),
+  evidence       jsonb NOT NULL,           -- probe/receipt/decision ids + digests only
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  UNIQUE NULLS NOT DISTINCT (execution_id, from_state)   -- defense in depth, not the enforcement
+);
+
+CREATE TABLE dispatch_attempts (
+  attempt_id       bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  execution_id     bigint  NOT NULL REFERENCES effect_executions(execution_id),
+  attempt_no       integer NOT NULL CHECK (attempt_no >= 1),
+  kind             text    NOT NULL CHECK (kind IN
+                     ('primary','recovery_redispatch','c1_replay_probe')),
+  adapter_id       text    NOT NULL,
+  declaration_digest text  NOT NULL,       -- declaration version used for this attempt (C1 M17)
+  idempotency_key  text    NOT NULL,       -- derived ONLY from operation_id
+  request_digest   text    NOT NULL,
+  gate_decision_id bigint  NOT NULL,
+  claimed_at       timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (execution_id, attempt_no)
+);
+
+CREATE TABLE dispatch_receipts (
+  receipt_id        bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  attempt_id        bigint NOT NULL UNIQUE REFERENCES dispatch_attempts(attempt_id),
+  transport_outcome text NOT NULL CHECK (transport_outcome IN ('OK','FAILED','TIMEOUT','LOST')),
+  failure_kind      text CHECK (failure_kind IN ('TERMINAL','RETRYABLE')),
+  destination_ref   text,
+  response_digest   text,
+  evidence          jsonb NOT NULL,
+  recorded_by       text NOT NULL CHECK (recorded_by IN ('dispatcher','reconciler','recovery')),
+  recorded_at       timestamptz NOT NULL DEFAULT now(),
+  CHECK ((transport_outcome = 'FAILED') = (failure_kind IS NOT NULL))
+);
+
+CREATE TABLE status_probes (
+  probe_id        bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  execution_id    bigint NOT NULL REFERENCES effect_executions(execution_id),
+  adapter_id      text  NOT NULL,
+  declaration_digest text NOT NULL,
+  probe_kind      text  NOT NULL CHECK (probe_kind IN ('reconcile_open','audit','sweep')),
+  query_keys      jsonb NOT NULL,
+  result          text  NOT NULL CHECK (result IN ('PRESENT','ABSENT','INDETERMINATE')),
+  n_found         integer,
+  destination_refs jsonb,
+  response_digest text,
+  queried_at      timestamptz NOT NULL,
+  recorded_at     timestamptz NOT NULL DEFAULT now(),
+  CHECK ((result = 'PRESENT') = (n_found IS NOT NULL AND n_found >= 1)),
+  CHECK (result <> 'ABSENT' OR n_found = 0)
+);
+
+CREATE TABLE findings (
+  finding_id      bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  effect_id       text REFERENCES effect_records(effect_id),
+  adapter_id      text NOT NULL,
+  destination_ref text,
+  classification  text NOT NULL CHECK (classification IN
+                    ('CONFIRMED_UNIQUE','DUPLICATE','LOST','ORPHANED','CONTRADICTED')),
+  excess_effect_count integer,             -- DUPLICATE: destination effects beyond the first
+  evidence        jsonb NOT NULL,          -- metadata + digests only (§0 rule 5)
+  evidence_digest text NOT NULL,
+  created_by      text NOT NULL CHECK (created_by IN ('reconciler','recovery','sweep','human')),
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  CHECK ((classification = 'ORPHANED') = (effect_id IS NULL)),
+  CHECK (effect_id IS NOT NULL OR destination_ref IS NOT NULL)
+);
+CREATE UNIQUE INDEX findings_one_orphan_per_ref ON findings (adapter_id, destination_ref)
+  WHERE classification = 'ORPHANED';       -- destination identity in the key (C1 M5)
+
+CREATE TABLE finding_resolutions (
+  resolution_seq bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  finding_id   bigint NOT NULL REFERENCES findings(finding_id),
+  from_status  text NOT NULL,
+  to_status    text NOT NULL,
+  evidence     jsonb NOT NULL,
+  actor        text NOT NULL CHECK (actor IN ('human','policy_auto','recovery','system')),
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (finding_id, from_status)
+  -- legality of (from_status, to_status) enforced by the resolution function per §3.3
+);
+```
+
+`sweep_sightings` carries `UNIQUE (run_id, adapter_id, destination_ref)` so re-listing
+within a run is idempotent (C1 N2). Frontier state and open attempts are derived views over
+`effect_transitions` / `dispatch_attempts` (partial index on open states keeps recovery and
+reconcile scans proportional to open executions).
+
+### 2.3 The locked transition writer (fix for C1 B2)
+
+`detent_app` has **no INSERT privilege** on `effect_transitions`, `effect_executions`, or
+`finding_resolutions`. All lifecycle writes go through `SECURITY DEFINER` SQL functions
+owned by the migration role:
+
+- `ledger_open_execution(effect_id, opened_by)` — locks the identity row, allocates the
+  next `step`, inserts the execution plus its genesis transitions
+  (`NULL→INTENDED→PERSISTED` in the same transaction — INTENDED is never externally
+  observable alone; `INTENDED→CANCELLED` is taken instead when the branch is already
+  cancelled at registration).
+- `ledger_transition(execution_id, expected_from, to_state, cause, actor, evidence)` —
+  locks the execution row, derives the current frontier, **requires
+  `expected_from = frontier`**, validates the edge against the §3.1 table and the
+  cause/actor legality for that edge, and inserts atomically. Any violation raises; nothing
+  is written.
+- `ledger_resolve(finding_id, from_status, to_status, actor, evidence)` — same pattern
+  over §3.3.
+
+The static `CHECK` + `UNIQUE` constraints stay in place as a second layer, but the claim
+"the schema alone rejects illegal histories" is **withdrawn**: forks, orphan edges, and
+frontier skips are prevented by the functions, and the M3 matrix tests exercise both the
+functions (legal/illegal edges) and direct-insert attempts as `detent_app` (expecting
+`insufficient_privilege`).
+
+## 3. The canonical state tables (single source of truth)
+
+These three tables are THE ratified state model. The M3 exhaustive tests, the future record
+schemas (ADR-0019 item 4), SDK enums, and the ledger functions are all **generated from or
+validated against this section** — no other document may restate it normatively.
+Dimension-B changes relative to master doc §7.1 (DUPLICATE stays `n>1`; CONTRADICTED
+added) are amendment AM-18 in the review queue.
+
+### 3.1 Dimension A — lifecycle edges (per execution)
+
+Every `(from, to)` pair not listed is illegal. Cause and actor are part of edge legality.
+
+| From | To | Cause | Actor(s) |
+|---|---|---|---|
+| — (genesis) | INTENDED | `register` | registrar |
+| INTENDED | PERSISTED | `durable_write` (same txn as genesis) | registrar |
+| INTENDED | CANCELLED | `branch_cancelled` (lineage already cancelled at registration) | registrar |
+| PERSISTED | DISPATCHED | `gate_allow` (inside a claim txn, §5.1) | gate |
+| PERSISTED | CANCELLED | `branch_cancelled` | gate, human |
+| DISPATCHED | SETTLED_COMMITTED | `receipt_ok` | dispatcher |
+| DISPATCHED | SETTLED_FAILED | `receipt_failed` (recognized, declaration-cited failure) | dispatcher |
+| DISPATCHED | AMBIGUOUS | `receipt_timeout` \| `receipt_lost` | dispatcher, recovery |
+| AMBIGUOUS | SETTLED_COMMITTED | `reconciled_present` \| `replay_ok` (C1 replay probe) | reconciler, recovery, human |
+| AMBIGUOUS | SETTLED_FAILED | `reconciled_absent` \| `replay_failed` (C1 replay probe) | reconciler, recovery, human |
+
+SETTLED_COMMITTED, SETTLED_FAILED, CANCELLED are terminal **per execution**. "Try again"
+after a terminal state is never a lifecycle edge — it is a new execution (§5.3).
+
+### 3.2 Dimension A × B — classification attachment (findings cite effects)
+
+UNRECONCILED is the absence of findings, not a finding. ORPHANED is destination-keyed only
+(`effect_id IS NULL`) and never attaches to a record — the column exists so tests enumerate
+it as illegal everywhere. Classify-and-settle is atomic: no finding may attach while the
+frontier is in-flight.
+
+| frontier \ classification | CONFIRMED_UNIQUE | DUPLICATE (n>1) | LOST | CONTRADICTED | ORPHANED |
+|---|---|---|---|---|---|
+| INTENDED / PERSISTED / CANCELLED | ILLEGAL | ILLEGAL | ILLEGAL | ILLEGAL | ILLEGAL |
+| DISPATCHED / AMBIGUOUS | ILLEGAL | ILLEGAL | ILLEGAL | ILLEGAL | ILLEGAL |
+| SETTLED_COMMITTED | **LEGAL** (n=1 at settle) | **LEGAL** (n>1 at settle or audit) | ILLEGAL | **LEGAL** (audit: prior commit evidence + fresh confirmed-absence — committed-then-vanished) | ILLEGAL |
+| SETTLED_FAILED | ILLEGAL | **LEGAL** (audit: destination shows n>1 for the intent) | **LEGAL** (canonical: settled via `reconciled_absent`) | **LEGAL** (audit: destination shows n≥1 despite the failed settle — the false-failure / unrecorded commit) | ILLEGAL |
+
+Rules riding the table:
+
+- **DUPLICATE keeps the canonical meaning: more than one destination effect exists for one
+  intent** (`n>1`), with `excess_effect_count = n − 1` recorded. Benchmark duplicate counts
+  are computed from oracle destination read-back
+  (`sum(max(0, n_effects_per_true_intent − 1))`), never from finding counts (C1 B3/N4).
+- **CONTRADICTED** (new, AM-18) marks later authoritative evidence contradicting a settled
+  outcome, in either direction. It is what the contradictory-late-outcome race produces
+  (§13 case C3′) and what the old draft mislabeled as a redefined "duplicate". Evidence
+  must include both the settle-time evidence and the fresh contradicting probes.
+- LOST attaches only via the `reconciled_absent` settle (intended-but-absent). A clean,
+  destination-rejected failure carries **no** finding — the lost-legitimate metric must not
+  count rejected intents.
+- CONFIRMED_UNIQUE × SETTLED_COMMITTED is written in the same transaction as the settle.
+- **Ambiguous-stuck is not a finding**: records parked AMBIGUOUS past the escalation budget
+  surface through an operational queue over frontier state (master doc §12.4: ≤2 business
+  days, never auto-resolve). No classification is invented for unadjudicated records.
+
+### 3.3 Dimension B × C — resolution legality (per finding)
+
+Status chain: `OPEN → {COMPENSATED | REDISPATCHED | ACCEPTED_AS_IS | ESCALATED_HUMAN}`;
+`ESCALATED_HUMAN → {COMPENSATED | REDISPATCHED | ACCEPTED_AS_IS}`; action status → `CLOSED`.
+
+| classification \ action | COMPENSATED | REDISPATCHED | ACCEPTED_AS_IS | ESCALATED_HUMAN |
+|---|---|---|---|---|
+| CONFIRMED_UNIQUE | ILLEGAL | ILLEGAL | **auto** (system actor, same settle txn, then CLOSED) | ILLEGAL |
+| DUPLICATE | **LEGAL** — compensate the excess via a new intent (§7.3) | **ILLEGAL, always** — redispatching a duplicate manufactures more | LEGAL (human judges excess harmless) | LEGAL |
+| LOST | ILLEGAL (nothing externalized) | **LEGAL** — the only redispatch entry point outside recovery (§5.3) | LEGAL (abandon; upstream informed) | LEGAL |
+| ORPHANED | **LEGAL** — cancel/refund via new intent | ILLEGAL (no intent to redispatch) | LEGAL (adoption-into-ledger stays `[OQ]`, deferred) | LEGAL |
+| CONTRADICTED | **LEGAL** — compensate the unrecorded/excess effect | ILLEGAL (an effect exists) | LEGAL | **LEGAL (default route)** — contradictions are Sev-2 signals |
+
+**CLOSED semantics** (fixes the resolved-before-dispatched defect, C1 M17):
+ACCEPTED_AS_IS closes in the same transaction. COMPENSATED records the compensating
+`effect_id` and closes only when that effect settles COMMITTED. REDISPATCHED records the
+replacement execution's id and closes only when that execution settles COMMITTED; if the
+replacement fails or parks, the finding stays visibly un-CLOSED in the ops queue. No
+auto-cascade of compensations for failed compensations (ADR-007).
+
+## 4. Commit gate
+
+Runs inside the claim transaction with slot + identity locks held. Order pinned by RFC-001
+§4 (deny-list → authority freshness/binding → branch lineage → dedup); every evaluation —
+allow and deny — writes a `gate_decisions` row with the ordered check list and input
+digests. Dedup (check 4) denies when **any execution** of this `effect_id` has frontier in
+{DISPATCHED, AMBIGUOUS, SETTLED_COMMITTED}; the deny evidence cites the blocking
+execution's transitions, receipts, findings, and any recorded parameter variants (§1) —
+this is the re-synthesis defeat, and it is a first-class evidenced outcome, not an error.
+Gate variants: `dispatch` (all four checks), `recovery_redispatch` (waives only the
+self-match on the just-settled execution), `resolve_redispatch` and `retry_after_failure`
+(all four checks against the new execution).
+
+## 5. Dispatch, retry, and replay semantics
+
+### 5.1 Claim protocol (per attempt)
+
+`T-CLAIM` (one txn): create-if-absent + lock the slot row → lock the identity row → deny if
+any open attempt exists in the slot (`slot_busy`, retryable) → run the gate → on ALLOW
+insert {gate decision, attempt row (`attempt_no` = max+1; key derived from `operation_id`;
+`adapter_id` + `declaration_digest` recorded), transition PERSISTED→DISPATCHED via
+`ledger_transition`} → COMMIT. **The wire call happens strictly after COMMIT returns, with
+no transaction open and no lock held.** `T-OUTCOME` (one txn): insert receipt + settle/
+AMBIGUOUS transition atomically. A late or losing `T-OUTCOME` (another actor settled first)
+lands in `late_responses`; a contradiction (settled absent, wire says OK) additionally
+enqueues an audit reconcile (§6.3) — the CONTRADICTED path.
+
+Lock order everywhere: `scope_slots` → `effect_records` → `findings`. READ COMMITTED
+isolation; correctness carried by the locked functions, unique arbiters, and durable
+claims, not by isolation level. No transaction is ever open across destination I/O.
+
+### 5.2 `dispatch(effect_id)` outcome map (fix for C1 B4 — one protocol for demo, SDK, and tests)
+
+| Latest-execution frontier | Behavior |
+|---|---|
+| PERSISTED | claim → wire → outcome (§5.1) |
+| DISPATCHED / AMBIGUOUS | `pending_reconciliation`: return last receipt + lifecycle; **never re-dispatch on belief**; no wire call |
+| SETTLED_COMMITTED | run the gate; return evidenced **`denied` (check=dedup)** citing the settled execution and parameter variants. The flagship re-synthesized retry reaches exactly this: re-register maps to the same `effect_id` (§1), dispatch produces the recorded, evidenced deny. One `effect_id` throughout — no second identity |
+| SETTLED_FAILED | `denied` (check=dedup, subtype `retryable_failed`) pointing at the explicit retry operation below; never a silent replay and never an implicit new attempt |
+| CANCELLED | `illegal_state` |
+
+### 5.3 The three explicit non-initial claim operations (fix for C1 M2)
+
+1. **`open_retry_execution(effect_id, authority_evidence)`** — legal only when the latest
+   execution is SETTLED_FAILED with a clean (declaration-cited) failure. Allocates the next
+   `step` via `ledger_open_execution` ⇒ new `operation_id` ⇒ new idempotency key (correct
+   on C1: a reused key replays the cached error; and satisfies dimension C's "new
+   idempotency evidence" without touching the derivation formula). Dispatch then runs the
+   full gate (`retry_after_failure`).
+2. **`claim_c1_replay_probe(execution_id)`** — legal only when the frontier is AMBIGUOUS
+   and the declaration says `idempotency.supported` with the probe inside the declared
+   window (minus a margin). Reuses the **same** `operation_id`/key by design — the
+   declaration guarantees replay-not-re-execution semantics; that guarantee is
+   contract-tested (M6). Runs under the same slot/open-attempt claim discipline with
+   attempt kind `c1_replay_probe`; its receipt settles AMBIGUOUS→SETTLED_* via
+   `replay_ok`/`replay_failed` (§3.1). Wire traffic from reconciliation is parented under
+   reconcile/recovery in logs, never under the gate (C1 M16).
+3. **`resolve(finding, REDISPATCHED, evidence)`** — LOST findings only (§3.3).
+   Preconditions: confirmed-absence evidence younger than the redispatch bound (else a
+   fresh probe inside the flow); fresh authority; full gate on the new execution. Opens the
+   replacement execution, then normal dispatch; CLOSED only when it settles (§3.3).
+   The **automatic** variant (actor `policy_auto`, entered from recovery or the reconcile
+   loop) additionally requires: the adapter's `consistency.status_settlement_lag` is
+   **finite** and the effect type has **opted in** — automatic redispatch-on-absence is
+   opt-in, never default (C1 M3; reverses the earlier default-on proposal).
+
+## 6. Reconciliation and calibrated absence
+
+### 6.1 Adjudication per tier
+
+Preconditions for adjudicating execution `e`: frontier ∈ {DISPATCHED, AMBIGUOUS}; online
+mode skips executions whose open attempt is younger than the stuck threshold (a live wire
+call may still land); recovery mode has no age requirement (§7.1).
+
+- **C2:** assemble query keys in strength order — k1 stamped client reference
+  (`operation_id` in the declaration's `client_ref_field`; always stamped at dispatch when
+  the field exists), k2 `destination_ref` from any receipt, k3 declared queryable keys
+  derivable from `stable_ids`. Probe (`reconcile_open`); PRESENT(n=1) → settle COMMITTED +
+  CONFIRMED_UNIQUE; PRESENT(n>1) → settle COMMITTED + DUPLICATE(OPEN, excess recorded);
+  ABSENT → only via the confirmed-absence protocol (§6.2) → settle FAILED + LOST(OPEN);
+  INDETERMINATE → retry with backoff, park + escalate past the budget.
+- **C1:** replay probe (§5.3 item 2) if in-window; else fall back to the C2 path if
+  queryable; else park + escalate.
+- **C3:** no adjudication exists. Park AMBIGUOUS; escalate at the budget; only a human may
+  settle (with evidence). Never auto-settled, never auto-redispatched — the impossibility
+  boundary, demonstrated openly.
+
+**Key-coverage rule:** ABSENT is authoritative only if the query key set could not have
+missed the effect — k1 present, or k2 present, or (`list_queryable` ∧ k3 covers the
+declared listing keys ∧ the window brackets the claim time). Otherwise the destination is
+effectively C3 *for this record*: no confirmed-absence is reachable; park and escalate.
+This boundary is visible in benchmark reporting.
+
+### 6.2 Confirmed-absence protocol (fix for C1 M3)
+
+ABSENT is trusted only when ALL hold: (1) key coverage (§6.1); (2) **settlement lag**:
+probe `queried_at ≥ claim time + status_settlement_lag` from the adapter's declaration —
+a **declared, cited or measured** bound, not an engine constant; (3) **two reads** ≥ a
+re-read gap apart, both satisfying (1)–(2). Where `status_settlement_lag` is **null** (no
+finite documented/measured bound), a `reconciled_absent` settle is still permitted with
+full key coverage and the two-read rule, but the LOST finding is **auto-routed
+ESCALATED_HUMAN and automatic redispatch is forbidden** — absence without a visibility
+bound supports human judgment only. The residual race (effect materializing after the last
+ABSENT probe) is bounded, not eliminated; the sweep and the CONTRADICTED classification
+catch the residue, and the benchmark **measures** it rather than the design claiming zero.
+
+### 6.3 `reconcile_open` vs `audit` (fix for C1 M14)
+
+`reconcile(effect_id | scope)` adjudicates **open** (DISPATCHED/AMBIGUOUS) executions; on
+already-settled records it returns recorded findings and issues no destination query.
+`audit(effect_id | window)` is the explicit second mode: new destination observations
+against settled records, append-only, rate-limited, producing DUPLICATE/CONTRADICTED
+findings per §3.2 without rewriting prior facts. The contradictory-late-outcome path
+(§5.1) enqueues an audit automatically.
+
+## 7. Recovery, sweep, compensation
+
+### 7.1 Crash-recovery replay
+
+At process start, before the API accepts work: acquire the session-scoped writer advisory
+lock (refuse to start on failure — single-writer invariant enforced, not assumed); scan for
+executions with frontier ∈ {DISPATCHED, AMBIGUOUS} in deterministic order; for each,
+adjudicate per §6 (at boot, every open attempt is provably abandoned, so recovery may close
+it with a LOST receipt; online reconcile may not); park what cannot be adjudicated
+(closing its open attempt so slots free); queue — but do not execute — policy redispatches
+until the whole scan is adjudicated; then open the API and drain the queue through §5.3.
+Recovery is re-entrant from any crash point: every write is guarded by the locked functions
+and unique arbiters, and the scan predicate shrinks monotonically. Crash-before-persist is
+provably effect-free: no attempt row ⇒ no wire call ever started (kill-before-persist test,
+master doc §12.1).
+
+### 7.2 Orphan sweep
+
+`sweep(adapter, window)` — only where `list_queryable: true`. Watermark + overlap
+windowing (overlap ≥ clock-skew bound + `listing_lag`); match order per RFC-001 §6
+(stamped client reference → receipt `destination_ref` → declared queryable keys), plus the
+**open-attempt guard**: a listed effect matching an open attempt's `operation_id` is a
+dispatch in flight, recorded as a sighting, never a finding. ORPHANED emission requires
+unmatched sightings in ≥2 distinct runs spanning a grace period, re-checked at emission;
+idempotent via the `(adapter_id, destination_ref)` partial unique index. Evidence: payload
+digest + window + the match attempts that failed.
+
+### 7.3 Compensation (ADR-007)
+
+`resolve(finding, COMPENSATED, evidence)` requires a **registered** compensating intent:
+distinct `effect_type`, same stable-id core plus `compensates_finding_id` as an additional
+stable id (keeps compensation identity re-synthesis-proof). It flows through
+gate → dispatch → reconcile as a first-class effect with its own lifecycle and failure
+modes. CLOSED per §3.3.
+
+## 8. Reference destinations (development + disclosed synthetic cells)
+
+One codebase, two profiles, both deterministic under a seed with a **seeded virtual clock**
+(time is part of the determinism contract; C1 N1):
+
+- **refdest-C2** (the RFC-001 §10 stub, extended): create/status/list/client-ref query, no
+  native idempotency, client-ref uniqueness deliberately unenforced (multi-match handling
+  is exercised), configurable default-filter quirk, seeded fault schedule installed via a
+  control plane the adapter under test cannot reach (`drop-response-after-commit`,
+  `drop-before-commit`, `delay`, `5xx-after/without-commit`, `duplicate-accept`,
+  `throttle`), truth API for oracles. `destination_ref` derivation is collision-resistant
+  (SHA-256 over seed + counter), not "collision-free".
+- **refdest-C3**: fire-and-forget profile (202, empty body, no query/list/client-ref); same
+  seeded truth log — the oracle sees what the system under test cannot. That asymmetry is
+  the impossibility demo.
+
+Benchmark use of refdest cells is exploratory-only, separately stratified, and never pooled
+into confirmatory claims (preregistration §2; C1 M6).
+
+## 9. Read-only query surface (workbench/inspection contract)
+
+Strictly read-only; no mutation routes exist on this surface (trust boundary §6.3 —
+resolution is deliberately absent). Envelope: `{schema_version, data[], has_more,
+next_cursor, as_of}` (cursor pagination; stable because the ledger is append-only).
+
+- **Q1 effects:** filters `scope`, `lifecycle` (multi), `classification` (multi, incl.
+  UNRECONCILED-as-absence), `effect_type`, `effect_class`, `from`/`to`, `limit` (default
+  50, max 500), `cursor`. Item = record view + receipts + findings + current
+  classification + execution history (`operation_id`s and steps are part of the view —
+  attempts are unambiguous across executions).
+- **Q2 findings:** filters `classification`, `resolution_status`, `subject_effect_id`,
+  `(adapter, destination_ref)`, `from`/`to`, `limit`/`cursor`. Evidence exposes
+  `{digest, bundle: null, redaction: "digest_only"}` until the redaction pipeline exists.
+- **Q3 bench-run summaries:** shape lands with the harness (M5); declared here so the
+  workbench consumes what the harness emits with no translation layer.
+
+## 10. Error taxonomy
+
+Receipt outcomes stay the canonical closed set **OK | FAILED | TIMEOUT | LOST** (C1 M4).
+Pre-send failures and throttles are represented as `failure_kind`/evidence on FAILED
+**only** where the declaration's citations prove no-side-effect semantics (contract-tested;
+an adapter classifying an undeclared error shape as FAILED fails its negative contract
+test); everything else — connect refusal, resets, truncated responses, unrecognized shapes,
+partial successes — maps to LOST/TIMEOUT → AMBIGUOUS. Same-key retry after FAILED is wrong
+on both tiers (C1 replays the cached error; C2 ignores the key): retry-after-failure is
+always a new execution (§5.3). Internal engine errors never map to destination outcomes —
+an engine bug must not settle a record.
+
+## 11. Observability for v0.1 — logging and inspection only
+
+Adopted cut (C2; ratified 2026-07-21): **no OTel traces, metrics, span links, exemplars,
+alerting, or annotation side-tables in the first slice.** What ships:
+
+1. **JSONL structured logs** (one JSON object per line, stderr by default, optional file
+   sink): stable `event_name` catalog covering registrations, gate decisions, dispatches,
+   settlements, findings, escalations, sweep/replay runs; identifier privacy rule —
+   Detent-minted identifiers raw, upstream values digested or absent, payload bodies never.
+   Severity discipline: ERROR = Detent malfunctioning; WARN = the system working and
+   finding something (AMBIGUOUS, denies, findings). Logs are diagnostics: **no decision
+   path reads them; the ledger is the sole source of truth**; crash recovery is ledger
+   replay, never log replay. A benchmark run missing its logs is INVALID (run-validity
+   evidence), yet no metric is ever computed from logs.
+2. **`detent inspect <id>`** — the ledger-only evidence view: transition history,
+   contract summary (stable-id keys; values redacted by default, `--reveal` local),
+   receipts (all attempts, all executions), findings with full resolution history, gate
+   history, merged timeline, and an integrity section that recomputes `intent_id` from the
+   stored canonical contract bytes and compares (mismatch = ledger-integrity incident
+   signal).
+
+The one-paragraph invariant retained from the full observability design: telemetry, when it
+returns (post-M8, if operated as a service), is derived, lossy, optional diagnostics —
+never load-bearing, never an adjudication input, and behavior must be identical with it
+off.
+
+## 12. CLI surface for the first slice
+
+Ships: **`detent init`** (scaffold `detent.toml`, `compose.yaml` with digest-pinned
+Postgres 17 + `pg_isready` healthcheck, `.env.example` placeholders — no network, no git,
+no credentials), **`detent doctor`** (read-only environment validation: config, JCS/SHA-256
+identity self-test against pinned vectors, DB reachability/migrations/privileges,
+declaration validation incl. consistency bounds, credential *presence* only, clock sanity;
+`--probe` opts into declared read-only liveness calls; never mutates, never dispatches),
+**`detent demo`** (the RFC-001 §9.5 flagship script incl. the B5 contrast leg; exit 3 when
+the contrast fails — never masked), **`detent inspect`** (§11). Conventions: data on
+stdout, messages on stderr; `--json`/`--jsonl` with `schema_version`; exit codes 0 success
+· 1 unexpected failure · 2 usage · 3 declared outcome · 4 integrity refusal — one table for
+every command (doctor failures are exit 3). **Deferred:** `bench smoke` (M5), `bench run`
+(M7, with its integrity-refusal guards), `reconcile`/`sweep`/`resolve` operator verbs (M4),
+`serve` (frontend workstream, ADR-0016). Zero telemetry, no update checks, no network
+beyond configured adapters — conformance-tested.
+
+## 13. Concurrency edge cases (dispositions)
+
+| Case | Disposition |
+|---|---|
+| Concurrent registerIntent, same stable ids | identity insert arbitered; loser re-reads and returns the winner's `effect_id`; §1 member rules decide conflict vs refresh vs variant |
+| Concurrent dispatch, same effect | slot + identity locks serialize; second sees frontier/open attempt → deny (dedup / slot_busy); destination effect count ≤ 1 |
+| Concurrent dispatch, same slot, different effects | serialized on slot; second gets retryable slot_busy (one in-flight dispatch per slot, durable across crashes via the open-attempt row) |
+| Dispatch racing reconcile | online reconcile skips attempts younger than the stuck threshold; both-settle races arbitered by the locked transition function — loser lands in `late_responses` |
+| C3′ contradictory late outcome | settle stands; late response recorded; audit enqueued → CONTRADICTED finding (§3.2); if a policy redispatch already fired, read-back shows n=2 → DUPLICATE + compensation. Detection, not prevention — the Two Generals residue, measured by the benchmark |
+| Sweep racing dispatch | open-attempt guard prevents false orphans; two-pass + grace absorbs listing lag; exactly one finding per effect across the two detection paths |
+| Concurrent resolve | finding row lock + `UNIQUE (finding_id, from_status)` |
+| Crash during recovery | re-entrant (§7.1) |
+| Register racing branch cancellation | gate check 3 reads cancellations at claim time; the record can never dispatch; cancelled lazily |
+| Two engine processes | boot advisory lock refuses the second |
+
+Tunable parameters (all `[DD]` defaults, none architectural): dispatch deadline 30 s;
+stuck threshold 5 min; absence re-read gap 60 s; redispatch evidence bound 10 min;
+reconcile backoff 30 s·2ⁿ cap 1 h; escalation budget 2 business days (§12.4); max attempts
+per execution 3; sweep overlap 2×(skew+listing lag); orphan grace 30 min; lock timeout 5 s.
+
+## 14. Module boundaries and advisory isolation
+
+Modular monolith: `identity` (pure; no I/O, no clock, no intra-engine imports — the M3
+property-test target), `contract` (schema validation), `ledger` (the only module with SQL;
+owns transactions and the §2.3 functions), `gate` (pure decision logic invoked inside the
+claim txn), `dispatcher`, `reconciler`, `sweep`, `resolution`, `recovery`, `adapters`
+(wire I/O lives only here; includes the reference destinations), `advisory` (optional
+classifier), `api` (composition root). ADR-006 isolation, two enforced layers for the first
+slice: (1) import direction — `advisory` imports only read views; no authority module
+imports `advisory`; enforced by import-linter contracts in CI; (2) type-level — classifier
+output is a distinct proposal type no mutation API accepts. The database
+privilege-separation role for the classifier is **deferred** (C2 cut — two working layers
+suffice until multi-writer reopens ADR-002).
+
+## 15. Test plan (M3 conformance; = master doc §12.1 rows 1–4 + the demo)
+
+1. **Identity properties** (≥1,000 cases/invariant): permutation invariance;
+   model-output/`parameters` independence (fixing the identity tuple while fuzzing
+   `parameters`, `event_time`, adapter payloads never changes `intent_id` or derived keys);
+   sensitivity (any identity-element change ⇒ different id); cross-process determinism;
+   plus the pinned RFC 8785 vectors as the external oracle.
+2. **Kill-before-persist**: engine as a real subprocess, SIGKILL at armed seams
+   (`persist.pre_commit` etc.); oracle = refdest truth API + direct SQL; zero destination
+   effects without a durable PERSISTED record, zero tolerance.
+3. **Exhaustive state-matrix tests generated from §3**: every dimension-A pair (legal with
+   guards, illegal rejected with typed errors and no rows), every A×B cell, every B×C cell;
+   a meta-test fails if any cell lacks an explicit expectation; corrupt direct-insert
+   attempts as `detent_app` must raise `insufficient_privilege` (§2.3); a stateful
+   property machine drives the public operations with the auditor's legality predicate as
+   invariant.
+4. **Classifier isolation**: import-linter contract + adversarial proposal-object feeding
+   into every mutation API → typed rejection, ledger unchanged.
+5. **Flagship E2E** (RFC-001 §9.5): both legs against refdest-C2; the B5 contrast leg
+   **fails the build if B5 does not duplicate** — that assertion direction is pinned and
+   never weakened. The evidence bundle doubles as the M8 attack-demo artifact.
+
+Post-conditions on every integration test: the ledger auditor (append-only, state legality
+per §3, evidence on every AMBIGUOUS exit, per-execution terminality). Deferred test tiers
+(C2 cut): two-machine reproduction and docs-as-tests quickstart (M5/M8), nightly randomized
+kill sweeps and stochastic race stress (post-M6), classifier DB-role leg (with ADR-002
+reopen).
+
+## 16. Deferred and cut (recorded so absence is legible)
+
+- OTel instrument catalog, span-link taxonomy, annotation side-table, alerting thresholds —
+  cut for v0.1 (§11); reopen post-M8 if Detent is operated as a service.
+- `bench smoke`/`bench run` CLI — M5/M7. Operator verbs (`reconcile`/`sweep`/`resolve`) —
+  M4. `serve` — frontend workstream (ADR-0016).
+- Record schemas — M3 admission ADR per ADR-0019 item 4.
+- Evidence-bundle export + redaction pipeline (master doc §9) — pre-real-sandbox gate;
+  until then Q2 exposes digests only.
+- Orphan "adoption" path after ACCEPTED_AS_IS — `[OQ]`, deferred past M3.
+- Transport optimization for provably-unsent attempts (connect refusal ⇒ same-key retry
+  without adjudication) — `[OQ]`, conservative default stands; decide only with
+  destination-specific proxy evidence.
+- Two-band identity diff exhibit and other workbench polish — deferred (ADR-0016); the
+  slice-one evidence surface is `detent inspect` plus a field table.
+
+## 17. Validity-review traceability (C1 findings → resolution)
+
+| Finding | Resolution |
+|---|---|
+| B1 no dispatchable request contract | ADR-0019 + §1 (adapter binding, validated parameters, carriers) |
+| B2 constraints don't enforce history | §2.3 locked transition functions; claim withdrawn; tested both ways |
+| B3 DUPLICATE redefinition corrupts the construct | §3.2: DUPLICATE stays n>1; CONTRADICTED added (AM-18); benchmark counts from oracle read-back |
+| B4 flagship deny unreachable | §5.2 outcome map: settled dispatch = evidenced dedup deny, one `effect_id`; §1 parameter-variant recording |
+| M1 divergent state matrices | §3 is the single generated-from source of truth |
+| M2 missing claim protocols | §5.3 three explicit operations with exact preconditions |
+| M3 uncalibrated absence | §6.2 declared consistency bounds; auto-redispatch opt-in; null bound ⇒ escalate only |
+| M4 transport taxonomy conflict | §10 canonical closed set; refinements as failure_kind/evidence only |
+| M5 destination identity missing from keys | §2.2: adapter_id + declaration digest on records/attempts/probes/findings; orphan key (adapter_id, destination_ref) |
+| M12 tests contradict mechanisms | §15 regenerated from this RFC (two-pass sweep, single-writer, C1 replay exits, per-execution terminality) |
+| M14 reconcile/audit conflict | §6.3 explicit split |
+| M15 doctor contracts conflict | §12: one envelope, one exit table, read-only with `--probe` opt-in |
+| M16 gate I/O in telemetry | §5.3(2), §11: no adapter calls under the gate; replay traffic under reconcile/recovery |
+| M17 uncovered gaps | declaration digests on attempts (§2.2), REDISPATCHED close semantics (§3.3), clock-conditional determinism (§2.1), digest-only evidence (§0) |
+| M18 evidence privacy | §0 rule 5; separate store decision gated pre-real-sandbox |
+| N1–N3, N8 | §8 virtual clock + collision-resistant refs; §2.2 sighting uniqueness + probe checks; slot_busy defined as open-attempt/claim contention (§5.1) |
+
+B5–B7 and M6–M11 (benchmark methodology) are resolved in
+[benchmark-preregistration.md](benchmark-preregistration.md); B8 and M19–M22 (public-repo
+security, licensing) in [security-policy.md](security-policy.md), ADR-0014, and the review
+queue.

@@ -1,0 +1,19 @@
+/* Motion tokens. Feedback only, 0-220 ms, transform/opacity only.
+   Reduced motion collapses every duration to zero in one place. */
+
+:root {
+  --sys-dur-instant: 0ms;
+  --sys-dur-fast: 100ms;
+  --sys-dur-base: 150ms;
+  --sys-dur-slow: 220ms;
+  --sys-ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --sys-ease-in: cubic-bezier(0.4, 0, 1, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --sys-dur-fast: 0ms;
+    --sys-dur-base: 0ms;
+    --sys-dur-slow: 0ms;
+  }
+}

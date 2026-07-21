@@ -1,13 +1,16 @@
 {
+  "schema_version": "1",
   "stable_ids": {
     "order_id": "ord_9410"
   },
   "effect_type": "order.create",
   "effect_class": "IRREVERSIBLE",
   "scope": "customer:cust_771",
+  "adapter_id": "stub-c2",
+  "parameters": {},
   "authority_ref": "auth_approved_task_18",
   "stamped_at": "2026-07-20T18:04:11Z",
   "model_generated_arguments": {
-    "note": "closed shape: model-output payloads must not ride inside the intent contract"
+    "note": "closed shape: model output rides only inside `parameters` (validated per adapter, ADR-0019) — never as an undeclared member"
   }
 }

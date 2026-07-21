@@ -1,0 +1,76 @@
+{
+  "schema_version": "1",
+  "events": [
+    {
+      "event": "registered",
+      "effect_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5",
+      "lifecycle": "PERSISTED"
+    },
+    {
+      "event": "dispatch_response_lost",
+      "effect_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5",
+      "fault": "response_lost",
+      "lifecycle": "AMBIGUOUS"
+    },
+    {
+      "event": "crash",
+      "exit_status": -9
+    },
+    {
+      "event": "recovered",
+      "recovery": {
+        "scanned": 1,
+        "adjudicated": 1
+      }
+    },
+    {
+      "event": "settled_confirmed_unique",
+      "lifecycle": "SETTLED_COMMITTED",
+      "classification": "CONFIRMED_UNIQUE"
+    },
+    {
+      "event": "resynthesis_collapsed",
+      "effect_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5",
+      "replayed": true,
+      "parameter_variant": "sha256:074abd639c1ad62f7ad769c6261bfa1f7b93021f8171644ebe3d4ce3df98c2cd"
+    },
+    {
+      "event": "duplicate_rejected",
+      "outcome": "denied",
+      "deny_check": "dedup",
+      "decision_id": 2
+    },
+    {
+      "event": "b5_response_lost",
+      "transport_outcome": "LOST"
+    },
+    {
+      "event": "b5_restart"
+    },
+    {
+      "event": "b5_retried",
+      "retried": [
+        "wf-order-9410-activity-0"
+      ]
+    },
+    {
+      "event": "b5_duplicate",
+      "destination_effects": 2
+    }
+  ],
+  "summary": {
+    "schema_version": "1",
+    "seed": 777,
+    "detent_leg": {
+      "destination_effects": 1,
+      "duplicate_rejected": true,
+      "reconciled": "SETTLED_COMMITTED",
+      "effect_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5"
+    },
+    "b5_leg": {
+      "destination_effects": 2,
+      "duplicate_created": true
+    },
+    "contrast_holds": true
+  }
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "name": "initial route JS (gzip) — target 120 KB, hard gate 180 KB",
+    "path": "dist/assets/index-*.js",
+    "limit": "180 KB",
+    "gzip": true
+  },
+  {
+    "name": "total lazy JS excluding dev-only MSW worker (gzip)",
+    "path": ["dist/assets/*.js", "!dist/assets/browser-*.js"],
+    "limit": "350 KB",
+    "gzip": true
+  },
+  {
+    "name": "total CSS (gzip)",
+    "path": "dist/assets/*.css",
+    "limit": "50 KB",
+    "gzip": true
+  }
+]

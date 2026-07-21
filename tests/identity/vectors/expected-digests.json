@@ -1,0 +1,7 @@
+{
+  "_comment": "External oracle for the pinned rfc8785 encoder (ADR-0013; stack.md §4). SHA-256 digests of the JCS canonical bytes, produced byte-identically by four independent implementations (Python rfc8785 0.1.4, Node canonicalize 3.0.0, Go gowebpki/jcs v1.0.1, Rust serde_jcs 0.1.0) in the T-000 spike. v3 must equal v2 (key-order invariance). These are conformance vectors, never regenerated from the engine under test.",
+  "v1-rfc8785-appendix.json": "2d5e01a318d0f0879ab568c4be289c8b1f64ef8921a53c6277d5e069978baacb",
+  "v2-intent-tuple.json": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5",
+  "v3-key-order-scrambled.json": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5",
+  "v4-unicode-sorting.json": "a7b5f1a508c4e040d9b595f0763bec8531848447f27b5e80b31e9f105a23719b"
+}

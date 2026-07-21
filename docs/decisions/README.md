@@ -7,10 +7,9 @@ which carries each decision's rejected alternative and reopen trigger, frozen in
 hash-pinned document. Duplicating them as files would create a second source of truth that can
 drift (split-brain). Files exist only for decisions that are **OPEN** (still being made) or
 **NEW** (not in §11). When a §11 decision is superseded or reopened, a full ADR file is
-created *then*, per §12.5/§17 — that is exactly the moment append-only file history earns its
-existence.
+created *then*, per §12.5/§17 — which is when append-only file history becomes necessary.
 
-## Index (complete: 0000–0015)
+## Index (complete: 0000–0022)
 
 | ADR | Title | Status | Canonical text |
 |---|---|---|---|
@@ -27,9 +26,16 @@ existence.
 | 0010 | Stripe API version pin | **OPEN** | [0010-stripe-api-version.md](0010-stripe-api-version.md) |
 | 0011 | Working name "Detent" | accepted (screen pending, §13) | master doc §11 |
 | 0012 | C2 sandbox selection | **OPEN** | [0012-c2-sandbox.md](0012-c2-sandbox.md) |
-| 0013 | Implementation language and stack | **OPEN** | [0013-implementation-language.md](0013-implementation-language.md) |
+| 0013 | Implementation language and stack | accepted (ratified 2026-07-21) | [0013-implementation-language.md](0013-implementation-language.md) |
 | 0014 | Licensing and contributor governance | **OPEN** | [0014-licensing.md](0014-licensing.md) |
-| 0015 | Schema dialect and validation tooling | accepted | [0015-schema-validation-tooling.md](0015-schema-validation-tooling.md) |
+| 0015 | Schema dialect and validation tooling | accepted (countersign requested, review-queue §3) | [0015-schema-validation-tooling.md](0015-schema-validation-tooling.md) |
+| 0016 | Frontend workbench stack (Vite SPA + TanStack) | accepted (ratified 2026-07-21) | [0016-frontend-workbench-stack.md](0016-frontend-workbench-stack.md) |
+| 0017 | Build orchestration (plain Make over uv/pnpm) | accepted (ratified 2026-07-21) | [0017-build-orchestration.md](0017-build-orchestration.md) |
+| 0018 | Distribution model (single PyPI package, $0 infra) | accepted (ratified 2026-07-21) | [0018-distribution-model.md](0018-distribution-model.md) |
+| 0019 | Record schemas and API contracts | accepted (ratified 2026-07-21) | [0019-record-schemas-and-api-contracts.md](0019-record-schemas-and-api-contracts.md) |
+| 0020 | Identity procedure (JCS + SHA-256, RFC-001 §1 items 1–4) | **proposed** | [0020-identity-procedure.md](0020-identity-procedure.md) |
+| 0021 | Record schemas admitted at M3 (ADR-0019 criteria) | **proposed** | [0021-record-schemas-admission.md](0021-record-schemas-admission.md) |
+| 0022 | Migration runner (in-package plain-SQL, hash journal) | **proposed** | [0022-migration-runner.md](0022-migration-runner.md) |
 
 ## Policy
 

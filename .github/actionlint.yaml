@@ -1,0 +1,10 @@
+# actionlint configuration. Keep this file minimal: every ignore entry needs a
+# documented false-positive rationale (see .cursor/rules/workflows.mdc).
+paths:
+  # release.yml is a prepared-but-DISABLED pipeline: its guard job carries a
+  # deliberate constant `if: false` so nothing can run before the public-release
+  # gate closes (docs/ci.md). actionlint flags constant conditions as mistakes;
+  # here the constant is the design.
+  ".github/workflows/release.yml":
+    ignore:
+      - 'constant expression "false" in condition'

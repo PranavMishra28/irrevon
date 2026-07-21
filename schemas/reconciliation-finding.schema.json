@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://detent.invalid/schemas/reconciliation-finding.schema.json",
+  "$comment": "Admitted at M3 (T-102) by ADR-0021 per the ADR-0019 item-4 criteria: schema_version required; conditional subject requirements (ORPHANED ⇔ destination-keyed); conditional resolution requirements (terminal status ⇒ resolved_at + evidence digest); DUPLICATE ⇒ excess_effect_count ≥ 1; classification enum incl. CONTRADICTED generated from the ratified state table (AM-18; RFC-002 §3.2 via detent.statetable, tests/schemas/test_enum_sync.py). UNRECONCILED is the ABSENCE of findings, not a finding (RFC-002 §3.2). $id host is a placeholder pending the name screen. Shape changes require an ADR.",
+  "title": "Reconciliation finding",
+  "description": "A dimension-B classification with evidence, plus its dimension-C resolution chain state. Subject is a strict oneOf so ORPHANED findings (destination-keyed, no ledger record — master doc §7.1) are first-class.",
+  "type": "object",
+  "properties": {
+    "schema_version": { "const": "1" },
+    "finding_id": {
+      "type": "string",
+      "pattern": "^fnd_[0-9A-Za-z]{20,40}$"
+    },
+    "subject": {
+      "description": "Exactly one of: ledger-keyed, or destination-keyed (adapter + destination_ref — C1 finding M5).",
+      "type": "object",
+      "oneOf": [
+        {
+          "properties": {
+            "effect_id": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          },
+          "required": ["effect_id"],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "adapter_id": { "type": "string", "minLength": 1 },
+            "destination_ref": { "type": "string", "minLength": 1 }
+          },
+          "required": ["adapter_id", "destination_ref"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "adapter_id": { "type": "string", "minLength": 1 },
+    "classification": {
+      "enum": ["CONFIRMED_UNIQUE", "DUPLICATE", "LOST", "ORPHANED", "CONTRADICTED"]
+    },
+    "excess_effect_count": {
+      "description": "DUPLICATE only: destination effects beyond the first (n − 1). Benchmark duplicate counts come from oracle read-back, never finding counts (AM-18).",
+      "type": "integer",
+      "minimum": 1
+    },
+    "evidence_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "evidence": {
+      "description": "Until the redaction pipeline exists, evidence bundles are exposed digest-only (RFC-002 §9 Q2).",
+      "type": "object",
+      "properties": {
+        "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "bundle": { "type": "null" },
+        "redaction": { "const": "digest_only" }
+      },
+      "required": ["digest", "redaction"],
+      "additionalProperties": false
+    },
+    "created_by": { "enum": ["reconciler", "recovery", "sweep", "human"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "resolution": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "description": "Dimension C (RFC-002 §3.3): OPEN → action → CLOSED.",
+          "enum": [
+            "OPEN",
+            "COMPENSATED",
+            "REDISPATCHED",
+            "ACCEPTED_AS_IS",
+            "ESCALATED_HUMAN",
+            "CLOSED"
+          ]
+        },
+        "evidence_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "resolved_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["status"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$comment": "ADR-0019 admission criterion: resolution status beyond OPEN requires resolved_at + evidence digest.",
+          "if": { "properties": { "status": { "const": "OPEN" } } },
+          "then": {},
+          "else": { "required": ["evidence_digest", "resolved_at"] }
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "finding_id",
+    "subject",
+    "adapter_id",
+    "classification",
+    "evidence_digest",
+    "evidence",
+    "created_by",
+    "created_at",
+    "resolution"
+  ],
+  "allOf": [
+    {
+      "$comment": "ORPHANED ⇔ destination-keyed subject (RFC-002 §3.2).",
+      "if": { "properties": { "classification": { "const": "ORPHANED" } } },
+      "then": {
+        "properties": {
+          "subject": { "required": ["adapter_id", "destination_ref"] }
+        }
+      },
+      "else": {
+        "properties": { "subject": { "required": ["effect_id"] } }
+      }
+    },
+    {
+      "$comment": "DUPLICATE requires the excess count; all others must omit it.",
+      "if": { "properties": { "classification": { "const": "DUPLICATE" } } },
+      "then": { "required": ["excess_effect_count"] },
+      "else": { "not": { "required": ["excess_effect_count"] } }
+    }
+  ],
+  "additionalProperties": false
+}
