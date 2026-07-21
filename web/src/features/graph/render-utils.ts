@@ -1,12 +1,11 @@
+import { truncateEffectId, truncateOperationId } from "@/shared/lib/ids";
+
 import type { GraphEdge, GraphModel } from "./model";
 
 /** Display truncation per the identifier contract (§3.4). */
 export function truncateGraphValue(value: string): string {
-  if (/^[0-9a-f]{64}$/.test(value)) return `${value.slice(0, 12)}…`;
-  if (/^[0-9a-f]{64}:\d+$/.test(value)) {
-    const colon = value.indexOf(":");
-    return `${value.slice(0, 12)}…${value.slice(colon)}`;
-  }
+  if (/^[0-9a-f]{64}$/.test(value)) return truncateEffectId(value);
+  if (/^[0-9a-f]{64}:\d+$/.test(value)) return truncateOperationId(value);
   if (/^(sha256:)?[0-9a-f]{40,}$/.test(value)) {
     const prefix = value.startsWith("sha256:") ? "sha256:" : "";
     const hex = value.slice(prefix.length);

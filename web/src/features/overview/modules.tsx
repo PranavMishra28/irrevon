@@ -52,7 +52,7 @@ export function PartialSnapshotNotice() {
  * rendering of the same visible number over the complete snapshot total —
  * never the only carrier of the value.
  */
-export function CountList({
+function CountList({
   rows,
   total,
   emptyText,

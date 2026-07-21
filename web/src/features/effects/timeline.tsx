@@ -34,7 +34,7 @@ function formatGap(ms: number): string {
   return `${Math.round(ms / 1000)} s`;
 }
 
-export function buildTimeline(payload: InspectPayload): TimelineEvent[] {
+function buildTimeline(payload: InspectPayload): TimelineEvent[] {
   interface Raw {
     key: string;
     at: string;
