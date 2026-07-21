@@ -158,5 +158,6 @@ web-e2e:
 web-vrt:
 	cd web && docker run --rm --ipc=host -e CI=1 -v "$$PWD":/work -w /work \
 	  mcr.microsoft.com/playwright:v1.61.1-noble \
-	  bash -lc 'corepack enable && pnpm install --frozen-lockfile && \
+	  bash -lc 'corepack enable && \
+	            pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store && \
 	            DETENT_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
