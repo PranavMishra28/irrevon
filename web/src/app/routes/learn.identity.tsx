@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { EXAMPLE_ORDER_CREATE } from "@/shared/contracts/generated/identity-examples";
 import { Page } from "@/shared/ui/layout/page";
 
 export const Route = createFileRoute("/learn/identity")({ component: IdentityPage });
@@ -67,13 +68,51 @@ function IdentityPage() {
 
         <div className="mt-6 rounded-(--radius-structural) border border-border bg-surface-1 p-5">
           <h2 className="text-base font-semibold text-text-primary">
-            Worked example — pending the corrected request schema
+            Worked example — from the ratified request schema
           </h2>
           <p className="mt-2 text-sm text-text-secondary">
-            A concrete request-to-hash walkthrough belongs here, derived field-by-field from the
-            ratified dispatchable-request schema. That schema is still being corrected (
-            <span className="font-mono text-xs">BI-1, BI-2</span>); this page will not invent
-            example payloads from stale drafts.
+            This is the canonical <span className="font-mono text-xs">order.create</span>{" "}
+            example from the schema's own acceptance suite. Only the highlighted identity fields
+            participate in the hash; everything else is a carrier.
+          </p>
+          <dl className="mt-4 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 text-sm">
+            {Object.entries(EXAMPLE_ORDER_CREATE).map(([field, value]) => {
+              const isIdentity =
+                field === "stable_ids" || field === "effect_type" || field === "scope";
+              return (
+                <div key={field} className="col-span-2 grid grid-cols-subgrid">
+                  <dt
+                    className={
+                      "font-mono text-xs " +
+                      (isIdentity ? "font-semibold text-text-primary" : "text-text-tertiary")
+                    }
+                  >
+                    {field}
+                    {isIdentity ? (
+                      <span className="ml-1.5 rounded-(--radius-structural) border border-border-strong px-1 font-mono text-2xs text-text-secondary uppercase">
+                        identity
+                      </span>
+                    ) : null}
+                  </dt>
+                  <dd
+                    className={
+                      "font-mono text-xs break-all " +
+                      (isIdentity ? "text-text-primary" : "text-text-tertiary")
+                    }
+                  >
+                    {typeof value === "string" ? value : JSON.stringify(value)}
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
+          <p className="mt-4 border-t border-border-subtle pt-3 text-sm text-text-secondary">
+            intent_id = SHA-256 over the canonical (JCS) bytes of{" "}
+            <span className="font-mono text-xs">{"{stable_ids, effect_type, scope}"}</span>. A
+            retry that re-synthesizes different{" "}
+            <span className="font-mono text-xs">parameters</span> — new line-item order, new
+            prose, new anything — produces the same intent_id, and the deduplication gate
+            answers it with evidence instead of a second effect.
           </p>
         </div>
       </div>

@@ -1,18 +1,22 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+const HEX64 = "c0ffee".padEnd(64, "0");
+
 const ROUTES = [
   "/learn/start",
   "/learn/identity",
   "/learn/state",
   "/learn/tiers",
   "/effects",
+  `/effects/${HEX64}`,
   "/demo",
   "/health",
   "/attention",
   "/findings",
   "/adapters",
   "/bench",
+  "/taxonomy",
 ];
 
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];

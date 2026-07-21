@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TaxonomyRouteImport } from './routes/taxonomy'
+import { Route as LearnRouteImport } from './routes/learn'
 import { Route as HealthRouteImport } from './routes/health'
 import { Route as FindingsRouteImport } from './routes/findings'
 import { Route as DemoRouteImport } from './routes/demo'
@@ -22,10 +23,16 @@ import { Route as LearnTiersRouteImport } from './routes/learn.tiers'
 import { Route as LearnStateRouteImport } from './routes/learn.state'
 import { Route as LearnStartRouteImport } from './routes/learn.start'
 import { Route as LearnIdentityRouteImport } from './routes/learn.identity'
+import { Route as EffectsEffectIdRouteImport } from './routes/effects.$effectId'
 
 const TaxonomyRoute = TaxonomyRouteImport.update({
   id: '/taxonomy',
   path: '/taxonomy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnRoute = LearnRouteImport.update({
+  id: '/learn',
+  path: '/learn',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HealthRoute = HealthRouteImport.update({
@@ -69,23 +76,28 @@ const EffectsIndexRoute = EffectsIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const LearnTiersRoute = LearnTiersRouteImport.update({
-  id: '/learn/tiers',
-  path: '/learn/tiers',
-  getParentRoute: () => rootRouteImport,
+  id: '/tiers',
+  path: '/tiers',
+  getParentRoute: () => LearnRoute,
 } as any)
 const LearnStateRoute = LearnStateRouteImport.update({
-  id: '/learn/state',
-  path: '/learn/state',
-  getParentRoute: () => rootRouteImport,
+  id: '/state',
+  path: '/state',
+  getParentRoute: () => LearnRoute,
 } as any)
 const LearnStartRoute = LearnStartRouteImport.update({
-  id: '/learn/start',
-  path: '/learn/start',
-  getParentRoute: () => rootRouteImport,
+  id: '/start',
+  path: '/start',
+  getParentRoute: () => LearnRoute,
 } as any)
 const LearnIdentityRoute = LearnIdentityRouteImport.update({
-  id: '/learn/identity',
-  path: '/learn/identity',
+  id: '/identity',
+  path: '/identity',
+  getParentRoute: () => LearnRoute,
+} as any)
+const EffectsEffectIdRoute = EffectsEffectIdRouteImport.update({
+  id: '/effects/$effectId',
+  path: '/effects/$effectId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -97,7 +109,9 @@ export interface FileRoutesByFullPath {
   '/demo': typeof DemoRoute
   '/findings': typeof FindingsRoute
   '/health': typeof HealthRoute
+  '/learn': typeof LearnRouteWithChildren
   '/taxonomy': typeof TaxonomyRoute
+  '/effects/$effectId': typeof EffectsEffectIdRoute
   '/learn/identity': typeof LearnIdentityRoute
   '/learn/start': typeof LearnStartRoute
   '/learn/state': typeof LearnStateRoute
@@ -112,7 +126,9 @@ export interface FileRoutesByTo {
   '/demo': typeof DemoRoute
   '/findings': typeof FindingsRoute
   '/health': typeof HealthRoute
+  '/learn': typeof LearnRouteWithChildren
   '/taxonomy': typeof TaxonomyRoute
+  '/effects/$effectId': typeof EffectsEffectIdRoute
   '/learn/identity': typeof LearnIdentityRoute
   '/learn/start': typeof LearnStartRoute
   '/learn/state': typeof LearnStateRoute
@@ -128,7 +144,9 @@ export interface FileRoutesById {
   '/demo': typeof DemoRoute
   '/findings': typeof FindingsRoute
   '/health': typeof HealthRoute
+  '/learn': typeof LearnRouteWithChildren
   '/taxonomy': typeof TaxonomyRoute
+  '/effects/$effectId': typeof EffectsEffectIdRoute
   '/learn/identity': typeof LearnIdentityRoute
   '/learn/start': typeof LearnStartRoute
   '/learn/state': typeof LearnStateRoute
@@ -145,7 +163,9 @@ export interface FileRouteTypes {
     | '/demo'
     | '/findings'
     | '/health'
+    | '/learn'
     | '/taxonomy'
+    | '/effects/$effectId'
     | '/learn/identity'
     | '/learn/start'
     | '/learn/state'
@@ -160,7 +180,9 @@ export interface FileRouteTypes {
     | '/demo'
     | '/findings'
     | '/health'
+    | '/learn'
     | '/taxonomy'
+    | '/effects/$effectId'
     | '/learn/identity'
     | '/learn/start'
     | '/learn/state'
@@ -175,7 +197,9 @@ export interface FileRouteTypes {
     | '/demo'
     | '/findings'
     | '/health'
+    | '/learn'
     | '/taxonomy'
+    | '/effects/$effectId'
     | '/learn/identity'
     | '/learn/start'
     | '/learn/state'
@@ -191,11 +215,9 @@ export interface RootRouteChildren {
   DemoRoute: typeof DemoRoute
   FindingsRoute: typeof FindingsRoute
   HealthRoute: typeof HealthRoute
+  LearnRoute: typeof LearnRouteWithChildren
   TaxonomyRoute: typeof TaxonomyRoute
-  LearnIdentityRoute: typeof LearnIdentityRoute
-  LearnStartRoute: typeof LearnStartRoute
-  LearnStateRoute: typeof LearnStateRoute
-  LearnTiersRoute: typeof LearnTiersRoute
+  EffectsEffectIdRoute: typeof EffectsEffectIdRoute
   EffectsIndexRoute: typeof EffectsIndexRoute
 }
 
@@ -206,6 +228,13 @@ declare module '@tanstack/react-router' {
       path: '/taxonomy'
       fullPath: '/taxonomy'
       preLoaderRoute: typeof TaxonomyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn': {
+      id: '/learn'
+      path: '/learn'
+      fullPath: '/learn'
+      preLoaderRoute: typeof LearnRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/health': {
@@ -266,34 +295,57 @@ declare module '@tanstack/react-router' {
     }
     '/learn/tiers': {
       id: '/learn/tiers'
-      path: '/learn/tiers'
+      path: '/tiers'
       fullPath: '/learn/tiers'
       preLoaderRoute: typeof LearnTiersRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof LearnRoute
     }
     '/learn/state': {
       id: '/learn/state'
-      path: '/learn/state'
+      path: '/state'
       fullPath: '/learn/state'
       preLoaderRoute: typeof LearnStateRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof LearnRoute
     }
     '/learn/start': {
       id: '/learn/start'
-      path: '/learn/start'
+      path: '/start'
       fullPath: '/learn/start'
       preLoaderRoute: typeof LearnStartRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof LearnRoute
     }
     '/learn/identity': {
       id: '/learn/identity'
-      path: '/learn/identity'
+      path: '/identity'
       fullPath: '/learn/identity'
       preLoaderRoute: typeof LearnIdentityRouteImport
+      parentRoute: typeof LearnRoute
+    }
+    '/effects/$effectId': {
+      id: '/effects/$effectId'
+      path: '/effects/$effectId'
+      fullPath: '/effects/$effectId'
+      preLoaderRoute: typeof EffectsEffectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
+
+interface LearnRouteChildren {
+  LearnIdentityRoute: typeof LearnIdentityRoute
+  LearnStartRoute: typeof LearnStartRoute
+  LearnStateRoute: typeof LearnStateRoute
+  LearnTiersRoute: typeof LearnTiersRoute
+}
+
+const LearnRouteChildren: LearnRouteChildren = {
+  LearnIdentityRoute: LearnIdentityRoute,
+  LearnStartRoute: LearnStartRoute,
+  LearnStateRoute: LearnStateRoute,
+  LearnTiersRoute: LearnTiersRoute,
+}
+
+const LearnRouteWithChildren = LearnRoute._addFileChildren(LearnRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -303,11 +355,9 @@ const rootRouteChildren: RootRouteChildren = {
   DemoRoute: DemoRoute,
   FindingsRoute: FindingsRoute,
   HealthRoute: HealthRoute,
+  LearnRoute: LearnRouteWithChildren,
   TaxonomyRoute: TaxonomyRoute,
-  LearnIdentityRoute: LearnIdentityRoute,
-  LearnStartRoute: LearnStartRoute,
-  LearnStateRoute: LearnStateRoute,
-  LearnTiersRoute: LearnTiersRoute,
+  EffectsEffectIdRoute: EffectsEffectIdRoute,
   EffectsIndexRoute: EffectsIndexRoute,
 }
 export const routeTree = rootRouteImport

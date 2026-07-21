@@ -20,8 +20,8 @@ function EffectsPage() {
       lead="Every registered effect record: identity, lifecycle, reconciliation classification, and resolution — three separate columns, never one status."
     >
       <ContractPendingState
-        what="The effects grid renders only from the corrected post-integration EffectRecord / Q1 envelope schemas. Those schemas have not landed on this branch yet."
-        blockedOn="BI-2, BI-3, BI-9 (schemas/*.schema.json on rc/v0.1)"
+        what="The effects grid renders only from the ratified EffectRecord / Q1 envelope record schemas. ADR-0019 defers those to the M3 admission ADR, so no rows can be typed or fixture-authored yet."
+        blockedOn="BI-3, BI-9 (record schemas — M3 admission ADR per ADR-0019 item 4)"
       />
     </Page>
   );
