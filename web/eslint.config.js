@@ -31,6 +31,8 @@ export default tseslint.config(
   {
     ignores: [
       "dist/**",
+      "dist-live-guard/**",
+      "dist-mock-refused/**",
       "storybook-static/**",
       "node_modules/**",
       "src/app/routeTree.gen.ts",
