@@ -11,7 +11,12 @@
 #   1. docs/master-doc.md may change only together with scripts/master-doc.sha256
 #      (the human amendment re-pin path). The hash pin in check-integrity.sh stays
 #      the primary, state-based control; this adds per-diff precision.
-#   2. docs/review-queue.md is append-only: any deleted line fails.
+#   2. docs/review-queue.md is append-only: any deleted line fails — EXCEPT in a
+#      human ratification integration, where the same range must carry the rule-1
+#      amendment re-pin (docs/master-doc.md + scripts/master-doc.sha256 together)
+#      AND the queue's added lines must record the ratifying amendment
+#      (an added line carrying both an AM-<n> id and RATIFIED). Resolution stays
+#      human-only: the re-pin is the in-diff act only a ratifying human performs.
 #   3. Accepted ADRs are append-only: the only sanctioned edit is the status: line
 #      (supersession). Acceptance is read from the BASE version, so flipping the
 #      status in the same diff cannot unlock the file.
@@ -64,12 +69,36 @@ if printf '%s\n' "$changed" | grep -qx 'docs/master-doc.md'; then
   fi
 fi
 
-# -- Rule 2: review queue is append-only -----------------------------------------
+# -- Rule 2: review queue is append-only (ratification-integration exception) -----
 if printf '%s\n' "$changed" | grep -qx 'docs/review-queue.md'; then
   deletions=$(diff_numstat docs/review-queue.md | awk '{print $2}')
   if [ -n "$deletions" ] && [ "$deletions" != "0" ] && [ "$deletions" != "-" ]; then
-    echo "frozen: FAIL - docs/review-queue.md has $deletions deleted line(s); it is append-only"
-    fail=1
+    # Exception: a human ratification integration may restructure the queue to
+    # record ratification outcomes. Evidence required IN THE SAME RANGE:
+    #   (a) the amendment re-pin — master doc AND its hash pin both changed
+    #       (rule 1's amendment path; re-pinning is a human-only act), and
+    #   (b) the queue's ADDED lines record the ratifying amendment: at least one
+    #       added line carries an AM-<n> id together with the word RATIFIED.
+    # Deletions without both pieces of evidence still fail.
+    repin=0
+    if printf '%s\n' "$changed" | grep -qx 'docs/master-doc.md' \
+       && printf '%s\n' "$changed" | grep -qx 'scripts/master-doc.sha256'; then
+      repin=1
+    fi
+    ratified=0
+    if diff_hunks docs/review-queue.md | grep -E '^[+][^+]' \
+         | grep -E 'AM-[0-9]+' | grep -q 'RATIFIED'; then
+      ratified=1
+    fi
+    if [ "$repin" -eq 1 ] && [ "$ratified" -eq 1 ]; then
+      echo "frozen: review-queue has $deletions deletion(s) WITH the amendment re-pin and a recorded RATIFIED AM-<n> - OK (ratification integration)"
+    else
+      echo "frozen: FAIL - docs/review-queue.md has $deletions deleted line(s); it is append-only"
+      echo "  Deletions are allowed only in a human ratification integration: the same range"
+      echo "  must re-pin the master doc (docs/master-doc.md + scripts/master-doc.sha256) AND"
+      echo "  the queue's added lines must record the ratifying amendment (AM-<n> ... RATIFIED)."
+      fail=1
+    fi
   else
     echo "frozen: review-queue append-only OK"
   fi

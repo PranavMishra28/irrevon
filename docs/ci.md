@@ -47,6 +47,12 @@ runs lychee/zizmor online — the local gate stays deterministic (`--offline`) o
 
 ## Owner settings checklist (HUMAN-only; agents are hook-blocked from all of it)
 
+**Script:** [`scripts/setup-repo-settings.sh`](../scripts/setup-repo-settings.sh) automates
+items 1–5 below (`bash scripts/setup-repo-settings.sh`, idempotent, read-back verification
+included) and item 6 (`--phase2`, self-guarded: refuses until `ci-required` has reported
+green on a real PR). The Actions allowlist/SHA-pin checkbox in item 3 and items 7–8 stay
+manual UI steps.
+
 Now (with this branch's merge):
 
 1. **Secret scanning + push protection** — Settings → Advanced Security → enable
@@ -104,6 +110,15 @@ Before the first M4/M7 dispatch:
 - **Nightly silently auto-disables** after 60 days without repo activity (public repos)
   `[VF]`. Quarterly sweep: confirm the nightly workflow is still enabled, re-verify the
   action pin table and (at M3+) the Postgres digest, which Dependabot does not bump.
+- **Docs gate fails on a ratification PR.** The frozen gate
+  ([`scripts/check-frozen.sh`](../scripts/check-frozen.sh)) treats
+  `docs/review-queue.md` as append-only, with ONE exception — a human ratification
+  integration: deletions pass only when the same PR range carries the master-doc
+  re-pin (`docs/master-doc.md` + `scripts/master-doc.sha256` changed together, the
+  human-only amendment act) AND the queue's added lines record the ratifying
+  amendment (`AM-<n>` … `RATIFIED`). Deletions without both pieces of evidence
+  still fail — never exempt the file or skip the gate on PRs. The scenario matrix
+  lives in `tests/scripts/test_check_frozen.py`.
 - **Push protection blocks a push:** rotate/remove the secret and recommit — never bypass
   (hook- and policy-blocked).
 - **Nightly external-link failures** are often flakes: follow the triage protocol in the
