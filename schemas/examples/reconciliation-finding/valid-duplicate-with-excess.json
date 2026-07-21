@@ -1,0 +1,23 @@
+{
+  "schema_version": "1",
+  "finding_id": "fnd_00000000000000000003",
+  "subject": {
+    "effect_id": "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5"
+  },
+  "adapter_id": "refdest-c2",
+  "classification": "DUPLICATE",
+  "excess_effect_count": 1,
+  "evidence_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "evidence": {
+    "digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "bundle": null,
+    "redaction": "digest_only"
+  },
+  "created_by": "reconciler",
+  "created_at": "2026-07-21T09:06:00Z",
+  "resolution": {
+    "status": "ESCALATED_HUMAN",
+    "evidence_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "resolved_at": "2026-07-21T09:07:00Z"
+  }
+}

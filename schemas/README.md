@@ -10,26 +10,23 @@ require an ADR (`.cursor/rules/contracts.mdc`); the current shapes were set by
 `$id` values use the placeholder host `detent.invalid` — identifiers, not locators; final
 URIs are set after the name screen closes (master doc §13).
 
-## Shipped now (2)
+## Shipped now (5)
 
 | Schema | Why now |
 |---|---|
 | [intent-contract.schema.json](intent-contract.schema.json) | The trust boundary (master doc §6.3): nothing model-generated crosses into the deterministic core except via this validated contract. ADR-0019 added the dispatchable request model (`schema_version`, `adapter_id`, `parameters`, `branch_ref`, `event_time`); identity still derives only from `stable_ids + effect_type + scope`. Consumed by the first implementation task (T-101). |
 | [capability-declaration.schema.json](capability-declaration.schema.json) | The exchange format for destination capabilities (§7.3/§7.5/§7.6); carries the AM-9 fields (`client_ref_field`, `list_queryable` — ratified 2026-07-21) and the ADR-0019 `consistency` bounds that calibrate confirmed-absence (RFC-002 §6). |
+| [effect-record.schema.json](effect-record.schema.json) | Admitted at M3 (T-102) by [ADR-0021](../docs/decisions/0021-record-schemas-admission.md) (proposed) per the ADR-0019 item-4 criteria — the ledger now produces this view (Q1 item core, RFC-002 §9). |
+| [dispatch-receipt.schema.json](dispatch-receipt.schema.json) | Same admission; carries execution identity (`operation_id`) and mirrors the ledger's transport-outcome/failure-kind coupling as `if/then`. |
+| [reconciliation-finding.schema.json](reconciliation-finding.schema.json) | Same admission; strict `oneOf` subject (destination-keyed ORPHANED per master doc §7.1), AM-18 classification enum (DUPLICATE n>1 + CONTRADICTED), digest-only evidence until the redaction pipeline exists. |
 
-## Deferred (3), and why
+Record-schema enums are **generated from the ratified state table** (RFC-002 §3 via
+`src/detent/statetable.py`) and mechanically checked by `tests/schemas/test_enum_sync.py`
+plus the integration seed-table cross-checks — never hand-copied (ADR-0019 item 4).
 
-**EffectRecord, DispatchReceipt, ReconciliationFinding** are internal ledger shapes. Their
-deferral to M3 (T-102) was re-examined and re-affirmed in ADR-0019 item 4: (a) the drafted
-proposals did not enforce their own contracts (missing required `schema_version`, missing
-conditional subject/resolution requirements, receipts without operation identity); (b) the
-ratified state-model correction (amendment AM-18: DUPLICATE stays n>1; CONTRADICTED added)
-changes the classification enum they would encode; (c) they still have no producer or
-consumer until the ledger exists. ADR-0019 records the binding admission criteria; the
-enums must be generated from the ratified state table (RFC-002 §3,
-`docs/rfc-002-engine-design.md`), never hand-copied.
+## Deferred, and why
 
-Also deferred: adapter interface and per-effect-type parameter schemas (M4, ADR-0019),
+Adapter interface and per-effect-type parameter schemas (M4, ADR-0019),
 benchmark run-manifest/result records, fault-schedule and re-synthesis-variant formats (all
 Stage-B preregistration artifacts), evidence-bundle format (depends on the redaction
 pipeline, §9).

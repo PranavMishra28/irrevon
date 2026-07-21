@@ -9,7 +9,7 @@ drift (split-brain). Files exist only for decisions that are **OPEN** (still bei
 **NEW** (not in §11). When a §11 decision is superseded or reopened, a full ADR file is
 created *then*, per §12.5/§17 — which is when append-only file history becomes necessary.
 
-## Index (complete: 0000–0020)
+## Index (complete: 0000–0022)
 
 | ADR | Title | Status | Canonical text |
 |---|---|---|---|
@@ -34,6 +34,8 @@ created *then*, per §12.5/§17 — which is when append-only file history becom
 | 0018 | Distribution model (single PyPI package, $0 infra) | accepted (ratified 2026-07-21) | [0018-distribution-model.md](0018-distribution-model.md) |
 | 0019 | Record schemas and API contracts | accepted (ratified 2026-07-21) | [0019-record-schemas-and-api-contracts.md](0019-record-schemas-and-api-contracts.md) |
 | 0020 | Identity procedure (JCS + SHA-256, RFC-001 §1 items 1–4) | **proposed** | [0020-identity-procedure.md](0020-identity-procedure.md) |
+| 0021 | Record schemas admitted at M3 (ADR-0019 criteria) | **proposed** | [0021-record-schemas-admission.md](0021-record-schemas-admission.md) |
+| 0022 | Migration runner (in-package plain-SQL, hash journal) | **proposed** | [0022-migration-runner.md](0022-migration-runner.md) |
 
 ## Policy
 

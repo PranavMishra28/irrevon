@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://detent.invalid/schemas/dispatch-receipt.schema.json",
+  "$comment": "Admitted at M3 (T-102) by ADR-0021 per the ADR-0019 item-4 criteria: schema_version required; operation/execution identity on receipts; transport_outcome/failure_kind conditionally tied (RFC-002 §2.2 CHECK mirrored as if/then). Enums generated from RFC-002 §3/§10 via detent.statetable (tests/schemas/test_enum_sync.py). $id host is a placeholder pending the name screen. Shape changes require an ADR.",
+  "title": "Dispatch receipt",
+  "description": "One attempt's evidence: what was sent under which idempotency key and how the transport ended. TIMEOUT and LOST imply AMBIGUOUS until reconciled; unknown destination errors are AMBIGUOUS, never FAILED (RFC-002 §10).",
+  "type": "object",
+  "properties": {
+    "schema_version": { "const": "1" },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^rcpt_[0-9A-Za-z]{20,40}$",
+      "$comment": "Prefix pinned; suffix encoding is an implementation choice (zero-padded ledger id in the first slice)."
+    },
+    "effect_id": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "operation_id": {
+      "description": "Execution identity (ADR-0019 admission criterion): attempts are unambiguous across executions.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}:(0|[1-9][0-9]*)$"
+    },
+    "attempt_no": { "type": "integer", "minimum": 1 },
+    "kind": {
+      "enum": ["primary", "recovery_redispatch", "c1_replay_probe"]
+    },
+    "adapter_id": { "type": "string", "minLength": 1 },
+    "declaration_digest": {
+      "description": "Declaration version used for this attempt (C1 M17).",
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "idempotency_key": {
+      "description": "Derived ONLY from operation_id (master doc §7.2; conformance-tested at M3).",
+      "type": "string",
+      "minLength": 1
+    },
+    "sent_at": { "type": "string", "format": "date-time" },
+    "transport_outcome": { "enum": ["OK", "FAILED", "TIMEOUT", "LOST"] },
+    "failure_kind": { "enum": ["TERMINAL", "RETRYABLE"] },
+    "destination_ref": {
+      "description": "Destination-assigned reference when a response carried one. Absent ≠ null (JCS discipline).",
+      "type": "string",
+      "minLength": 1
+    },
+    "response_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "evidence_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "recorded_by": { "enum": ["dispatcher", "reconciler", "recovery"] },
+    "recorded_at": { "type": "string", "format": "date-time" }
+  },
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "effect_id",
+    "operation_id",
+    "attempt_no",
+    "kind",
+    "adapter_id",
+    "declaration_digest",
+    "idempotency_key",
+    "sent_at",
+    "transport_outcome",
+    "evidence_digest",
+    "recorded_by",
+    "recorded_at"
+  ],
+  "allOf": [
+    {
+      "$comment": "Mirror of the ledger CHECK: (transport_outcome = FAILED) = (failure_kind IS NOT NULL).",
+      "if": {
+        "properties": { "transport_outcome": { "const": "FAILED" } }
+      },
+      "then": { "required": ["failure_kind"] },
+      "else": { "not": { "required": ["failure_kind"] } }
+    }
+  ],
+  "additionalProperties": false
+}
