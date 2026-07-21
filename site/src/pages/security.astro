@@ -1,0 +1,266 @@
+---
+import Base from "../layouts/Base.astro";
+import Badge from "../components/Badge.astro";
+import Source from "../components/Source.astro";
+import { SITE_NAME, repoDoc } from "../config";
+---
+
+<Base
+  title={`Security & trust — ${SITE_NAME}`}
+  description="The trust boundary: model output never holds authority over irreversible actions. Metadata-and-digest ledger, zero telemetry, and a verifiable supply-chain posture — plus the explicit non-claims."
+>
+  <section class="section">
+    <div class="container">
+      <span class="kicker">Security &amp; trust</span>
+      <h1>Model output never holds authority</h1>
+      <p class="lead" style="margin-top: 18px;">
+        The primary control is architectural, not procedural: model-generated content reaches the
+        deterministic core only through the validated intent contract, and the advisory classifier’s output
+        cannot reach the gate or resolve APIs. That separation is enforced in code and covered by a
+        conformance test.
+      </p>
+      <div style="margin-top: 14px;"><Source id="trust-boundary" /></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Trust boundary</span>
+        <h2>Untrusted, trusted, external</h2>
+        <div class="badge-row"><Badge kind="conceptual" /></div>
+      </div>
+      <figure class="diagram" role="img" aria-labelledby="trust-caption">
+        <svg viewBox="0 0 960 260" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <marker id="tarr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L8,4 L0,8 z" fill="var(--ref-ink-3)"></path>
+            </marker>
+          </defs>
+          <g font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="0.05em">
+            <!-- Untrusted zone -->
+            <rect x="10" y="30" width="270" height="200" rx="2" fill="none" stroke="var(--ref-border-strong)" stroke-dasharray="5 4"></rect>
+            <text x="24" y="52" fill="var(--ref-ink-3)" font-size="9" letter-spacing="0.1em">UNTRUSTED · MODEL-GENERATED</text>
+            <rect x="34" y="70" width="220" height="48" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border)"></rect>
+            <text x="144" y="98" text-anchor="middle" fill="var(--ref-ink-1)">LLM PLANS + TOOL ARGS</text>
+            <rect x="34" y="150" width="220" height="48" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border)"></rect>
+            <text x="144" y="178" text-anchor="middle" fill="var(--ref-ink-1)">CLASSIFIER OUTPUT</text>
+            <!-- Trusted zone -->
+            <rect x="360" y="30" width="330" height="200" rx="2" fill="var(--ref-surface-1)" stroke="var(--ref-border-strong)" stroke-width="2"></rect>
+            <text x="374" y="52" fill="var(--ref-ink-3)" font-size="9" letter-spacing="0.1em">TRUSTED DETERMINISTIC CORE</text>
+            <rect x="384" y="70" width="130" height="42" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border)"></rect>
+            <text x="449" y="95" text-anchor="middle" fill="var(--ref-ink-1)">REGISTRAR</text>
+            <rect x="536" y="70" width="130" height="42" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border)"></rect>
+            <text x="601" y="95" text-anchor="middle" fill="var(--ref-ink-1)">COMMIT GATE</text>
+            <rect x="384" y="150" width="130" height="42" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border)"></rect>
+            <text x="449" y="175" text-anchor="middle" fill="var(--ref-ink-1)">LEDGER</text>
+            <rect x="536" y="150" width="130" height="42" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border)"></rect>
+            <text x="601" y="175" text-anchor="middle" fill="var(--ref-ink-1)">RECONCILER</text>
+            <!-- External -->
+            <rect x="780" y="88" width="170" height="84" rx="2" fill="none" stroke="var(--ref-border-strong)" stroke-dasharray="5 4"></rect>
+            <text x="865" y="124" text-anchor="middle" fill="var(--ref-ink-1)">EXTERNAL</text>
+            <text x="865" y="142" text-anchor="middle" fill="var(--ref-ink-1)">DESTINATIONS</text>
+            <!-- Edges -->
+            <g stroke="var(--ref-ink-3)" fill="none" marker-end="url(#tarr)">
+              <line x1="254" y1="94" x2="378" y2="94"></line>
+              <line x1="690" y1="110" x2="774" y2="118"></line>
+              <line x1="690" y1="160" x2="774" y2="150"></line>
+            </g>
+            <g stroke="var(--ref-ink-3)" fill="none" stroke-dasharray="3 4" marker-end="url(#tarr)">
+              <path d="M144 198 V248 H601 V198"></path>
+            </g>
+            <text x="320" y="78" text-anchor="middle" fill="var(--ref-ink-3)" font-size="9">validated intent contract only</text>
+            <text x="372" y="242" text-anchor="middle" fill="var(--ref-ink-3)" font-size="9">advice only · no authority</text>
+          </g>
+        </svg>
+        <figcaption id="trust-caption">
+          Conceptual rendering of master doc §6.3 — not fixture data. The only crossing from the untrusted
+          zone into the core is the validated intent contract; classifier advice is dashed because it carries
+          no authority.
+        </figcaption>
+      </figure>
+      <details class="prose" style="margin-top: 20px;">
+        <summary>Prose twin: the boundary rules</summary>
+        <ul style="margin-top: 12px;">
+          <li>Nothing model-generated crosses into the deterministic core except via the validated intent contract.</li>
+          <li>Advisory output carries no authority — architecturally enforced, and tested (the classifier cannot reach gate or resolve APIs).</li>
+          <li>Credentials live only in the secret store; sandbox-scope only.</li>
+          <li>Only effect metadata and metrics ever cross an external-partner boundary.</li>
+        </ul>
+      </details>
+      <div style="margin-top: 14px;">
+        <Source id="trust-boundary" also={["classifier-advisory"]} />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Data posture</span>
+        <h2>Metadata and digests, not payloads</h2>
+      </div>
+      <div class="grid-3">
+        <article class="panel-subtle trust-card">
+          <h3>What the ledger stores</h3>
+          <p>
+            Effect metadata and SHA-256 digests, not raw payloads where avoidable. A redaction pipeline
+            governs exported evidence bundles. No end-customer personal data or partner production data in any
+            record.
+          </p>
+          <Source id="ledger-privacy" />
+        </article>
+        <article class="panel-subtle trust-card">
+          <h3>Zero telemetry, no accounts</h3>
+          <p>
+            The engine and the workbench phone home to nothing; the workbench’s no-external-request and
+            read-only properties are enforced by end-to-end tests. This site is static, self-hosts its fonts,
+            and makes no external requests either.
+          </p>
+          <Source id="zero-telemetry" />
+        </article>
+        <article class="panel-subtle trust-card">
+          <h3>Credential discipline</h3>
+          <p>
+            Sandbox-only credentials in a secret store; pre-commit secret scanning on every commit. A
+            production-scope credential anywhere is an immediate stop-and-rotate incident.
+          </p>
+          <Source id="credentials-policy" />
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">How this is built</span>
+        <h2>Supply-chain posture you can verify in the repository</h2>
+        <p class="lead">
+          Presented as practice, not promise — every control below is visible in the public repo’s
+          configuration and CI.
+        </p>
+      </div>
+      <div class="table-wrap">
+        <p class="table-scroll-hint">Scroll table horizontally</p>
+        <table>
+          <thead>
+            <tr><th scope="col">Control</th><th scope="col">Practice</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>npm lifecycle scripts</strong></td>
+              <td>Blocked by default (every <code>allowBuilds</code> entry is false); exact pins; frozen lockfiles in CI</td>
+            </tr>
+            <tr>
+              <td><strong>Release-age delay</strong></td>
+              <td>7-day publish-to-installable minimum (<code>minimumReleaseAge: 10080</code>) against fresh-package attacks</td>
+            </tr>
+            <tr>
+              <td><strong>Provenance</strong></td>
+              <td>No trust downgrades permitted; exotic (git/tarball) transitive dependencies blocked; exclusions are narrow, named, and reviewed</td>
+            </tr>
+            <tr>
+              <td><strong>CI actions</strong></td>
+              <td>SHA-pinned with version comments; workflow linting (actionlint + zizmor, pedantic persona) in the local gate</td>
+            </tr>
+            <tr>
+              <td><strong>Secrets</strong></td>
+              <td>gitleaks over the working tree and full history on every check; generic rules, no allowlisted real credentials</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 14px;">
+        <Source id="supply-chain" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Explicit non-claims</span>
+        <h2>What {SITE_NAME} is not</h2>
+      </div>
+      <ul class="nonclaims">
+        <li>
+          <strong>Not an authorization or approval gateway.</strong> {SITE_NAME} adjudicates effect identity
+          and reconciliation, not who may act.
+        </li>
+        <li>
+          <strong>Not an audit-compliance product.</strong> No SOC 2, no ISO certification — none exists, and
+          none is claimed.
+        </li>
+        <li>
+          <strong>Not a hosted service.</strong> Local-first, no accounts, no billing, no SaaS.
+        </li>
+        <li>
+          <strong>The LLM never holds sole authority over an irreversible action.</strong> That is a binding
+          design rule, not a configuration option.
+        </li>
+      </ul>
+      <div style="margin-top: 14px;">
+        <Source id="security-non-claims" />
+      </div>
+
+      <div class="grid-2" style="margin-top: 32px;">
+        <div class="panel-subtle">
+          <h3>Incident taxonomy — public</h3>
+          <p class="muted" style="margin-top: 8px;">
+            Declare → classify (Sev-1..3) → contain via the deny-list → preserve evidence first → root-cause
+            with deadlines → close only with a corrective change and a seeded regression test. The full
+            taxonomy lives in the master document; this page links rather than restates.
+          </p>
+          <p style="margin-top: 10px;"><a href={repoDoc("docs/master-doc.md")}>Master document §12.4</a></p>
+          <div style="margin-top: 10px;"><Source id="incident-taxonomy" /></div>
+        </div>
+        <div class="panel-subtle">
+          <h3>Development threat model — also public</h3>
+          <p class="muted" style="margin-top: 8px;">
+            The project is built with AI coding agents under a written execution policy: what agents may
+            touch, what is human-only, and which controls enforce the difference. The policy is a trust
+            artifact in its own right.
+          </p>
+          <p style="margin-top: 10px;"><a href={repoDoc("docs/security-policy.md")}>docs/security-policy.md</a></p>
+          <div style="margin-top: 10px;"><Source id="solo-governed" /></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .trust-card {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+  }
+  .trust-card p {
+    color: var(--ref-ink-2);
+  }
+  .nonclaims {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0;
+    border: 1px solid var(--ref-border);
+    border-radius: 2px;
+    background: var(--ref-surface-1);
+    max-width: 80ch;
+  }
+  .nonclaims li {
+    padding: 16px 22px;
+    color: var(--ref-ink-2);
+  }
+  .nonclaims li + li {
+    border-top: 1px solid var(--ref-border-subtle);
+  }
+  summary {
+    cursor: pointer;
+    font-weight: 500;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+</style>
