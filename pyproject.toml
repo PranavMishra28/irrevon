@@ -20,7 +20,7 @@ dependencies = [
     # JSON Schema 2020-12 validation of the trust-boundary contracts (schemas/).
     "jsonschema>=4.25",
     # Postgres driver (sync — single-writer POC per ADR-0013/ADR-002).
-    "psycopg[binary]>=3.3",
+    "psycopg[binary]>=3.3.4",
 ]
 
 [dependency-groups]
