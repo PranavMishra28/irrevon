@@ -1,23 +1,28 @@
 {
   "adapter": "stripe-rest",
   "destination": "Stripe payments-namespace endpoints (test mode)",
-  "api_version": "v1 (exact version pin pending ADR-0010)",
+  "api_version": "v1 (exact dated version pin pending ADR-0010)",
   "tier": "C1",
   "idempotency": {
     "supported": true,
-    "window": "24h",
-    "replay_semantics": "first response cached and replayed, including errors; same key with different params returns an error"
+    "window": "≥24h (keys pruned after at least 24 hours)",
+    "replay_semantics": "first response cached and replayed, including errors; same key with different params returns an error; results cached only once endpoint execution begins (429/validation failures not cached); concurrent same-key requests return 409, not cached"
   },
   "queryable": {
     "supported": true,
-    "by": ["destination_ref"]
+    "by": ["destination_ref", "client_ref"]
   },
   "client_ref_field": "metadata",
   "list_queryable": true,
+  "consistency": {
+    "status_settlement_lag": "PT0S",
+    "listing_lag": "PT1M"
+  },
   "compensation_hook": "refund",
   "citations": [
     "https://docs.stripe.com/api/idempotent_requests",
-    "https://docs.stripe.com/error-low-level"
+    "https://docs.stripe.com/error-low-level",
+    "https://docs.stripe.com/search"
   ],
   "evidence_quality": "VF"
 }

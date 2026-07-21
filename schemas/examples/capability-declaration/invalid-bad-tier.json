@@ -7,6 +7,7 @@
   "queryable": { "supported": false },
   "client_ref_field": null,
   "list_queryable": false,
+  "consistency": { "status_settlement_lag": null, "listing_lag": null },
   "citations": ["https://example.com/docs"],
   "evidence_quality": "EI"
 }

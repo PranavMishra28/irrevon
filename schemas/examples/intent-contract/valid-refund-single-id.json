@@ -1,10 +1,13 @@
 {
+  "schema_version": "1",
   "stable_ids": {
     "invoice_id": "inv_2207"
   },
   "effect_type": "payment.refund",
   "effect_class": "COMPENSABLE",
   "scope": "account:acct_314",
+  "adapter_id": "stripe-rest",
+  "parameters": {},
   "authority_ref": "auth_human_approval_55",
   "stamped_at": "2026-07-19T09:30:00+00:00"
 }
