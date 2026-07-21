@@ -44,11 +44,11 @@ draft plan that ran the spikes first.
   freeze; the full execution registration is Stage-B (P7, before M7 runs). This two-stage
   resolution is amendment AM-13 in [review-queue.md](review-queue.md).
 - **M2 Env** = P8 plus the master doc's M2 items (CI, local database, sandbox projects,
-  runbook). CI design and workflows arrive via the CI workstream branch (`docs/ci.md` once
-  landed); the repo being public makes rulesets/branch protection, secret scanning + push
-  protection, and CodeQL available at no cost — enabling them is a human settings act
-  (security-policy checklist). Local `make check` + pre-commit remains the enforcement
-  layer until required checks are configured.
+  runbook). CI design and workflows are in ([ci.md](ci.md) + `.github/workflows/`); the
+  repo being public makes rulesets/branch protection, secret scanning + push protection,
+  and CodeQL available at no cost — enabling them is a human settings act (owner checklist
+  in [ci.md](ci.md)). Local `make check` + pre-commit remains the enforcement layer until
+  required checks are configured.
 - **M3–M10** proceed per master doc §15; P4/P5/P6 will already have closed the decisions M4
   depends on.
 

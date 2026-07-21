@@ -14,20 +14,20 @@ platform semantics below are `[VF]` against GitHub docs as of that date.
 | [`sandbox.yml`](../.github/workflows/sandbox.yml) | `workflow_dispatch` only | T4 credentialed sandbox contract tests — skeleton, activates at M4; gated by the `sandbox` environment | skeleton |
 | [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | DetentBench preregistered runs — skeleton, activates at M7; gated by the `benchmark` environment | skeleton |
 | [`release.yml`](../.github/workflows/release.yml) | disabled (`if: false` guard) | Prepared release pipeline (version check, deterministic build, checksums, SBOM, attestation, human approval, OIDC publish) — enabled only at the public-release gate | disabled |
-| [`dependabot.yml`](../.github/dependabot.yml) | weekly | Action SHA-pin freshness, grouped, 7-day cooldown; uv/npm blocks commented until manifests exist | active |
+| [`dependabot.yml`](../.github/dependabot.yml) | weekly | Action SHA-pin freshness (7-day cooldown) + uv and web/npm dependency updates (5-day cooldown, 30-day major cooldown), grouped | active |
 
 ## Tier table — what runs when
 
 | Tier | Job (workflow) | Condition | Runs | Today |
 |---|---|---|---|---|
 | T0 docs/static | `docs` (ci) | always, every push/PR | `make check` (links, schemas, secrets, integrity, actionslint, frozen) | active |
-| T0 backend static | `py-check` (ci) | backend paths changed AND `pyproject.toml` exists | `make py-check` | skips cleanly |
-| T1 backend unit+property | `py-test` (ci) | same | `make py-test` (≥1,000 Hypothesis cases/invariant — spec, never lowered) | skips cleanly |
-| F0 web static | `web-check` (ci) | `web/` paths changed AND `web/` exists | `make web-check` | skips cleanly |
-| F1/F2 web tests | `web-test` (ci) | same | `make web-test` | skips cleanly |
+| T0 backend static | `py-check` (ci) | backend paths changed AND `pyproject.toml` exists | `make py-check` | active (engine landed; skips cleanly on docs-only PRs) |
+| T1 backend unit+property | `py-test` (ci) | same | `make py-test` (≥1,000 Hypothesis cases/invariant — spec, never lowered) | active (same skip rule) |
+| F0 web static | `web-check` (ci) | `web/` paths changed AND `web/` exists | `make web-check` | active (workbench landed; skips cleanly on non-web PRs) |
+| F1/F2 web tests | `web-test` (ci) | same | `make web-test` | active (same skip rule) |
 | workflow security | `workflow-security` (ci) | `.github/workflows/**` changed | actionlint + zizmor (online, pedantic) | active |
 | — | `ci-required` (ci) | `if: always()` | aggregates all of the above; the ONLY required check | active |
-| T2 integration | *(added to ci.yml at M3)* | backend changes | `make py-test-integration` vs digest-pinned Postgres service container | not yet |
+| T2 integration | *(added to ci.yml at M3)* | backend changes | `make py-test-integration` vs digest-pinned Postgres service container | **due**: the M3 engine + integration suite landed at consolidation; wire the service-container job in the next CI change |
 | T3 nightly | `validate` (nightly) | cron | today: `make check` + online audits; M3+: big-budget properties, fault-matrix subset vs stub destination | active |
 | T4 sandbox | `sandbox-contract` (sandbox) | human dispatch + env approval | M4: `make sandbox-contract` | skeleton |
 | benchmark | `bench` (benchmark) | human dispatch + env approval | M7: preregistered suites, cache-free, sanitized evidence | skeleton |

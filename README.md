@@ -22,6 +22,8 @@ The full product rationale, architecture, benchmark design, and decision log liv
 **First slice implemented (M3 core): identity + ledger + gate + dispatcher +
 reconciliation + recovery + sweep + the flagship demo**, per
 [docs/rfc-002-engine-design.md](docs/rfc-002-engine-design.md) (tasks T-101–T-104).
+The CI pipeline (required PR gate + nightly; [docs/ci.md](docs/ci.md)) and the
+fixture-backed, read-only workbench frontend ([web/](web/README.md)) are also in.
 Real destination adapters (M4), the benchmark harness (M5+), and any packaged release
 remain gated by the execution plan. The roadmap, gates, and what blocks what are in
 [docs/execution-plan.md](docs/execution-plan.md). Items awaiting human decision are in
@@ -60,10 +62,19 @@ reference destination (a C2 API: queryable status, **no honored idempotency**):
    stops holding — the check is never weakened to keep the demo impressive
    (master doc §8.3/§8.6).
 
-Developer gates: `make check` (docs/schemas/secrets/integrity), `make py-check
+Developer gates: `make check` (docs/schemas/secrets/integrity/workflows), `make py-check
 py-test` (lint, strict types, import boundaries, unit + property tests),
-`make py-test-integration` (real Postgres via `make py-db-up`), or everything:
+`make py-test-integration` (real Postgres via `make py-db-up`), `make web-check
+web-test` (workbench static gates + unit/story tests), or everything:
 `make check-all`.
+
+## Workbench (`web/`)
+
+A local-first, **read-only** evidence workbench over the engine's contracts —
+fixture-backed in v0.1 (all data is captured transcripts of the real engine; the
+browser can never mutate anything). Toolchain (Node 24 + pnpm 11), dev commands
+(`pnpm dev`, `pnpm check`, `pnpm e2e`, `pnpm vrt`), dependency register, and
+budgets are documented in [web/README.md](web/README.md).
 
 ## Repository status and licensing
 
@@ -89,12 +100,15 @@ policy arrive only through the public-release gate in
 ## Validation
 
 ```sh
-make tools   # one-time: install lychee, check-jsonschema, gitleaks, pre-commit (Homebrew),
-             # then verify installed versions against the tested pins
-make check   # links + schemas + secrets + integrity — must pass before any commit
+make tools   # one-time: checksum-pinned actionlint/zizmor bootstrap, then install
+             # lychee, check-jsonschema, gitleaks, pre-commit (Homebrew) and verify
+             # installed versions against the tested pins
+make check   # links + schemas + secrets + integrity + workflow lint + frozen-file gate
 ```
 
 `make check` is the required local gate (pre-commit additionally runs the secret scan on
 every commit). It verifies internal links (offline, deterministic), validates JSON Schemas
-and their valid/invalid example suites, scans for secrets, and checks repository integrity
-(master-doc hash pin, ADR id uniqueness).
+and their valid/invalid example suites, scans for secrets, checks repository integrity
+(master-doc hash pin, ADR id uniqueness), lints the GitHub workflows (actionlint + offline
+zizmor), and enforces the frozen/append-only file rules. CI runs exactly these make targets
+(local parity — [docs/ci.md](docs/ci.md)); the full local ladder is `make check-all`.

@@ -56,8 +56,9 @@ human-only settings change, pending), and mirroring the deny hook in the user-le
 
 ## Fork pull requests and CI (public repo)
 
-CI workflows arrive via the CI workstream (`docs/ci.md` once landed). Standing rules they
-must satisfy, recorded here because they are security policy, not CI convenience:
+CI workflows are in `.github/workflows/` (map + owner settings checklist: [ci.md](ci.md)).
+Standing rules they satisfy, recorded here because they are security policy, not CI
+convenience:
 
 - Default workflow permissions **read-only**; no secrets exposed to any `pull_request`
   -triggered job; **no `pull_request_target` anywhere**; checked-out fork code is

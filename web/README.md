@@ -4,7 +4,9 @@ Local-first, single-user, **read-only** evidence workbench for Detent. Fixture-b
 (v0.1): all data comes from MSW-served, schema-derived fixtures; the browser never starts
 an effect and no build of this app can mutate anything.
 
-Contract: `.scratch/rc/frontend/BRIEF.md` (reconciled implementation brief).
+Contract: `.scratch/rc/frontend/BRIEF.md` (reconciled implementation brief — local-only
+working material, never committed; the durable decisions live in
+[ADR-0016](../docs/decisions/0016-frontend-workbench-stack.md) and this README).
 
 Status: all six BRIEF slices are implemented against the implemented engine on `rc/v0.1`.
 Types generate from the five admitted JSON Schemas plus the RFC-002 §3 canonical state

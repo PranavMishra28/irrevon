@@ -65,7 +65,10 @@ Recorded so they are not re-researched or silently assumed away.
   all observation; the preregistration's power table (§5.6) is honest about the resulting
   equivalence-power uncertainty. Structural, not resolvable by more research.
 - **TypeScript 7.x (native compiler) vs latest 5.x/6.x line** `[OQ]` — decide at `web/`
-  scaffold by running the full toolchain (ADR-0016).
+  scaffold by running the full toolchain (ADR-0016). *Decided at scaffold 2026-07-21 per
+  that rule:* TS 7.0.2 typechecks but typescript-eslint 8.64 crashes against it; pinned
+  TS 5.9.3, the newest stable line the full toolchain passes (recorded in
+  [../web/README.md](../web/README.md)). Reopens when typescript-eslint supports 7.x.
 
 ## 3. Human action queue
 

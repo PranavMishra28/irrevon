@@ -20,39 +20,38 @@ updates:
       prefix: "ci"
     open-pull-requests-limit: 5
 
-  # ── Placeholders: activate when the manifests exist ─────────────────────────
-  # Backend (ADR-0013 leaning: Python/uv). Activate when uv.lock lands (M2/M3).
-  # If the ADR lands elsewhere, substitute the ecosystem ("pip", "gomod", ...);
-  # cooldown/grouping design carries over unchanged.
-  # - package-ecosystem: "uv"
-  #   directory: "/"
-  #   schedule:
-  #     interval: "weekly"
-  #     day: "monday"
-  #   cooldown:
-  #     default-days: 5
-  #     semver-major-days: 30
-  #   groups:
-  #     python-minor-patch:
-  #       patterns: ["*"]
-  #       update-types: ["minor", "patch"]
-  #   commit-message:
-  #     prefix: "deps"
-  #   open-pull-requests-limit: 5
+  # Backend (Python/uv per ADR-0013) — activated at consolidation when uv.lock landed.
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+    groups:
+      python-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    commit-message:
+      prefix: "deps"
+    open-pull-requests-limit: 5
 
-  # Frontend (pnpm via the npm ecosystem). Activate when web/pnpm-lock.yaml lands.
-  # - package-ecosystem: "npm"
-  #   directory: "/web"
-  #   schedule:
-  #     interval: "weekly"
-  #     day: "monday"
-  #   cooldown:
-  #     default-days: 5
-  #     semver-major-days: 30
-  #   groups:
-  #     web-minor-patch:
-  #       patterns: ["*"]
-  #       update-types: ["minor", "patch"]
-  #   commit-message:
-  #     prefix: "deps"
-  #   open-pull-requests-limit: 5
+  # Frontend (pnpm via the npm ecosystem) — activated at consolidation when
+  # web/pnpm-lock.yaml landed. pnpm-workspace.yaml's 7-day minimumReleaseAge
+  # remains the stronger release-age gate at install time.
+  - package-ecosystem: "npm"
+    directory: "/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+    groups:
+      web-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    commit-message:
+      prefix: "deps"
+    open-pull-requests-limit: 5
