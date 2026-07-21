@@ -14,7 +14,8 @@ platform semantics below are `[VF]` against GitHub docs as of that date.
 | [`sandbox.yml`](../.github/workflows/sandbox.yml) | `workflow_dispatch` only | T4 credentialed sandbox contract tests — skeleton, activates at M4; gated by the `sandbox` environment | skeleton |
 | [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | DetentBench preregistered runs — skeleton, activates at M7; gated by the `benchmark` environment | skeleton |
 | [`release.yml`](../.github/workflows/release.yml) | disabled (`if: false` guard) | Prepared release pipeline (version check, deterministic build, checksums, SBOM, attestation, human approval, OIDC publish) — enabled only at the public-release gate | disabled |
-| [`dependabot.yml`](../.github/dependabot.yml) | weekly | Action SHA-pin freshness (7-day cooldown) + uv and web/npm dependency updates (5-day cooldown, 30-day major cooldown), grouped | active |
+| [`site-deploy.yml`](../.github/workflows/site-deploy.yml) | `workflow_dispatch` only | Marketing-site Pages deploy (build with deploy-provided origin/base → upload → deploy) — deploys nothing until a human enables Pages and the review-queue gates close (marketing-site ADR, publication clearance, name screen, licensing, AM-21) | gated |
+| [`dependabot.yml`](../.github/dependabot.yml) | monthly | Noise-contained policy (tuned at consolidation, 2026-07-21 — rationale in `.scratch/redesign/dependabot-tuning.md`): one grouped catch-all PR per ecosystem (actions / uv / npm), `open-pull-requests-limit: 1`, 7-day cooldowns (30-day uv majors; npm majors ignored — deliberate human migrations per ADR-0016), owner auto-assigned; security PRs bypass schedule and cooldown | active |
 
 ## Tier table — what runs when
 
@@ -29,6 +30,7 @@ platform semantics below are `[VF]` against GitHub docs as of that date.
 | — | `ci-required` (ci) | `if: always()` | aggregates all of the above; the ONLY required check | active |
 | T2 integration | *(added to ci.yml at M3)* | backend changes | `make py-test-integration` vs digest-pinned Postgres service container | **due**: the M3 engine + integration suite landed at consolidation; wire the service-container job in the next CI change |
 | T3 nightly | `validate` (nightly) | cron | today: `make check` + online audits; M3+: big-budget properties, fault-matrix subset vs stub destination | active |
+| site gates | *(local make targets — no ci.yml job yet)* | — | `make site-check` / `make site-build` / `make site-test` (astro check + vendored-identity/claims drift; build; Playwright a11y/links/no-JS/budget) | local-only: wire a conditional `site` job in the next CI change if `site/` churn warrants it |
 | T4 sandbox | `sandbox-contract` (sandbox) | human dispatch + env approval | M4: `make sandbox-contract` | skeleton |
 | benchmark | `bench` (benchmark) | human dispatch + env approval | M7: preregistered suites, cache-free, sanitized evidence | skeleton |
 

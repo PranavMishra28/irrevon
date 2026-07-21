@@ -72,9 +72,22 @@ web-test` (workbench static gates + unit/story tests), or everything:
 
 A local-first, **read-only** evidence workbench over the engine's contracts —
 fixture-backed in v0.1 (all data is captured transcripts of the real engine; the
-browser can never mutate anything). Toolchain (Node 24 + pnpm 11), dev commands
-(`pnpm dev`, `pnpm check`, `pnpm e2e`, `pnpm vrt`), dependency register, and
-budgets are documented in [web/README.md](web/README.md).
+browser can never mutate anything). The v0.2 redesign adds an honest Overview at
+`/` (complete-snapshot counts with explicit refusals), a custom-SVG causal
+investigation graph on effect detail (single-effect only — see the A1 note in
+[docs/review-queue.md](docs/review-queue.md) §2), the six-layer surface system,
+and a responsive shell down to 375 px (mobile drawer navigation). Toolchain
+(Node 24 + pnpm 11), dev commands (`pnpm dev`, `pnpm check`, `pnpm e2e`,
+`pnpm vrt`), dependency register, and budgets are documented in
+[web/README.md](web/README.md).
+
+## Marketing site (`site/`)
+
+A zero-JS-by-default Astro package with six public pages, a drift-gated claims
+registry, and identity vendored from the workbench tokens — built and tested,
+**deploy gated and human-only** (the `site-deploy` workflow is
+`workflow_dispatch`-only; the gate list lives in
+[docs/review-queue.md](docs/review-queue.md)). See [site/README.md](site/README.md).
 
 ## Repository status and licensing
 

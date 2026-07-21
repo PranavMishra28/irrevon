@@ -61,7 +61,7 @@ row here plus a size-limit delta in the PR.
 | `@tanstack/react-query`  | 5.101.2  | server-state cache over the read-only Q1–Q3 contracts                     |
 | `@tanstack/react-table`  | 8.21.3   | headless grid for effects/receipts/findings tables                        |
 | `@base-ui/react`         | 1.6.0    | sole behavior-primitive library (dialogs, autocomplete palette, tooltips) |
-| `lucide-react`           | 1.0.1    | single-weight icon set, consumed only via the internal registry           |
+| `lucide-react`           | 1.24.0   | single-weight icon set, consumed only via the internal registry           |
 
 ### Development / test only
 
