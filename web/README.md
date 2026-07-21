@@ -4,9 +4,16 @@ Local-first, single-user, **read-only** evidence workbench for Detent. Fixture-b
 (v0.1): all data comes from MSW-served, schema-derived fixtures; the browser never starts
 an effect and no build of this app can mutate anything.
 
-Contract: `.scratch/rc/frontend/BRIEF.md` (reconciled implementation brief). Status: the
-schema-independent shell is implemented; every data surface renders an honest
-contract-pending state until the corrected post-integration schemas land.
+Contract: `.scratch/rc/frontend/BRIEF.md` (reconciled implementation brief).
+
+Status: shell, tokens, palette, keyboard contract, Learn pages, and the status taxonomy
+are implemented. Types and enums generate from the post-integration contracts on
+`rc/v0.1`: the two ratified JSON Schemas plus the RFC-002 §3 canonical state tables /
+§2.2 DDL closed sets (`pnpm codegen`, committed output, drift-gated, source hashes pinned
+in `contracts/schema-pins.json`). Every surface that needs the EffectRecord /
+DispatchReceipt / ReconciliationFinding / Q-envelope / demo-artifact / health schemas
+renders an honest contract-pending state: ADR-0019 defers those record schemas to the M3
+admission ADR, and this app does not invent parallel contracts.
 
 ## Working on it
 

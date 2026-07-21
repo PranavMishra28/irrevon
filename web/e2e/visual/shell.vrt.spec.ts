@@ -4,10 +4,15 @@ import { expect, test } from "@playwright/test";
  * VRT baselines are authoritative only from the pinned Linux container
  * (make web-vrt). The project is skipped outside it via playwright.config.ts.
  */
+const HEX64 = "c0ffee".padEnd(64, "0");
+
 const SCREENS = [
   ["learn-start", "/learn/start"],
+  ["learn-identity", "/learn/identity"],
+  ["learn-state", "/learn/state"],
   ["learn-tiers", "/learn/tiers"],
   ["effects-pending", "/effects"],
+  ["effect-detail-frame", `/effects/${HEX64}`],
   ["health", "/health"],
   ["bench-no-runs", "/bench"],
   ["taxonomy", "/taxonomy"],
@@ -38,6 +43,7 @@ for (const theme of ["light", "dark"] as const) {
 
       test("palette-open", async ({ page }) => {
         await page.goto("/learn/start");
+        await page.getByRole("button", { name: /Go to…/ }).waitFor();
         await page.evaluate((t) => {
           document.documentElement.setAttribute("data-theme", t);
           return document.fonts.ready;

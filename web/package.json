@@ -26,11 +26,9 @@
     "vrt": "playwright test --project vrt",
     "codegen": "node scripts/codegen.mjs",
     "codegen:check": "node scripts/codegen.mjs --check",
-    "fixtures": "node scripts/generate-fixtures.mjs",
-    "fixtures:check": "node scripts/generate-fixtures.mjs --check",
     "fonts:sync": "node scripts/sync-fonts.mjs",
     "size": "size-limit",
-    "check": "pnpm typecheck && pnpm lint && pnpm lint:styles && pnpm format:check && pnpm test"
+    "check": "pnpm typecheck && pnpm lint && pnpm lint:styles && pnpm format:check && pnpm codegen:check && pnpm fonts:sync --check && pnpm test"
   },
   "dependencies": {
     "@base-ui/react": "1.6.0",
