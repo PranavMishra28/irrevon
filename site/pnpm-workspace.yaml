@@ -1,0 +1,25 @@
+# pnpm settings only — this is a single-app tree, not a JS monorepo.
+# Same hardening posture as web/pnpm-workspace.yaml (ADR-0016 §4.6):
+# no lifecycle scripts, 7-day publish-to-installable delay, no provenance
+# downgrades, no git/tarball transitive deps.
+packages:
+  - "."
+
+# Astro's default image service would want sharp (a build-script package);
+# this site uses passthroughImageService + pre-optimized assets instead, so
+# every allowBuilds entry stays false.
+allowBuilds:
+  esbuild: false
+  sharp: false
+minimumReleaseAge: 10080
+trustPolicy: no-downgrade
+blockExoticSubdeps: true
+
+# Narrow, reviewed exclusions from trustPolicy only (NOT from allowBuilds or
+# minimumReleaseAge) — the web/ precedent (semver@6.3.1). Each entry names the
+# exact version and the review basis.
+# chokidar@4.0.3: published 2024-12-18 by the canonical maintainer (paulmillr),
+# 19 months old at pin time; the "downgrade" signal is an artifact of an earlier
+# line carrying attestation, not an incident. Transitive via @astrojs/check.
+trustPolicyExclude:
+  - chokidar@4.0.3

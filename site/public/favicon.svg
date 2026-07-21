@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- E1 "Convergence Seat" favicon; ink-1 per theme via prefers-color-scheme. -->
+  <style>
+    .f { fill: #262b33; }
+    .s { fill: none; stroke: #262b33; stroke-width: 2.4; }
+    @media (prefers-color-scheme: dark) {
+      .f { fill: #e2e5ea; }
+      .s { stroke: #e2e5ea; }
+    }
+  </style>
+  <path class="f" d="M2.5 12 H6 L12 18 L18 12 H21.5 V20.5 H2.5 Z"/>
+  <circle class="f" cx="12" cy="10.93" r="5"/>
+  <path class="s" d="M4.1 3 L7.6 6.5"/>
+  <path class="s" d="M19.9 3 L16.4 6.5"/>
+</svg>

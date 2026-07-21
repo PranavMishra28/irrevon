@@ -1,0 +1,25 @@
+---
+// E1 "Convergence Seat" mark (.scratch/redesign/marks/e1-convergence-seat.svg,
+// adopted per REDESIGN-BRIEF §3.5). Decorative in chrome — the adjacent wordmark
+// names the product; standalone use passes a label.
+interface Props {
+  size?: number;
+  label?: string;
+}
+const { size = 24, label } = Astro.props;
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  width={size}
+  height={size}
+  role={label ? "img" : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : "true"}
+>
+  <path fill="currentColor" d="M2.5 12 H6 L12 18 L18 12 H21.5 V20.5 H2.5 Z"></path>
+  <circle fill="currentColor" cx="12" cy="10.93" r="5"></circle>
+  <path fill="none" stroke="currentColor" stroke-width="2.4" d="M4.1 3 L7.6 6.5"></path>
+  <path fill="none" stroke="currentColor" stroke-width="2.4" d="M19.9 3 L16.4 6.5"></path>
+</svg>

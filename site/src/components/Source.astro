@@ -1,0 +1,30 @@
+---
+// Renders a claim's source line from the registry (RD5 §3.0): the visible,
+// per-claim citation in the mono evidence voice, e.g.
+//   Source: master doc §7.5 · [DD]
+import { claims, type ClaimId } from "../data/claims";
+
+interface Props {
+  id: ClaimId;
+  /** Extra ids whose sources merge into one line. */
+  also?: ClaimId[];
+}
+const { id, also = [] } = Astro.props;
+const entries = [id, ...also].map((cid) => claims[cid]);
+const parts = entries.map((e) => `${e.source} · [${e.label}]`);
+// De-duplicate identical source strings when claims share one.
+const line = [...new Set(parts)].join(" · ");
+---
+
+<p class="claim-source">Source: {line}</p>
+
+<style>
+  .claim-source {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    color: var(--ref-ink-3);
+    margin: 0;
+  }
+</style>
