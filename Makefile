@@ -19,9 +19,14 @@ check: links schemas secrets integrity
 
 # Internal links + heading anchors across tracked markdown. --offline checks only
 # local file links, so the gate is deterministic and network-free; external URLs
-# are deliberately not checked here.
+# are deliberately not checked here. The remaps encode Vite's public-dir serving
+# semantics: web/ root-absolute asset URLs (/fonts/*, /brand/*) resolve to
+# web/public/* at runtime — the remapped file must still exist, so the check
+# stays strict.
 links:
-	lychee --offline --include-fragments --no-progress --root-dir "$(CURDIR)" .
+	lychee --offline --include-fragments --no-progress --root-dir "$(CURDIR)" \
+	  --remap "file://$(CURDIR)/fonts/ file://$(CURDIR)/web/public/fonts/" \
+	  --remap "file://$(CURDIR)/brand/ file://$(CURDIR)/web/public/brand/" .
 
 # Every schema must be valid against its declared metaschema; every valid-*.json
 # example must pass; every invalid-*.json example must be REJECTED (the invalid
