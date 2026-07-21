@@ -1,12 +1,18 @@
-# Detent validation gates. `make check` is the only command anyone (human or agent)
-# needs to remember; it must pass before any commit.
-# Tested tool versions (update deliberately): lychee 0.24.x, check-jsonschema 0.37.x,
-# gitleaks 8.x. One-time install: `make tools`.
+# Detent validation gates. `make check` is the required local gate; it must pass
+# before any commit (pre-commit additionally runs the secret scan on every commit).
+# One-time install: `make tools` (installs, then verifies versions via tools-check).
+# Local installs are version-pinned below, not checksum-pinned — the checksum-verified
+# bootstrap lands with CI (see docs/security-policy.md, supply-chain section).
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := check
 
-.PHONY: check links schemas secrets integrity tools
+# Tested tool versions (update deliberately, in one commit with any CI pin change):
+LYCHEE_VERSION := 0.24.2
+CHECK_JSONSCHEMA_VERSION := 0.37.4
+GITLEAKS_VERSION := 8.30.1
+
+.PHONY: check links schemas secrets integrity tools tools-check
 
 check: links schemas secrets integrity
 	@echo "OK: all validation gates passed"
@@ -47,3 +53,17 @@ integrity:
 
 tools:
 	brew install lychee check-jsonschema gitleaks pre-commit
+	@$(MAKE) --no-print-directory tools-check
+
+# Fails loudly when installed tool versions drift from the tested set above.
+# Not part of `check` (state gates must not depend on tool-install state), but run
+# it after any `make tools` or brew upgrade; update the pins deliberately.
+tools-check:
+	@set -e; fail=0; \
+	v=$$(lychee --version 2>/dev/null | awk '{print $$2}'); \
+	[ "$$v" = "$(LYCHEE_VERSION)" ] || { echo "tools-check: lychee $$v != tested $(LYCHEE_VERSION)"; fail=1; }; \
+	v=$$(check-jsonschema --version 2>/dev/null | awk '{print $$3}'); \
+	[ "$$v" = "$(CHECK_JSONSCHEMA_VERSION)" ] || { echo "tools-check: check-jsonschema $$v != tested $(CHECK_JSONSCHEMA_VERSION)"; fail=1; }; \
+	v=$$(gitleaks version 2>/dev/null); \
+	[ "$$v" = "$(GITLEAKS_VERSION)" ] || { echo "tools-check: gitleaks $$v != tested $(GITLEAKS_VERSION)"; fail=1; }; \
+	[ "$$fail" -eq 0 ] && echo "tools-check: all tool versions match the tested set" || exit 1
