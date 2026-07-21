@@ -1,12 +1,16 @@
 # RFC-001: First vertical slice — Detent core
 
-- **Status:** Draft (accepted → implemented later; acceptance is a human act)
-- **Date:** 2026-07-20
+- **Status:** Draft — acceptance is a human act; implementation follows acceptance.
+- **Date:** 2026-07-20 · amended 2026-07-21 (citation fixes; RFC-002 cross-references)
 - **Scope:** master doc M3 (state model, intent contract + identity, persist-before-dispatch
-  ledger, commit gate, crash-recovery replay, orphan sweep) with the flagship demo (§16.6) as
-  the acceptance test
-- **Contains NO code.** Everything here is language-neutral by design; ADR-0013 (language) is
-  open and this RFC must remain implementable in any candidate.
+  ledger, commit gate, crash-recovery replay, orphan sweep) with the flagship demo (§16,
+  item 6) as the acceptance test
+- **Reads with [RFC-002](rfc-002-engine-design.md)**, which carries the implementation-ready
+  engine mechanics (storage, locked transitions, the canonical state tables, retry/replay
+  semantics, calibrated absence). Where this RFC left cells `[OQ]`, RFC-002 §3 decides them.
+- **Contains NO code.** Everything here is language-neutral by design and was written while
+  ADR-0013 (language) was open; ADR-0013 has since been ratified (Python), but this RFC
+  remains implementable in any candidate by construction.
 
 ## Summary
 
@@ -20,7 +24,7 @@ strongest baseline (B5, durable runtime + native idempotency) produce a duplicat
 ## Motivation
 
 The residual gap after the strongest baselines lives on C2 destinations, and the master doc's
-first public artifact is a reproducible demo of that gap being closed (§1, §16.6). This RFC
+first public artifact is a reproducible demo of that gap being closed (§1, §16 item 6). This RFC
 pins everything about the slice that is cross-cutting, expensive to change later, or required
 by the M3 conformance tests (§12.1) — and explicitly defers everything else. Read master doc
 §6–§7 first; this document does not restate them.
@@ -78,13 +82,15 @@ SETTLED_COMMITTED, SETTLED_FAILED, and CANCELLED are terminal.
 
 **Dimension-B attachment rules** (reconciliation classification, §7.1):
 
-- ORPHANED is representable **only as a Finding keyed by `destination_ref`** — never as a
-  state of a ledger record (a ledger-keyed machine cannot express a record it doesn't have).
+- ORPHANED is representable **only as a Finding keyed by `(adapter, destination_ref)`** —
+  never as a state of a ledger record (a ledger-keyed machine cannot express a record it
+  doesn't have).
 - CONFIRMED_UNIQUE, DUPLICATE, and LOST attach only to records that reached DISPATCHED or
   later; records in INTENDED/PERSISTED/CANCELLED are UNRECONCILED by definition.
-- Whether SETTLED_FAILED may later carry DUPLICATE (destination shows n>1 despite a reported
-  failure) is `[OQ]` — the M3 exhaustive matrix test must decide each such cell explicitly
-  rather than leaving it undefined.
+- The formerly-`[OQ]` cells (e.g. SETTLED_FAILED × DUPLICATE) are now decided: the
+  exhaustive attachment matrix — including the CONTRADICTED classification added by
+  amendment AM-18 — is canonical in [RFC-002 §3](rfc-002-engine-design.md), and the M3
+  matrix tests are generated from it.
 
 **Dimension-C resolution** (per finding): OPEN → COMPENSATED | REDISPATCHED (fresh authority +
 new idempotency evidence only) | ACCEPTED_AS_IS | ESCALATED_HUMAN → CLOSED.
@@ -93,8 +99,9 @@ new idempotency evidence only) | ACCEPTED_AS_IS | ESCALATED_HUMAN → CLOSED.
 
 Append-only: no UPDATE on settled facts; corrections and state changes are new rows
 referencing the prior row. Single writer in the POC; concurrency is per-scope serialization —
-one in-flight dispatch per `(scope, effect_type)` via row locking (§7.4.3, documented scaling
-limit). Physical schema, indexes, and migration tooling are deferred (ADR-0013 and the
+one in-flight dispatch per `(scope, effect_type)` via row locking (§7.4 item 3, documented
+scaling limit; the crash-safe mechanical form — durable open-attempt rows, locks never held
+across wire I/O — is pinned in RFC-002 §5). Physical schema, indexes, and migration tooling are deferred (ADR-0013 and the
 storage decision refine them; see [schemas/README.md](../schemas/README.md) for which record
 shapes are schema-fied now vs deferred).
 
@@ -104,7 +111,7 @@ Order pinned `[DD]` (cheapest/absolute first; evidence-richest last):
 
 1. **Deny-list** — incident containment (§12.4); a denied effect class aborts immediately.
 2. **Authority freshness/binding** — `authority_ref` present, unexpired at gate time, bound to
-   this scope; expiry between persist and dispatch → deny, safe abort (§7.4.4).
+   this scope; expiry between persist and dispatch → deny, safe abort (§7.4 item 4).
 3. **Branch-lineage validity** — the intent's workflow branch has not been cancelled.
 4. **Dedup** — no record with the same `intent_id` in DISPATCHED/AMBIGUOUS/SETTLED_COMMITTED;
    a hit denies with the settled record as evidence (this is the re-synthesis defeat).
@@ -120,7 +127,7 @@ On restart, before accepting any new work:
 2. For each, run `reconcile(effect_id)` **before any new dispatch of the same
    `operation_id`**.
 3. Re-dispatch requires: confirmed-absent at the destination (C2) or in-window idempotent
-   replay (C1), **plus** fresh authority. Never re-dispatch on belief (§7.4.2).
+   replay (C1), **plus** fresh authority. Never re-dispatch on belief (§7.4 item 2).
 4. Crash-before-persist is provably effect-free (nothing was dispatched without a durable
    PERSISTED record) — the kill-before-persist test asserts zero external effects (§12.1).
 
@@ -203,12 +210,16 @@ procedure (§1, needs its ADR), the gate order (§4, `[DD]`), and the demo/stub 
 
 ## Unresolved questions
 
-- Implementation language and property-test framework — [ADR-0013](decisions/0013-implementation-language.md) (OPEN; T-000).
+- ~~Implementation language and property-test framework~~ — resolved:
+  [ADR-0013](decisions/0013-implementation-language.md) accepted 2026-07-21.
+- ~~The `[OQ]` cells of the lifecycle × classification matrix (§2)~~ — resolved:
+  [RFC-002 §3](rfc-002-engine-design.md) is the canonical matrix.
+- The short ADR ratifying the §1 identity procedure (items 1–4) is still owed at
+  implementation time (T-101 proposes it; ADR-0013's encoder/hash pins are its inputs).
 - C2 sandbox for the M4 graduation — [ADR-0012](decisions/0012-c2-sandbox.md) (OPEN).
 - Stripe version pin for the C1 null leg — [ADR-0010](decisions/0010-stripe-api-version.md) (OPEN).
 - Bi-temporality (`as_of_time`) stays conditional per ADR-002; the ledger design must not
   preclude it.
-- The `[OQ]` cells of the lifecycle × classification matrix (§2).
 
 ## Future possibilities
 
