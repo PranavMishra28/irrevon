@@ -96,7 +96,7 @@ export const claims = {
   },
   "state-model": {
     claim:
-      "State is three orthogonal dimensions: A execution lifecycle (INTENDED → PERSISTED → DISPATCHED → SETTLED/AMBIGUOUS/CANCELLED), B reconciliation classification (UNRECONCILED · CONFIRMED_UNIQUE · DUPLICATE · LOST · ORPHANED), C resolution status (OPEN → … → CLOSED). Orphans are representable only as findings — a ledger-keyed state machine cannot express them.",
+      "State is three orthogonal dimensions: A execution lifecycle (INTENDED → PERSISTED → DISPATCHED → SETTLED/AMBIGUOUS/CANCELLED), B reconciliation classification (UNRECONCILED · CONFIRMED_UNIQUE · DUPLICATE · LOST · CONTRADICTED · ORPHANED), C resolution status (OPEN → … → CLOSED). Orphans are representable only as findings — a ledger-keyed state machine cannot express them.",
     source: "master doc §7.1 + RFC-002 §3 (canonical tables)",
     label: "DD",
   },
