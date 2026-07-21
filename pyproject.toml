@@ -34,6 +34,9 @@ dev = [
     "import-linter>=2.5",
 ]
 
+[project.scripts]
+detent = "detent.cli:entrypoint"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/detent"]
 
@@ -77,3 +80,25 @@ name = "identity is pure: no imports from modules that handle raw model argument
 type = "forbidden"
 source_modules = ["detent.identity"]
 forbidden_modules = ["detent.contract"]
+
+# ADR-006 / RFC-002 §14: no authority module imports advisory, direct or
+# indirect. The type-level layer (ClassifierProposal rejection) is enforced via
+# the marker in detent.errors, tested in tests/advisory/.
+[[tool.importlinter.contracts]]
+name = "advisory is never on the authority path (ADR-006)"
+type = "forbidden"
+source_modules = [
+    "detent.identity",
+    "detent.contract",
+    "detent.ledger",
+    "detent.gate",
+    "detent.dispatcher",
+    "detent.reconciler",
+    "detent.recovery",
+    "detent.resolution",
+    "detent.sweep",
+    "detent.adapters",
+    "detent.api",
+    "detent.cli",
+]
+forbidden_modules = ["detent.advisory"]

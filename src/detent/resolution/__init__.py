@@ -46,6 +46,9 @@ def resolve(
     actor: str = "human",
     config: ResolutionConfig | None = None,
 ) -> dict[str, Any]:
+    from detent.errors import reject_advisory
+
+    reject_advisory(evidence, "resolve")
     config = config or ResolutionConfig()
     rows = ledger.query(
         "SELECT * FROM findings WHERE finding_id = %s", (finding_id,)

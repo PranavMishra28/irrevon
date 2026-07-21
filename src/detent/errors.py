@@ -15,6 +15,32 @@ from typing import Any
 
 from detent import SCHEMA_VERSION
 
+ADVISORY_MARKER = "__detent_advisory__"
+"""Marker key carried by serialized advisory/classifier output. Mutation APIs
+reject any payload carrying it (ADR-006 type-level layer; RFC-002 §14). Lives
+here so authority modules can enforce the rejection without importing
+detent.advisory (which the import contract forbids)."""
+
+
+class AdvisoryRejected(TypeError):
+    """Classifier output reached a mutation API — architecturally forbidden."""
+
+
+def reject_advisory(value: object, where: str) -> None:
+    """Typed rejection of advisory output at every mutation boundary."""
+    if isinstance(value, dict) and ADVISORY_MARKER in value:
+        raise AdvisoryRejected(
+            f"advisory/classifier output cannot reach {where}: the model is "
+            "never on the authority path (master doc §6.3, ADR-006)"
+        )
+    if getattr(type(value), "__name__", "") == "ClassifierProposal" or hasattr(
+        value, "proposed_action"
+    ):
+        raise AdvisoryRejected(
+            f"a ClassifierProposal cannot reach {where}: proposals are advisory "
+            "only (master doc §6.3, ADR-006)"
+        )
+
 
 class DetentError(Exception):
     """Base of the typed error hierarchy; one subclass per stable code."""

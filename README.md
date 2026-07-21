@@ -19,13 +19,51 @@ The full product rationale, architecture, benchmark design, and decision log liv
 
 ## Status
 
-**Pre-implementation. Docs and contracts only. No product code exists yet.**
-
-The engine design is implementation-ready ([docs/rfc-002-engine-design.md](docs/rfc-002-engine-design.md));
-the language/stack decision is closed (ADR-0013, Python); implementation remains gated by
-the execution plan's P1 gate. The roadmap, gates, and what blocks what are in
+**First slice implemented (M3 core): identity + ledger + gate + dispatcher +
+reconciliation + recovery + sweep + the flagship demo**, per
+[docs/rfc-002-engine-design.md](docs/rfc-002-engine-design.md) (tasks T-101–T-104).
+Real destination adapters (M4), the benchmark harness (M5+), and any packaged release
+remain gated by the execution plan. The roadmap, gates, and what blocks what are in
 [docs/execution-plan.md](docs/execution-plan.md). Items awaiting human decision are in
 [docs/review-queue.md](docs/review-queue.md).
+
+## Quickstart — run the flagship demo
+
+Prerequisites: [uv](https://docs.astral.sh/uv/), Docker (for local Postgres 17), ~5 minutes.
+
+```bash
+git clone <this-repo> && cd detent
+uv sync --locked                # toolchain + deps, pinned by uv.lock
+uv run detent init              # writes detent.toml, compose.yaml, .env.example
+cp .env.example .env            # local placeholder password (never committed)
+docker compose up -d --wait     # digest-pinned Postgres 17, loopback only
+uv run detent init              # now applies the plain-SQL migrations
+uv run detent doctor            # read-only checks incl. the identity self-test
+uv run detent demo              # the two-leg flagship story (see below)
+uv run detent inspect <effect_id> --dsn '<printed by the demo>'
+```
+
+`detent demo` runs the whole thesis in one command, against the deterministic
+reference destination (a C2 API: queryable status, **no honored idempotency**):
+
+1. **Detent leg** — an intent keyed on stable business identifiers is persisted
+   before dispatch; the destination commits the order but the response is lost
+   on cue; the engine process is **really SIGKILLed**; on restart, recovery
+   queries the destination *before any redispatch*, settles the record
+   `SETTLED_COMMITTED + CONFIRMED_UNIQUE`, and a re-synthesized retry
+   (different model wording, same `order_id`) collapses to the same identity
+   and is **rejected with evidence**. One destination effect.
+2. **B5 contrast leg** — the strongest conventional baseline (durable runtime,
+   stable op-IDs, idempotency keys *sent*) under the identical fault schedule
+   retries on restart; the C2 destination ignores the key. **Two** destination
+   effects, proven by read-back. The demo exits non-zero if this contrast ever
+   stops holding — the check is never weakened to keep the demo impressive
+   (master doc §8.3/§8.6).
+
+Developer gates: `make check` (docs/schemas/secrets/integrity), `make py-check
+py-test` (lint, strict types, import boundaries, unit + property tests),
+`make py-test-integration` (real Postgres via `make py-db-up`), or everything:
+`make check-all`.
 
 ## Repository status and licensing
 

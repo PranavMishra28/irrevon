@@ -99,6 +99,9 @@ def main() -> None:
                     "lifecycle": report.lifecycle,
                     "transport_outcome": report.transport_outcome,
                     "destination_ref": report.destination_ref,
+                    "deny_check": report.claim.deny_check,
+                    "deny_evidence": report.claim.deny_evidence,
+                    "decision_id": report.claim.decision_id,
                 }
             elif verb == "RECONCILE":
                 rep = reconcile_effect(

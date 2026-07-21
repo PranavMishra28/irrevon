@@ -27,7 +27,7 @@ from detent.contract import (
     adjudicate_reregistration,
     validate_intent_contract,
 )
-from detent.errors import IllegalState, NotFound, ScopeBusy
+from detent.errors import IllegalState, NotFound, ScopeBusy, reject_advisory
 from detent.gate import (
     AuthorityView,
     BlockingExecution,
@@ -126,6 +126,7 @@ class Ledger:
     def register_intent(
         self, raw: object, declaration_digest: str
     ) -> Registration:
+        reject_advisory(raw, "registerIntent")
         contract = validate_intent_contract(raw)
         effect_id = derive_intent_id(
             contract.stable_ids, contract.effect_type, contract.scope
@@ -728,6 +729,7 @@ class Ledger:
     ) -> tuple[int, int | None]:
         """AMBIGUOUS→settled transition plus (optionally) the finding, in ONE
         transaction. Returns (transition_seq, finding_id | None)."""
+        reject_advisory(evidence, "settle")
         crashpoint("settle.pre_commit")
         with self._conn.transaction(), translated_errors():
             exec_row = self._conn.execute(
@@ -809,6 +811,7 @@ class Ledger:
         excess_effect_count: int | None = None,
         created_by: str = "reconciler",
     ) -> int:
+        reject_advisory(evidence, "attach_finding")
         with self._conn.transaction(), translated_errors():
             row = self._conn.execute(
                 "SELECT ledger_attach_finding(%s, %s, %s, %s, %s, %s, %s, %s) AS fid",
@@ -834,6 +837,7 @@ class Ledger:
         actor: str,
         evidence: dict[str, Any],
     ) -> int:
+        reject_advisory(evidence, "resolve")
         with self._conn.transaction(), translated_errors():
             row = self._conn.execute(
                 "SELECT ledger_resolve(%s, %s, %s, %s, %s) AS seq",

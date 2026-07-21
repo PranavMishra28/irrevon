@@ -2,9 +2,11 @@
 
 Detent is a planned benchmark (DetentBench, preregistration drafted but not frozen) +
 reference reconciliation engine for irreversible AI-agent actions, benchmark-first and
-C2-scoped. **Status: pre-implementation, docs and contracts only, public repository.** No
-product code exists; do not create any until the execution plan says implementation is
-unblocked.
+C2-scoped. **Status: first slice implemented (M3 core, tasks T-101–T-104): engine, ledger,
+reference destinations, and the flagship demo live in `src/detent/` + `migrations/`.**
+Real-sandbox adapters (M4), the bench harness (M5+), and releases remain gated by the
+execution plan; the public repository carries no license and accepts no contributions
+(ADR-0014 open).
 
 This file is the map. Read the canonical file for a concern instead of guessing; link to it
 instead of restating it.
@@ -26,6 +28,9 @@ instead of restating it.
 | CI design | `docs/ci.md` — **in progress**, arriving via the CI workstream branch |
 | Workbench frontend | `web/` — **in progress**, arriving via the frontend workstream branch (stack: [ADR-0016](docs/decisions/0016-frontend-workbench-stack.md)) |
 | Machine-readable contracts + what is deferred | [schemas/README.md](schemas/README.md) |
+| Engine implementation (first slice) | `src/detent/` — module boundaries per [RFC-002 §14](docs/rfc-002-engine-design.md); the ratified state tables are encoded ONCE in `src/detent/statetable.py` (generated-from, never hand-copied) |
+| Ledger schema + locked transition functions | [migrations/](migrations/) (plain SQL per ADR-0013; runner ADR-0022) |
+| Test architecture (template-DB-per-test, crash/sync points, auditor) | `tests/` — process harness in `tests/process/`, flagship E2E in `tests/e2e/` |
 | Bounded-task process and template | [tasks/README.md](tasks/README.md) |
 | Licensing posture | [LICENSING.md](LICENSING.md) |
 | Validation commands | [Makefile](Makefile) (`make check`) |
