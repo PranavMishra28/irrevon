@@ -25,6 +25,7 @@ case "$(uname -s)-$(uname -m)" in
   Linux-x86_64)
     LYCHEE_ASSET="lychee-x86_64-unknown-linux-gnu.tar.gz"
     LYCHEE_SHA256="1f4e0ef7f6554a6ed33dd7ac144fb2e1bbed98598e7af973042fc5cd43951c9a"
+    LYCHEE_MEMBER="lychee-x86_64-unknown-linux-gnu/lychee"  # lychee tarballs nest the binary
     GITLEAKS_ASSET="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
     GITLEAKS_SHA256="551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
     ACTIONLINT_ASSET="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
@@ -35,6 +36,7 @@ case "$(uname -s)-$(uname -m)" in
   Darwin-arm64)
     LYCHEE_ASSET="lychee-aarch64-apple-darwin.tar.gz"
     LYCHEE_SHA256="c9d3740ea2d891854d37116c9fba840f37b6e7c89d330e7db84ac333631c4977"
+    LYCHEE_MEMBER="lychee-aarch64-apple-darwin/lychee"  # lychee tarballs nest the binary
     GITLEAKS_ASSET="gitleaks_${GITLEAKS_VERSION}_darwin_arm64.tar.gz"
     GITLEAKS_SHA256="b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5"
     ACTIONLINT_ASSET="actionlint_${ACTIONLINT_VERSION}_darwin_arm64.tar.gz"
@@ -66,7 +68,7 @@ have_version() { # <tool> <version substring>
   command -v "$1" >/dev/null 2>&1 && "$1" --version 2>/dev/null | head -n 1 | grep -qF "$2"
 }
 
-install_binary() { # <tool> <version> <url> <sha256> <member>
+install_binary() { # <tool> <version> <url> <sha256> <member-path-in-archive>
   local tool="$1" version="$2" url="$3" sha="$4" member="$5"
   if have_version "$tool" "$version"; then
     echo "bootstrap-tools: $tool $version already present - skipped"
@@ -81,7 +83,7 @@ install_binary() { # <tool> <version> <url> <sha256> <member>
 
 install_binary lychee "$LYCHEE_VERSION" \
   "https://github.com/lycheeverse/lychee/releases/download/lychee-v${LYCHEE_VERSION}/${LYCHEE_ASSET}" \
-  "$LYCHEE_SHA256" lychee
+  "$LYCHEE_SHA256" "$LYCHEE_MEMBER"
 
 # gitleaks prints its version bare (`gitleaks version` -> "8.30.1"), so check explicitly.
 if command -v gitleaks >/dev/null 2>&1 && gitleaks version 2>/dev/null | grep -qF "$GITLEAKS_VERSION"; then
