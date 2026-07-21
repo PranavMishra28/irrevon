@@ -15,20 +15,27 @@ function AttentionPage() {
           Effects grid with exact filters — attention is a filtered view of the same ledger
           facts, never a second source of truth.
         </p>
-        <p className="mt-3 text-sm text-text-secondary">
-          The derived query behind this surface needs the corrected Q1 filter contract (
-          <span className="font-mono text-xs">BI-3, BI-9</span>).
-        </p>
-        <Link
-          to="/effects"
-          search={{ lifecycle: "AMBIGUOUS" }}
-          className={
-            "mt-4 inline-flex h-8 items-center rounded-(--radius-control) border border-border " +
-            "bg-surface-1 px-3 text-sm font-medium text-text-primary hover:bg-surface-2"
-          }
-        >
-          View ambiguous effects
-        </Link>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link
+            to="/effects"
+            search={{ lifecycle: ["AMBIGUOUS"] }}
+            className={
+              "inline-flex h-8 items-center rounded-(--radius-control) border border-border " +
+              "bg-surface-1 px-3 text-sm font-medium text-text-primary hover:bg-surface-2"
+            }
+          >
+            Ambiguous effects
+          </Link>
+          <Link
+            to="/findings"
+            className={
+              "inline-flex h-8 items-center rounded-(--radius-control) border border-border " +
+              "bg-surface-1 px-3 text-sm font-medium text-text-primary hover:bg-surface-2"
+            }
+          >
+            Findings with open resolutions
+          </Link>
+        </div>
       </div>
     </Page>
   );
