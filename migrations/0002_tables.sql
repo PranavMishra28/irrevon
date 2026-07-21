@@ -117,6 +117,10 @@ CREATE TABLE effect_records (
   stable_ids          jsonb NOT NULL,
   adapter_id          text NOT NULL,             -- ADR-0019; C1 B1/M5
   declaration_digest  text NOT NULL,             -- declaration in force at registration
+  -- ADR-0019 item 1: the ledger stores the validated dispatchable payload with
+  -- its canonical digest (recovery redispatch must be able to rebuild the
+  -- request); never an identity input (conformance-tested).
+  parameters          jsonb NOT NULL,
   parameters_digest   text NOT NULL,             -- canonical digest of dispatchable payload
   contract_canonical  bytea NOT NULL,            -- exact JCS bytes hashed into effect_id
   branch_ref          text,
@@ -190,9 +194,14 @@ CREATE TABLE dispatch_attempts (
   declaration_digest text  NOT NULL,       -- declaration version used for this attempt (C1 M17)
   idempotency_key  text    NOT NULL,       -- derived ONLY from operation_id
   request_digest   text    NOT NULL,
-  gate_decision_id bigint  NOT NULL REFERENCES gate_decisions(decision_id),
+  -- Recorded deviation from the RFC-002 §2.2 sketch (NOT NULL): a C1 replay
+  -- probe runs under the claim discipline but NOT under the gate (C1 M16 —
+  -- reconciliation traffic never parents under the gate), so it has no gate
+  -- decision. The CHECK keeps the coupling exact for every other kind.
+  gate_decision_id bigint  REFERENCES gate_decisions(decision_id),
   claimed_at       timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (execution_id, attempt_no)
+  UNIQUE (execution_id, attempt_no),
+  CHECK ((kind <> 'c1_replay_probe') = (gate_decision_id IS NOT NULL))
 );
 
 CREATE TABLE dispatch_receipts (

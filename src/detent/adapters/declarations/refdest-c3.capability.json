@@ -1,0 +1,21 @@
+{
+  "adapter": "refdest-c3",
+  "destination": "Detent reference destination (C3 fire-and-forget profile)",
+  "api_version": "refdest-1",
+  "tier": "C3",
+  "idempotency": {
+    "supported": false
+  },
+  "queryable": {
+    "supported": false
+  },
+  "client_ref_field": null,
+  "list_queryable": false,
+  "consistency": {
+    "status_settlement_lag": null,
+    "listing_lag": null
+  },
+  "compensation_hook": null,
+  "citations": ["https://detent.invalid/refdest/contract#c3"],
+  "evidence_quality": "VF"
+}

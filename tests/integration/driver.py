@@ -66,13 +66,13 @@ def make_effect(
     conn.execute(
         """
         INSERT INTO effect_records (effect_id, effect_type, effect_class, scope,
-          stable_ids, adapter_id, declaration_digest, parameters_digest,
-          contract_canonical, branch_ref)
-        VALUES (%s, %s, 'IRREVERSIBLE', %s, %s, 'refdest-c2', 'sha256:0', 'sha256:0',
-                %s, %s)
+          stable_ids, adapter_id, declaration_digest, parameters,
+          parameters_digest, contract_canonical, branch_ref)
+        VALUES (%s, %s, 'IRREVERSIBLE', %s, %s, 'refdest-c2', 'sha256:0', %s,
+                'sha256:0', %s, %s)
         """,
         (effect_id, effect_type, scope, Jsonb({"test_id": effect_id[:8]}),
-         effect_id.encode(), branch_ref),
+         Jsonb({"driver": True}), effect_id.encode(), branch_ref),
     )
     row = conn.execute(
         """
