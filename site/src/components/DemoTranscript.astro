@@ -14,7 +14,7 @@ const { heading = "The recorded run" } = Astro.props;
 const effectId = "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5";
 const effectShort = `${effectId.slice(0, 12)}…`;
 
-const detentLeg = [
+const irrevonLeg = [
   { event: "registered", detail: `effect ${effectShort} · lifecycle PERSISTED` },
   { event: "dispatch_response_lost", detail: "fault response_lost · lifecycle AMBIGUOUS" },
   { event: "crash", detail: "exit_status -9 (SIGKILL, mid-run)" },
@@ -44,9 +44,9 @@ const b5Leg = [
 
   <div class="transcript" tabindex="0" role="group" aria-label="Recorded demo transcript, eleven events across two legs">
     <ol>
-      <li class="t-lane"><span class="t-step" aria-hidden="true"></span><span class="t-event">— Detent leg —</span><span class="t-detail"></span></li>
+      <li class="t-lane"><span class="t-step" aria-hidden="true"></span><span class="t-event">— Irrevon leg —</span><span class="t-detail"></span></li>
       {
-        detentLeg.map((e, i) => (
+        irrevonLeg.map((e, i) => (
           <li>
             <span class="t-step">{i + 1}</span>
             <span class="t-event">{e.event}</span>
@@ -73,7 +73,7 @@ const b5Leg = [
 
   <div class="demo-outcome" role="group" aria-label="Recorded outcome">
     <div class="outcome-cell">
-      <span class="outcome-label">Detent leg</span>
+      <span class="outcome-label">Irrevon leg</span>
       <span class="outcome-value">1 destination effect</span>
       <span class="outcome-note">duplicate rejected · SETTLED_COMMITTED</span>
     </div>
@@ -92,7 +92,7 @@ const b5Leg = [
   <figcaption>
     Recorded from a real engine run (seed 777, engine commit <code>a3dd583</code>) against the reference C2
     destination — queryable status, no honored idempotency. Not live, not production; reproducible from the
-    repository with <code>uv run detent demo</code>.
+    repository with <code>uv run irrevon demo</code>.
   </figcaption>
   <Source id="demo-sequence" also={["demo-contrast", "demo-provenance"]} />
 </figure>

@@ -1,5 +1,5 @@
 """Generated-from discipline (RFC-002 §3): the SQL seed tables ARE the ratified
-state model — cross-checked against detent.statetable, the single in-code
+state model — cross-checked against irrevon.statetable, the single in-code
 encoding. Divergence anywhere is a migration bug, never resolved by editing
 either side casually (amendment territory)."""
 
@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from detent.statetable import (
+from irrevon.statetable import (
     LEGAL_ACTIONS,
     LEGAL_ATTACHMENTS,
     LEGAL_STATUS_EDGES,

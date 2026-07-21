@@ -1,6 +1,6 @@
 """Generated-from enforcement for the record schemas (ADR-0019 item 4 /
 ADR-0021): every enum in the admitted schemas must equal the ratified state
-table's encoding in detent.statetable — never hand-copied, never drifting."""
+table's encoding in irrevon.statetable — never hand-copied, never drifting."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from detent import statetable
+from irrevon import statetable
 
 SCHEMAS_DIR = Path(__file__).parent.parent.parent / "schemas"
 

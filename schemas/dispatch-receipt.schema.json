@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://detent.invalid/schemas/dispatch-receipt.schema.json",
-  "$comment": "Admitted at M3 (T-102) by ADR-0021 per the ADR-0019 item-4 criteria: schema_version required; operation/execution identity on receipts; transport_outcome/failure_kind conditionally tied (RFC-002 §2.2 CHECK mirrored as if/then). Enums generated from RFC-002 §3/§10 via detent.statetable (tests/schemas/test_enum_sync.py). $id host is a placeholder pending the name screen. Shape changes require an ADR.",
+  "$id": "https://irrevon.dev/schemas/dispatch-receipt.schema.json",
+  "$comment": "Admitted at M3 (T-102) by ADR-0021 per the ADR-0019 item-4 criteria: schema_version required; operation/execution identity on receipts; transport_outcome/failure_kind conditionally tied (RFC-002 §2.2 CHECK mirrored as if/then). Enums generated from RFC-002 §3/§10 via irrevon.statetable (tests/schemas/test_enum_sync.py). $id host is a placeholder until the irrevon.dev domain purchase closes (ADR-0023). Shape changes require an ADR.",
   "title": "Dispatch receipt",
   "description": "One attempt's evidence: what was sent under which idempotency key and how the transport ended. TIMEOUT and LOST imply AMBIGUOUS until reconciled; unknown destination errors are AMBIGUOUS, never FAILED (RFC-002 §10).",
   "type": "object",

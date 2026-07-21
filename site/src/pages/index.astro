@@ -177,7 +177,7 @@ import { href, asset } from "../lib/url";
         <img
           class="shot-light"
           src={asset("/images/workbench-effects-light.png")}
-          alt="Detent workbench Effects table listing recorded effects with separate lifecycle, classification, and resolution columns; a synthetic-fixture banner is visible at the top."
+          alt="Irrevon workbench Effects table listing recorded effects with separate lifecycle, classification, and resolution columns; a synthetic-fixture banner is visible at the top."
           width="1440"
           height="900"
           loading="lazy"
@@ -185,7 +185,7 @@ import { href, asset } from "../lib/url";
         <img
           class="shot-dark"
           src={asset("/images/workbench-effects-dark.png")}
-          alt="Detent workbench Effects table in dark theme, listing recorded effects with separate lifecycle, classification, and resolution columns; a synthetic-fixture banner is visible at the top."
+          alt="Irrevon workbench Effects table in dark theme, listing recorded effects with separate lifecycle, classification, and resolution columns; a synthetic-fixture banner is visible at the top."
           width="1440"
           height="900"
           loading="lazy"
@@ -235,12 +235,12 @@ import { href, asset } from "../lib/url";
           locally against a deterministic reference destination — about five minutes with uv and Docker.
         </p>
       </div>
-      <pre><code>git clone {REPO_URL}.git && cd detent
+      <pre><code>git clone {REPO_URL}.git && cd irrevon
 uv sync --locked        # toolchain + deps, pinned by uv.lock
-uv run detent init      # config, compose file, then migrations
+uv run irrevon init      # config, compose file, then migrations
 docker compose up -d --wait
-uv run detent doctor    # read-only checks incl. the identity self-test
-uv run detent demo      # the two-leg flagship story</code></pre>
+uv run irrevon doctor    # read-only checks incl. the identity self-test
+uv run irrevon demo      # the two-leg flagship story</code></pre>
       <div style="margin-top: 14px;">
         <Source id="quickstart-real" also={["not-published", "license-pending"]} />
       </div>

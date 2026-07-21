@@ -43,7 +43,7 @@ export function AppFrame({
       <header className="flex h-12 shrink-0 items-center gap-3 border-b border-border bg-layer-nav px-4">
         <span className="flex shrink-0 items-center gap-2 text-text-primary">
           <SeatMark size={18} />
-          <span className="text-sm font-semibold tracking-tight select-none">detent</span>
+          <span className="text-sm font-semibold tracking-tight select-none">irrevon</span>
           <span className="mt-px hidden text-2xs font-medium tracking-wide text-text-tertiary uppercase select-none min-[480px]:inline">
             workbench
           </span>

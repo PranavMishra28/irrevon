@@ -7,9 +7,9 @@
 export type Theme = "light" | "dark";
 export type Density = "comfortable" | "dense";
 
-const THEME_KEY = "detent.theme";
-const DENSITY_KEY = "detent.density";
-const SINGLE_KEYS_KEY = "detent.single-key-shortcuts";
+const THEME_KEY = "irrevon.theme";
+const DENSITY_KEY = "irrevon.density";
+const SINGLE_KEYS_KEY = "irrevon.single-key-shortcuts";
 
 function read(key: string): string | null {
   try {

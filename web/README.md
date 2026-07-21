@@ -1,6 +1,6 @@
-# Detent Workbench (`web/`)
+# Irrevon Workbench (`web/`)
 
-Local-first, single-user, **read-only** evidence workbench for Detent. Fixture-backed
+Local-first, single-user, **read-only** evidence workbench for Irrevon. Fixture-backed
 (v0.1): all data comes from MSW-served, schema-derived fixtures; the browser never starts
 an effect and no build of this app can mutate anything.
 
@@ -14,8 +14,8 @@ tables (`pnpm codegen`, committed, drift-gated, SHA-256-pinned in
 `contracts/schema-pins.json`). The canonical fixtures are **captured transcripts of the
 real engine** (`scripts/capture-fixtures.py`, seed 777; commit + derivations recorded in
 `fixtures/canonical/provenance.json`): Q1/Q2 exchange envelopes, verbatim
-`detent inspect --json` payloads (the flagship one from the real SIGKILL demo database),
-the `detent doctor --json` transcript, the demo JSONL artifact, and the loaded capability
+`irrevon inspect --json` payloads (the flagship one from the real SIGKILL demo database),
+the `irrevon doctor --json` transcript, the demo JSONL artifact, and the loaded capability
 declaration — schema-validated at capture, drift-gated by `fixtures/manifest.sha256`.
 Still honestly absent: benchmark run schemas (BI-7 → Bench keeps its no-runs state),
 live mode (BI-4 → the read server is deferred to the `serve` workstream), and evidence
@@ -129,7 +129,7 @@ docker run --rm --ipc=host -e CI=1 -v "$PWD":/work -w /work \
   mcr.microsoft.com/playwright:v1.61.1-noble \
   bash -lc 'corepack enable && \
             pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store && \
-            DETENT_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
+            IRREVON_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
 ```
 
 Add `--update-snapshots` only when a PR states why pixels changed. A bare local `pnpm vrt`

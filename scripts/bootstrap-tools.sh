@@ -1,5 +1,5 @@
 #!/bin/bash
-# Exact-version, checksum-verified install of Detent's validation tools.
+# Exact-version, checksum-verified install of Irrevon's validation tools.
 # This is the ONE pin table — consumed by `make tools-pinned`, every CI job, and
 # cloud-agent environments (.cursor/environment.json). Update pins deliberately and
 # in one commit together with the Makefile header and any CI references.

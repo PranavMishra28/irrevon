@@ -1,4 +1,4 @@
-# Detent nightly — scheduled validation suite. Map: docs/ci.md.
+# Irrevon nightly — scheduled validation suite. Map: docs/ci.md.
 #
 # Today (docs-only repo): the full local gate on a clean machine PLUS the online
 # variants the deterministic PR gate deliberately excludes — external link
@@ -51,10 +51,11 @@ jobs:
           # lychee uses the read-only token for github.com URLs to avoid rate limits
           GITHUB_TOKEN: ${{ github.token }}
         # Placeholder domains are excluded by design: schema $id values use
-        # detent.invalid until the name screen closes, and examples use example.com.
+        # irrevon.dev as a placeholder until the domain purchase closes
+        # (ADR-0023; owner spend decision), and examples use example.com.
         run: |
           lychee --no-progress --include-fragments --root-dir "$PWD" \
-            --exclude 'https://detent\.invalid' \
+            --exclude 'https://irrevon\.dev' \
             --exclude 'https://example\.com' \
             .
       - name: zizmor (online, pedantic)

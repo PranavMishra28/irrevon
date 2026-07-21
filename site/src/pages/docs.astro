@@ -37,7 +37,7 @@ const docLinks = [
   {
     name: "Decision records",
     path: "docs/decisions/README.md",
-    desc: "Append-only ADR index (0000–0022): every settled decision with its rejected alternatives and reopen trigger. If a decision is not in the index, it has not been made.",
+    desc: "Append-only ADR index (0000–0023): every settled decision with its rejected alternatives and reopen trigger. If a decision is not in the index, it has not been made.",
   },
   {
     name: "Licensing status",
@@ -74,20 +74,20 @@ const docLinks = [
         <h2>Clone, and run the flagship demo</h2>
         <p class="lead">
           Honest prerequisites: <a href="https://docs.astral.sh/uv/">uv</a>, Docker (for a local, pinned
-          Postgres 17), and about five minutes. There is no <code>pip install</code> — nothing is published to
-          a package index, and the project name itself is still under a pending name screen.
+          Postgres 17), and about five minutes. There is no package-index install yet — once publication
+          clearances close, it will be <code>uv tool install irrevon</code>; until then, clone.
         </p>
       </div>
       <pre><code># pre-release: clone only — no package-index install exists
-git clone {REPO_URL}.git && cd detent
+git clone {REPO_URL}.git && cd irrevon
 
 uv sync --locked                # toolchain + deps, pinned by uv.lock
-uv run detent init              # writes detent.toml, compose.yaml, .env.example
+uv run irrevon init              # writes irrevon.toml, compose.yaml, .env.example
 cp .env.example .env            # local placeholder password (never committed)
 docker compose up -d --wait     # digest-pinned Postgres 17, loopback only
-uv run detent init              # now applies the plain-SQL migrations
-uv run detent doctor            # read-only checks incl. the identity self-test
-uv run detent demo              # the two-leg flagship story</code></pre>
+uv run irrevon init              # now applies the plain-SQL migrations
+uv run irrevon doctor            # read-only checks incl. the identity self-test
+uv run irrevon demo              # the two-leg flagship story</code></pre>
       <div style="margin-top: 14px;">
         <Source id="quickstart-real" also={["not-published"]} />
       </div>
@@ -134,9 +134,9 @@ uv run detent demo              # the two-leg flagship story</code></pre>
         <article class="panel-subtle status-card">
           <h3>Not published</h3>
           <p>
-            No package index carries this project. The PyPI name “detent” belongs to an unrelated project; the
-            name screen is a pending human decision, which is why the working name is configuration, not
-            branding.
+            No package index carries this project. The name is decided — Irrevon (ADR-0023); PyPI registration
+            of “irrevon” is unblocked pending external clearances and the counsel trademark screen. Publication
+            remains a human act at the release gate.
           </p>
           <Source id="not-published" />
         </article>

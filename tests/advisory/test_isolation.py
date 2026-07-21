@@ -3,7 +3,7 @@
 Conformance: master doc §12.1 row 4 — "LLM never on the authority path (§6.3,
 ADR-006)" (M3). Three legs: (1) the static import boundary (import-linter
 contract, enforced in `make py-check` — no authority module imports
-detent.advisory, direct or indirect); (2) type-level runtime rejection —
+irrevon.advisory, direct or indirect); (2) type-level runtime rejection —
 ClassifierProposal objects, duck-typed lookalikes, AND
 serialized-then-deserialized launderings fed to EVERY mutation-capable API
 produce a typed rejection; (3) the ledger is unchanged after every attempt
@@ -20,9 +20,9 @@ from typing import Any
 
 import pytest
 
-from detent.advisory import ClassifierProposal
-from detent.errors import AdvisoryRejected
-from detent.ledger import Ledger
+from irrevon.advisory import ClassifierProposal
+from irrevon.errors import AdvisoryRejected
+from irrevon.ledger import Ledger
 from tests.integration.conftest import DBHandles
 from tests.integration.driver import admin_conn, make_effect, make_execution_at
 
@@ -77,9 +77,9 @@ def test_no_source_shipping_module_imports_advisory() -> None:
     keep every authority module in its source list (changing the contract is
     invariant-affecting — ADR first, §12.5)."""
     pyproject = (REPO_ROOT / "pyproject.toml").read_text()
-    for module in ("detent.ledger", "detent.gate", "detent.dispatcher",
-                   "detent.reconciler", "detent.recovery", "detent.resolution",
-                   "detent.api", "detent.cli"):
+    for module in ("irrevon.ledger", "irrevon.gate", "irrevon.dispatcher",
+                   "irrevon.reconciler", "irrevon.recovery", "irrevon.resolution",
+                   "irrevon.api", "irrevon.cli"):
         assert f'"{module}"' in pyproject, f"{module} missing from the contract"
 
 
@@ -151,7 +151,7 @@ def test_every_mutation_api_rejects_advisory_output(fresh_db: DBHandles) -> None
 
 
 def test_resolution_engine_rejects_proposals(fresh_db: DBHandles) -> None:
-    from detent.resolution import resolve
+    from irrevon.resolution import resolve
 
     with admin_conn(fresh_db.admin_dsn) as conn:
         effect_id = make_effect(conn)
@@ -181,7 +181,7 @@ def test_proposal_never_reaches_gate_inputs() -> None:
     This asserts the type surface: GateInputs has no advisory-shaped member."""
     from dataclasses import fields
 
-    from detent.gate import GateInputs
+    from irrevon.gate import GateInputs
 
     field_names = {f.name for f in fields(GateInputs)}
     assert "proposal" not in field_names
@@ -192,7 +192,7 @@ def test_proposal_never_reaches_gate_inputs() -> None:
 def test_registrar_rejects_advisory_marker_in_contract() -> None:
     """A contract dict carrying the advisory marker is rejected BEFORE schema
     validation (defense in depth; the closed schema would also reject it)."""
-    from detent.errors import ADVISORY_MARKER
+    from irrevon.errors import ADVISORY_MARKER
 
     raw = {
         "schema_version": "1",
@@ -206,7 +206,7 @@ def test_registrar_rejects_advisory_marker_in_contract() -> None:
         "stamped_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         ADVISORY_MARKER: True,
     }
-    from detent.errors import reject_advisory
+    from irrevon.errors import reject_advisory
 
     with pytest.raises(AdvisoryRejected):
         reject_advisory(raw, "registerIntent")

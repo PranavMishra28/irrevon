@@ -1,4 +1,4 @@
-# Detent CI — the single required PR gate. Map + owner checklist: docs/ci.md.
+# Irrevon CI — the single required PR gate. Map + owner checklist: docs/ci.md.
 #
 # Aggregator pattern (public-repo required-check semantics):
 #   - a required check that is SKIPPED counts as PASSING, and one that never

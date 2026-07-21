@@ -19,7 +19,7 @@ function resolveRepoUrl() {
     return url.replace(/\/$/, "");
   } catch {
     throw new Error(
-      "detent-site: repository URL unresolved. Set SITE_REPO_URL or build inside a clone with an origin remote.",
+      "irrevon-site: repository URL unresolved. Set SITE_REPO_URL or build inside a clone with an origin remote.",
     );
   }
 }

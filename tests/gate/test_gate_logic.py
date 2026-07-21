@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from detent.gate import (
+from irrevon.gate import (
     AuthorityView,
     BlockingExecution,
     DenyEntryView,

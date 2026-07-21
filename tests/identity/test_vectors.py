@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from detent.identity import canonical_bytes, derive_intent_id
+from irrevon.identity import canonical_bytes, derive_intent_id
 
 VECTORS_DIR = Path(__file__).parent / "vectors"
 EXPECTED = {

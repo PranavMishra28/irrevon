@@ -1,4 +1,4 @@
 {
-  "name": "detent-dev",
+  "name": "irrevon-dev",
   "install": "bash scripts/bootstrap-tools.sh && if [ -f pyproject.toml ]; then uv sync --locked --group dev; fi && if [ -f web/pnpm-lock.yaml ]; then corepack enable pnpm && pnpm --dir web install --frozen-lockfile; fi"
 }

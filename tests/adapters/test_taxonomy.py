@@ -15,8 +15,8 @@ from typing import Any
 from hypothesis import given
 from hypothesis import strategies as st
 
-from detent.adapters.base import declarations_dir, load_declaration
-from detent.adapters.refdest import RefDest, RefdestAdapter
+from irrevon.adapters.base import declarations_dir, load_declaration
+from irrevon.adapters.refdest import RefDest, RefdestAdapter
 
 C2_DECL = load_declaration(declarations_dir() / "refdest-c2.capability.json")
 
@@ -71,7 +71,7 @@ def test_failed_always_carries_declared_citation_shape(
 
 
 def test_wire_drop_maps_to_lost() -> None:
-    from detent.adapters.base import DispatchOrder
+    from irrevon.adapters.base import DispatchOrder
 
     refdest = RefDest()
     adapter = RefdestAdapter("refdest-c2", C2_DECL, instance=refdest)
@@ -86,7 +86,7 @@ def test_wire_drop_maps_to_lost() -> None:
 
 
 def test_delay_past_deadline_maps_to_timeout() -> None:
-    from detent.adapters.base import DispatchOrder
+    from irrevon.adapters.base import DispatchOrder
 
     refdest = RefDest()
     adapter = RefdestAdapter("refdest-c2", C2_DECL, instance=refdest)
@@ -112,7 +112,7 @@ def test_failed_query_is_indeterminate_never_absent() -> None:
 def test_c2_honesty_same_request_twice_two_effects() -> None:
     """The load-bearing C2 negative observation: the destination really does
     not dedup — identical request twice ⇒ two effects (adapters.md §1.6)."""
-    from detent.adapters.base import DispatchOrder
+    from irrevon.adapters.base import DispatchOrder
 
     refdest = RefDest()
     adapter = RefdestAdapter("refdest-c2", C2_DECL, instance=refdest)
@@ -128,7 +128,7 @@ def test_c2_honesty_same_request_twice_two_effects() -> None:
 
 
 def test_c1_profile_honors_key_within_window() -> None:
-    from detent.adapters.base import DispatchOrder
+    from irrevon.adapters.base import DispatchOrder
 
     declaration = load_declaration(declarations_dir() / "refdest-c1.capability.json")
     refdest = RefDest(profile="C1")
@@ -144,7 +144,7 @@ def test_c1_profile_honors_key_within_window() -> None:
 def test_determinism_same_seed_same_refs() -> None:
     """Same seed + same canonicalized request sequence → byte-identical
     ground truth (RFC-002 §8)."""
-    from detent.adapters.base import DispatchOrder
+    from irrevon.adapters.base import DispatchOrder
 
     states = []
     for _ in range(2):

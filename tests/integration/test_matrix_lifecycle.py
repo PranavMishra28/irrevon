@@ -18,7 +18,7 @@ import psycopg
 import pytest
 from psycopg.types.json import Jsonb
 
-from detent.statetable import (
+from irrevon.statetable import (
     LEGAL_STATE_PAIRS,
     LIFECYCLE_EDGES,
     LIFECYCLE_STATES,

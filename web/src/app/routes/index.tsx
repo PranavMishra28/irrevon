@@ -194,7 +194,7 @@ function OverviewPage() {
             <Panel title="Doctor transcript" meta={`${doctor.data.checks.length} checks`}>
               <DoctorSummaryGrid summary={doctorSummary} />
               <p className="mt-2 border-t border-border-subtle pt-2 text-2xs text-text-tertiary">
-                A recorded transcript of <span className="font-mono">detent doctor</span> — not
+                A recorded transcript of <span className="font-mono">irrevon doctor</span> — not
                 live telemetry.{" "}
                 <Link to="/health" className="text-accent underline underline-offset-2">
                   Full transcript

@@ -36,7 +36,7 @@ export function EffectsGrid({
 }: {
   items: EffectListItem[];
   filterRef: RefObject<HTMLInputElement | null>;
-  /** Currently docked-inspected effect id (Detent Click seat bar on its row). */
+  /** Currently docked-inspected effect id (Irrevon Click seat bar on its row). */
   inspectedId?: string | null;
   /** When provided, Enter inspects in place and `o` opens the full detail. */
   onInspect?: (effectId: string | null) => void;

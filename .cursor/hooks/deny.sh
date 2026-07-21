@@ -1,5 +1,5 @@
 #!/bin/bash
-# Detent hard-deny hook for Cursor agents. Handles beforeShellExecution (input carries
+# Irrevon hard-deny hook for Cursor agents. Handles beforeShellExecution (input carries
 # .command) and beforeReadFile (input carries .file_path). Only "deny" responses are
 # reliably enforced by Cursor, so this script only allows or denies — it never asks.
 # Honest limit: this file is repo-writable and regex-based; it is containment for a

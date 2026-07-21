@@ -34,7 +34,7 @@ def test_kill_at_persist_pre_commit_is_effect_free(
     """Killed at/before persist COMMIT: destination effect count == 0 AND the
     ledger has no record — crash-before-persist is provably effect-free."""
     _, control = refdest_server
-    engine = engine_factory({"DETENT_CRASH_AT": "persist.pre_commit"})
+    engine = engine_factory({"IRREVON_CRASH_AT": "persist.pre_commit"})
     engine.send_nowait("REGISTER " + contract("kbp-1"))
     engine.assert_died_by_sigkill()
 
@@ -49,7 +49,7 @@ def test_kill_at_persist_post_commit_leaves_durable_persisted(
     engine_factory: Any,
 ) -> None:
     _, control = refdest_server
-    engine = engine_factory({"DETENT_CRASH_AT": "persist.post_commit"})
+    engine = engine_factory({"IRREVON_CRASH_AT": "persist.post_commit"})
     engine.send_nowait("REGISTER " + contract("kbp-2"))
     engine.assert_died_by_sigkill()
 
@@ -73,7 +73,7 @@ def test_kill_after_claim_before_wire(
     reg = setup.send("REGISTER " + contract(f"kbp-{seam}"))
     setup.close()
 
-    armed = engine_factory({"DETENT_CRASH_AT": seam})
+    armed = engine_factory({"IRREVON_CRASH_AT": seam})
     armed.send_nowait("DISPATCH " + reg["effect_id"])
     armed.assert_died_by_sigkill()
 
@@ -111,7 +111,7 @@ def test_kill_between_destination_effect_and_receipt(
     reg = setup.send("REGISTER " + contract("kbp-effect-no-receipt"))
     setup.close()
 
-    armed = engine_factory({"DETENT_CRASH_AT": "receipt.pre_commit"})
+    armed = engine_factory({"IRREVON_CRASH_AT": "receipt.pre_commit"})
     armed.send_nowait("DISPATCH " + reg["effect_id"])
     armed.assert_died_by_sigkill()
 
@@ -140,7 +140,7 @@ def test_kill_after_receipt_commit_is_stable(
     reg = setup.send("REGISTER " + contract("kbp-post-receipt"))
     setup.close()
 
-    armed = engine_factory({"DETENT_CRASH_AT": "receipt.post_commit"})
+    armed = engine_factory({"IRREVON_CRASH_AT": "receipt.post_commit"})
     armed.send_nowait("DISPATCH " + reg["effect_id"])
     armed.assert_died_by_sigkill()
 
@@ -164,7 +164,7 @@ def test_zero_effects_without_persisted_record_across_all_seams(
     _, control = refdest_server
 
     # Seam 1: register dies pre-commit — nothing anywhere.
-    armed = engine_factory({"DETENT_CRASH_AT": "persist.pre_commit"})
+    armed = engine_factory({"IRREVON_CRASH_AT": "persist.pre_commit"})
     armed.send_nowait("REGISTER " + contract("kbp-sweep-0"))
     armed.assert_died_by_sigkill()
 
@@ -173,7 +173,7 @@ def test_zero_effects_without_persisted_record_across_all_seams(
         setup = engine_factory()
         reg = setup.send("REGISTER " + contract(f"kbp-sweep-{i}"))
         setup.close()
-        armed = engine_factory({"DETENT_CRASH_AT": seam})
+        armed = engine_factory({"IRREVON_CRASH_AT": seam})
         armed.send_nowait("DISPATCH " + reg["effect_id"])
         armed.assert_died_by_sigkill()
 

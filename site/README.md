@@ -1,6 +1,6 @@
 # site/ — the public marketing site (built, undeployed)
 
-Six complete static pages introducing Detent, built per the redesign contract
+Six complete static pages introducing Irrevon, built per the redesign contract
 (`.scratch/redesign/site-architecture.md` RD5, as adjudicated by
 `.scratch/redesign/REDESIGN-BRIEF.md` ruling A7). **Deploy is gated and
 human-only** — see
@@ -17,7 +17,7 @@ with `web/`.
 | `/` | Home — problem, the recorded seed-777 artifact, three mechanisms, non-guarantees, bench no-results teaser, clone-and-make CTA |
 | `/platform` | **Engine** (honest title per RD5 §3.2) — components, conceptual architecture, implemented-today strip, capability declaration, roadmap boundary |
 | `/how-it-works` | Mechanism — re-synthesis failure, identity derivation, three-dimension state model, the recorded ambiguous case, the whole C1/C2/C3 table, prior art credited |
-| `/benchmark` | DetentBench — DRAFT status banner, credibility controls, the full baseline ladder, the kill criterion verbatim, metrics glossary, research integrity |
+| `/benchmark` | IrrevonBench — DRAFT status banner, credibility controls, the full baseline ladder, the kill criterion verbatim, metrics glossary, research integrity |
 | `/security` | Security & trust — trust boundary, data posture, supply-chain practice, explicit non-claims |
 | `/docs` | Docs — real quickstart (clone + uv + Docker; no package-index install), links to canonical repo documents, honest status |
 
@@ -35,7 +35,7 @@ Navigation lists only the six built pages.
 - **Three-badge system** (`Badge.astro`, required on claim-bearing sections):
   `RECORDED ARTIFACT` (the seed-777 demo; exact numbers only from
   `web/fixtures/canonical/demo-artifact.json`), `CONCEPTUAL` (diagrams),
-  `PREREGISTERED METHODOLOGY — NO RESULTS YET` (everything DetentBench).
+  `PREREGISTERED METHODOLOGY — NO RESULTS YET` (everything IrrevonBench).
 - **What cannot appear anywhere** (RD5 §2): pricing, customers, testimonials,
   SLAs, benchmark numbers, uncited numbers, `pip install`, "exactly-once" /
   "rollback" unqualified, fake forms, employer identifiers.
@@ -59,8 +59,8 @@ Navigation lists only the six built pages.
   copies the self-hosted IBM Plex woff2 subsets. Both `--check` in `pnpm check`.
   Site-local additions (marketing display scale) live only in
   `src/styles/site.css`.
-- One configurable project name (`src/config.ts` `SITE_NAME`) — the name screen
-  is pending (review-queue item 4).
+- One configurable project name (`src/config.ts` `SITE_NAME`) — set to "Irrevon"
+  per ADR-0023; kept configurable by design.
 
 ## Dependency register (per-dep justification)
 

@@ -14,13 +14,13 @@ from typing import Any
 
 import pytest
 
-from detent.adapters.base import declarations_dir, load_declaration
-from detent.adapters.refdest import RefDest, RefdestAdapter
-from detent.dispatcher import dispatch, open_retry_execution
-from detent.errors import CapabilityUnsupported, ResolutionInvalid
-from detent.ledger import Ledger
-from detent.reconciler import ReconcileConfig, audit_effect, reconcile_effect
-from detent.resolution import ResolutionConfig, resolve
+from irrevon.adapters.base import declarations_dir, load_declaration
+from irrevon.adapters.refdest import RefDest, RefdestAdapter
+from irrevon.dispatcher import dispatch, open_retry_execution
+from irrevon.errors import CapabilityUnsupported, ResolutionInvalid
+from irrevon.ledger import Ledger
+from irrevon.reconciler import ReconcileConfig, audit_effect, reconcile_effect
+from irrevon.resolution import ResolutionConfig, resolve
 from tests.integration.conftest import DBHandles
 
 pytestmark = pytest.mark.integration
@@ -392,7 +392,7 @@ def test_audit_detects_duplicate_on_settled_committed(fresh_db: DBHandles) -> No
 
 
 def test_sweep_refuses_on_c3(fresh_db: DBHandles) -> None:
-    from detent.sweep import sweep
+    from irrevon.sweep import sweep
 
     refdest = RefDest(seed=7, profile="C3")
     adapter = RefdestAdapter("refdest-c3", C3_DECL, instance=refdest)

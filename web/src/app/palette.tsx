@@ -22,7 +22,7 @@ const STATIC_COMMANDS: readonly PaletteCommand[] = [
   { id: "/attention", label: "Attention", keywords: "ambiguous open work" },
   { id: "/findings", label: "Findings", keywords: "reconciliation classification" },
   { id: "/adapters", label: "Adapters", keywords: "destinations declarations" },
-  { id: "/bench", label: "Benchmark", hint: "g b", keywords: "detentbench runs" },
+  { id: "/bench", label: "Benchmark", hint: "g b", keywords: "irrevonbench runs" },
   { id: "/health", label: "Health", hint: "g h", keywords: "doctor connection checks" },
 ];
 

@@ -35,7 +35,7 @@
 #   - CodeQL default setup, private vulnerability reporting (items 7–8).
 set -euo pipefail
 
-REPO="${DETENT_REPO:-PranavMishra28/detent}"
+REPO="${IRREVON_REPO:-PranavMishra28/irrevon}"
 RULESET_NAME="main-protection-phase1"
 REQUIRED_CONTEXT="ci-required"
 

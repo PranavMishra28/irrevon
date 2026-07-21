@@ -152,7 +152,7 @@ function RootLayout() {
     if (item.matchPrefix) return pathname.startsWith(item.matchPrefix);
     return pathname === item.to || pathname.startsWith(`${item.to}/`);
   });
-  const viewLabel = activeItem?.label ?? "Detent";
+  const viewLabel = activeItem?.label ?? "Irrevon";
 
   const themeLabel = theme === "dark" ? "Switch to light theme" : "Switch to dark theme";
   const densityLabel =

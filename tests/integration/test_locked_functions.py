@@ -1,7 +1,7 @@
 """Privilege separation: the ledger is the sole transition writer (RFC-002 §2.3).
 
 T-102 acceptance edge case + testing.md §4.3 corrupt-insert leg: direct writes
-to the lifecycle tables as detent_app must raise insufficient_privilege; direct
+to the lifecycle tables as irrevon_app must raise insufficient_privilege; direct
 UPDATE/DELETE anywhere must be rejected by the append-only triggers.
 """
 
@@ -98,7 +98,7 @@ def test_app_role_can_lock_but_not_update(fresh_db: DBHandles) -> None:
 
 
 def test_app_role_writes_lifecycle_via_functions_only(fresh_db: DBHandles) -> None:
-    """The sanctioned path works end-to-end as detent_app: open execution,
+    """The sanctioned path works end-to-end as irrevon_app: open execution,
     transition, attach, resolve — all through the SECURITY DEFINER functions."""
     with admin_conn(fresh_db.admin_dsn) as conn:
         effect_id = make_effect(conn)

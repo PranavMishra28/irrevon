@@ -1,15 +1,15 @@
--- Detent ledger migration 0002 — tables, constraints, append-only enforcement,
+-- Irrevon ledger migration 0002 — tables, constraints, append-only enforcement,
 -- ratified state tables as seed data, derived views.
 --
 -- Source of truth: docs/rfc-002-engine-design.md §2.2 (DDL), §3 (state tables —
--- the seed rows below are validated against src/detent/ledger/statetable.py by
+-- the seed rows below are validated against src/irrevon/ledger/statetable.py by
 -- tests/integration/test_state_seed.py; the Python module and RFC §3 govern).
 -- Discipline (§2.1): text + CHECK (not enums); timestamptz everywhere; the DB
 -- clock is the single time authority; corrections are new rows.
 
 -- ── Append-only enforcement (defense layer 1: triggers; layer 2: grants) ─────
 
-CREATE FUNCTION detent_no_rewrite() RETURNS trigger
+CREATE FUNCTION irrevon_no_rewrite() RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
   RAISE EXCEPTION 'ledger is append-only: % on % is forbidden (RFC-002 §2.1)',
@@ -378,7 +378,7 @@ BEGIN
   ] LOOP
     EXECUTE format(
       'CREATE TRIGGER %I BEFORE UPDATE OR DELETE ON %I
-         FOR EACH STATEMENT EXECUTE FUNCTION detent_no_rewrite()',
+         FOR EACH STATEMENT EXECUTE FUNCTION irrevon_no_rewrite()',
       t || '_append_only', t);
   END LOOP;
 END $$;

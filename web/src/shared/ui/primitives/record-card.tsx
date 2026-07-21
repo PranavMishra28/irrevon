@@ -5,7 +5,7 @@ import { CornerTicks } from "./inspection-frame";
  * Record card: the 768/375 projection of a table row (REDESIGN-BRIEF A6).
  * A named group with a mono identity line, labeled definition-list fields,
  * and a status slot — every fact the table row carries stays visible; no
- * data hides behind horizontal page scroll. Selection uses the Detent Click
+ * data hides behind horizontal page scroll. Selection uses the Irrevon Click
  * inspection frame (exactly one per workspace).
  */
 export function RecordCard({

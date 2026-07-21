@@ -22,7 +22,7 @@
   --sys-focus-width: 2px;
   --sys-focus-offset: 2px;
 
-  /* Detent Click inspection frame (REDESIGN-BRIEF §3.2) */
+  /* Seated-click inspection frame (REDESIGN-BRIEF §3.2) */
   --sys-inspect-frame-w: 1.5px;
   --sys-inspect-tick-len: 6px;
   --sys-inspect-tick-w: 1.5px;

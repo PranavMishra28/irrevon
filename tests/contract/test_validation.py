@@ -13,8 +13,8 @@ from typing import Any
 
 import pytest
 
-from detent.contract import validate_intent_contract
-from detent.errors import ContractInvalid
+from irrevon.contract import validate_intent_contract
+from irrevon.errors import ContractInvalid
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 EXAMPLES = REPO_ROOT / "schemas" / "examples" / "intent-contract"

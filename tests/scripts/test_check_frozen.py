@@ -27,7 +27,7 @@ BASE_QUEUE = (
 
 def _git(repo: Path, *args: str) -> None:
     subprocess.run(
-        ["git", "-c", "user.name=test", "-c", "user.email=test@detent.invalid", *args],
+        ["git", "-c", "user.name=test", "-c", "user.email=test@irrevon.invalid", *args],
         cwd=repo,
         check=True,
         capture_output=True,

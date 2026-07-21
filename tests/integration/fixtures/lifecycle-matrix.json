@@ -1,5 +1,5 @@
 {
-  "_comment": "Explicit expectation for EVERY dimension-A cell (8 from-values x 7 to-values = 56), transcribed from the ratified table in docs/rfc-002-engine-design.md #3.1. GENESIS = null from-state. The meta-test in test_matrix_lifecycle.py fails if any cell lacks an expectation or if the LEGAL set diverges from detent.statetable (generated-from discipline). Cause/actor legality is asserted separately.",
+  "_comment": "Explicit expectation for EVERY dimension-A cell (8 from-values x 7 to-values = 56), transcribed from the ratified table in docs/rfc-002-engine-design.md #3.1. GENESIS = null from-state. The meta-test in test_matrix_lifecycle.py fails if any cell lacks an expectation or if the LEGAL set diverges from irrevon.statetable (generated-from discipline). Cause/actor legality is asserted separately.",
   "cells": {
     "GENESIS->INTENDED": "LEGAL",
     "GENESIS->PERSISTED": "ILLEGAL",

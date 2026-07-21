@@ -4,7 +4,7 @@
 # This workflow deploys nothing on its own: enabling GitHub Pages is a repo-settings
 # act that is human-only, and the first real deploy stays blocked behind the gates
 # recorded in docs/review-queue.md (marketing-site ADR ratification, publication
-# clearance, name screen, licensing, repo identity, ADR-0018 Pages-slot amendment).
+# clearance, counsel name clearance (ADR-0023), licensing, repo identity, ADR-0018 Pages-slot amendment).
 # Design notes (RD5 §1.4): build takes --site/--base from actions/configure-pages
 # outputs so the repository URL is never hard-coded; all actions SHA-pinned; the
 # third-party withastro/action composite is deliberately NOT used.

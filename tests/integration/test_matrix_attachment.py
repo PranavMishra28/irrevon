@@ -4,7 +4,7 @@ Conformance: master doc §12.1 row 3 — "Illegal lifecycle × classification
 combinations rejected" (M3), A×B leg — all 7 lifecycle states × 5
 classifications = 35 cells, plus the destination-keyed ORPHANED path (master
 doc §12.1 row 7 precondition: orphans representable WITHOUT a ledger record).
-Oracle: detent.statetable.LEGAL_ATTACHMENTS (validated against the SQL seed in
+Oracle: irrevon.statetable.LEGAL_ATTACHMENTS (validated against the SQL seed in
 test_state_seed.py); a meta-test guarantees every cell is asserted.
 """
 
@@ -14,7 +14,7 @@ import psycopg
 import pytest
 from psycopg.types.json import Jsonb
 
-from detent.statetable import (
+from irrevon.statetable import (
     CLASSIFICATIONS,
     LEGAL_ATTACHMENTS,
     LIFECYCLE_STATES,

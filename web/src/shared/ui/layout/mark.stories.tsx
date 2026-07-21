@@ -21,7 +21,7 @@ export const DecorativeWithWordmark: Story = {
   render: () => (
     <span className="flex items-center gap-2 text-text-primary">
       <SeatMark size={18} />
-      <span className="text-sm font-semibold">detent</span>
+      <span className="text-sm font-semibold">irrevon</span>
     </span>
   ),
 };

@@ -13,8 +13,8 @@ from typing import Any
 
 import pytest
 
-from detent.errors import DetentError, ScopeBusy
-from detent.ledger import ClaimOutcome, Ledger, Registration
+from irrevon.errors import IrrevonError, ScopeBusy
+from irrevon.ledger import ClaimOutcome, Ledger, Registration
 from tests.integration.conftest import DBHandles
 from tests.integration.driver import admin_conn
 
@@ -80,14 +80,14 @@ def test_concurrent_dispatch_same_effect(fresh_db: DBHandles) -> None:
         reg = ledger.register_intent(_raw(stable_ids={"order_id": "race"}), DECL)
 
     barrier = threading.Barrier(2)
-    outcomes: list[ClaimOutcome | DetentError | None] = [None, None]
+    outcomes: list[ClaimOutcome | IrrevonError | None] = [None, None]
 
     def worker(i: int) -> None:
         with Ledger(fresh_db.app_dsn) as ledger:
             barrier.wait(timeout=10)
             try:
                 outcomes[i] = ledger.claim_dispatch(reg.effect_id)
-            except DetentError as err:
+            except IrrevonError as err:
                 outcomes[i] = err
 
     threads = [threading.Thread(target=worker, args=(i,)) for i in range(2)]

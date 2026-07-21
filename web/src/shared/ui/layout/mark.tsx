@@ -20,7 +20,7 @@ export function SeatMark({
       viewBox="0 0 24 24"
       width={size}
       height={size}
-      {...(standalone ? { role: "img", "aria-label": "Detent" } : { "aria-hidden": true })}
+      {...(standalone ? { role: "img", "aria-label": "Irrevon" } : { "aria-hidden": true })}
     >
       <path fill="currentColor" d="M2.5 12 H6 L12 18 L18 12 H21.5 V20.5 H2.5 Z" />
       <circle fill="currentColor" cx="12" cy="10.93" r="5" />

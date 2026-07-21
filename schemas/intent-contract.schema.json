@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://detent.invalid/schemas/intent-contract.schema.json",
-  "$comment": "See ADR-0015 (tooling) and ADR-0019 (shape: dispatchable request model — schema_version, adapter_id, parameters, branch_ref, event_time). $id host is a placeholder identifier (not a locator) pending the name screen (master doc §13). Shape changes require an ADR.",
+  "$id": "https://irrevon.dev/schemas/intent-contract.schema.json",
+  "$comment": "See ADR-0015 (tooling) and ADR-0019 (shape: dispatchable request model — schema_version, adapter_id, parameters, branch_ref, event_time). $id host is a placeholder identifier (not a locator) until the irrevon.dev domain purchase closes (ADR-0023). Shape changes require an ADR.",
   "title": "Intent contract",
   "description": "The validated input to registerIntent — the ONLY channel through which model-generated content reaches the deterministic core (master doc §6.3, §7.2, §7.3; RFC-002 §1). Identity derives exclusively from stable_ids + effect_type + scope; adapter_id, parameters, branch_ref, and event_time are carriers, never identity inputs (conformance-tested at M3), and additionalProperties is closed to keep undeclared members out.",
   "type": "object",

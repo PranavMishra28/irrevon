@@ -33,7 +33,7 @@ test.beforeAll(() => {
   // Build a real production live artifact into a scratch dir (no MSW).
   execFileSync("pnpm", ["exec", "vite", "build", "--outDir", "dist-live-guard"], {
     cwd: WEB_ROOT,
-    env: { ...process.env, VITE_DETENT_DATA_MODE: "live" },
+    env: { ...process.env, VITE_IRREVON_DATA_MODE: "live" },
     stdio: "pipe",
   });
   // Serve it statically: every /api/v1/* read 404s — the "no server" world.
@@ -124,7 +124,7 @@ test("a production build in mock mode is refused outright", () => {
   try {
     execFileSync("pnpm", ["exec", "vite", "build", "--outDir", "dist-mock-refused"], {
       cwd: WEB_ROOT,
-      env: { ...process.env, VITE_DETENT_DATA_MODE: "mock" },
+      env: { ...process.env, VITE_IRREVON_DATA_MODE: "mock" },
       stdio: "pipe",
     });
   } catch (error) {

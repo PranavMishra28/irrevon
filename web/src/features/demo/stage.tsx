@@ -10,7 +10,7 @@ import { Panel, SunkenWell } from "@/shared/ui/primitives/panel";
 import { useMediaQuery } from "@/shared/ui/use-media";
 
 /**
- * Demo stage (REDESIGN-BRIEF §5.8): synchronized Detent and baseline lanes
+ * Demo stage (REDESIGN-BRIEF §5.8): synchronized Irrevon and baseline lanes
  * over one shared step, an exact per-event scrub rail (one tick per
  * recorded event — the Calibration Rail), a current-event inspector, and
  * the artifact-only contrast table. The graph of events builds only from
@@ -24,7 +24,7 @@ const NARRATION: Record<string, { title: string; body: string }> = {
   },
   dispatch_response_lost: {
     title: "Dispatched; the response is lost",
-    body: "The destination committed the order, but the response never arrived. Detent records AMBIGUOUS with evidence — it does not guess.",
+    body: "The destination committed the order, but the response never arrived. Irrevon records AMBIGUOUS with evidence — it does not guess.",
   },
   crash: {
     title: "The engine process is killed",
@@ -77,10 +77,10 @@ const FACT_KEYS = [
   "replayed",
 ] as const;
 
-export type Lane = "detent" | "baseline" | "both";
+export type Lane = "irrevon" | "baseline" | "both";
 
-function eventLeg(event: DemoEvent): "detent" | "b5" {
-  return event.event.startsWith("b5_") ? "b5" : "detent";
+function eventLeg(event: DemoEvent): "irrevon" | "b5" {
+  return event.event.startsWith("b5_") ? "b5" : "irrevon";
 }
 
 function EventFacts({ event }: { event: DemoEvent }) {
@@ -210,10 +210,10 @@ export function DemoStage({
   const done = cursor >= total - 1;
   const summary = artifact.summary;
   const current = events[cursor];
-  const currentLeg = current ? eventLeg(current) : "detent";
+  const currentLeg = current ? eventLeg(current) : "irrevon";
 
   const indexed = events.map((event, index) => ({ event, index }));
-  const detentEvents = indexed.filter(({ event }) => eventLeg(event) === "detent");
+  const irrevonEvents = indexed.filter(({ event }) => eventLeg(event) === "irrevon");
   const b5Events = indexed.filter(({ event }) => eventLeg(event) === "b5");
 
   const goTo = (next: number) => {
@@ -247,7 +247,7 @@ export function DemoStage({
     lanes = (
       <div>
         <div role="tablist" aria-label="Lanes" className="flex border-b border-border">
-          {(["detent", "baseline", "both"] as const).map((value) => (
+          {(["irrevon", "baseline", "both"] as const).map((value) => (
             <button
               key={value}
               type="button"
@@ -260,7 +260,7 @@ export function DemoStage({
               onKeyDown={(event) => {
                 if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
                   event.preventDefault();
-                  const order: Lane[] = ["detent", "baseline", "both"];
+                  const order: Lane[] = ["irrevon", "baseline", "both"];
                   const index = order.indexOf(lane);
                   const next =
                     order[
@@ -283,9 +283,9 @@ export function DemoStage({
         </div>
         <div className="mt-3 flex flex-col gap-4">
           {lane !== "baseline" ? (
-            <LaneList label="Detent" events={detentEvents} cursor={cursor} accent />
+            <LaneList label="Irrevon" events={irrevonEvents} cursor={cursor} accent />
           ) : null}
-          {lane !== "detent" ? (
+          {lane !== "irrevon" ? (
             <LaneList label="B5 baseline" events={b5Events} cursor={cursor} accent={false} />
           ) : null}
         </div>
@@ -294,7 +294,7 @@ export function DemoStage({
   } else {
     lanes = (
       <div className="flex flex-col gap-6 min-[1024px]:flex-row">
-        <LaneList label="Detent" events={detentEvents} cursor={cursor} accent />
+        <LaneList label="Irrevon" events={irrevonEvents} cursor={cursor} accent />
         <LaneList label="B5 baseline" events={b5Events} cursor={cursor} accent={false} />
       </div>
     );
@@ -401,13 +401,13 @@ export function DemoStage({
 
       {done ? <ContrastSummary artifact={artifact} /> : null}
 
-      {done && typeof summary.detent_leg.effect_id === "string" ? (
+      {done && typeof summary.irrevon_leg.effect_id === "string" ? (
         <div className="flex flex-wrap items-center gap-3 border-t border-border-subtle pt-4">
           <a
-            href={`/effects/${summary.detent_leg.effect_id}?selected=node%3Agate%3A2`}
+            href={`/effects/${summary.irrevon_leg.effect_id}?selected=node%3Agate%3A2`}
             className="inline-flex min-h-11 items-center rounded-(--radius-control) border border-accent bg-accent px-3 text-sm font-medium text-text-inverse hover:bg-accent-hover min-[768px]:min-h-8"
           >
-            Inspect the retained effect {truncateEffectId(summary.detent_leg.effect_id)}
+            Inspect the retained effect {truncateEffectId(summary.irrevon_leg.effect_id)}
           </a>
           <a
             href="/learn/identity"
@@ -468,13 +468,13 @@ export function ContrastSummary({ artifact }: { artifact: DemoArtifact }) {
           <tbody>
             <tr>
               <td className="border-b border-border-subtle px-3 py-1.5">
-                Detent (reconcile-by-query)
+                Irrevon (reconcile-by-query)
               </td>
               <td className="tabular border-b border-border-subtle px-3 py-1.5 font-mono">
-                {summary.detent_leg.destination_effects ?? "—"}
+                {summary.irrevon_leg.destination_effects ?? "—"}
               </td>
               <td className="border-b border-border-subtle px-3 py-1.5 text-text-secondary">
-                {summary.detent_leg.duplicate_rejected === true
+                {summary.irrevon_leg.duplicate_rejected === true
                   ? "rejected, with cited evidence"
                   : "not rejected"}
               </td>

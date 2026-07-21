@@ -12,7 +12,7 @@ test.describe("adapters", () => {
   }) => {
     await page.goto("/adapters");
     await expect(page.getByText("Caller — CONCEPTUAL")).toBeVisible();
-    await expect(page.getByText("Detent — CONCEPTUAL")).toBeVisible();
+    await expect(page.getByText("Irrevon — CONCEPTUAL")).toBeVisible();
     await expect(page.getByText("declared (VF)")).toBeVisible();
     await expect(page.getByText("Dashed adapter→destination means DECLARED")).toBeVisible();
     // No live-health vocabulary anywhere.
@@ -37,7 +37,7 @@ test.describe("adapters", () => {
 test.describe("demo stage", () => {
   test("two lanes share one step; URL step round-trips", async ({ page }) => {
     await page.goto("/demo");
-    await expect(page.getByRole("region", { name: "Detent lane" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Irrevon lane" })).toBeVisible();
     await expect(page.getByRole("region", { name: "B5 baseline lane" })).toBeVisible();
 
     // Scrub straight to the first baseline event.
@@ -70,8 +70,8 @@ test.describe("demo stage", () => {
     await page.goto("/demo");
     const tabs = page.getByRole("tablist", { name: "Lanes" });
     await expect(tabs).toBeVisible();
-    await tabs.getByRole("tab", { name: "detent" }).click();
-    await expect(page.getByRole("region", { name: "Detent lane" })).toBeVisible();
+    await tabs.getByRole("tab", { name: "irrevon" }).click();
+    await expect(page.getByRole("region", { name: "Irrevon lane" })).toBeVisible();
     await expect(page.getByRole("region", { name: "B5 baseline lane" })).toHaveCount(0);
     await tabs.getByRole("tab", { name: "baseline" }).click();
     await expect(page).toHaveURL(/lane=baseline/);

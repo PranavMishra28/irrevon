@@ -11,7 +11,7 @@ export function NotFound() {
   return (
     <Page
       title="No exact match"
-      lead="Nothing is addressed by this path. Detent routes on exact identifiers only — it does not guess."
+      lead="Nothing is addressed by this path. Irrevon routes on exact identifiers only — it does not guess."
     >
       <div className="max-w-2xl rounded-(--radius-structural) border border-border bg-layer-panel p-5">
         <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 text-sm">

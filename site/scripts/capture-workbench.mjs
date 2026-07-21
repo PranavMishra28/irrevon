@@ -26,7 +26,7 @@ for (const theme of ["light", "dark"]) {
     colorScheme: theme,
   });
   await context.addInitScript((t) => {
-    localStorage.setItem("detent.theme", t);
+    localStorage.setItem("irrevon.theme", t);
   }, theme);
   const page = await context.newPage();
   for (const s of shots) {

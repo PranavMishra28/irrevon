@@ -1,7 +1,7 @@
 """The flagship E2E acceptance test — RFC-001 §9.5 / testing.md §9.
 
 One automated test, two legs, the same frozen fault schedule, against the
-reference destination (C2 profile). Leg R is the Detent story with explicit
+reference destination (C2 profile). Leg R is the Irrevon story with explicit
 assertions at every step (ledger via SQL; destination via the truth API — the
 oracle is never the engine). Leg B5 is the honest contrast: the strongest
 baseline operationalization produces a DUPLICATE, proven by read-back.
@@ -22,9 +22,9 @@ import psycopg
 import pytest
 from psycopg.rows import dict_row
 
-from detent.adapters.base import declarations_dir, load_declaration
-from detent.adapters.refdest import RefDest, RefdestAdapter
-from detent.api.baselines import B5DurableRuntime
+from irrevon.adapters.base import declarations_dir, load_declaration
+from irrevon.adapters.refdest import RefDest, RefdestAdapter
+from irrevon.api.baselines import B5DurableRuntime
 from tests.integration.conftest import DBHandles
 from tests.process.conftest import RefdestControl
 
@@ -89,7 +89,7 @@ def test_flagship_leg_r_and_leg_b5(
 ) -> None:
     base_url, control = refdest_server
 
-    # ══ Leg R (Detent) — testing.md §9 steps 1-10 ═════════════════════════════
+    # ══ Leg R (Irrevon) — testing.md §9 steps 1-10 ═════════════════════════════
 
     # 1. registerIntent: effect_id equals the independently recomputed hash.
     engine = engine_factory()

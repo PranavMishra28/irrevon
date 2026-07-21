@@ -12,8 +12,8 @@ from typing import Any
 
 import pytest
 
-from detent.errors import IdentityConflict
-from detent.ledger import Ledger
+from irrevon.errors import IdentityConflict
+from irrevon.ledger import Ledger
 from tests.integration.conftest import DBHandles
 from tests.integration.driver import admin_conn
 

@@ -1,4 +1,4 @@
-# Detent validation gates. `make check` is the required local gate; it must pass
+# Irrevon validation gates. `make check` is the required local gate; it must pass
 # before any commit (pre-commit additionally runs the secret scan on every commit).
 # One-time install: `make tools` (installs, then verifies versions via tools-check).
 # Local installs are version-pinned below, not checksum-pinned — the checksum-verified
@@ -165,7 +165,7 @@ web-vrt:
 	  mcr.microsoft.com/playwright:v1.61.1-noble \
 	  bash -lc 'corepack enable && \
 	            pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store && \
-	            DETENT_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
+	            IRREVON_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
 
 # ── Marketing site gates (appended by the site/ task; see site/README.md) ─────
 # Self-contained Node package, same corepack/pnpm pattern as web/. Deploy stays

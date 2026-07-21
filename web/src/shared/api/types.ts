@@ -12,7 +12,7 @@ import type {
 /**
  * Read-surface payload types. Envelope framing is ratified in RFC-002 §9
  * ({schema_version, data[], has_more, next_cursor, as_of}); the inspect
- * payload mirrors `detent inspect --json` exactly (src/detent/cli/inspect_cmd.py
+ * payload mirrors `irrevon inspect --json` exactly (src/irrevon/cli/inspect_cmd.py
  * at the pinned engine commit — see fixtures/canonical/provenance.json).
  * Record/finding items are the schema-generated exchange shapes.
  */
@@ -43,7 +43,7 @@ export interface AdaptersPayload {
   as_of: string;
 }
 
-// ── `detent inspect --json` (verbatim CLI shape) ─────────────────────────────
+// ── `irrevon inspect --json` (verbatim CLI shape) ─────────────────────────────
 
 export interface InspectTransition {
   transition_seq: number;
@@ -179,7 +179,7 @@ export interface DemoEvent {
 export interface DemoSummary {
   schema_version: string;
   seed: number;
-  detent_leg: {
+  irrevon_leg: {
     destination_effects?: number;
     duplicate_rejected?: boolean;
     reconciled?: string;

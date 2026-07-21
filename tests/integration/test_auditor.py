@@ -9,7 +9,7 @@ from __future__ import annotations
 import pytest
 from psycopg.types.json import Jsonb
 
-from detent.ledger.auditor import audit
+from irrevon.ledger.auditor import audit
 from tests.integration.conftest import DBHandles
 from tests.integration.driver import admin_conn, make_effect, make_execution_at
 

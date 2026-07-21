@@ -13,7 +13,7 @@ function BenchPage() {
   return (
     <Page
       title="Benchmark"
-      lead="DetentBench results appear here only from real, append-only run artifacts. Baselines are never weakened so the proposed system wins; negative and null results carry equal prominence."
+      lead="IrrevonBench results appear here only from real, append-only run artifacts. Baselines are never weakened so the proposed system wins; negative and null results carry equal prominence."
     >
       <div className="grid grid-cols-1 gap-4 min-[1024px]:grid-cols-12">
         <div className="min-w-0 min-[1024px]:col-span-7">
