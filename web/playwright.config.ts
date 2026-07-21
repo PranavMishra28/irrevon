@@ -26,7 +26,9 @@ export default defineConfig({
       scale: "css",
     },
   },
-  snapshotPathTemplate: "{testDir}/visual/__baselines__/{testFileName}/{arg}-linux{ext}",
+  // Resolves against the vrt project's testDir (e2e/visual); baselines are
+  // Linux-only, generated inside the pinned container (see web/README.md).
+  snapshotPathTemplate: "{testDir}/__baselines__/{testFileName}/{arg}-linux{ext}",
   projects: [
     {
       name: "e2e",

@@ -230,6 +230,7 @@ export default tseslint.config(
     // main.tsx is the composition entry point: it wires app + mocks by design.
     files: [
       "src/main.tsx",
+      "src/vite-env.d.ts",
       "**/*.stories.tsx",
       "**/*.test.ts",
       "**/*.test.tsx",
