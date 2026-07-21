@@ -138,14 +138,14 @@ pre {
 }
 code {
   font-size: 0.85em;
-  background: var(--ref-surface-2);
+  background: var(--ref-layer-sunken);
   border: 1px solid var(--ref-border-subtle);
   border-radius: 2px;
   padding: 1px 4px;
   overflow-wrap: anywhere;
 }
 pre {
-  background: var(--ref-surface-2);
+  background: var(--ref-layer-sunken);
   border: 1px solid var(--ref-border-subtle);
   border-radius: 2px;
   padding: 16px 18px;
@@ -242,13 +242,13 @@ img {
 
 /* Panels: L2/L3 grammar — raised surface, hairline seam, no shadow. */
 .panel {
-  background: var(--ref-surface-1);
+  background: var(--ref-layer-panel);
   border: 1px solid var(--ref-border);
   border-radius: 2px;
   padding: clamp(18px, 3vw, 28px);
 }
 .panel-subtle {
-  background: var(--ref-surface-1);
+  background: var(--ref-layer-panel);
   border: 1px solid var(--ref-border-subtle);
   border-radius: 2px;
   padding: clamp(18px, 3vw, 28px);
@@ -280,7 +280,7 @@ img {
   overflow-x: auto;
   border: 1px solid var(--ref-border);
   border-radius: 2px;
-  background: var(--ref-surface-1);
+  background: var(--ref-layer-panel);
 }
 .table-wrap > .table-scroll-hint {
   display: none;
@@ -359,7 +359,7 @@ td b {
   color: var(--ref-ink-inverse);
 }
 .btn-secondary {
-  background: var(--ref-surface-1);
+  background: var(--ref-layer-panel);
   border-color: var(--ref-border);
   color: var(--ref-ink-1);
 }
@@ -370,7 +370,7 @@ td b {
 
 /* ── Transcript (recorded-artifact register) ───────────────────────────── */
 .transcript {
-  background: var(--ref-surface-2);
+  background: var(--ref-layer-sunken);
   border: 1px solid var(--ref-border);
   border-radius: 2px;
   font-family: var(--font-mono);
@@ -414,7 +414,7 @@ td b {
   font-size: var(--site-text-2xs);
   letter-spacing: 0.04em;
   color: var(--ref-ink-2);
-  background: var(--ref-surface-2);
+  background: var(--ref-layer-sunken);
   border: 1px solid var(--ref-border-subtle);
   border-radius: 2px;
   padding: 3px 7px;
@@ -460,7 +460,7 @@ figcaption {
 .status-banner {
   border: 1px solid var(--ref-border-strong);
   border-left: 3px solid var(--ref-ink-1);
-  background: var(--ref-surface-1);
+  background: var(--ref-layer-panel);
   border-radius: 2px;
   padding: 18px 22px;
   display: grid;
@@ -476,7 +476,7 @@ figcaption {
 
 /* ── Diagram (conceptual SVG) ──────────────────────────────────────────── */
 .diagram {
-  background: var(--ref-surface-1);
+  background: var(--ref-layer-panel);
   border: 1px dashed var(--ref-border-strong);
   border-radius: 2px;
   padding: clamp(16px, 3vw, 28px);
@@ -493,7 +493,7 @@ figcaption {
   left: 12px;
   top: 12px;
   z-index: 10;
-  background: var(--ref-surface-1);
+  background: var(--ref-layer-panel);
   border: 1px solid var(--ref-border-strong);
   border-radius: 2px;
   padding: 10px 14px;

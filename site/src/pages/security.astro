@@ -41,20 +41,20 @@ import { SITE_NAME, repoDoc } from "../config";
             <!-- Untrusted zone -->
             <rect x="10" y="30" width="270" height="200" rx="2" fill="none" stroke="var(--ref-border-strong)" stroke-dasharray="5 4"></rect>
             <text x="24" y="52" fill="var(--ref-ink-3)" font-size="9" letter-spacing="0.1em">UNTRUSTED · MODEL-GENERATED</text>
-            <rect x="34" y="70" width="220" height="48" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border)"></rect>
+            <rect x="34" y="70" width="220" height="48" rx="2" fill="var(--ref-layer-sunken)" stroke="var(--ref-border)"></rect>
             <text x="144" y="98" text-anchor="middle" fill="var(--ref-ink-1)">LLM PLANS + TOOL ARGS</text>
-            <rect x="34" y="150" width="220" height="48" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border)"></rect>
+            <rect x="34" y="150" width="220" height="48" rx="2" fill="var(--ref-layer-sunken)" stroke="var(--ref-border)"></rect>
             <text x="144" y="178" text-anchor="middle" fill="var(--ref-ink-1)">CLASSIFIER OUTPUT</text>
             <!-- Trusted zone -->
-            <rect x="360" y="30" width="330" height="200" rx="2" fill="var(--ref-surface-1)" stroke="var(--ref-border-strong)" stroke-width="2"></rect>
+            <rect x="360" y="30" width="330" height="200" rx="2" fill="var(--ref-layer-panel)" stroke="var(--ref-border-strong)" stroke-width="2"></rect>
             <text x="374" y="52" fill="var(--ref-ink-3)" font-size="9" letter-spacing="0.1em">TRUSTED DETERMINISTIC CORE</text>
-            <rect x="384" y="70" width="130" height="42" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border)"></rect>
+            <rect x="384" y="70" width="130" height="42" rx="2" fill="var(--ref-layer-sunken)" stroke="var(--ref-border)"></rect>
             <text x="449" y="95" text-anchor="middle" fill="var(--ref-ink-1)">REGISTRAR</text>
-            <rect x="536" y="70" width="130" height="42" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border)"></rect>
+            <rect x="536" y="70" width="130" height="42" rx="2" fill="var(--ref-layer-sunken)" stroke="var(--ref-border)"></rect>
             <text x="601" y="95" text-anchor="middle" fill="var(--ref-ink-1)">COMMIT GATE</text>
-            <rect x="384" y="150" width="130" height="42" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border)"></rect>
+            <rect x="384" y="150" width="130" height="42" rx="2" fill="var(--ref-layer-sunken)" stroke="var(--ref-border)"></rect>
             <text x="449" y="175" text-anchor="middle" fill="var(--ref-ink-1)">LEDGER</text>
-            <rect x="536" y="150" width="130" height="42" rx="2" fill="var(--ref-surface-2)" stroke="var(--ref-border)"></rect>
+            <rect x="536" y="150" width="130" height="42" rx="2" fill="var(--ref-layer-sunken)" stroke="var(--ref-border)"></rect>
             <text x="601" y="175" text-anchor="middle" fill="var(--ref-ink-1)">RECONCILER</text>
             <!-- External -->
             <rect x="780" y="88" width="170" height="84" rx="2" fill="none" stroke="var(--ref-border-strong)" stroke-dasharray="5 4"></rect>
@@ -246,7 +246,7 @@ import { SITE_NAME, repoDoc } from "../config";
     gap: 0;
     border: 1px solid var(--ref-border);
     border-radius: 2px;
-    background: var(--ref-surface-1);
+    background: var(--ref-layer-panel);
     max-width: 80ch;
   }
   .nonclaims li {
