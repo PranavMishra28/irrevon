@@ -146,8 +146,13 @@ web-check:
 	cd web && pnpm install --frozen-lockfile && pnpm run check
 
 # F1/F2: unit + Storybook browser-mode story tests (axe violations are errors).
+# The story project runs headless chromium via Playwright: install the chromium
+# headless shell first (version comes from the locked @playwright/test pin;
+# no-op when already cached, so the target stays idempotent locally and in CI).
 web-test:
-	cd web && pnpm install --frozen-lockfile && pnpm run test && pnpm run test:stories
+	cd web && pnpm install --frozen-lockfile \
+	  && pnpm exec playwright install chromium --only-shell \
+	  && pnpm run test && pnpm run test:stories
 
 # F3: Playwright workflows + a11y against the built review app.
 web-e2e:
