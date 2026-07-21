@@ -1,0 +1,31 @@
+---
+description: Security and integrity requirements for GitHub Actions workflows and repo automation
+globs: .github/**
+alwaysApply: false
+---
+
+# Workflow security discipline
+
+- Pin every third-party action to a full 40-char commit SHA with a trailing `# vX.Y.Z`
+  comment (Dependabot maintains both together). Tag or branch refs are findings, not style.
+  The one sanctioned exception (SLSA generator, tag-required upstream) is documented in
+  `docs/ci.md` and applies only to the disabled release workflow.
+- Every workflow: top-level permissions of at most `contents: read`, explicit
+  least-privilege per-job grants for anything beyond, `timeout-minutes` on every job,
+  `concurrency` on every workflow, `persist-credentials: false` on every checkout.
+- Never use `pull_request_target` or `workflow_run` triggers. Never interpolate
+  untrusted event text (issue/PR titles or bodies, branch names, commit messages) into
+  `run:` steps or prompts — pass values through `env:` indirection, and treat them as data.
+- Benchmark/sandbox suites run on `workflow_dispatch` only; never add implicit triggers.
+  Nightly, sandbox, and benchmark workflows set `cancel-in-progress: false`.
+- The only status check a ruleset may require is the `ci-required` aggregator — never
+  individual jobs (a skipped required check counts as passing; see docs/ci.md).
+- Never weaken a gate to make it pass: no reducing Hypothesis case counts, no skipping
+  checks, no `continue-on-error` on validation jobs, no editing zizmor/gitleaks config to
+  silence a finding without a documented false-positive rationale.
+- Caching: only hash-verified dependency download caches (e.g. uv). Never cache test
+  databases, benchmark artifacts, `.hypothesis/`, or virtualenvs. Benchmark workflows are
+  cache-free entirely.
+- Secrets live only in owner-created environments (`sandbox`, `benchmark`), never
+  repo-level; an absent secret evaluates to an empty string, so credentialed steps sit
+  behind an explicit non-empty guard.

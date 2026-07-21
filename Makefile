@@ -101,3 +101,29 @@ py-db-down:
 
 check-all: check py-check py-test py-test-integration
 	@echo "OK: all validation gates passed (docs + python)"
+
+# ── CI gates (appended block — keep contiguous; see docs/ci.md) ───────────────
+# Tested tool versions (update deliberately, in one commit with the pin table in
+# scripts/bootstrap-tools.sh): actionlint 1.7.12, zizmor 1.27.0.
+# `actionslint` runs zizmor --offline for the same reason `links` runs lychee
+# --offline: the local gate stays deterministic and network-free. The nightly
+# workflow runs the online variants.
+.PHONY: actionslint frozen tools-pinned
+check: actionslint frozen
+tools: tools-pinned
+
+actionslint:
+	@if [ -d .github/workflows ]; then \
+	  actionlint; \
+	  zizmor --offline --persona=pedantic .github/workflows/; \
+	else echo "actionslint: no .github/workflows yet - skipped"; fi
+
+# Diff-based freeze/append-only gate. In CI, BASE_REF is the PR base; locally it
+# checks the staged diff and never blocks uncommitted work.
+frozen:
+	bash scripts/check-frozen.sh
+
+# Checksum-verified pinned binaries (Linux x86_64 + macOS arm64) — the same pin
+# table CI and cloud agents use. `make tools` keeps brew as macOS convenience.
+tools-pinned:
+	bash scripts/bootstrap-tools.sh

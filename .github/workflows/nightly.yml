@@ -1,0 +1,105 @@
+# Detent nightly — scheduled validation suite. Map: docs/ci.md.
+#
+# Today (docs-only repo): the full local gate on a clean machine PLUS the online
+# variants the deterministic PR gate deliberately excludes — external link
+# audit (lychee without --offline) and networked zizmor advisories.
+#
+# At M3+ this grows the T3 tier (never at the expense of the PR gate):
+#   - Hypothesis property suites at larger nightly budgets (the >=1,000
+#     cases/invariant CI floor is spec and never the ceiling here),
+#   - the master-doc-mandated fault-matrix subset vs the STUB destination
+#     (RFC-001 section 10) on a digest-pinned Postgres service container,
+#   - randomized kill sweep / recovery-idempotence sweeps per the testing design.
+#   No sandbox credentials are used or available to this workflow, ever.
+#
+# OWNER AWARENESS (public-repo behavior): scheduled workflows are AUTO-DISABLED
+# after 60 days without repository activity. The quarterly sweep checklist item
+# in docs/ci.md includes "confirm nightly is still enabled"
+# (Actions tab -> nightly -> banner).
+name: nightly
+
+on:
+  schedule:
+    - cron: "17 9 * * *" # off the top of the hour to dodge scheduler congestion
+  workflow_dispatch: {} # manual re-run for debugging a red night
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Nightly validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install pinned tools (checksum-verified)
+        run: bash scripts/bootstrap-tools.sh
+      - name: make check (full local gate, clean machine)
+        run: make check
+      - name: External link audit (online variant of make links)
+        env:
+          # lychee uses the read-only token for github.com URLs to avoid rate limits
+          GITHUB_TOKEN: ${{ github.token }}
+        # Placeholder domains are excluded by design: schema $id values use
+        # detent.invalid until the name screen closes, and examples use example.com.
+        run: |
+          lychee --no-progress --include-fragments --root-dir "$PWD" \
+            --exclude 'https://detent\.invalid' \
+            --exclude 'https://example\.com' \
+            .
+      - name: zizmor (online, pedantic)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: zizmor --persona=pedantic .github/workflows/
+
+  # A red night on a cron workflow is silent by default; this files or updates
+  # exactly ONE issue (dedup by label). Prerequisite, owner, one-time: create the
+  # `nightly-failure` label. Uses only trusted workflow context — no event text.
+  report-failure:
+    name: File or update failure issue
+    needs: validate
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read # checkout for the template file
+      issues: write # create/comment on the failure issue
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: File or update the nightly-failure issue (dedup by label)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          RUN_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          existing=$(gh issue list --label nightly-failure --state open \
+            --json number --jq '.[0].number // empty')
+          # Strip the issue-template frontmatter, then fill placeholders from
+          # trusted workflow context only.
+          body=$(awk 'BEGIN{fm=0} NR==1 && /^---$/{fm=1; next} fm==1 && /^---$/{fm=2; next} fm!=1{print}' \
+                   .github/ISSUE_TEMPLATE/nightly-failure.md \
+                 | sed -e "s|{{RUN_URL}}|${RUN_URL}|g" \
+                       -e "s|{{RUN_DATE}}|${RUN_DATE}|g" \
+                       -e "s|{{SHA}}|${SHA}|g")
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create \
+              --title "Nightly validation failure ($(date -u +%F))" \
+              --label nightly-failure \
+              --body "$body"
+          fi

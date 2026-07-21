@@ -1,0 +1,279 @@
+# Detent CI — the single required PR gate. Map + owner checklist: docs/ci.md.
+#
+# Aggregator pattern (public-repo required-check semantics):
+#   - a required check that is SKIPPED counts as PASSING, and one that never
+#     reports stays PENDING forever. So this workflow always runs (no
+#     workflow-level path filters), jobs skip themselves via the `changes` job,
+#     and `ci-required` is the ONLY context a ruleset should ever require —
+#     it always reports and converts illegitimate skips into failures.
+#   - docs-only PRs pass legitimately (code jobs skip; aggregator accepts).
+#
+# Security posture: every action pinned to a full commit SHA (verified against
+# the GitHub API 2026-07-21); persist-credentials: false on every checkout;
+# no pull_request_target, no workflow_run, no secrets anywhere in this file;
+# untrusted event text never reaches run: steps except via env indirection.
+#
+# Local parity: each job runs one make target (plus the pinned tool bootstrap).
+# Exception, documented in docs/ci.md: workflow-security runs the ONLINE zizmor
+# variant (the offline variant already runs inside `make check`).
+name: ci
+
+on:
+  pull_request:
+  push: # all branches: agents push branches before PRs exist; the docs gate is
+        # cheap and public-repo standard-runner minutes are unmetered.
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  # Pure-git change detection — no third-party path-filter action, so no extra
+  # supply-chain edge in the most trusted job of the graph.
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      web: ${{ steps.filter.outputs.web }}
+      workflows: ${{ steps.filter.outputs.workflows }}
+      py_exists: ${{ steps.filter.outputs.py_exists }}
+      web_exists: ${{ steps.filter.outputs.web_exists }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: filter
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_BRANCH: ${{ github.base_ref }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          ZERO="0000000000000000000000000000000000000000"
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            BASE=$(git merge-base "origin/${BASE_BRANCH}" HEAD)
+          else
+            BASE="$PUSH_BEFORE"
+            if [ "$BASE" = "$ZERO" ] || ! git cat-file -e "$BASE" 2>/dev/null; then
+              BASE=$(git merge-base origin/main HEAD 2>/dev/null || true)
+            fi
+          fi
+          if [ -n "$BASE" ] && git cat-file -e "$BASE" 2>/dev/null; then
+            CHANGED=$(git diff --name-only "$BASE" HEAD)
+          else
+            # No usable base (e.g. brand-new history): run everything.
+            # Always fail toward MORE CI, never less.
+            echo "changes: no usable base; treating all tracked files as changed"
+            CHANGED=$(git ls-files)
+          fi
+          printf 'changed files:\n%s\n' "$CHANGED"
+          code=false; web=false; workflows=false
+          # schemas/ and Makefile are the cross-cutting inputs: they appear in
+          # every code slice's filter (build-orchestration design, docs/ci.md).
+          printf '%s\n' "$CHANGED" | grep -qE '^(src/|tests/|migrations/|pyproject\.toml$|uv\.lock$|\.python-version$|schemas/|Makefile$)' && code=true
+          printf '%s\n' "$CHANGED" | grep -qE '^(web/|schemas/|Makefile$)' && web=true
+          printf '%s\n' "$CHANGED" | grep -qE '^\.github/(workflows/|actions/)' && workflows=true
+          py_exists=false; [ -f pyproject.toml ] && py_exists=true
+          web_exists=false; [ -d web ] && web_exists=true
+          {
+            echo "code=$code"
+            echo "web=$web"
+            echo "workflows=$workflows"
+            echo "py_exists=$py_exists"
+            echo "web_exists=$web_exists"
+          } >> "$GITHUB_OUTPUT"
+
+  # T0 docs/static gate — unconditional on every push and PR: the exact local
+  # `make check` (links, schemas, secrets, integrity, actionslint, frozen) on a
+  # clean machine, with checksum-verified pinned tools.
+  docs:
+    name: Docs gate (make check)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # gitleaks scans full history; check-frozen needs the merge base
+          persist-credentials: false
+      - name: Install pinned tools (checksum-verified)
+        run: bash scripts/bootstrap-tools.sh
+      - name: make check
+        env:
+          # PR runs enforce the frozen/append-only diff rules against the base;
+          # push runs fall back to the (empty) staged-diff no-op.
+          BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+        run: make check
+
+  # T0 backend lint/format/type — activates when ADR-0013 code lands (M2/M3).
+  # Until pyproject.toml exists these jobs skip, and the aggregator verifies the
+  # skip is legitimate. The make targets land together with the code.
+  py-check:
+    name: Backend static (make py-check)
+    needs: changes
+    if: needs.changes.outputs.py_exists == 'true' && needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true # only the hash-verified download cache; uv sync --locked decides truth
+      - run: make py-check
+
+  # T1 unit + property smoke — Hypothesis CI profile keeps the >=1,000
+  # cases/invariant floor (master doc section 12.2: the number is spec, never
+  # lowered in CI). Larger budgets run nightly (T3).
+  py-test:
+    name: Backend tests (make py-test)
+    needs: [changes, py-check]
+    if: needs.changes.outputs.py_exists == 'true' && needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+      - run: make py-test
+
+  # F0 frontend static gate — activates when web/ lands. Node is preinstalled on
+  # ubuntu runners; pnpm comes via corepack (no extra action until web/ exists
+  # and pins its own toolchain).
+  web-check:
+    name: Frontend static (make web-check)
+    needs: changes
+    if: needs.changes.outputs.web_exists == 'true' && needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - run: make web-check
+
+  # F1/F2 frontend unit + component tests.
+  web-test:
+    name: Frontend tests (make web-test)
+    needs: [changes, web-check]
+    if: needs.changes.outputs.web_exists == 'true' && needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - run: make web-test
+
+  # Workflow security — ONLINE actionlint + zizmor audit on workflow changes.
+  # The offline variant runs in every `make check`; this adds zizmor's networked
+  # advisory data (known-vulnerable action versions) using the read-only job token.
+  workflow-security:
+    name: Workflow security (actionlint + zizmor)
+    needs: changes
+    if: needs.changes.outputs.workflows == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pinned tools (checksum-verified)
+        run: bash scripts/bootstrap-tools.sh
+      - name: actionlint
+        run: actionlint
+      - name: zizmor (online, pedantic)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: zizmor --persona=pedantic .github/workflows/
+
+  # THE aggregator — the only status check a ruleset should require, ever.
+  # Fails on any upstream failure/cancellation AND on skips that contradict the
+  # change detection; accepts skips only when the change detection says the
+  # slice was untouched (or does not exist yet).
+  ci-required:
+    # The job name IS the required-check context; it must stay exactly "ci-required".
+    name: ci-required
+    needs: [changes, docs, py-check, py-test, web-check, web-test, workflow-security]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Validate results
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+          CODE: ${{ needs.changes.outputs.code }}
+          WEB: ${{ needs.changes.outputs.web }}
+          WORKFLOWS: ${{ needs.changes.outputs.workflows }}
+          PY_EXISTS: ${{ needs.changes.outputs.py_exists }}
+          WEB_EXISTS: ${{ needs.changes.outputs.web_exists }}
+        run: |
+          set -euo pipefail
+          echo "$NEEDS" | jq .
+          fail=0
+
+          must_succeed() { # <job>
+            r=$(echo "$NEEDS" | jq -r --arg j "$1" '.[$j].result')
+            [ "$r" = "success" ] || { echo "FAIL: $1 result=$r (must succeed)"; fail=1; }
+          }
+          conditional() { # <job> <required-flag>  (skip allowed only when flag != true)
+            r=$(echo "$NEEDS" | jq -r --arg j "$1" '.[$j].result')
+            if [ "$2" = "true" ]; then
+              [ "$r" = "success" ] || { echo "FAIL: $1 result=$r (its slice changed)"; fail=1; }
+            else
+              case "$r" in
+                success|skipped) ;;
+                *) echo "FAIL: $1 result=$r"; fail=1 ;;
+              esac
+            fi
+          }
+
+          # Rule 1: unconditional jobs. If `changes` itself broke, fail closed.
+          must_succeed changes
+          must_succeed docs
+
+          # Rule 2: backend jobs must run iff Python code exists and changed.
+          py_required=false
+          [ "$PY_EXISTS" = "true" ] && [ "$CODE" = "true" ] && py_required=true
+          conditional py-check "$py_required"
+          conditional py-test "$py_required"
+
+          # Rule 3: frontend jobs must run iff web/ exists and changed.
+          web_required=false
+          [ "$WEB_EXISTS" = "true" ] && [ "$WEB" = "true" ] && web_required=true
+          conditional web-check "$web_required"
+          conditional web-test "$web_required"
+
+          # Rule 4: workflow-security must run on workflow changes.
+          conditional workflow-security "$WORKFLOWS"
+
+          if [ "$fail" -eq 0 ]; then
+            echo "ci-required: all gates accounted for"
+          fi
+          exit "$fail"

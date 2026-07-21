@@ -1,0 +1,90 @@
+# Detent benchmark (DetentBench, L4b) — SKELETON. ACTIVATES AT M7 (preregistered
+# runs; master doc section 15). Human-dispatched only; never add implicit
+# triggers. Map: docs/ci.md.
+#
+# Boundary design (public-repo model): runs inside the `benchmark` environment —
+# OWNER-CREATED with a required reviewer BEFORE the first dispatch (a run that
+# references a nonexistent environment silently auto-creates it UNPROTECTED).
+# Sandbox-only credentials live as environment secrets here, never repo-level.
+#
+# Integrity rules carried from the preregistration + CI design:
+#   - NO CACHING anywhere in this workflow: benchmark runs resolve everything
+#     from the tagged commit + lockfile.
+#   - Results go to committed append-only evidence homes + short-lived
+#     artifacts for transport; artifacts on a public repo are PUBLIC downloads,
+#     so evidence is sanitized by construction before upload.
+#   - Runs happen from tagged commits per the preregistration run protocol;
+#     seeds come from the frozen plan, never from inputs.
+#   - cancel-in-progress stays false: killing a run mid-flight leaves sandbox
+#     residue; runs queue instead.
+name: benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "Suite to run"
+        type: choice
+        options: [smoke, full]
+        default: smoke
+      reason:
+        description: "Why this run is happening (recorded in the run manifest)"
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: benchmark
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    name: DetentBench run (M7 skeleton)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: benchmark
+    permissions:
+      contents: read
+    env:
+      BENCH_SUITE: ${{ inputs.suite }}
+      BENCH_REASON: ${{ inputs.reason }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Not yet implemented (activates at M7)
+        run: |
+          set -euo pipefail
+          echo "suite: ${BENCH_SUITE} / reason: ${BENCH_REASON}"
+          if [ ! -f pyproject.toml ]; then
+            echo "::error::benchmark suite activates at M7 — no harness exists yet."
+            exit 1
+          fi
+
+      # Missing-secret guard: absent secrets evaluate to EMPTY STRINGS and do not
+      # fail the job by themselves; guard before any credentialed step.
+      # Secret name is a placeholder until ADR-0012 settles it.
+      - name: Guard - required environment secrets present
+        env:
+          C2_SANDBOX_API_KEY: ${{ secrets.C2_SANDBOX_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$C2_SANDBOX_API_KEY" ]; then
+            echo "::error::C2_SANDBOX_API_KEY is empty — configure it as a secret on the 'benchmark' environment (never repo-level)."
+            exit 1
+          fi
+          echo "guard: required secrets present"
+
+      # M7 body (design; digest-pinned Postgres service container added then):
+      #   - write run manifest (ref, suite, reason, environment) into bench-out/
+      #   - run the preregistered suite: make bench-<suite>
+      #   - verify no residual sandbox effects (if: always() — cleanup
+      #     verification is part of the protocol)
+      #   - sanitize bench-out/, hash it, commit to the append-only evidence
+      #     home per the preregistration, and upload a 90-day transport artifact
+      #     (actions/upload-artifact pinned in nightly.yml's style)
+      - name: Placeholder
+        run: echo "benchmark skeleton - nothing to run yet"

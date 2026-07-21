@@ -1,0 +1,23 @@
+---
+description: Testing discipline for unit, property, integration, and fault-matrix suites
+globs: tests/**,conftest.py,migrations/**
+alwaysApply: false
+---
+
+# Testing discipline
+
+- Property-test floors are spec, not tuning knobs: ≥1,000 Hypothesis examples per invariant
+  (master doc §12.2) in the CI profile. Never lower `max_examples`, add `suppress_health_check`,
+  or narrow strategies to make a failing property pass — a failing property is a finding.
+- Never delete, skip, or xfail a failing test to unblock work. Fix the code or escalate.
+  `xfail(strict=True)` with a linked issue is the only sanctioned deferral form.
+- Property failures must reproduce from the printed seed/blob; `.hypothesis/` is never
+  committed or cached.
+- Integration tests run against a real Postgres with migrations applied from scratch each
+  run; never against a reused/dumped database state. Migrations are plain SQL and
+  language-neutral (ADR-0013 consequence).
+- Test markers are load-bearing (`integration`, `fault_matrix`): adding or renaming one is a
+  CI-design change — flag it, don't improvise.
+- Fixtures must not embed real credentials or live-service responses; stub-destination
+  fixtures are the norm (RFC-001 §10). Benchmark fixtures/holdout material never enter
+  `tests/` (see benchmark-integrity rule).
