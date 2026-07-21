@@ -5,6 +5,7 @@ const FLAGSHIP = "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785
 const MISSING = "f".repeat(64);
 
 const ROUTES = [
+  "/",
   "/learn/start",
   "/learn/identity",
   "/learn/state",

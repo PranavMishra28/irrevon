@@ -1,20 +1,72 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { FindingsList } from "@/features/findings/findings-list";
 import { apiGet } from "@/shared/api/client";
+import { UnsupportedVersionError } from "@/shared/api/errors";
 import { queryKeys } from "@/shared/api/query-keys";
 import type { FindingsEnvelope } from "@/shared/api/types";
-import { FindingBadge } from "@/shared/domain/status/finding-badge";
-import { ResolutionTag } from "@/shared/domain/status/resolution-tag";
-import { truncateEffectId, truncateTypedId } from "@/shared/lib/ids";
 import { Page } from "@/shared/ui/layout/page";
 
-export const Route = createFileRoute("/findings")({ component: FindingsPage });
+/**
+ * Findings (REDESIGN-BRIEF §5.5): reconciliation verdicts with resolution
+ * state, including destination-keyed orphans, which have no ledger record
+ * and can never appear as effect rows. `selected` is typed URL state; a
+ * stale id leaves the route usable and states the absence — never coerced.
+ */
+
+const FINDING_ID_SHAPE = /^fnd_[0-9A-Za-z]{1,32}$/;
+
+interface FindingsSearch {
+  selected?: string;
+}
+
+export const Route = createFileRoute("/findings")({
+  validateSearch: (search: Record<string, unknown>): FindingsSearch => {
+    const out: FindingsSearch = {};
+    if (typeof search.selected === "string" && FINDING_ID_SHAPE.test(search.selected)) {
+      out.selected = search.selected;
+    }
+    return out;
+  },
+  component: FindingsPage,
+});
 
 function FindingsPage() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const findings = useQuery({
     queryKey: queryKeys.findings(),
     queryFn: () => apiGet<FindingsEnvelope>("/api/v1/findings"),
   });
+
+  const setSelected = (findingId: string | null) => {
+    void navigate({
+      search: findingId === null ? {} : { selected: findingId },
+      replace: true,
+    });
+  };
+
+  const selectedId = search.selected ?? null;
+
+  // Escape clears the selection from anywhere on the route (unless a
+  // dialog above owns the key), restoring the closed state and URL.
+  useEffect(() => {
+    if (selectedId === null) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        setSelected(null);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [selectedId]); // setSelected is stable (navigate identity)
+  const selectionAbsent =
+    selectedId !== null &&
+    findings.data !== undefined &&
+    !findings.data.data.some((f) => f.finding_id === selectedId);
 
   return (
     <Page
@@ -24,84 +76,49 @@ function FindingsPage() {
       {findings.isPending ? (
         <div className="min-h-40" aria-busy="true" />
       ) : findings.isError ? (
-        <p className="font-mono text-xs text-text-secondary">{findings.error.message}</p>
-      ) : (
-        <div className="max-w-4xl overflow-x-auto rounded-(--radius-structural) border border-border bg-surface-1">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr>
-                {[
-                  "Finding",
-                  "Subject",
-                  "Classification",
-                  "Resolution",
-                  "Evidence",
-                  "Created",
-                ].map((column) => (
-                  <th
-                    key={column}
-                    scope="col"
-                    className="border-b border-border px-3 py-2 text-left font-mono text-2xs font-medium tracking-wide text-text-tertiary uppercase"
-                  >
-                    {column}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {findings.data.data.map((finding) => (
-                <tr
-                  key={finding.finding_id}
-                  className="h-(--dt-row-h) border-b border-border-subtle last:border-b-0"
-                >
-                  <td className="px-3 py-1 font-mono text-xs">
-                    {truncateTypedId(finding.finding_id)}
-                  </td>
-                  <td className="px-3 py-1 font-mono text-xs">
-                    {"effect_id" in finding.subject ? (
-                      <Link
-                        to="/effects/$effectId"
-                        params={{ effectId: finding.subject.effect_id }}
-                        className="text-accent hover:underline"
-                      >
-                        {truncateEffectId(finding.subject.effect_id)}
-                      </Link>
-                    ) : (
-                      <span className="text-text-secondary">
-                        {finding.subject.adapter_id} · {finding.subject.destination_ref}
-                        <span className="ml-1.5 text-2xs text-text-tertiary">
-                          (destination-keyed — no ledger record)
-                        </span>
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-1">
-                    {finding.classification === "DUPLICATE" &&
-                    finding.excess_effect_count !== undefined ? (
-                      <FindingBadge
-                        value="DUPLICATE"
-                        excessEffectCount={finding.excess_effect_count}
-                      />
-                    ) : (
-                      <FindingBadge value={finding.classification} />
-                    )}
-                  </td>
-                  <td className="px-3 py-1">
-                    <ResolutionTag value={String(finding.resolution.status)} />
-                  </td>
-                  <td className="px-3 py-1 font-mono text-2xs text-text-tertiary">
-                    {finding.evidence_digest.slice(0, 18)}… ({finding.evidence.redaction})
-                  </td>
-                  <td className="px-3 py-1 font-mono text-2xs text-text-tertiary">
-                    <time dateTime={finding.created_at}>
-                      {finding.created_at.slice(0, 19).replace("T", " ")}Z
-                    </time>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        findings.error instanceof UnsupportedVersionError ? (
+          <div className="max-w-2xl rounded-(--radius-structural) border border-border bg-layer-panel p-5">
+            <p className="font-mono text-2xs font-medium tracking-wide text-text-tertiary uppercase">
+              Unsupported payload version
+            </p>
+            <p className="mt-2 text-sm text-text-primary">{findings.error.message}</p>
+          </div>
+        ) : (
+          <p className="font-mono text-xs text-text-secondary">{findings.error.message}</p>
+        )
+      ) : findings.data.data.length === 0 ? (
+        <div className="max-w-2xl rounded-(--radius-structural) border border-border bg-layer-panel p-5">
+          <p className="text-sm text-text-primary">
+            No findings are recorded. Reconciliation has not produced a verdict for any effect —
+            this is a statement about the ledger, not a claim that everything is safe.
+          </p>
         </div>
+      ) : (
+        <>
+          {selectionAbsent ? (
+            <p
+              className={
+                "mb-3 max-w-2xl rounded-(--radius-structural) border border-border " +
+                "bg-layer-workspace px-3 py-2 text-sm text-text-primary"
+              }
+            >
+              The requested selection <span className="font-mono text-xs">{selectedId}</span> is
+              not in the loaded findings; nothing is selected.
+            </p>
+          ) : null}
+          <FindingsList
+            findings={findings.data.data}
+            selectedId={selectionAbsent ? null : selectedId}
+            onSelect={setSelected}
+          />
+          <p className="mt-3 border-t border-border-subtle pt-2 text-xs text-text-tertiary">
+            {findings.data.has_more
+              ? `${findings.data.data.length} shown, more available`
+              : `${findings.data.data.length} of ${findings.data.data.length}`}
+            {" · as_of "}
+            <span className="font-mono">{findings.data.as_of}</span>
+          </p>
+        </>
       )}
     </Page>
   );

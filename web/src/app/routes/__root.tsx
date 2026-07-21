@@ -33,7 +33,13 @@ const MobileNavDialog = lazy(() =>
   import("@/shared/ui/primitives/mobile-nav").then((m) => ({ default: m.MobileNavDialog })),
 );
 
-const NAV_ITEMS: readonly { to: string; label: string; matchPrefix?: string }[] = [
+const NAV_ITEMS: readonly {
+  to: string;
+  label: string;
+  matchPrefix?: string;
+  exact?: boolean;
+}[] = [
+  { to: "/", label: "Overview", exact: true },
   { to: "/effects", label: "Effects" },
   { to: "/findings", label: "Findings" },
   { to: "/attention", label: "Attention" },
@@ -44,11 +50,11 @@ const NAV_ITEMS: readonly { to: string; label: string; matchPrefix?: string }[] 
   { to: "/health", label: "Health" },
 ];
 
-function NavLink({ to, label }: { to: string; label: string }) {
+function NavLink({ to, label, exact }: { to: string; label: string; exact?: boolean }) {
   return (
     <Link
       to={to}
-      activeOptions={{ includeSearch: false }}
+      activeOptions={{ includeSearch: false, exact: exact ?? false }}
       className={
         "relative flex items-center border-b-2 border-transparent px-2.5 text-sm " +
         "text-text-secondary hover:text-text-primary " +
@@ -141,12 +147,12 @@ function RootLayout() {
     setDensityState(next);
   };
 
-  const activeItem = NAV_ITEMS.find((item) =>
-    item.matchPrefix
-      ? pathname.startsWith(item.matchPrefix)
-      : pathname === item.to || pathname.startsWith(`${item.to}/`),
-  );
-  const viewLabel = activeItem?.label ?? (pathname === "/" ? "Overview" : "Detent");
+  const activeItem = NAV_ITEMS.find((item) => {
+    if (item.exact) return pathname === item.to;
+    if (item.matchPrefix) return pathname.startsWith(item.matchPrefix);
+    return pathname === item.to || pathname.startsWith(`${item.to}/`);
+  });
+  const viewLabel = activeItem?.label ?? "Detent";
 
   const themeLabel = theme === "dark" ? "Switch to light theme" : "Switch to dark theme";
   const densityLabel =
@@ -160,7 +166,7 @@ function RootLayout() {
         ) : undefined
       }
       nav={NAV_ITEMS.map((item) => (
-        <NavLink key={item.to} to={item.to} label={item.label} />
+        <NavLink key={item.to} to={item.to} label={item.label} exact={item.exact ?? false} />
       ))}
       viewLabel={viewLabel}
       utilities={
@@ -231,7 +237,7 @@ function RootLayout() {
                   <li key={item.to}>
                     <Link
                       to={item.to}
-                      activeOptions={{ includeSearch: false }}
+                      activeOptions={{ includeSearch: false, exact: item.exact ?? false }}
                       onClick={() => {
                         setDrawerOpen(false);
                       }}

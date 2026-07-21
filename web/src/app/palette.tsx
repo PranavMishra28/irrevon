@@ -12,6 +12,7 @@ import { CommandDialog, type PaletteCommand } from "@/shared/ui/primitives/comma
  */
 
 const STATIC_COMMANDS: readonly PaletteCommand[] = [
+  { id: "/", label: "Overview", keywords: "snapshot counts home" },
   { id: "/effects", label: "Effects", hint: "g e", keywords: "ledger list records" },
   { id: "/demo", label: "Demo", hint: "g d", keywords: "playback walkthrough flagship" },
   { id: "/learn/start", label: "Learn: Start Here", keywords: "onboarding intro" },

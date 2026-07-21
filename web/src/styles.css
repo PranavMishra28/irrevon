@@ -156,6 +156,20 @@
   }
 }
 
+/* Hatched fill = destination-side observation (probe/receipt-mediated;
+   not ledger truth). Shape/pattern first — color never carries it alone. */
+@layer components {
+  .dt-hatched {
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 5px,
+      var(--color-border-subtle) 5px,
+      var(--color-border-subtle) 6px
+    );
+  }
+}
+
 @keyframes dt-seat-settle {
   from {
     translate: 0 1px;

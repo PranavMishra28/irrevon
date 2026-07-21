@@ -105,21 +105,32 @@ export function SunkenWell({
   children,
   className = "",
   scrollX = false,
+  scrollLabel = "Scrollable content",
 }: {
   children: ReactNode;
   className?: string;
   scrollX?: boolean;
+  /** Accessible name for the focusable scroll container (scrollX only). */
+  scrollLabel?: string;
 }) {
-  return (
-    <div
-      className={
-        "min-w-0 rounded-(--radius-structural) border border-border-subtle bg-layer-sunken " +
-        "p-(--dt-panel-pad) [padding:max(8px,calc(var(--dt-panel-pad)*0.75))] " +
-        (scrollX ? "overflow-x-auto " : "") +
-        className
-      }
-    >
-      {children}
-    </div>
-  );
+  const base =
+    "min-w-0 rounded-(--radius-structural) border border-border-subtle bg-layer-sunken " +
+    "p-(--dt-panel-pad) [padding:max(8px,calc(var(--dt-panel-pad)*0.75))] ";
+  if (scrollX) {
+    // A scrollable well must be keyboard-reachable (axe
+    // scrollable-region-focusable): the tabindex is required so keyboard
+    // users can scroll the trough, which jsx-a11y cannot infer statically.
+    return (
+      <div
+        role="group"
+        aria-label={scrollLabel}
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- keyboard users must be able to scroll the trough (axe scrollable-region-focusable)
+        tabIndex={0}
+        className={`${base}overflow-x-auto ${className}`}
+      >
+        {children}
+      </div>
+    );
+  }
+  return <div className={base + className}>{children}</div>;
 }

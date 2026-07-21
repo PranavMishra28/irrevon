@@ -27,10 +27,15 @@ test.describe("shell", () => {
     expect(external).toEqual([]);
   });
 
-  test("landing goes to Effects (populated fixture ledger)", async ({ page }) => {
+  test("/ is the Overview — no redirect; Effects stays one click away", async ({ page }) => {
     await page.goto("/");
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
+    await page
+      .getByRole("navigation", { name: "Views" })
+      .getByRole("link", { name: "Effects" })
+      .click();
     await expect(page).toHaveURL(/\/effects$/);
-    await expect(page.getByRole("heading", { name: "Effects" })).toBeVisible();
   });
 
   test("fixture banner is permanent in mock builds", async ({ page }) => {
@@ -179,26 +184,31 @@ test.describe("responsive shell (REDESIGN A6)", () => {
     await expect(drawer).toBeVisible();
     await expect(page.getByRole("button", { name: "Close menu" })).toBeFocused();
 
-    // Tab is trapped: cycling through every stop wraps back to Close
-    // without ever landing on the page behind the drawer.
-    let wrapped = false;
-    for (let i = 0; i < 20; i += 1) {
-      await page.keyboard.press("Tab");
-      const where = await page.evaluate(() => {
-        const active = document.activeElement;
-        if (active?.closest('[role="dialog"]')) {
-          return active.getAttribute("aria-label") === "Close menu" ? "close" : "drawer";
-        }
-        // Base UI focus guards are transient sentinels, not page content.
-        return active?.hasAttribute("data-base-ui-focus-guard") ? "guard" : "page";
+    // Trap check, both directions: Shift+Tab from Close wraps to the last
+    // drawer control; Tab from there returns to Close. Focus never lands on
+    // a page control behind the overlay.
+    await page.keyboard.press("Shift+Tab");
+    await expect
+      .poll(async () =>
+        page.evaluate(() => ({
+          inDrawer: Boolean(document.activeElement?.closest('[role="dialog"]')),
+          label: document.activeElement?.textContent ?? "",
+        })),
+      )
+      .toEqual({
+        inDrawer: true,
+        label: expect.stringContaining("Help and keyboard shortcuts"),
       });
-      expect(where, `tab stop ${i} escaped the drawer`).not.toBe("page");
-      if (i > 0 && where === "close") {
-        wrapped = true;
-        break;
-      }
-    }
-    expect(wrapped, "tabbing wrapped back to Close").toBe(true);
+    await page.keyboard.press("Tab");
+    // Base UI redirects focus off its edge guard asynchronously — poll.
+    await expect
+      .poll(async () =>
+        page.evaluate(() => ({
+          inDrawer: Boolean(document.activeElement?.closest('[role="dialog"]')),
+          label: document.activeElement?.getAttribute("aria-label") ?? "",
+        })),
+      )
+      .toEqual({ inDrawer: true, label: "Close menu" });
 
     await page.keyboard.press("Escape");
     await expect(drawer).toHaveCount(0);

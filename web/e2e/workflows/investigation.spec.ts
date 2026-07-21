@@ -199,13 +199,19 @@ test.describe("demo playback", () => {
 
 test.describe("findings and health", () => {
   test("orphan finding is destination-keyed with no effect link", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/findings");
     const orphanRow = page.locator("tr", { hasText: "ORPHANED" });
     await expect(orphanRow.getByText("destination-keyed — no ledger record")).toBeVisible();
     await expect(orphanRow.getByRole("link")).toHaveCount(0);
-    // Ledger-keyed findings do link to their effect.
+    // Ledger-keyed findings link to their effect from the inspector.
     const lostRow = page.locator("tr", { hasText: "LOST" });
-    await expect(lostRow.getByRole("link")).toHaveCount(1);
+    await lostRow.click();
+    const inspector = page.locator('[data-testid="finding-inspector"]:visible');
+    await expect(inspector.locator('a[href^="/effects/"]')).toHaveCount(1);
+    // The orphan inspector has no effect link at all.
+    await page.locator("tr", { hasText: "ORPHANED" }).click();
+    await expect(inspector.locator('a[href^="/effects/"]')).toHaveCount(0);
   });
 
   test("health renders the doctor transcript verbatim", async ({ page }) => {
