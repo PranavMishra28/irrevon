@@ -67,7 +67,10 @@ test.describe("effects grid", () => {
     await page.keyboard.press("ArrowLeft");
     await expect(grid.locator("tbody tr").nth(2)).toBeFocused();
 
+    // Enter docks the row inspector at desktop widths; `o` opens detail.
     await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/inspect=[0-9a-f]{64}/);
+    await page.keyboard.press("o");
     await expect(page).toHaveURL(/\/effects\/[0-9a-f]{64}$/);
   });
 
@@ -91,7 +94,12 @@ test.describe("effects grid", () => {
 test.describe("effect detail — the flagship investigation", () => {
   test("header carries identity, triplet, and copy control", async ({ page }) => {
     await page.goto(`/effects/${FLAGSHIP}`);
-    await expect(page.getByRole("heading", { name: FLAGSHIP })).toBeVisible();
+    // Title block: source-derived title; the full id sits behind a disclosure.
+    await expect(
+      page.getByRole("heading", { name: "order.create · acme-store/prod" }),
+    ).toBeVisible();
+    await page.getByText("Full effect id").click();
+    await expect(page.getByText(FLAGSHIP, { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Lifecycle: settled committed").first()).toBeAttached();
     await expect(page.getByText("Reconciliation: confirmed unique").first()).toBeAttached();
     await expect(page.getByText("Resolution: closed").first()).toBeAttached();

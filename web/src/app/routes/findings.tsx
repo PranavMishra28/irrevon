@@ -33,7 +33,13 @@ export const Route = createFileRoute("/findings")({
 });
 
 function FindingsPage() {
-  const search = Route.useSearch();
+  const rawSearch = Route.useSearch();
+  // Re-apply the shape guard: parent-route search passthrough can leak
+  // unvalidated params.
+  const search: FindingsSearch = { ...rawSearch };
+  if (search.selected !== undefined && !FINDING_ID_SHAPE.test(search.selected)) {
+    delete search.selected;
+  }
   const navigate = Route.useNavigate();
   const findings = useQuery({
     queryKey: queryKeys.findings(),
