@@ -94,11 +94,11 @@ Babel) is excluded from `trustPolicy` only — it predates npm provenance; see
 
 ## Budgets (enforced by `pnpm size`)
 
-| Budget                                          | Target  | Hard gate | Current |
-| ----------------------------------------------- | ------- | --------- | ------- |
-| Initial route JS (gzip)                         | ≤120 KB | ≤180 KB   | ~132 KB |
-| Total lazy JS (gzip, excl. dev-only MSW worker) | —       | ≤350 KB   | ~141 KB |
-| Total CSS (gzip)                                | —       | ≤50 KB    | ~5.5 KB |
+| Budget                                          | Target  | Hard gate | Current (2026-07-21) |
+| ----------------------------------------------- | ------- | --------- | -------------------- |
+| Initial route JS (gzip)                         | ≤120 KB | ≤180 KB   | ~122 KB              |
+| Total lazy JS (gzip, excl. dev-only MSW worker) | —       | ≤350 KB   | ~174 KB              |
+| Total CSS (gzip)                                | —       | ≤50 KB    | ~6.7 KB              |
 
 ## VRT
 
