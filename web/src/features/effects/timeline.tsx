@@ -19,6 +19,8 @@ interface TimelineEvent {
   detail?: React.ReactNode;
   actor: string;
   anchor?: string;
+  /** Graph node this event projects to (shared selection state). */
+  nodeId?: string;
   /** true from the DISPATCHED transition onward */
   postDispatch: boolean;
   isDispatchBoundary: boolean;
@@ -41,6 +43,7 @@ export function buildTimeline(payload: InspectPayload): TimelineEvent[] {
     detail?: React.ReactNode;
     actor: string;
     anchor?: string;
+    nodeId?: string;
     dispatchBoundary?: boolean;
     recoverySeam?: boolean;
   }
@@ -71,6 +74,7 @@ export function buildTimeline(payload: InspectPayload): TimelineEvent[] {
         </span>
       ),
       actor: t.actor,
+      nodeId: `node:execution:${t.operation_id}`,
       dispatchBoundary: t.to_state === "DISPATCHED",
       recoverySeam: t.actor === "recovery",
     });
@@ -97,6 +101,7 @@ export function buildTimeline(payload: InspectPayload): TimelineEvent[] {
         </a>
       ),
       actor: r.recorded_by,
+      nodeId: `node:attempt:${r.receipt_id}`,
     });
   }
   for (const d of payload.gate_decisions) {
@@ -121,6 +126,7 @@ export function buildTimeline(payload: InspectPayload): TimelineEvent[] {
         </a>
       ),
       actor: "gate",
+      nodeId: `node:gate:${d.decision_id}`,
     });
   }
   for (const f of payload.findings) {
@@ -147,6 +153,7 @@ export function buildTimeline(payload: InspectPayload): TimelineEvent[] {
         </a>
       ),
       actor: f.created_by,
+      nodeId: `node:finding:${f.finding_id}`,
     });
   }
   for (const res of payload.resolutions) {
@@ -166,6 +173,7 @@ export function buildTimeline(payload: InspectPayload): TimelineEvent[] {
         </span>
       ),
       actor: res.actor,
+      nodeId: `node:resolution:${res.finding_id}`,
     });
   }
 
@@ -200,6 +208,7 @@ export function buildTimeline(payload: InspectPayload): TimelineEvent[] {
       title: event.title,
       detail: event.detail,
       actor: event.actor,
+      ...(event.nodeId !== undefined ? { nodeId: event.nodeId } : {}),
       postDispatch: postDispatch && !isBoundary,
       isDispatchBoundary: isBoundary,
       restartSeamBefore: restartSeam,
@@ -234,12 +243,29 @@ function RatchetMark() {
   );
 }
 
-export function EffectTimeline({ payload }: { payload: InspectPayload }) {
+export function EffectTimeline({
+  payload,
+  selectedNodeId = null,
+  onSelectNode,
+}: {
+  payload: InspectPayload;
+  /** Shared graph/timeline selection (URL-backed). */
+  selectedNodeId?: string | null;
+  onSelectNode?: (nodeId: string) => void;
+}) {
   const events = buildTimeline(payload);
   return (
     <ol className="flex flex-col">
       {events.map((event, index) => (
-        <li key={event.key} className="relative">
+        <li
+          key={event.key}
+          className={
+            "relative " +
+            (selectedNodeId !== null && event.nodeId === selectedNodeId
+              ? "bg-selection/40"
+              : "")
+          }
+        >
           {event.gapBefore !== undefined ? (
             <p className="py-1 pl-7 font-mono text-2xs text-text-tertiary">
               — {event.gapBefore} elapsed —
@@ -280,6 +306,17 @@ export function EffectTimeline({ payload }: { payload: InspectPayload }) {
                 </time>
                 <span>· {event.actor}</span>
                 {event.detail}
+                {onSelectNode && event.nodeId !== undefined ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSelectNode(event.nodeId ?? "");
+                    }}
+                    className="font-mono text-2xs text-accent underline underline-offset-2"
+                  >
+                    show in graph
+                  </button>
+                ) : null}
               </p>
               {event.isDispatchBoundary ? (
                 <p className="mt-1.5 border-l-2 border-border-strong pl-2 text-xs text-text-secondary">

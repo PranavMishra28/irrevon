@@ -23,7 +23,7 @@ const dd = "font-mono text-xs text-text-primary break-all";
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-(--radius-structural) border border-border bg-surface-1 p-4">
+    <section className="rounded-(--radius-structural) border border-border-subtle bg-layer-panel p-4 shadow-(--sys-edge-light)">
       <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
       <div className="mt-2">{children}</div>
     </section>

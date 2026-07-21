@@ -1,8 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * - e2e: workflows + a11y against the built review app. 1 retry max;
- *   a pass-on-retry is reported, never silently absorbed.
+ * - e2e: workflows + a11y against the built review app. Zero retries —
+ *   a flake is a bug (REDESIGN-BRIEF flake policy), never absorbed.
  * - vrt: pixel baselines. Authoritative only inside the pinned Linux
  *   container (make web-vrt); a bare local run skips the project.
  *   Zero retries: a flaky screenshot means determinism leaked.
@@ -33,7 +33,7 @@ export default defineConfig({
     {
       name: "e2e",
       testDir: "./e2e/workflows",
-      retries: 1,
+      retries: 0,
       use: {
         ...devices["Desktop Chrome"],
         // Copy-to-clipboard affordances are part of the keyboard contract.

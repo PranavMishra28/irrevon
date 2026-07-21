@@ -81,3 +81,101 @@
 @utility tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* Identifier/digest voice: slashed zero so 0/O are never ambiguous. */
+@utility machine-id {
+  font-variant-numeric: slashed-zero tabular-nums;
+}
+
+/* ── The Detent Click: single-object inspection frame (brief §3.2) ─────────
+   1.5px accent frame at the structural radius, inset by the density
+   inspection pad; four 6px 45° corner ticks; 1px translate-to-rest over
+   --sys-dur-seat (0ms under reduced motion). Held by geometry, not lifted:
+   the frame casts no shadow. */
+@layer components {
+  .dt-inspected {
+    outline: var(--sys-inspect-frame-w) solid var(--color-accent);
+    outline-offset: var(--dt-inspect-pad);
+    border-radius: var(--radius-structural);
+    animation: dt-seat-settle var(--sys-dur-seat) var(--sys-ease-seat);
+  }
+
+  .dt-tick {
+    position: absolute;
+    width: var(--sys-inspect-tick-len);
+    height: var(--sys-inspect-tick-w);
+    background-color: var(--color-accent);
+    pointer-events: none;
+  }
+
+  .dt-tick-tl {
+    top: calc(-1 * var(--dt-inspect-pad));
+    left: calc(-1 * var(--dt-inspect-pad));
+    transform: translate(calc(-50% - 1px), calc(-50% - 1px)) rotate(45deg);
+  }
+
+  .dt-tick-tr {
+    top: calc(-1 * var(--dt-inspect-pad));
+    right: calc(-1 * var(--dt-inspect-pad));
+    transform: translate(calc(50% + 1px), calc(-50% - 1px)) rotate(-45deg);
+  }
+
+  .dt-tick-bl {
+    bottom: calc(-1 * var(--dt-inspect-pad));
+    left: calc(-1 * var(--dt-inspect-pad));
+    transform: translate(calc(-50% - 1px), calc(50% + 1px)) rotate(-45deg);
+  }
+
+  .dt-tick-br {
+    bottom: calc(-1 * var(--dt-inspect-pad));
+    right: calc(-1 * var(--dt-inspect-pad));
+    transform: translate(calc(50% + 1px), calc(50% + 1px)) rotate(45deg);
+  }
+
+  /* Dense-row degrade: 3px left seat bar + the two left ticks only. */
+  .dt-seat-bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background-color: var(--color-accent);
+    pointer-events: none;
+  }
+
+  .dt-seat-bar > .dt-tick-tl,
+  .dt-seat-bar > .dt-tick-bl {
+    top: auto;
+    left: 1px;
+  }
+
+  .dt-seat-bar > .dt-tick-tl {
+    top: 0;
+  }
+
+  .dt-seat-bar > .dt-tick-bl {
+    bottom: 0;
+  }
+}
+
+/* Hatched fill = destination-side observation (probe/receipt-mediated;
+   not ledger truth). Shape/pattern first — color never carries it alone. */
+@layer components {
+  .dt-hatched {
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 5px,
+      var(--color-border-subtle) 5px,
+      var(--color-border-subtle) 6px
+    );
+  }
+}
+
+@keyframes dt-seat-settle {
+  from {
+    translate: 0 1px;
+  }
+
+  to {
+    translate: 0 0;
+  }
+}

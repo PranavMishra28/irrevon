@@ -67,7 +67,10 @@ test.describe("effects grid", () => {
     await page.keyboard.press("ArrowLeft");
     await expect(grid.locator("tbody tr").nth(2)).toBeFocused();
 
+    // Enter docks the row inspector at desktop widths; `o` opens detail.
     await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/inspect=[0-9a-f]{64}/);
+    await page.keyboard.press("o");
     await expect(page).toHaveURL(/\/effects\/[0-9a-f]{64}$/);
   });
 
@@ -91,7 +94,12 @@ test.describe("effects grid", () => {
 test.describe("effect detail — the flagship investigation", () => {
   test("header carries identity, triplet, and copy control", async ({ page }) => {
     await page.goto(`/effects/${FLAGSHIP}`);
-    await expect(page.getByRole("heading", { name: FLAGSHIP })).toBeVisible();
+    // Title block: source-derived title; the full id sits behind a disclosure.
+    await expect(
+      page.getByRole("heading", { name: "order.create · acme-store/prod" }),
+    ).toBeVisible();
+    await page.getByText("Full effect id").click();
+    await expect(page.getByText(FLAGSHIP, { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Lifecycle: settled committed").first()).toBeAttached();
     await expect(page.getByText("Reconciliation: confirmed unique").first()).toBeAttached();
     await expect(page.getByText("Resolution: closed").first()).toBeAttached();
@@ -180,9 +188,10 @@ test.describe("demo playback", () => {
     await expect(summary.getByRole("cell", { name: "1", exact: true })).toBeVisible();
     await expect(summary.getByRole("cell", { name: "2", exact: true })).toBeVisible();
 
-    // Handoff: deep link into the retained effect.
+    // Handoff: deep link into the retained effect, preserving a graph node.
     await page.getByRole("link", { name: /Inspect the retained effect/ }).click();
-    await expect(page).toHaveURL(new RegExp(`/effects/${FLAGSHIP}$`));
+    await expect(page).toHaveURL(new RegExp(`/effects/${FLAGSHIP}`));
+    await expect(page).toHaveURL(/selected=/);
   });
 
   test("previous and restart controls work; no autoplay on load", async ({ page }) => {
@@ -199,13 +208,19 @@ test.describe("demo playback", () => {
 
 test.describe("findings and health", () => {
   test("orphan finding is destination-keyed with no effect link", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/findings");
     const orphanRow = page.locator("tr", { hasText: "ORPHANED" });
     await expect(orphanRow.getByText("destination-keyed — no ledger record")).toBeVisible();
     await expect(orphanRow.getByRole("link")).toHaveCount(0);
-    // Ledger-keyed findings do link to their effect.
+    // Ledger-keyed findings link to their effect from the inspector.
     const lostRow = page.locator("tr", { hasText: "LOST" });
-    await expect(lostRow.getByRole("link")).toHaveCount(1);
+    await lostRow.click();
+    const inspector = page.locator('[data-testid="finding-inspector"]:visible');
+    await expect(inspector.locator('a[href^="/effects/"]')).toHaveCount(1);
+    // The orphan inspector has no effect link at all.
+    await page.locator("tr", { hasText: "ORPHANED" }).click();
+    await expect(inspector.locator('a[href^="/effects/"]')).toHaveCount(0);
   });
 
   test("health renders the doctor transcript verbatim", async ({ page }) => {

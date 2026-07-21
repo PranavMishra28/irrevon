@@ -94,11 +94,30 @@ Babel) is excluded from `trustPolicy` only — it predates npm provenance; see
 
 ## Budgets (enforced by `pnpm size`)
 
-| Budget                                          | Target  | Hard gate | Current (2026-07-21) |
-| ----------------------------------------------- | ------- | --------- | -------------------- |
-| Initial route JS (gzip)                         | ≤120 KB | ≤180 KB   | ~122 KB              |
-| Total lazy JS (gzip, excl. dev-only MSW worker) | —       | ≤350 KB   | ~174 KB              |
-| Total CSS (gzip)                                | —       | ≤50 KB    | ~6.7 KB              |
+Redesign goals (REDESIGN-BRIEF A3): initial ≤115 KB internal cutover goal under the
+published 120 KB soft target; lazy ≤250 KB; CSS ≤20 KB. Palette, shortcut help, the
+mobile drawer, and every route body (including the causal graph, which only the detail
+route chunk carries) are dynamic chunks; the Effects list never imports graph code
+(E2E-enforced).
+
+| Budget                                          | Target  | Hard gate | Current (2026-07-21, redesign) |
+| ----------------------------------------------- | ------- | --------- | ------------------------------ |
+| Initial route JS (gzip)                         | ≤120 KB | ≤180 KB   | ~89.7 KB                       |
+| Total lazy JS (gzip, excl. dev-only MSW worker) | ≤250 KB | ≤350 KB   | ~208 KB                        |
+| Total CSS (gzip)                                | ≤20 KB  | ≤50 KB    | ~8.6 KB                        |
+
+## Redesign test suites (REDESIGN-BRIEF §7)
+
+Beyond the original shell/investigation E2E: `overview.spec.ts`,
+`attention.spec.ts`, `findings.spec.ts`, `graph.spec.ts` (keyboard order, URL
+selection round-trips, timeline↔graph sync, no-fleet-graph guarantee),
+`surfaces.spec.ts` (adapters/demo/health/bench), `responsive.spec.ts`
+(320/375/768/1120/1440 reflow matrix + target sizes + reduced motion),
+`read-only.spec.ts` (route-wide zero non-loopback and zero non-GET/HEAD
+requests), and `live-boundary.spec.ts` (builds a real live artifact in-test and
+proves a failed live read reveals no fixture, registers no worker, and that a
+mock production build is refused). All Playwright projects run with zero
+retries — a flake is a bug.
 
 ## VRT
 

@@ -24,6 +24,7 @@ export {
   HelpCircle,
   Key,
   Lock,
+  Menu,
   Moon,
   RotateCw,
   ScanSearch,
