@@ -21,11 +21,23 @@ concurrency:
   group: site-deploy
   cancel-in-progress: false
 
+env:
+  ASTRO_TELEMETRY_DISABLED: "1" # zero-telemetry posture holds at build time too
+
 jobs:
   build:
     name: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Least-privilege split per GitHub's "Using custom workflows with GitHub
+    # Pages": only deploy-pages needs `pages: write` + `id-token: write`, so
+    # those stay on the deploy job. configure-pages with its default
+    # enablement:false only calls GET /repos/{owner}/{repo}/pages (see its
+    # src/api-client.js), which Pages read covers; upload-pages-artifact
+    # uploads via the Actions runtime token and needs no GITHUB_TOKEN grant.
+    permissions:
+      contents: read # checkout
+      pages: read # configure-pages reads the Pages site config to emit origin/base_path
     defaults:
       run:
         working-directory: site
