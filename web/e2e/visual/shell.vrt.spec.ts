@@ -35,6 +35,11 @@ for (const theme of ["light", "dark"] as const) {
       for (const [name, route] of SCREENS) {
         test(name, async ({ page }) => {
           await page.goto(route);
+          // Deterministic render barrier — goto resolves on the load event,
+          // BEFORE React mounts and data queries settle. Without it the
+          // screenshot races the render (observed: a blank full-page capture).
+          await page.getByRole("button", { name: /Go to…/ }).waitFor();
+          await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
           await page.evaluate((t) => {
             document.documentElement.setAttribute("data-theme", t);
             return document.fonts.ready;
