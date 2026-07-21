@@ -39,6 +39,28 @@ for (const theme of ["light", "dark"] as const) {
       });
     }
 
+    test(`graph node selected — ${theme}`, async ({ page }) => {
+      await page.goto(`/effects/${FLAGSHIP}?selected=node:attempt:1`);
+      await page.evaluate((t) => {
+        document.documentElement.setAttribute("data-theme", t);
+      }, theme);
+      await page.getByTestId("graph-inspector").waitFor();
+      const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+      expect(results.violations).toEqual([]);
+    });
+
+    test(`mobile drawer open — ${theme}`, async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 812 });
+      await page.goto("/learn/start");
+      await page.evaluate((t) => {
+        document.documentElement.setAttribute("data-theme", t);
+      }, theme);
+      await page.getByRole("button", { name: "Menu" }).click();
+      await page.getByRole("dialog", { name: "Menu" }).waitFor();
+      const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+      expect(results.violations).toEqual([]);
+    });
+
     test(`palette open — ${theme}`, async ({ page }) => {
       await page.goto("/learn/start");
       await page.getByRole("button", { name: /Go to…/ }).waitFor();
@@ -87,8 +109,8 @@ test("reduced motion collapses every motion token to zero", async ({ browser }) 
   await page.goto("/learn/start");
   const durations = await page.evaluate(() => {
     const styles = getComputedStyle(document.documentElement);
-    return ["--sys-dur-fast", "--sys-dur-base", "--sys-dur-slow"].map((token) =>
-      styles.getPropertyValue(token).trim(),
+    return ["--sys-dur-fast", "--sys-dur-base", "--sys-dur-slow", "--sys-dur-seat"].map(
+      (token) => styles.getPropertyValue(token).trim(),
     );
   });
   for (const duration of durations) {

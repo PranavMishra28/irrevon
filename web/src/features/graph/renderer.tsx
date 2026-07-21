@@ -317,7 +317,7 @@ export function CausalGraph({
                   (node.hatched ? "dt-hatched " : "") +
                   (node.size === "gate" ? "items-center justify-center text-center " : "") +
                   (isSelected ? "dt-inspected " : "") +
-                  (path !== null && !onPath ? "opacity-60 " : "")
+                  (path !== null && !onPath ? "opacity-75 " : "")
                 }
                 style={{ left: node.x, top: node.y, width: node.w, height: node.h }}
               >

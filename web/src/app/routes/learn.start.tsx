@@ -53,12 +53,14 @@ function StartPage() {
           ) : null}
         </section>
 
-        <div className="flex gap-3">
+        {/* CTA labels never break mid-label (A6): wrap between buttons, not inside. */}
+        <div className="flex flex-wrap gap-3">
           <Link
             to="/demo"
             className={
-              "inline-flex h-8 items-center rounded-(--radius-control) border border-accent " +
-              "bg-accent px-3 text-sm font-medium text-text-inverse hover:bg-accent-hover"
+              "inline-flex min-h-11 items-center rounded-(--radius-control) border border-accent " +
+              "bg-accent px-3 text-sm font-medium whitespace-nowrap text-text-inverse " +
+              "hover:bg-accent-hover min-[768px]:min-h-8"
             }
           >
             Play the demo
@@ -66,8 +68,9 @@ function StartPage() {
           <Link
             to="/learn/identity"
             className={
-              "inline-flex h-8 items-center rounded-(--radius-control) border border-border " +
-              "bg-surface-1 px-3 text-sm font-medium text-text-primary hover:bg-surface-2"
+              "inline-flex min-h-11 items-center rounded-(--radius-control) border border-border " +
+              "bg-layer-panel px-3 text-sm font-medium whitespace-nowrap text-text-primary " +
+              "hover:bg-(--sys-state-hover) min-[768px]:min-h-8"
             }
           >
             Why identity defeats re-synthesis

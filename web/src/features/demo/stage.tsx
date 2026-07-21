@@ -91,7 +91,7 @@ function EventFacts({ event }: { event: DemoEvent }) {
       {facts.map((key) => (
         <div key={key} className="flex min-w-0 items-baseline gap-1">
           <dt className="font-mono text-2xs text-text-tertiary">{key}</dt>
-          <dd className="machine-id max-w-72 truncate font-mono text-2xs text-text-primary">
+          <dd className="machine-id min-w-0 max-w-full truncate font-mono text-2xs text-text-primary">
             {String(event[key])}
           </dd>
         </div>
@@ -355,7 +355,7 @@ export function DemoStage({
       <div
         role="group"
         aria-label={`Scrub rail — ${total} recorded events`}
-        className="flex items-end gap-1 border-b border-border-subtle pb-2"
+        className="flex items-end gap-0.5 border-b border-border-subtle pb-2 min-[480px]:gap-1"
       >
         {events.map((event, index) => (
           <button
@@ -366,9 +366,11 @@ export function DemoStage({
             onClick={() => {
               goTo(index);
             }}
+            // Width can drop below target size at 320: the 44px Previous/Next
+            // buttons are the equivalent stepping control (WCAG 2.5.8 exception).
             className={
-              "flex min-h-6 min-w-6 flex-1 items-end justify-center " +
-              "hover:bg-(--sys-state-hover)"
+              "flex min-h-6 min-w-4 flex-1 items-end justify-center " +
+              "hover:bg-(--sys-state-hover) min-[480px]:min-w-6"
             }
           >
             <span
