@@ -67,3 +67,37 @@ tools-check:
 	v=$$(gitleaks version 2>/dev/null); \
 	[ "$$v" = "$(GITLEAKS_VERSION)" ] || { echo "tools-check: gitleaks $$v != tested $(GITLEAKS_VERSION)"; fail=1; }; \
 	[ "$$fail" -eq 0 ] && echo "tools-check: all tool versions match the tested set" || exit 1
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Python engine targets (appended by T-101..T-104; taxonomy per ADR-0017).
+# `check` above is untouched; `check-all` folds the Python gates in.
+# ══════════════════════════════════════════════════════════════════════════════
+
+.PHONY: py-check py-test py-test-integration py-db-up py-db-down check-all
+
+# Static gates: lockfile-faithful sync, lint, strict types, import boundaries.
+py-check:
+	uv sync --locked --quiet
+	uv run ruff check src tests
+	uv run mypy
+	uv run lint-imports
+
+# Unit + property tests (no I/O). HYPOTHESIS_PROFILE=dev(100)|ci/conformance(1000+).
+py-test:
+	uv sync --locked --quiet
+	uv run pytest -m "not integration" -p no:cacheprovider
+
+# Integration tests need the digest-pinned local Postgres (docker-compose.yml).
+# Mocks never replace Postgres transactional behavior (testing.md §2).
+py-test-integration: py-db-up
+	uv sync --locked --quiet
+	uv run pytest -m integration -p no:cacheprovider
+
+py-db-up:
+	docker compose up -d --wait ledger-db-test
+
+py-db-down:
+	docker compose down -v
+
+check-all: check py-check py-test py-test-integration
+	@echo "OK: all validation gates passed (docs + python)"

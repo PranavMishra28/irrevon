@@ -1,0 +1,74 @@
+# Detent — reference reconciliation engine (first slice).
+# Stack per ADR-0013 (Python 3.13, uv, pytest+Hypothesis, psycopg 3, rfc8785 pinned);
+# packaging per ADR-0018 (single `detent` package, src layout, hatchling).
+# No license classifier: licensing is undecided (ADR-0014 OPEN); publishing is human-gated.
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "detent"
+version = "0.1.0.dev0"
+description = "Reference reconciliation engine for irreversible AI-agent actions (DetentBench companion). Not yet released; no license granted (see LICENSING.md)."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    # RFC 8785 (JCS) encoder — version-pinned per ADR-0013; guarded by the committed
+    # cross-implementation conformance vectors in tests/identity/vectors/.
+    "rfc8785==0.1.4",
+    # JSON Schema 2020-12 validation of the trust-boundary contracts (schemas/).
+    "jsonschema>=4.25",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4",
+    "pytest-xdist>=3.8",
+    "hypothesis>=6.157",
+    "mypy>=1.19",
+    "types-jsonschema>=4.25",
+    "ruff>=0.14",
+    "import-linter>=2.5",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/detent"]
+
+# Built wheels carry the canonical trust-boundary schemas; editable/dev installs
+# resolve the repo's schemas/ directory directly (see detent.contract.validation).
+[tool.hatch.build.targets.wheel.force-include]
+"schemas" = "detent/_schemas"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+    "integration: requires the local Postgres from docker-compose.yml (run via `make py-test-integration`)",
+]
+
+[tool.mypy]
+strict = true
+python_version = "3.13"
+files = ["src"]
+warn_unreachable = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "RUF"]
+
+# Architectural import boundaries (RFC-002 §14; master doc §12.1 row 4 static leg).
+# Contracts are part of the frozen conformance surface — weakening one is an
+# invariant-affecting change (ADR first), never a convenience edit.
+[tool.importlinter]
+root_package = "detent"
+
+[[tool.importlinter.contracts]]
+name = "identity is pure: no imports from modules that handle raw model arguments"
+type = "forbidden"
+source_modules = ["detent.identity"]
+forbidden_modules = ["detent.contract"]
