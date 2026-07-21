@@ -11,9 +11,16 @@
   --font-mono: "IBM Plex Mono", monospace;
 
   --color-canvas: var(--ref-canvas);
+  /* Deprecated aliases — remove after every call site is classified onto a layer role. */
   --color-surface-1: var(--ref-surface-1);
   --color-surface-2: var(--ref-surface-2);
   --color-surface-3: var(--ref-surface-3);
+  --color-layer-sunken: var(--ref-layer-sunken);
+  --color-layer-nav: var(--ref-layer-nav);
+  --color-layer-workspace: var(--ref-layer-workspace);
+  --color-layer-panel: var(--ref-layer-panel);
+  --color-layer-object: var(--ref-layer-object);
+  --color-layer-overlay: var(--ref-layer-overlay);
 
   --color-text-primary: var(--ref-ink-1);
   --color-text-secondary: var(--ref-ink-2);
@@ -48,6 +55,7 @@
   --color-status-neutral-bg: var(--ref-neutral-bg);
 
   --shadow-overlay: var(--ref-overlay-shadow);
+  --shadow-popover: var(--ref-popover-shadow);
 
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: 1.35;
@@ -63,6 +71,9 @@
   --text-xl--line-height: 1.3;
   --text-2xl: 1.5rem;
   --text-2xl--line-height: 1.25;
+  /* Investigation title-block headings only — never panels, cards, or lists. */
+  --text-display: 1.75rem;
+  --text-display--line-height: 1.2;
 
   --radius-structural: 2px;
   --radius-control: 4px;

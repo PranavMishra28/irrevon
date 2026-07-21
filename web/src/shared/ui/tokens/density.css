@@ -16,11 +16,25 @@
   --sys-leading-xl: 1.3;
   --sys-text-2xl: 1.5rem;
   --sys-leading-2xl: 1.25;
+  --sys-text-display: 1.75rem;
+  --sys-leading-display: 1.2;
 
   --sys-radius-structural: 2px;
   --sys-radius-control: 4px;
   --sys-focus-width: 2px;
   --sys-focus-offset: 2px;
+
+  /* Detent Click inspection frame (REDESIGN-BRIEF §3.2) */
+  --sys-inspect-frame-w: 1.5px;
+  --sys-inspect-tick-len: 6px;
+  --sys-inspect-tick-w: 1.5px;
+
+  /* Interactive state layers: ink-mix overlays, identical on every layer. */
+  --sys-state-hover: color-mix(in oklab, var(--ref-ink-1) 5%, transparent);
+  --sys-state-active: color-mix(in oklab, var(--ref-ink-1) 9%, transparent);
+
+  /* Dark-theme machined top edge for L3+ panels (none in light). */
+  --sys-edge-light: var(--ref-edge-light);
 
   --sys-z-base: 0;
   --sys-z-sticky: 10;
@@ -38,6 +52,8 @@
   --dt-cell-pad-x: 12px;
   --dt-panel-pad: 16px;
   --dt-table-text: var(--sys-text-sm);
+  --dt-panel-header-h: 40px;
+  --dt-inspect-pad: 3px;
 }
 
 [data-density="dense"] {
@@ -46,4 +62,6 @@
   --dt-cell-pad-x: 8px;
   --dt-panel-pad: 12px;
   --dt-table-text: var(--sys-text-xs);
+  --dt-panel-header-h: 32px;
+  --dt-inspect-pad: 2px;
 }

@@ -6,8 +6,11 @@
   --sys-dur-fast: 100ms;
   --sys-dur-base: 150ms;
   --sys-dur-slow: 220ms;
+  /* The detent click: hard-stop deceleration, no overshoot, no wobble. */
+  --sys-dur-seat: 140ms;
   --sys-ease-out: cubic-bezier(0.2, 0, 0, 1);
   --sys-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --sys-ease-seat: cubic-bezier(0.3, 0, 0.05, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -15,5 +18,6 @@
     --sys-dur-fast: 0ms;
     --sys-dur-base: 0ms;
     --sys-dur-slow: 0ms;
+    --sys-dur-seat: 0ms;
   }
 }

@@ -134,3 +134,119 @@ test.describe("shell", () => {
     }
   });
 });
+
+test.describe("responsive shell (REDESIGN A6)", () => {
+  test("header composition per breakpoint; no collision, no body scroll", async ({ page }) => {
+    // Desktop ≥1120: full nav visible, no menu button.
+    await page.setViewportSize({ width: 1120, height: 800 });
+    await gotoShell(page, "/effects");
+    await expect(page.getByRole("navigation", { name: "Views" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Menu" })).toBeHidden();
+
+    // Tablet 768–1119: nav collapses, active-view label + Menu appear.
+    await page.setViewportSize({ width: 1119, height: 800 });
+    await expect(page.getByRole("navigation", { name: "Views" })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Menu" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Go to…/ })).toBeVisible();
+    await expect(page.getByTestId("active-view-label")).toHaveText("Effects");
+    await expect(page.getByTestId("active-view-label")).toBeVisible();
+
+    // Mobile <768: brand + command icon + menu only.
+    await page.setViewportSize({ width: 375, height: 800 });
+    await expect(page.getByRole("button", { name: "Menu" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Go to…" })).toBeVisible();
+    await expect(page.getByTestId("active-view-label")).toBeHidden();
+
+    await gotoShell(page, "/learn/start");
+    for (const width of [320, 375, 768, 1119]) {
+      await page.setViewportSize({ width, height: 800 });
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      );
+      expect(overflow, `body overflow at ${width}px`).toBe(false);
+    }
+  });
+
+  test("drawer: initial focus on Close, Tab trapped, Escape returns focus to trigger", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
+    await gotoShell(page, "/learn/start");
+    const menu = page.getByRole("button", { name: "Menu" });
+    await menu.click();
+
+    const drawer = page.getByRole("dialog", { name: "Menu" });
+    await expect(drawer).toBeVisible();
+    await expect(page.getByRole("button", { name: "Close menu" })).toBeFocused();
+
+    // Tab is trapped: cycling through every stop wraps back to Close
+    // without ever landing on the page behind the drawer.
+    let wrapped = false;
+    for (let i = 0; i < 20; i += 1) {
+      await page.keyboard.press("Tab");
+      const where = await page.evaluate(() => {
+        const active = document.activeElement;
+        if (active?.closest('[role="dialog"]')) {
+          return active.getAttribute("aria-label") === "Close menu" ? "close" : "drawer";
+        }
+        // Base UI focus guards are transient sentinels, not page content.
+        return active?.hasAttribute("data-base-ui-focus-guard") ? "guard" : "page";
+      });
+      expect(where, `tab stop ${i} escaped the drawer`).not.toBe("page");
+      if (i > 0 && where === "close") {
+        wrapped = true;
+        break;
+      }
+    }
+    expect(wrapped, "tabbing wrapped back to Close").toBe(true);
+
+    await page.keyboard.press("Escape");
+    await expect(drawer).toHaveCount(0);
+    await expect(menu).toBeFocused();
+  });
+
+  test("drawer: choosing a route closes it and the route heading takes focus", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
+    await gotoShell(page, "/learn/start");
+    await page.getByRole("button", { name: "Menu" }).click();
+    const drawer = page.getByRole("dialog", { name: "Menu" });
+    await drawer.getByRole("link", { name: "Health" }).click();
+    await expect(page).toHaveURL(/\/health$/);
+    await expect(drawer).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Health" })).toBeFocused();
+  });
+
+  test("drawer: backdrop click closes without navigation", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
+    await gotoShell(page, "/learn/start");
+    await page.getByRole("button", { name: "Menu" }).click();
+    await expect(page.getByRole("dialog", { name: "Menu" })).toBeVisible();
+    // Click the overlay area left of the drawer.
+    await page.mouse.click(10, 400);
+    await expect(page.getByRole("dialog", { name: "Menu" })).toHaveCount(0);
+    await expect(page).toHaveURL(/\/learn\/start$/);
+  });
+
+  test("drawer utilities: theme toggle works from the drawer", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
+    await gotoShell(page, "/learn/start");
+    await page.getByRole("button", { name: "Menu" }).click();
+    await page.getByRole("button", { name: "Switch to dark theme" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  });
+
+  test("drawer nav rows meet the 44px mobile target size", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
+    await gotoShell(page, "/learn/start");
+    await page.getByRole("button", { name: "Menu" }).click();
+    const drawer = page.getByRole("dialog", { name: "Menu" });
+    const boxes = await drawer.getByRole("link").all();
+    for (const row of boxes) {
+      const box = await row.boundingBox();
+      expect(box, "nav row has a box").not.toBeNull();
+      expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+    }
+  });
+});

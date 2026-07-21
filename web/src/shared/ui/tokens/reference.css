@@ -5,9 +5,21 @@
 [data-theme="light"] {
   color-scheme: light;
 
-  --ref-canvas: oklch(0.985 0.002 250);
-  --ref-surface-1: oklch(1 0 0);
-  --ref-surface-2: oklch(0.965 0.004 250);
+  /* Layer tier — six surface roles + one sunken well (REDESIGN-BRIEF §3.1).
+     Brighter toward the working face; the sunken well is the only
+     darker-than-canvas value and is not an elevation layer. */
+  --ref-layer-sunken: oklch(0.955 0.004 250);
+  --ref-canvas: oklch(0.975 0.003 250);
+  --ref-layer-nav: oklch(0.985 0.002 250);
+  --ref-layer-workspace: oklch(0.992 0.001 250);
+  --ref-layer-panel: oklch(1 0 0);
+  --ref-layer-object: oklch(1 0 0);
+  --ref-layer-overlay: oklch(1 0 0);
+
+  /* Migration aliases — legacy call sites keep resolving while they are
+     reclassified onto layer roles; removed at cutover (Slice 7). */
+  --ref-surface-1: var(--ref-layer-panel);
+  --ref-surface-2: var(--ref-layer-sunken);
   --ref-surface-3: oklch(0.94 0.005 250);
 
   --ref-ink-1: oklch(0.25 0.015 255);
@@ -43,15 +55,27 @@
   --ref-neutral-bg: oklch(0.95 0.004 250);
 
   --ref-overlay-shadow: 0 6px 18px oklch(0.18 0.01 250 / 0.16);
+  --ref-popover-shadow: 0 2px 8px oklch(0.18 0.01 250 / 0.12);
+
+  /* Machined top edge: dark-theme-only inner top highlight for L3+ panels.
+     An edge treatment, not an elevation shadow; banned in light theme. */
+  --ref-edge-light: none;
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
 
+  --ref-layer-sunken: oklch(0.185 0.007 250);
   --ref-canvas: oklch(0.21 0.008 250);
-  --ref-surface-1: oklch(0.25 0.01 250);
-  --ref-surface-2: oklch(0.29 0.011 250);
-  --ref-surface-3: oklch(0.33 0.012 250);
+  --ref-layer-nav: oklch(0.24 0.009 250);
+  --ref-layer-workspace: oklch(0.265 0.01 250);
+  --ref-layer-panel: oklch(0.29 0.011 250);
+  --ref-layer-object: oklch(0.29 0.011 250);
+  --ref-layer-overlay: oklch(0.315 0.012 250);
+
+  --ref-surface-1: var(--ref-layer-workspace);
+  --ref-surface-2: var(--ref-layer-panel);
+  --ref-surface-3: var(--ref-layer-overlay);
 
   --ref-ink-1: oklch(0.92 0.005 250);
   --ref-ink-2: oklch(0.76 0.008 250);
@@ -86,6 +110,8 @@
   --ref-neutral-bg: oklch(0.3 0.006 250);
 
   --ref-overlay-shadow: 0 8px 20px oklch(0.08 0.005 250 / 0.42);
+  --ref-popover-shadow: 0 2px 8px oklch(0.08 0.005 250 / 0.36);
+  --ref-edge-light: inset 0 1px 0 oklch(1 0 0 / 0.045);
 }
 
 :root {
