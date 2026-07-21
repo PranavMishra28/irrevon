@@ -1,29 +1,65 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Page } from "@/shared/ui/layout/page";
+import { Panel } from "@/shared/ui/primitives/panel";
 
 export const Route = createFileRoute("/bench")({ component: BenchPage });
 
+/**
+ * Bench readiness (REDESIGN-BRIEF §5.10): a deliberate evidence null, not a
+ * KPI dashboard. No synthetic metric, result, comparison, or progress
+ * percentage; prerequisite truth maps to the canonical repository documents.
+ */
 function BenchPage() {
   return (
     <Page
       title="Benchmark"
       lead="DetentBench results appear here only from real, append-only run artifacts. Baselines are never weakened so the proposed system wins; negative and null results carry equal prominence."
     >
-      <div className="max-w-3xl rounded-(--radius-structural) border border-border bg-surface-1 p-5">
-        <h2 className="text-base font-semibold text-text-primary">No benchmark runs exist</h2>
-        <p className="mt-2 text-sm text-text-secondary">
-          A run appears after the benchmark harness executes against real destination sandboxes
-          and produces sealed artifacts. Prerequisites, in order:
-        </p>
-        <ol className="mt-3 flex list-decimal flex-col gap-1.5 pl-5 text-sm text-text-primary">
-          <li>Ratified run/cell/validity/metric schemas (statistical repair pending).</li>
-          <li>A preregistration-stamped protocol with the holdout split sealed.</li>
-          <li>At least one full fault × effect-class matrix run with retained artifacts.</li>
-        </ol>
-        <p className="mt-3 text-sm text-text-secondary">
-          Until then this page shows no numbers at all — synthetic figures presented as results
-          would be a lie with good typography.
-        </p>
+      <div className="grid grid-cols-1 gap-4 min-[1024px]:grid-cols-12">
+        <div className="min-w-0 min-[1024px]:col-span-7">
+          <Panel title="No benchmark runs exist">
+            <p className="max-w-[65ch] text-sm text-text-primary">
+              No run contract and no run artifact exist. This page carries no numbers at all —
+              synthetic figures presented as results would be a lie with good typography.
+            </p>
+            <p className="mt-2 max-w-[65ch] text-sm text-text-secondary">
+              A run appears only after the benchmark harness executes against real destination
+              sandboxes and produces sealed artifacts. Until then, this surface stays an honest
+              null: its most prominent statement is that there is nothing to show.
+            </p>
+            <p className="mt-3 border-t border-border-subtle pt-2 text-sm text-text-secondary">
+              The negative/null-result commitment is binding: if the runs falsify the design,
+              this page reports that with the same prominence a success would get.
+            </p>
+          </Panel>
+        </div>
+        <div className="flex min-w-0 flex-col gap-4 min-[1024px]:col-span-5">
+          <Panel title="Prerequisites, in order">
+            <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-sm text-text-primary">
+              <li>Ratified run/cell/validity/metric schemas (statistical repair pending).</li>
+              <li>A preregistration-stamped protocol with the holdout split sealed.</li>
+              <li>
+                At least one full fault × effect-class matrix run with retained artifacts.
+              </li>
+            </ol>
+          </Panel>
+          <Panel title="Methodology & falsification sources">
+            <ul className="flex flex-col gap-1 text-sm text-text-secondary">
+              <li>
+                <span className="font-mono text-xs">docs/benchmark-preregistration.md</span> —
+                DRAFT methodology, holdout and artifact policy
+              </li>
+              <li>
+                <span className="font-mono text-xs">docs/master-doc.md §8</span> — benchmark
+                design, baseline ladder, kill criterion
+              </li>
+            </ul>
+            <p className="mt-2 border-t border-border-subtle pt-2 text-2xs text-text-tertiary">
+              These are repository documents; the workbench cites them by path rather than
+              fetching anything remote.
+            </p>
+          </Panel>
+        </div>
       </div>
     </Page>
   );

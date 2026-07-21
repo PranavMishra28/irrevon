@@ -10,6 +10,7 @@ import {
 import {
   ConceptualArchitecture,
   DistributionModule,
+  DoctorSummaryGrid,
   ModuleError,
   ModuleSkeleton,
   PartialSnapshotNotice,
@@ -191,24 +192,7 @@ function OverviewPage() {
             <ModuleError title="Doctor transcript" message={doctor.error.message} />
           ) : doctorSummary ? (
             <Panel title="Doctor transcript" meta={`${doctor.data.checks.length} checks`}>
-              <dl className="grid grid-cols-3 gap-2">
-                {(["ok", "warn", "fail"] as const).map((status) => (
-                  <div key={status}>
-                    <dt className="font-mono text-2xs tracking-wide text-text-tertiary uppercase">
-                      {status}
-                    </dt>
-                    <dd className="tabular font-mono text-lg text-text-primary">
-                      {doctorSummary[status]}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-              {doctorSummary.other > 0 ? (
-                <p className="mt-1 font-mono text-2xs text-text-secondary">
-                  {doctorSummary.other} check(s) with an unrecognized status — shown verbatim on
-                  Health.
-                </p>
-              ) : null}
+              <DoctorSummaryGrid summary={doctorSummary} />
               <p className="mt-2 border-t border-border-subtle pt-2 text-2xs text-text-tertiary">
                 A recorded transcript of <span className="font-mono">detent doctor</span> — not
                 live telemetry.{" "}

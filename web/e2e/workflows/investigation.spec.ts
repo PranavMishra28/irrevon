@@ -188,9 +188,10 @@ test.describe("demo playback", () => {
     await expect(summary.getByRole("cell", { name: "1", exact: true })).toBeVisible();
     await expect(summary.getByRole("cell", { name: "2", exact: true })).toBeVisible();
 
-    // Handoff: deep link into the retained effect.
+    // Handoff: deep link into the retained effect, preserving a graph node.
     await page.getByRole("link", { name: /Inspect the retained effect/ }).click();
-    await expect(page).toHaveURL(new RegExp(`/effects/${FLAGSHIP}$`));
+    await expect(page).toHaveURL(new RegExp(`/effects/${FLAGSHIP}`));
+    await expect(page).toHaveURL(/selected=/);
   });
 
   test("previous and restart controls work; no autoplay on load", async ({ page }) => {

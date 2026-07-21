@@ -218,6 +218,33 @@ export function ConceptualArchitecture() {
   );
 }
 
+/** Exact ok/warn/fail numerals over a doctor transcript — never telemetry. */
+export function DoctorSummaryGrid({
+  summary,
+}: {
+  summary: { ok: number; warn: number; fail: number; other: number };
+}) {
+  return (
+    <>
+      <dl className="grid grid-cols-3 gap-2">
+        {(["ok", "warn", "fail"] as const).map((status) => (
+          <div key={status}>
+            <dt className="font-mono text-2xs tracking-wide text-text-tertiary uppercase">
+              {status}
+            </dt>
+            <dd className="tabular font-mono text-lg text-text-primary">{summary[status]}</dd>
+          </div>
+        ))}
+      </dl>
+      {summary.other > 0 ? (
+        <p className="mt-1.5 font-mono text-2xs text-text-secondary">
+          {summary.other} check(s) carry an unrecognized status — listed verbatim.
+        </p>
+      ) : null}
+    </>
+  );
+}
+
 export function SourceFreshnessBar({ children }: { children: ReactNode }) {
   return (
     <section
