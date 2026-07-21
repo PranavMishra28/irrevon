@@ -6,14 +6,18 @@ an effect and no build of this app can mutate anything.
 
 Contract: `.scratch/rc/frontend/BRIEF.md` (reconciled implementation brief).
 
-Status: shell, tokens, palette, keyboard contract, Learn pages, and the status taxonomy
-are implemented. Types and enums generate from the post-integration contracts on
-`rc/v0.1`: the two ratified JSON Schemas plus the RFC-002 §3 canonical state tables /
-§2.2 DDL closed sets (`pnpm codegen`, committed output, drift-gated, source hashes pinned
-in `contracts/schema-pins.json`). Every surface that needs the EffectRecord /
-DispatchReceipt / ReconciliationFinding / Q-envelope / demo-artifact / health schemas
-renders an honest contract-pending state: ADR-0019 defers those record schemas to the M3
-admission ADR, and this app does not invent parallel contracts.
+Status: all six BRIEF slices are implemented against the implemented engine on `rc/v0.1`.
+Types generate from the five admitted JSON Schemas plus the RFC-002 §3 canonical state
+tables (`pnpm codegen`, committed, drift-gated, SHA-256-pinned in
+`contracts/schema-pins.json`). The canonical fixtures are **captured transcripts of the
+real engine** (`scripts/capture-fixtures.py`, seed 777; commit + derivations recorded in
+`fixtures/canonical/provenance.json`): Q1/Q2 exchange envelopes, verbatim
+`detent inspect --json` payloads (the flagship one from the real SIGKILL demo database),
+the `detent doctor --json` transcript, the demo JSONL artifact, and the loaded capability
+declaration — schema-validated at capture, drift-gated by `fixtures/manifest.sha256`.
+Still honestly absent: benchmark run schemas (BI-7 → Bench keeps its no-runs state),
+live mode (BI-4 → the read server is deferred to the `serve` workstream), and evidence
+bundles beyond digests (redaction pipeline pending → digest-only by policy).
 
 ## Working on it
 
