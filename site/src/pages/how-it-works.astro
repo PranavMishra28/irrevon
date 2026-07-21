@@ -1,0 +1,330 @@
+---
+import Base from "../layouts/Base.astro";
+import Badge from "../components/Badge.astro";
+import Source from "../components/Source.astro";
+import DemoTranscript from "../components/DemoTranscript.astro";
+import { SITE_NAME } from "../config";
+
+const priorArt = [
+  { primitive: "Effect ledger / persist-before-dispatch", art: "Transactional outbox pattern (established)" },
+  { primitive: "Idempotency keys", art: "Stripe, Kafka EOS, Hookdeck" },
+  { primitive: "Compensation", art: "Saga pattern; SagaLLM" },
+  { primitive: "Durable execution", art: "Temporal, DBOS, Restate, Inngest (exactly-once on own state only)" },
+  { primitive: "Staged commit / effect containment for agents", art: "Cordon (2606.17573), Atomix (2602.14849) — academic" },
+  { primitive: "Record-and-replay-or-fork", art: "ACRFence (2603.20625) — security framing" },
+  { primitive: "Bi-temporal ledger + reconciliation", art: "Formance; Modern Treasury" },
+  { primitive: "Local agent dedup + receipts", art: "rune0-dev/agent-ledger; azender1/SafeAgent" },
+];
+---
+
+<Base
+  title={`How it works — ${SITE_NAME}`}
+  description="Stable identity, persist-before-dispatch, reconcile-by-query: the mechanism, the three-dimensional state model, and the C1/C2/C3 guarantee boundaries — including what cannot be guaranteed."
+>
+  <section class="section">
+    <div class="container">
+      <span class="kicker">How it works</span>
+      <h1>The retry that isn’t identical</h1>
+      <div class="prose lead" style="margin-top: 18px;">
+        <p>
+          Classic distributed systems assume a deterministic caller: if a request is retried, the same bytes
+          are resent, so argument hashes and caller-supplied idempotency keys hold. An LLM agent breaks that
+          assumption — it regenerates the request itself.
+        </p>
+        <p>
+          Under temperature 0, floating-point nondeterminism yields different token sequences on retry; the
+          re-synthesized tool call carries a different reference ID and the destination treats it as new.
+          That defeats idempotency keys, recorded-nondeterminism, and deterministic orchestrators — all of
+          which assume the caller resends an identical request. A survey of 12 agent frameworks found none
+          enforce exactly-once at the tool boundary, and duplicate-execution issues are documented in LangGraph
+          and CrewAI in production.
+        </p>
+      </div>
+      <div style="margin-top: 14px;">
+        <Source id="resynthesis-defeats-keys" also={["framework-duplicate-issues"]} />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">The insight</span>
+        <h2>Identity must come from upstream business facts</h2>
+      </div>
+      <div class="grid-2" style="align-items: start;">
+        <pre><code>intent_id    = hash(stable business ids
+               + effect_type + scope)
+operation_id = (intent_id, step)
+
+idempotency evidence derives ONLY
+from operation_id — no key-derivation
+path reads model output.</code></pre>
+        <div class="prose">
+          <p>
+            Effect identity derives from an explicit intent contract keyed on stable upstream identifiers —
+            <code>order_id</code>, <code>invoice_id</code>, <code>approved_task_id</code>,
+            <code>authorization_id</code>. When the model re-synthesizes different arguments for the same
+            intent, the identity is unchanged, so the retry collapses onto the same record and the divergent
+            parameters are kept as evidence for the denial.
+          </p>
+          <p>
+            Semantic or embedding similarity may <em>flag</em> suspected duplicates for review, but never
+            merges or blocks on its own. The “no model output in key derivation” rule is a conformance test,
+            not a convention.
+          </p>
+          <Source id="identity-stable-ids" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">The state model</span>
+        <h2>Three orthogonal dimensions, because one machine can’t say “orphan”</h2>
+        <div class="badge-row"><Badge kind="conceptual" /></div>
+      </div>
+      <div class="grid-3">
+        <article class="panel-subtle dim">
+          <span class="dim-key">A</span>
+          <h3>Execution lifecycle</h3>
+          <p class="dim-flow">
+            INTENDED → PERSISTED → DISPATCHED → SETTLED_COMMITTED | SETTLED_FAILED | AMBIGUOUS (→ settled on
+            adjudication); CANCELLED pre-dispatch.
+          </p>
+        </article>
+        <article class="panel-subtle dim">
+          <span class="dim-key">B</span>
+          <h3>Reconciliation classification</h3>
+          <p class="dim-flow">
+            UNRECONCILED · CONFIRMED_UNIQUE · DUPLICATE · LOST · ORPHANED — an orphan is representable only as
+            a finding, because a ledger-keyed state machine cannot express a destination effect with no ledger
+            record.
+          </p>
+        </article>
+        <article class="panel-subtle dim">
+          <span class="dim-key">C</span>
+          <h3>Resolution status</h3>
+          <p class="dim-flow">
+            OPEN → COMPENSATED | REDISPATCHED (fresh authority + new idempotency evidence only) |
+            ACCEPTED_AS_IS | ESCALATED_HUMAN → CLOSED.
+          </p>
+        </article>
+      </div>
+      <p class="prose" style="margin-top: 20px;">
+        The three dimensions are deliberately never collapsed into one status color or one flat machine: an
+        effect can be lifecycle-settled and classification-contested at once, and the record keeps both facts.
+        This rendering is conceptual; the canonical, exhaustively tested state tables live in RFC-002 §3.
+      </p>
+      <div style="margin-top: 12px;">
+        <Source id="state-model" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">The ambiguous case, end to end</span>
+        <h2>Crash, recover, adjudicate — then deny the duplicate with evidence</h2>
+        <p class="lead">
+          This is the sequence from master doc §7.4, retold by the recorded artifact: response lost, process
+          killed, ledger replayed, destination queried <em>before</em> any redispatch, and the re-synthesized
+          retry collapsed onto the same identity.
+        </p>
+      </div>
+      <DemoTranscript heading="Recorded sequence (seed 777)" />
+      <div class="panel" style="margin-top: 24px;">
+        <h3>The recovery rule</h3>
+        <p class="prose" style="margin-top: 8px;">
+          On restart, replay the ledger; every DISPATCHED or AMBIGUOUS record is adjudicated via
+          reconciliation <strong>before</strong> any new dispatch of the same operation. Re-dispatch requires
+          confirmed absence (C2) or in-window replay (C1), plus fresh authority.
+          <strong>Never re-dispatch on belief.</strong>
+        </p>
+        <div style="margin-top: 10px;"><Source id="recovery-adjudicate" /></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Guarantee boundaries</span>
+        <h2>What each destination class makes possible — and impossible</h2>
+        <p class="lead">
+          Guarantees are destination-tiered, and the table is rendered whole: the expected C1 null and the C3
+          impossibility boundary are as load-bearing as the C2 claim.
+        </p>
+      </div>
+      <div class="table-wrap">
+        <p class="table-scroll-hint">Scroll table horizontally</p>
+        <table>
+          <caption class="sr-only">Destination capability tiers and guarantee boundaries</caption>
+          <thead>
+            <tr>
+              <th scope="col">Tier</th>
+              <th scope="col">Destination property</th>
+              <th scope="col">Duplicates</th>
+              <th scope="col">Lost / orphans</th>
+              <th scope="col">Example APIs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>C1</strong> idempotency-keyed</td>
+              <td>Accepts caller key with defined replay window</td>
+              <td>
+                <strong>PREVENTED</strong> within window (native — {SITE_NAME} adds no advantage: <strong>the expected null</strong>)
+              </td>
+              <td>Detected via receipts + query</td>
+              <td>Stripe; QuickBooks Online (RequestId)</td>
+            </tr>
+            <tr>
+              <td><strong>C2</strong> queryable</td>
+              <td>Stable external refs; list/status query, no dependable native idempotency</td>
+              <td><strong>DETECTED</strong> via query; safe re-dispatch after confirmed absence</td>
+              <td>Detected via sweep; LOST provable</td>
+              <td>Amadeus Flight Create Orders; Twilio Messages; EasyPost/Shippo shipments; Shopify orderCreate</td>
+            </tr>
+            <tr>
+              <td><strong>C3</strong> opaque</td>
+              <td>No key, no query, no stable ID</td>
+              <td>Client-side dedup of identical ops only</td>
+              <td><strong>UNDETECTABLE</strong> — impossibility boundary, demonstrated openly</td>
+              <td>Fire-and-forget notifications</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 14px;">
+        <Source id="tiers-table" />
+      </div>
+
+      <div class="grid-3" style="margin-top: 28px;">
+        <article class="panel cannot">
+          <h3>Non-guarantee</h3>
+          <p>
+            No universal exactly-once (Two Generals / FLP). At-least-once delivery plus idempotent or
+            reconciled processing is the achievable target.
+          </p>
+          <Source id="no-exactly-once" />
+        </article>
+        <article class="panel cannot">
+          <h3>Non-guarantee</h3>
+          <p>
+            True rollback of an externalized irreversible effect is impossible; compensation is a new effect
+            with its own failure modes, measured never assumed.
+          </p>
+          <Source id="compensation-not-rollback" />
+        </article>
+        <article class="panel cannot">
+          <h3>Non-guarantee</h3>
+          <p>
+            Reconciliation cannot recover information the destination never exposes. The benchmark must show
+            every method failing at C3.
+          </p>
+          <Source id="tiers-table" />
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Prior art, credited</span>
+        <h2>None of the primitives are new. The combination and its measurement are.</h2>
+        <p class="lead">
+          {SITE_NAME} did not invent the outbox pattern, idempotency keys, sagas, or durable execution. What is
+          defensibly new — narrowed on the record as adjacent work appeared — is a preregistered fault-injection
+          benchmark against real production API contracts with a destination read-back oracle, and
+          reconciliation keyed on the destination’s authoritative-status query for C2.
+        </p>
+      </div>
+      <div class="table-wrap">
+        <p class="table-scroll-hint">Scroll table horizontally</p>
+        <table>
+          <thead>
+            <tr><th scope="col">Primitive</th><th scope="col">Prior art</th></tr>
+          </thead>
+          <tbody>
+            {
+              priorArt.map((row) => (
+                <tr>
+                  <td>
+                    <strong>{row.primitive}</strong>
+                  </td>
+                  <td>{row.art}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 14px;">
+        <Source id="prior-art-credited" also={["novelty-boundary"]} />
+      </div>
+
+      <div class="panel" style="margin-top: 28px;">
+        <h3>The honest counter-evidence, on this page</h3>
+        <p class="prose" style="margin-top: 8px;">
+          Irreversible actions are rare as a share of agent traffic: about 0.8% of nearly a million sampled
+          tool calls, per Anthropic’s February 2026 measurement (model-classified estimates, with the caveat
+          on the record). This is a high-severity, low-frequency problem — which is why {SITE_NAME} is a
+          reliability contribution and a benchmark, not a metered platform. If you need one of those, this
+          isn’t it.
+        </p>
+        <div style="margin-top: 10px;"><Source id="anthropic-low-frequency" /></div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .dim {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+  }
+  .dim-key {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: var(--site-text-small);
+    color: var(--ref-accent);
+    border: 1px solid var(--ref-border);
+    border-radius: 2px;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dim-flow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.7;
+    color: var(--ref-ink-2);
+  }
+  .cannot {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+  }
+  .cannot p {
+    color: var(--ref-ink-2);
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
