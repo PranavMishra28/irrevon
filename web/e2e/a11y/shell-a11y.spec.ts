@@ -1,7 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-const HEX64 = "c0ffee".padEnd(64, "0");
+const FLAGSHIP = "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5";
+const MISSING = "f".repeat(64);
 
 const ROUTES = [
   "/learn/start",
@@ -9,7 +10,9 @@ const ROUTES = [
   "/learn/state",
   "/learn/tiers",
   "/effects",
-  `/effects/${HEX64}`,
+  "/effects?lifecycle=AMBIGUOUS",
+  `/effects/${FLAGSHIP}`,
+  `/effects/${MISSING}`,
   "/demo",
   "/health",
   "/attention",

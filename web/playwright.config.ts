@@ -34,7 +34,11 @@ export default defineConfig({
       name: "e2e",
       testDir: "./e2e/workflows",
       retries: 1,
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        // Copy-to-clipboard affordances are part of the keyboard contract.
+        contextOptions: { permissions: ["clipboard-read", "clipboard-write"] },
+      },
     },
     {
       name: "a11y",

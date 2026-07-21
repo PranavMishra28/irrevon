@@ -4,15 +4,19 @@ import { expect, test } from "@playwright/test";
  * VRT baselines are authoritative only from the pinned Linux container
  * (make web-vrt). The project is skipped outside it via playwright.config.ts.
  */
-const HEX64 = "c0ffee".padEnd(64, "0");
+const FLAGSHIP = "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5";
 
 const SCREENS = [
   ["learn-start", "/learn/start"],
   ["learn-identity", "/learn/identity"],
   ["learn-state", "/learn/state"],
   ["learn-tiers", "/learn/tiers"],
-  ["effects-pending", "/effects"],
-  ["effect-detail-frame", `/effects/${HEX64}`],
+  ["effects-grid", "/effects"],
+  ["effects-filtered", "/effects?lifecycle=AMBIGUOUS"],
+  ["effect-detail", `/effects/${FLAGSHIP}`],
+  ["findings", "/findings"],
+  ["adapters", "/adapters"],
+  ["demo-start", "/demo"],
   ["health", "/health"],
   ["bench-no-runs", "/bench"],
   ["taxonomy", "/taxonomy"],

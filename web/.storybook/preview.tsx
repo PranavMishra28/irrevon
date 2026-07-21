@@ -1,4 +1,5 @@
 import type { Decorator, Preview } from "@storybook/react-vite";
+import { LiveRegionProvider } from "../src/shared/ui/layout/live-regions";
 import "../src/styles.css";
 
 /**
@@ -12,7 +13,7 @@ const withThemeAndDensity: Decorator = (Story, context) => {
   document.documentElement.setAttribute("data-theme", theme);
   document.documentElement.setAttribute("data-density", density);
   document.body.style.backgroundColor = "var(--color-canvas)";
-  return Story();
+  return <LiveRegionProvider>{Story()}</LiveRegionProvider>;
 };
 
 const preview: Preview = {

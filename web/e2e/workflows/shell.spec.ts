@@ -27,10 +27,10 @@ test.describe("shell", () => {
     expect(external).toEqual([]);
   });
 
-  test("virgin landing redirects to Start Here", async ({ page }) => {
+  test("landing goes to Effects (populated fixture ledger)", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveURL(/\/learn\/start$/);
-    await expect(page.getByRole("heading", { name: "Start here" })).toBeVisible();
+    await expect(page).toHaveURL(/\/effects$/);
+    await expect(page.getByRole("heading", { name: "Effects" })).toBeVisible();
   });
 
   test("fixture banner is permanent in mock builds", async ({ page }) => {
