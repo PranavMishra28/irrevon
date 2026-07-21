@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "permissions": {
+    "deny": [
+      "Read(.env*)",
+      "Read(**/.env*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(.tripwords)",
+      "Write(.env*)",
+      "Write(**/.env*)",
+      "Write(**/*.pem)",
+      "Write(**/*.key)",
+      "Write(docs/master-doc.md)",
+      "Write(scripts/master-doc.sha256)",
+      "Shell(gh:repo edit*)",
+      "Shell(gh:repo delete*)",
+      "Shell(gh:repo transfer*)",
+      "Shell(gh:repo archive*)",
+      "Shell(gh:secret*)",
+      "Shell(gh:release*)",
+      "Shell(git:push --force*)",
+      "Shell(git:push -f*)",
+      "Shell(git:filter-branch*)",
+      "Shell(npm:publish*)",
+      "Shell(twine)",
+      "Shell(cargo:publish*)"
+    ]
+  }
+}

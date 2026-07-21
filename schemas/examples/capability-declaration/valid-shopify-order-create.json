@@ -1,0 +1,22 @@
+{
+  "adapter": "shopify-admin-graphql",
+  "destination": "Shopify Admin GraphQL orderCreate (development store)",
+  "api_version": "admin-graphql latest (exact version pin at the ADR-0012 spike)",
+  "tier": "C2",
+  "idempotency": {
+    "supported": false,
+    "replay_semantics": "orderCreate is absent from the published @idempotent directive support list (updated 2026-02-02); retries create new orders"
+  },
+  "queryable": {
+    "supported": true,
+    "by": ["destination_ref", "client_ref"]
+  },
+  "client_ref_field": "note_attributes",
+  "list_queryable": true,
+  "compensation_hook": "orderCancel",
+  "citations": [
+    "https://shopify.dev/docs/api/admin-graphql/latest/mutations/orderCreate",
+    "https://shopify.dev/docs/api/usage/implementing-idempotency"
+  ],
+  "evidence_quality": "VF"
+}

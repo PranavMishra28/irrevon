@@ -1,0 +1,8 @@
+{
+  "stable_ids": {},
+  "effect_type": "order.create",
+  "effect_class": "IRREVERSIBLE",
+  "scope": "customer:cust_771",
+  "authority_ref": "auth_approved_task_18",
+  "stamped_at": "2026-07-20T18:04:11Z"
+}

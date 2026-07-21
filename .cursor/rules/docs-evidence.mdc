@@ -1,0 +1,22 @@
+---
+description: Evidence and editing discipline for files under docs/
+globs: docs/**
+alwaysApply: false
+---
+
+# Docs evidence discipline
+
+- Label claims with the master doc's epistemic markers: `[VF]` verified fact (cite the
+  primary source), `[EI]` evidence-backed inference, `[TH]` testable hypothesis, `[DD]`
+  design decision, `[OQ]` unresolved open question. An unlabeled claim reads as a design
+  decision — do not leave verified facts or open questions unlabeled.
+- Cite primary sources (official docs, papers, vendor pages), not aggregators. If you could
+  not verify something against a primary source, say so explicitly and mark it `[OQ]` or add
+  it to `docs/review-queue.md` section 2 — never present it as settled.
+- Negative results and dead ends are recorded, not deleted: they go to
+  `docs/review-queue.md` section 2.
+- `docs/master-doc.md` is byte-identical and hash-pinned. If it appears wrong or stale,
+  propose an amendment in `docs/review-queue.md` section 1 (source + proposed change +
+  status PROPOSED). Only a human ratifies amendments and re-pins the hash.
+- Use relative links (with `#fragments` where useful); `make links` checks them offline.
+  When you rename a heading, fix every inbound fragment link in the same change.

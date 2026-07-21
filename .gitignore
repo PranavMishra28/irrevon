@@ -1,0 +1,42 @@
+# ── Secrets & credentials — never commit ─────────────────────
+.env
+.env.*
+!.env.example
+*.envrc
+.direnv/
+*.pem
+*.key
+*.p12
+*.pfx
+*.der
+*.crt
+id_rsa*
+id_ed25519*
+credentials*.json
+client_secret*.json
+service-account*.json
+token*.json
+*.tfvars
+secrets.*
+*.secret
+.netrc
+.pypirc
+gitleaks-report*.json
+
+# ── Local-only working material — never commit ───────────────
+.scratch/
+.tripwords
+
+# ── OS / editor junk ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# ── Toolchain artifacts ───────────────────────────────────────
+node_modules/
+__pycache__/
+*.pyc
+.venv/

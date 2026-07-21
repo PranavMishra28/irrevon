@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      { "command": "bash ./.cursor/hooks/deny.sh", "failClosed": true }
+    ],
+    "beforeReadFile": [
+      { "command": "bash ./.cursor/hooks/deny.sh", "failClosed": true }
+    ]
+  }
+}

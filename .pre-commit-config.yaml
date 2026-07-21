@@ -1,0 +1,8 @@
+# Pre-commit hooks: secret scan on every commit (master doc §9 mandates pre-commit
+# secret scanning). Install once with: pre-commit install
+# Never bypass with --no-verify or SKIP=gitleaks (see AGENTS.md hard prohibitions).
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks

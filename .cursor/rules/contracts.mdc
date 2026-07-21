@@ -1,0 +1,28 @@
+---
+description: Change discipline for JSON Schemas and Architecture Decision Records
+globs: schemas/**,docs/decisions/**
+alwaysApply: false
+---
+
+# Contracts and decisions discipline
+
+Schemas (`schemas/`):
+
+- Schemas define the trust boundary (master doc §6.3). Changing a schema's shape, enums,
+  or required fields needs an ADR first (§12.5) — extending examples does not.
+- Dialect is JSON Schema 2020-12; one schema resource per file; `$id` values are
+  placeholder URIs until the name screen closes (see schemas/README.md).
+- Every schema keeps both example suites honest: `valid-*.json` must pass, `invalid-*.json`
+  must fail. If a change flips an example's status, that is a shape change — ADR first.
+- Never add fields sourced from a proposed-but-unratified amendment as if settled; mark
+  them with a `$comment` naming the amendment.
+
+ADRs (`docs/decisions/`):
+
+- Follow the template and numbering in `docs/decisions/README.md`. Take the next free id;
+  never reuse one (`make integrity` enforces uniqueness).
+- Accepted ADRs are append-only: to change a decision, write a new ADR that supersedes it
+  and update only the old ADR's status line and the index.
+- Filling in an OPEN ADR's decision and flipping its status to accepted is the one
+  sanctioned in-place edit — and it is human-only. Agents propose text; humans ratify.
+- Every ADR needs a concrete, observable reopen trigger.

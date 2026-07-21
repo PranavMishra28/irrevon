@@ -1,0 +1,26 @@
+---
+description: Integrity rules for the benchmark preregistration and future benchmark artifacts
+globs: docs/benchmark-preregistration.md
+alwaysApply: false
+---
+
+# Benchmark integrity
+
+The preregistration's credibility is the project's most reputation-critical asset
+(master doc §8.1). These rules exist so no agent can quietly damage it.
+
+- The document is currently **DRAFT**. Sections later marked **FROZEN** are never edited —
+  not for typos, not for formatting. Changes to frozen content happen only as numbered,
+  append-only amendments per the document's §0 policy, and freezing itself is a human act
+  (signed tag + external timestamp).
+- **Never weaken a baseline** or its configuration so the proposed system wins (§8.3). The
+  strongest baselines (B5 and the composite B5+B3+B6) must stay the primary comparison.
+- **Never touch the falsification criterion** (§8.6-derived) except via a review-queue
+  amendment. The pre-committed null on C1 is reported as prominently as any win.
+- INVALID-run rules are fixed pre-run; INVALID runs are retained and marked, never deleted,
+  and INVALID is never used as a post-hoc exclusion lever.
+- The private held-out fault-seed split never enters this repository, agent context, or any
+  committed file — only its commitment hash does (see the holdout section of the
+  preregistration).
+
+This rule's glob grows to cover fixture/result directories when they exist (M5+).

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://detent.invalid/schemas/intent-contract.schema.json",
+  "$comment": "draft — see ADR-0015. $id host is a placeholder identifier (not a locator) pending the name screen (master doc §13). Shape changes require an ADR.",
+  "title": "Intent contract",
+  "description": "The validated input to registerIntent — the ONLY channel through which model-generated content reaches the deterministic core (master doc §6.3, §7.2, §7.3). Identity derives exclusively from stable_ids + effect_type + scope; the contract carries NO model-output-derived fields, and additionalProperties is closed to keep it that way.",
+  "type": "object",
+  "properties": {
+    "stable_ids": {
+      "description": "Stable upstream business identifiers keyed by identifier type (e.g. order_id, invoice_id, approved_task_id, workflow_command_id, authorization_id). At least one is required — the Intent Registrar rejects intents lacking a stable identifier (§6.1).",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "effect_type": {
+      "description": "Destination-facing effect type, e.g. 'order.create'.",
+      "type": "string",
+      "minLength": 1
+    },
+    "effect_class": {
+      "description": "Reversibility class (master doc §7.3).",
+      "enum": ["IDEMPOTENT", "REVERSIBLE", "COMPENSABLE", "IRREVERSIBLE"]
+    },
+    "scope": {
+      "description": "Serialization scope: one in-flight dispatch per (scope, effect_type) (§7.4.3).",
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_ref": {
+      "description": "Reference to the upstream authorization for this effect; freshness/binding is checked deterministically at the commit gate (§7.4.4).",
+      "type": "string",
+      "minLength": 1
+    },
+    "stamped_at": {
+      "description": "When the authority was stamped (RFC 3339).",
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["stable_ids", "effect_type", "effect_class", "scope", "authority_ref", "stamped_at"],
+  "additionalProperties": false
+}

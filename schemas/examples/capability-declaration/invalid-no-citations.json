@@ -1,0 +1,12 @@
+{
+  "adapter": "example-adapter",
+  "destination": "Uncited Destination API",
+  "api_version": "v1",
+  "tier": "C2",
+  "idempotency": { "supported": false },
+  "queryable": { "supported": true, "by": ["destination_ref"] },
+  "client_ref_field": null,
+  "list_queryable": false,
+  "citations": [],
+  "evidence_quality": "EI"
+}

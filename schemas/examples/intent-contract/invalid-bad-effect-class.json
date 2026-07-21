@@ -1,0 +1,10 @@
+{
+  "stable_ids": {
+    "order_id": "ord_9410"
+  },
+  "effect_type": "order.create",
+  "effect_class": "UNDOABLE",
+  "scope": "customer:cust_771",
+  "authority_ref": "auth_approved_task_18",
+  "stamped_at": "2026-07-20T18:04:11Z"
+}

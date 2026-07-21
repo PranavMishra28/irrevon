@@ -1,0 +1,21 @@
+{
+  "adapter": "easypost-rest",
+  "destination": "EasyPost Shipments (test mode)",
+  "api_version": "v2",
+  "tier": "C2",
+  "idempotency": {
+    "supported": false,
+    "replay_semantics": "no caller-supplied idempotency documented anywhere in the API docs (full-doc scan; only webhook-handler idempotency is discussed)"
+  },
+  "queryable": {
+    "supported": true,
+    "by": ["destination_ref", "client_ref"]
+  },
+  "client_ref_field": "reference",
+  "list_queryable": true,
+  "compensation_hook": null,
+  "citations": [
+    "https://docs.easypost.com/"
+  ],
+  "evidence_quality": "VF"
+}

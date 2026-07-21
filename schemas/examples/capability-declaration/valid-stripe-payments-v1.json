@@ -1,0 +1,23 @@
+{
+  "adapter": "stripe-rest",
+  "destination": "Stripe payments-namespace endpoints (test mode)",
+  "api_version": "v1 (exact version pin pending ADR-0010)",
+  "tier": "C1",
+  "idempotency": {
+    "supported": true,
+    "window": "24h",
+    "replay_semantics": "first response cached and replayed, including errors; same key with different params returns an error"
+  },
+  "queryable": {
+    "supported": true,
+    "by": ["destination_ref"]
+  },
+  "client_ref_field": "metadata",
+  "list_queryable": true,
+  "compensation_hook": "refund",
+  "citations": [
+    "https://docs.stripe.com/api/idempotent_requests",
+    "https://docs.stripe.com/error-low-level"
+  ],
+  "evidence_quality": "VF"
+}
