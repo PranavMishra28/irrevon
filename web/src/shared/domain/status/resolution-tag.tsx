@@ -27,7 +27,7 @@ export function ResolutionTag({ value }: { value: ResolutionStatus | (string & {
     <span
       className={
         "inline-flex h-5 items-center gap-1 rounded-(--radius-structural) border border-border-subtle " +
-        "bg-surface-2 py-0 pr-1.5 pl-0 text-text-primary"
+        "bg-layer-sunken py-0 pr-1.5 pl-0 text-text-primary"
       }
     >
       <span className="sr-only">Resolution: {humanize(value)}</span>

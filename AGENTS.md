@@ -27,7 +27,8 @@ instead of restating it.
 | Engine design: state tables, ledger, reconciliation mechanics | [docs/rfc-002-engine-design.md](docs/rfc-002-engine-design.md) |
 | Benchmark plan (DRAFT), holdout + artifact policy | [docs/benchmark-preregistration.md](docs/benchmark-preregistration.md) |
 | CI: workflow map, tiers, owner settings checklist | [docs/ci.md](docs/ci.md) (workflows in `.github/workflows/`; every job body is one `make` target) |
-| Workbench frontend (fixture-backed, read-only) | `web/` — see [web/README.md](web/README.md); stack per [ADR-0016](docs/decisions/0016-frontend-workbench-stack.md), gates `make web-check` / `web-test` |
+| Workbench frontend (fixture-backed, read-only; v0.2 redesign: Overview at `/`, causal graph, responsive shell) | `web/` — see [web/README.md](web/README.md); stack per [ADR-0016](docs/decisions/0016-frontend-workbench-stack.md), gates `make web-check` / `web-test` (pixel gate `make web-vrt`, container-only) |
+| Marketing site (built + gated; deploy human-only, dispatch-only workflow) | `site/` — see [site/README.md](site/README.md); ADR proposed (review-queue §3 item 20), gates `make site-check` / `site-build` / `site-test` |
 | Machine-readable contracts + what is deferred | [schemas/README.md](schemas/README.md) |
 | Engine implementation (first slice) | `src/detent/` — module boundaries per [RFC-002 §14](docs/rfc-002-engine-design.md); the ratified state tables are encoded ONCE in `src/detent/statetable.py` (generated-from, never hand-copied) |
 | Ledger schema + locked transition functions | [migrations/](migrations/) (plain SQL per ADR-0013; runner ADR-0022) |

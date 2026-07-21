@@ -1,0 +1,165 @@
+---
+// The seed-777 flagship demo transcript, rendered as styled mono text
+// (copyable, accessible, honest — RD5 §5.3). Every value below is verbatim
+// from web/fixtures/canonical/demo-artifact.json; nothing is dramatized.
+import Badge from "./Badge.astro";
+import Source from "./Source.astro";
+
+interface Props {
+  /** Compact hides the per-event detail column at narrow widths. */
+  heading?: string;
+}
+const { heading = "The recorded run" } = Astro.props;
+
+const effectId = "0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5";
+const effectShort = `${effectId.slice(0, 12)}…`;
+
+const detentLeg = [
+  { event: "registered", detail: `effect ${effectShort} · lifecycle PERSISTED` },
+  { event: "dispatch_response_lost", detail: "fault response_lost · lifecycle AMBIGUOUS" },
+  { event: "crash", detail: "exit_status -9 (SIGKILL, mid-run)" },
+  { event: "recovered", detail: "restart · scanned 1 · adjudicated 1 — before any redispatch" },
+  { event: "settled_confirmed_unique", detail: "SETTLED_COMMITTED · CONFIRMED_UNIQUE (destination queried)" },
+  { event: "resynthesis_collapsed", detail: "replayed true · parameter_variant sha256:074abd63…98c2cd" },
+  { event: "duplicate_rejected", detail: "outcome denied · deny_check dedup · decision_id 2" },
+];
+const b5Leg = [
+  { event: "b5_response_lost", detail: "transport_outcome LOST (identical fault schedule)" },
+  { event: "b5_restart", detail: "durable runtime restarts the workflow" },
+  { event: "b5_retried", detail: "retried wf-order-9410-activity-0 — key sent, destination ignores it" },
+  { event: "b5_duplicate", detail: "destination_effects 2" },
+];
+---
+
+<figure class="demo-figure">
+  <div class="demo-head">
+    <h3>{heading}</h3>
+    <div class="badge-row">
+      <Badge kind="recorded" />
+      <span class="mono-chip">seed 777</span>
+      <span class="mono-chip">engine a3dd583</span>
+      <span class="mono-chip">refdest-c2</span>
+    </div>
+  </div>
+
+  <div class="transcript" tabindex="0" role="group" aria-label="Recorded demo transcript, eleven events across two legs">
+    <ol>
+      <li class="t-lane"><span class="t-step" aria-hidden="true"></span><span class="t-event">— Detent leg —</span><span class="t-detail"></span></li>
+      {
+        detentLeg.map((e, i) => (
+          <li>
+            <span class="t-step">{i + 1}</span>
+            <span class="t-event">{e.event}</span>
+            <span class="t-detail">{e.detail}</span>
+          </li>
+        ))
+      }
+      <li class="t-seam t-lane">
+        <span class="t-step" aria-hidden="true"></span>
+        <span class="t-event">— B5 contrast leg —</span>
+        <span class="t-detail">strongest conventional baseline: durable runtime + stable op-IDs + idempotency keys</span>
+      </li>
+      {
+        b5Leg.map((e, i) => (
+          <li>
+            <span class="t-step">{i + 8}</span>
+            <span class="t-event">{e.event}</span>
+            <span class="t-detail">{e.detail}</span>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+
+  <div class="demo-outcome" role="group" aria-label="Recorded outcome">
+    <div class="outcome-cell">
+      <span class="outcome-label">Detent leg</span>
+      <span class="outcome-value">1 destination effect</span>
+      <span class="outcome-note">duplicate rejected · SETTLED_COMMITTED</span>
+    </div>
+    <div class="outcome-cell">
+      <span class="outcome-label">B5 leg</span>
+      <span class="outcome-value">2 destination effects</span>
+      <span class="outcome-note">duplicate created · same fault schedule</span>
+    </div>
+    <div class="outcome-cell">
+      <span class="outcome-label">contrast_holds</span>
+      <span class="outcome-value">true</span>
+      <span class="outcome-note">recorded in the artifact summary</span>
+    </div>
+  </div>
+
+  <figcaption>
+    Recorded from a real engine run (seed 777, engine commit <code>a3dd583</code>) against the reference C2
+    destination — queryable status, no honored idempotency. Not live, not production; reproducible from the
+    repository with <code>uv run detent demo</code>.
+  </figcaption>
+  <Source id="demo-sequence" also={["demo-contrast", "demo-provenance"]} />
+</figure>
+
+<style>
+  .demo-figure {
+    display: grid;
+    gap: 16px;
+  }
+  .demo-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .t-lane .t-event {
+    color: var(--ref-ink-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.6875rem;
+  }
+  .t-lane .t-detail {
+    color: var(--ref-ink-3);
+    font-size: 0.6875rem;
+  }
+  .demo-outcome {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid var(--ref-border);
+    border-radius: 2px;
+    background: var(--ref-layer-panel);
+  }
+  .outcome-cell {
+    display: grid;
+    gap: 4px;
+    padding: 16px 18px;
+    align-content: start;
+  }
+  .outcome-cell + .outcome-cell {
+    border-left: 1px solid var(--ref-border-subtle);
+  }
+  .outcome-label {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ref-ink-3);
+  }
+  .outcome-value {
+    font-weight: 600;
+    font-size: 1.0625rem;
+    color: var(--ref-ink-1);
+    font-variant-numeric: tabular-nums;
+  }
+  .outcome-note {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    color: var(--ref-ink-2);
+  }
+  @media (max-width: 720px) {
+    .demo-outcome {
+      grid-template-columns: 1fr;
+    }
+    .outcome-cell + .outcome-cell {
+      border-left: none;
+      border-top: 1px solid var(--ref-border-subtle);
+    }
+  }
+</style>

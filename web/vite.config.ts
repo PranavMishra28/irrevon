@@ -7,12 +7,17 @@ import { defineConfig, loadEnv, type Plugin } from "vite";
 
 /** The MSW worker lives in public/ for dev, but must never ship in a live build. */
 function stripMockWorker(dataMode: string): Plugin {
+  let outDir = "dist";
   return {
     name: "detent:strip-mock-worker",
     apply: "build",
+    configResolved(config) {
+      // Respect --outDir: a side build must never reach into another build's output.
+      outDir = config.build.outDir;
+    },
     async closeBundle() {
       if (dataMode !== "mock") {
-        await rm(join(import.meta.dirname, "dist", "mockServiceWorker.js"), { force: true });
+        await rm(join(import.meta.dirname, outDir, "mockServiceWorker.js"), { force: true });
       }
     },
   };

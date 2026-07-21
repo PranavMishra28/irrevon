@@ -52,7 +52,7 @@ function IdentityPage() {
                 aria-hidden
                 className={
                   "mt-0.5 flex size-7 shrink-0 items-center justify-center " +
-                  "rounded-full border border-border-strong bg-surface-1 " +
+                  "rounded-full border border-border-strong bg-layer-panel " +
                   "font-mono text-xs font-medium text-text-secondary"
                 }
               >
@@ -66,7 +66,7 @@ function IdentityPage() {
           ))}
         </ol>
 
-        <div className="mt-6 rounded-(--radius-structural) border border-border bg-surface-1 p-5">
+        <div className="mt-6 rounded-(--radius-structural) border border-border bg-layer-panel p-5">
           <h2 className="text-base font-semibold text-text-primary">
             Worked example — from the ratified request schema
           </h2>

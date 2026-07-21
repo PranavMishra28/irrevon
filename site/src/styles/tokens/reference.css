@@ -1,0 +1,177 @@
+/* VENDORED COPY — do not edit by hand.
+ * Source of truth: web/src/shared/ui/tokens/reference.css (Instrument Steel).
+ * Synced by site/scripts/sync-tokens.mjs; `--check` fails CI on drift.
+ * The trailing prefers-color-scheme block is GENERATED from the dark theme
+ * rules above it so no-JS readers get the complete dark theme. */
+
+/* Reference tokens — raw values only. Never consumed by feature code.
+   Deliberately outside @theme so no utility is generated for raw values. */
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Layer tier — six surface roles + one sunken well (REDESIGN-BRIEF §3.1).
+     Brighter toward the working face; the sunken well is the only
+     darker-than-canvas value and is not an elevation layer. */
+  --ref-layer-sunken: oklch(0.955 0.004 250);
+  --ref-canvas: oklch(0.975 0.003 250);
+  --ref-layer-nav: oklch(0.985 0.002 250);
+  --ref-layer-workspace: oklch(0.992 0.001 250);
+  --ref-layer-panel: oklch(1 0 0);
+  --ref-layer-object: oklch(1 0 0);
+  --ref-layer-overlay: oklch(1 0 0);
+
+  --ref-ink-1: oklch(0.25 0.015 255);
+  --ref-ink-2: oklch(0.43 0.012 255);
+  /* ink-3 darkened from the brief's 0.57 to 0.47 so tertiary text holds
+     4.5:1 on every surface up to --ref-selection (measured 4.43 at 0.51). */
+  --ref-ink-3: oklch(0.47 0.01 255);
+  --ref-ink-disabled: oklch(0.68 0.008 250);
+  --ref-ink-inverse: oklch(0.985 0.002 250);
+
+  --ref-border-subtle: oklch(0.91 0.004 250);
+  --ref-border: oklch(0.87 0.005 250);
+  --ref-border-strong: oklch(0.72 0.008 250);
+
+  /* Interaction chrome sits at h238 — 12° colder than status-blue h250, so
+     "interactive" never masquerades as "in-flight" (REDESIGN-BRIEF A2). */
+  --ref-accent: oklch(0.5 0.135 238);
+  --ref-accent-hover: oklch(0.44 0.145 238);
+  --ref-accent-active: oklch(0.4 0.15 238);
+  --ref-accent-bg: oklch(0.945 0.025 238);
+  --ref-accent-bg-strong: oklch(0.915 0.045 238);
+  --ref-selection: oklch(0.91 0.05 238);
+
+  --ref-green: oklch(0.43 0.11 150);
+  --ref-green-bg: oklch(0.95 0.03 150);
+  --ref-red: oklch(0.48 0.17 25);
+  --ref-red-bg: oklch(0.95 0.035 25);
+  --ref-amber: oklch(0.5 0.12 75);
+  --ref-amber-bg: oklch(0.95 0.04 75);
+  --ref-blue: oklch(0.48 0.12 250);
+  --ref-blue-bg: oklch(0.94 0.03 250);
+  --ref-violet: oklch(0.48 0.12 295);
+  --ref-violet-bg: oklch(0.95 0.03 295);
+  --ref-cyan: oklch(0.43 0.1 195);
+  --ref-cyan-bg: oklch(0.94 0.03 195);
+  --ref-neutral: oklch(0.43 0.01 250);
+  --ref-neutral-bg: oklch(0.95 0.004 250);
+
+  --ref-overlay-shadow: 0 6px 18px oklch(0.18 0.01 250 / 0.16);
+  --ref-popover-shadow: 0 2px 8px oklch(0.18 0.01 250 / 0.12);
+
+  /* Machined top edge: dark-theme-only inner top highlight for L3+ panels.
+     An edge treatment, not an elevation shadow; banned in light theme. */
+  --ref-edge-light: none;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ref-layer-sunken: oklch(0.185 0.007 250);
+  --ref-canvas: oklch(0.21 0.008 250);
+  --ref-layer-nav: oklch(0.24 0.009 250);
+  --ref-layer-workspace: oklch(0.265 0.01 250);
+  --ref-layer-panel: oklch(0.29 0.011 250);
+  --ref-layer-object: oklch(0.29 0.011 250);
+  --ref-layer-overlay: oklch(0.315 0.012 250);
+
+  --ref-ink-1: oklch(0.92 0.005 250);
+  --ref-ink-2: oklch(0.76 0.008 250);
+  /* ink-3 lightened from the brief's 0.64 to 0.75 for 4.5:1 over
+     --ref-selection in dark theme (lightness-only tune, hue preserved). */
+  --ref-ink-3: oklch(0.75 0.009 250);
+  --ref-ink-disabled: oklch(0.5 0.008 250);
+  --ref-ink-inverse: oklch(0.21 0.008 250);
+
+  --ref-border-subtle: oklch(0.32 0.009 250);
+  --ref-border: oklch(0.4 0.01 250);
+  --ref-border-strong: oklch(0.52 0.012 250);
+
+  --ref-accent: oklch(0.72 0.125 238);
+  --ref-accent-hover: oklch(0.78 0.105 238);
+  --ref-accent-active: oklch(0.82 0.09 238);
+  --ref-accent-bg: oklch(0.3 0.05 238);
+  --ref-accent-bg-strong: oklch(0.35 0.062 238);
+  --ref-selection: oklch(0.36 0.06 238);
+
+  --ref-green: oklch(0.7 0.12 155);
+  --ref-green-bg: oklch(0.29 0.04 155);
+  --ref-red: oklch(0.72 0.12 25);
+  --ref-red-bg: oklch(0.29 0.04 25);
+  --ref-amber: oklch(0.78 0.12 75);
+  --ref-amber-bg: oklch(0.3 0.04 75);
+  --ref-blue: oklch(0.75 0.1 250);
+  --ref-blue-bg: oklch(0.3 0.04 250);
+  --ref-violet: oklch(0.76 0.1 295);
+  --ref-violet-bg: oklch(0.3 0.04 295);
+  --ref-cyan: oklch(0.74 0.09 195);
+  --ref-cyan-bg: oklch(0.3 0.04 195);
+  --ref-neutral: oklch(0.72 0.008 250);
+  --ref-neutral-bg: oklch(0.3 0.006 250);
+
+  --ref-overlay-shadow: 0 8px 20px oklch(0.08 0.005 250 / 0.42);
+  --ref-popover-shadow: 0 2px 8px oklch(0.08 0.005 250 / 0.36);
+  --ref-edge-light: inset 0 1px 0 oklch(1 0 0 / 0.045);
+}
+
+:root {
+  --ref-space-0: 0;
+  --ref-space-1: 4px;
+  --ref-space-2: 8px;
+  --ref-space-3: 12px;
+  --ref-space-4: 16px;
+  --ref-space-5: 20px;
+  --ref-space-6: 24px;
+  --ref-space-8: 32px;
+  --ref-space-10: 40px;
+  --ref-space-12: 48px;
+  --ref-space-16: 64px;
+}
+
+/* GENERATED from [data-theme="dark"] above — system dark preference without JS.
+   An explicit data-theme attribute (set by the theme toggle) wins over this. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --ref-layer-sunken: oklch(0.185 0.007 250);
+    --ref-canvas: oklch(0.21 0.008 250);
+    --ref-layer-nav: oklch(0.24 0.009 250);
+    --ref-layer-workspace: oklch(0.265 0.01 250);
+    --ref-layer-panel: oklch(0.29 0.011 250);
+    --ref-layer-object: oklch(0.29 0.011 250);
+    --ref-layer-overlay: oklch(0.315 0.012 250);
+    --ref-ink-1: oklch(0.92 0.005 250);
+    --ref-ink-2: oklch(0.76 0.008 250);
+    --ref-ink-3: oklch(0.75 0.009 250);
+    --ref-ink-disabled: oklch(0.5 0.008 250);
+    --ref-ink-inverse: oklch(0.21 0.008 250);
+    --ref-border-subtle: oklch(0.32 0.009 250);
+    --ref-border: oklch(0.4 0.01 250);
+    --ref-border-strong: oklch(0.52 0.012 250);
+    --ref-accent: oklch(0.72 0.125 238);
+    --ref-accent-hover: oklch(0.78 0.105 238);
+    --ref-accent-active: oklch(0.82 0.09 238);
+    --ref-accent-bg: oklch(0.3 0.05 238);
+    --ref-accent-bg-strong: oklch(0.35 0.062 238);
+    --ref-selection: oklch(0.36 0.06 238);
+    --ref-green: oklch(0.7 0.12 155);
+    --ref-green-bg: oklch(0.29 0.04 155);
+    --ref-red: oklch(0.72 0.12 25);
+    --ref-red-bg: oklch(0.29 0.04 25);
+    --ref-amber: oklch(0.78 0.12 75);
+    --ref-amber-bg: oklch(0.3 0.04 75);
+    --ref-blue: oklch(0.75 0.1 250);
+    --ref-blue-bg: oklch(0.3 0.04 250);
+    --ref-violet: oklch(0.76 0.1 295);
+    --ref-violet-bg: oklch(0.3 0.04 295);
+    --ref-cyan: oklch(0.74 0.09 195);
+    --ref-cyan-bg: oklch(0.3 0.04 195);
+    --ref-neutral: oklch(0.72 0.008 250);
+    --ref-neutral-bg: oklch(0.3 0.006 250);
+    --ref-overlay-shadow: 0 8px 20px oklch(0.08 0.005 250 / 0.42);
+    --ref-popover-shadow: 0 2px 8px oklch(0.08 0.005 250 / 0.36);
+    --ref-edge-light: inset 0 1px 0 oklch(1 0 0 / 0.045);
+  }
+}

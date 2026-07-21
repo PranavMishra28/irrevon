@@ -9,6 +9,7 @@ import { LifecyclePill } from "@/shared/domain/status/lifecycle-pill";
 import { ResolutionNotApplicable, ResolutionTag } from "@/shared/domain/status/resolution-tag";
 import { EffectClassBadge } from "@/shared/domain/status/supporting-status";
 import { useAnnouncer } from "@/shared/ui/layout/live-regions";
+import { InspectionSeatBar } from "@/shared/ui/primitives/inspection-frame";
 
 /**
  * Native table with role="grid" and row-primary roving tabindex: exactly one
@@ -30,9 +31,15 @@ const COLUMNS = [
 export function EffectsGrid({
   items,
   filterRef,
+  inspectedId = null,
+  onInspect,
 }: {
   items: EffectListItem[];
   filterRef: RefObject<HTMLInputElement | null>;
+  /** Currently docked-inspected effect id (Detent Click seat bar on its row). */
+  inspectedId?: string | null;
+  /** When provided, Enter inspects in place and `o` opens the full detail. */
+  onInspect?: (effectId: string | null) => void;
 }) {
   const navigate = useNavigate();
   const { announce } = useAnnouncer();
@@ -98,9 +105,18 @@ export function EffectsGrid({
     else if (key === "End") move(row, col === null ? null : lastCol);
     else if (key === "PageDown") move(row + 10, col);
     else if (key === "PageUp") move(row - 10, col);
-    else if (key === "Enter" || (singleKeys && key === "o")) {
+    else if (key === "Enter") {
+      event.preventDefault();
+      const item = items[row];
+      if (onInspect && item) onInspect(item.record.effect_id);
+      else openRow(row);
+    } else if (singleKeys && key === "o") {
       event.preventDefault();
       openRow(row);
+    } else if (key === "Escape" && onInspect && inspectedId !== null) {
+      event.preventDefault();
+      onInspect(null);
+      focusCell(row, col);
     } else if (singleKeys && key === "c") {
       event.preventDefault();
       copyRowId(row);
@@ -141,8 +157,10 @@ export function EffectsGrid({
       <tbody>
         {items.map((item, rowIndex) => {
           const rowFocused = focusPos.row === rowIndex;
+          const isInspected = inspectedId === item.record.effect_id;
           const cells = [
             <span key="id" className="flex items-center gap-1 font-mono text-xs">
+              {isInspected ? <InspectionSeatBar /> : null}
               {truncateEffectId(item.record.effect_id)}
             </span>,
             <span key="type" className="font-mono text-xs">
@@ -181,13 +199,17 @@ export function EffectsGrid({
                   pos.row === rowIndex ? pos : { row: rowIndex, col: null },
                 );
               }}
+              onClick={() => {
+                if (onInspect) onInspect(item.record.effect_id);
+              }}
               onDoubleClick={() => {
                 openRow(rowIndex);
               }}
               className={
-                "h-(--dt-row-h) border-b border-border-subtle hover:bg-surface-2 " +
-                "focus-within:bg-surface-2 " +
-                "focus:outline-2 focus:-outline-offset-2 focus:outline-(--color-border-focus)"
+                "h-(--dt-row-h) border-b border-border-subtle hover:bg-(--sys-state-hover) " +
+                "focus-within:bg-(--sys-state-hover) " +
+                "focus:outline-2 focus:-outline-offset-2 focus:outline-(--color-border-focus) " +
+                (isInspected ? "relative bg-layer-panel" : "")
               }
             >
               {cells.map((cell, colIndex) => (

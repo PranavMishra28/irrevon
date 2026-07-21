@@ -9,8 +9,8 @@ const base =
 
 const variants: Record<Variant, string> = {
   default:
-    "border-border bg-surface-1 text-text-primary hover:bg-surface-2 active:bg-surface-3",
-  ghost: "border-transparent bg-transparent text-text-secondary hover:bg-surface-2",
+    "border-border bg-layer-panel text-text-primary hover:bg-(--sys-state-hover) active:bg-(--sys-state-active)",
+  ghost: "border-transparent bg-transparent text-text-secondary hover:bg-(--sys-state-hover)",
   accent: "border-accent bg-accent text-text-inverse hover:bg-accent-hover",
 };
 
@@ -42,7 +42,7 @@ export function IconButton({
       className={
         "inline-flex size-7 min-h-6 min-w-6 cursor-default items-center justify-center " +
         "rounded-(--radius-control) border border-transparent text-text-secondary " +
-        "transition-colors duration-(--sys-dur-fast) hover:bg-surface-2 hover:text-text-primary " +
+        "transition-colors duration-(--sys-dur-fast) hover:bg-(--sys-state-hover) hover:text-text-primary " +
         className
       }
       {...props}

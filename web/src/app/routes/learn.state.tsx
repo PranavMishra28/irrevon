@@ -58,7 +58,7 @@ function StatePage() {
             {TERMINAL_LIFECYCLE_STATES.map((s) => s).join(", ")} — “try again” after a terminal
             state is a new execution, never a lifecycle edge.
           </p>
-          <div className="mt-3 overflow-x-auto rounded-(--radius-structural) border border-border bg-surface-1">
+          <div className="mt-3 overflow-x-auto rounded-(--radius-structural) border border-border bg-layer-panel">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr>
@@ -104,7 +104,7 @@ function StatePage() {
             Findings cite effects. UNRECONCILED is the absence of findings, not a finding;
             ORPHANED is destination-keyed only and never attaches to a ledger record.
           </p>
-          <div className="mt-3 overflow-x-auto rounded-(--radius-structural) border border-border bg-surface-1">
+          <div className="mt-3 overflow-x-auto rounded-(--radius-structural) border border-border bg-layer-panel">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr>
@@ -143,7 +143,7 @@ function StatePage() {
             “auto” = applied by the system actor in the same settle transaction. This table is
             descriptive — the workbench performs no resolution.
           </p>
-          <div className="mt-3 overflow-x-auto rounded-(--radius-structural) border border-border bg-surface-1">
+          <div className="mt-3 overflow-x-auto rounded-(--radius-structural) border border-border bg-layer-panel">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr>

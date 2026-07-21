@@ -8,8 +8,14 @@ import "./styles.css";
 async function start() {
   // Literal define comparison: the whole MSW chunk is eliminated from live builds.
   if (__DETENT_DATA_MODE__ === "mock") {
-    const { worker } = await import("./mocks/browser");
-    await worker.start({ onUnhandledRequest: "bypass", quiet: true });
+    try {
+      const { worker } = await import("./mocks/browser");
+      await worker.start({ onUnhandledRequest: "bypass", quiet: true });
+    } catch (error) {
+      // A blocked/unavailable service worker must not blank the app: reads
+      // fail visibly per-surface instead (also how fault-injection E2E runs).
+      console.warn("Mock worker unavailable; reads will fail visibly.", error);
+    }
   }
 
   const rootElement = document.getElementById("root");

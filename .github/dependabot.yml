@@ -1,7 +1,8 @@
-# Detent — Dependabot: keeps action SHA pins fresh (it updates the pinned SHA and
-# the trailing version comment together). The 7-day cooldown is the tag-hijack
-# shield: action compromises have historically been detected within days, and
-# security updates bypass cooldown by design.
+# Detent — Dependabot: noise-contained configuration (see .scratch/redesign/dependabot-tuning.md).
+# Target steady state: at most one grouped version PR per ecosystem per month (≤3/month),
+# plus rare security PRs (which bypass schedule and cooldown by design).
+# github-actions cooldown is the tag-hijack shield: action compromises have historically
+# been detected within days, and security updates bypass cooldown by design.
 # Owner prerequisite (Settings -> Advanced Security): Dependabot alerts +
 # security updates ON — see docs/ci.md.
 version: 2
@@ -9,8 +10,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: "monthly"
     cooldown:
       default-days: 7
     groups:
@@ -18,40 +18,55 @@ updates:
         patterns: ["*"]
     commit-message:
       prefix: "ci"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 1
+    assignees:
+      - "PranavMishra28"
 
-  # Backend (Python/uv per ADR-0013) — activated at consolidation when uv.lock landed.
+  # Backend (Python/uv per ADR-0013). Single rolled-up PR covering all update types;
+  # majors are slowed (not blocked) by the 30-day major cooldown — pyproject uses
+  # ranged requirements, so majors are lower-risk than in the exact-pinned frontend.
   - package-ecosystem: "uv"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: "monthly"
     cooldown:
-      default-days: 5
+      default-days: 7
       semver-major-days: 30
     groups:
-      python-minor-patch:
+      python-all:
         patterns: ["*"]
-        update-types: ["minor", "patch"]
+      python-security:
+        applies-to: security-updates
+        patterns: ["*"]
     commit-message:
       prefix: "deps"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 1
+    assignees:
+      - "PranavMishra28"
 
-  # Frontend (pnpm via the npm ecosystem) — activated at consolidation when
-  # web/pnpm-lock.yaml landed. pnpm-workspace.yaml's 7-day minimumReleaseAge
-  # remains the stronger release-age gate at install time.
+  # Frontend (pnpm via the npm ecosystem). Exact-pinned stack per ADR-0016: major
+  # bumps are ignored here and arrive only via deliberate, human-scheduled upgrades.
+  # cooldown default-days: 7 is deliberately aligned with pnpm-workspace.yaml's
+  # minimumReleaseAge: 10080 (7 days) so Dependabot never proposes a version too
+  # young for pnpm to install (see rationale §5).
   - package-ecosystem: "npm"
     directory: "/web"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: "monthly"
     cooldown:
-      default-days: 5
-      semver-major-days: 30
+      default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       web-minor-patch:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+      web-security:
+        applies-to: security-updates
+        patterns: ["*"]
     commit-message:
       prefix: "deps"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 1
+    assignees:
+      - "PranavMishra28"

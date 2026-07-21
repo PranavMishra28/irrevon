@@ -166,3 +166,22 @@ web-vrt:
 	  bash -lc 'corepack enable && \
 	            pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store && \
 	            DETENT_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
+
+# ── Marketing site gates (appended by the site/ task; see site/README.md) ─────
+# Self-contained Node package, same corepack/pnpm pattern as web/. Deploy stays
+# gated and human-only: .github/workflows/site-deploy.yml (dispatch-only) documents it.
+.PHONY: site-check site-build site-test
+
+# Static gates: astro check + vendored token/font drift + claims-registry drift.
+site-check:
+	cd site && pnpm install --frozen-lockfile && pnpm run check
+
+site-build:
+	cd site && pnpm install --frozen-lockfile && pnpm run build
+
+# Playwright: axe (WCAG 2.2 AA, both themes, all pages), keyboard, no-JS render,
+# internal links, JS budget + zero-external-request scan. Builds first.
+site-test:
+	cd site && pnpm install --frozen-lockfile \
+	  && pnpm exec playwright install chromium --only-shell \
+	  && pnpm run build && pnpm test

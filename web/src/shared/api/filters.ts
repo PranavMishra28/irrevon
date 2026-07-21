@@ -10,7 +10,11 @@ export interface EffectsSearch {
   classification?: (Classification | "UNRECONCILED")[];
   effect_type?: string;
   cursor?: string;
+  /** Docked row inspector target (64-hex effect id) — UI state, not a filter. */
+  inspect?: string;
 }
+
+const INSPECT_SHAPE = /^[0-9a-f]{64}$/;
 
 const CLASSIFICATION_FILTERS: readonly string[] = [...CLASSIFICATIONS, "UNRECONCILED"];
 
@@ -36,6 +40,10 @@ export function parseEffectsSearch(search: Record<string, unknown>): EffectsSear
   }
   if (typeof search.cursor === "string" && search.cursor !== "") {
     out.cursor = search.cursor;
+  }
+  // Invalid inspect ids are removed without guessing.
+  if (typeof search.inspect === "string" && INSPECT_SHAPE.test(search.inspect)) {
+    out.inspect = search.inspect;
   }
   return out;
 }

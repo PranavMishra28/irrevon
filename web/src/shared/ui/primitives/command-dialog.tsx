@@ -59,7 +59,7 @@ export function CommandDialog({
         <BaseDialog.Popup
           className={
             "fixed top-[12vh] left-1/2 z-(--sys-z-modal) w-full max-w-xl -translate-x-1/2 " +
-            "rounded-(--radius-structural) border border-border-strong bg-surface-1 " +
+            "rounded-(--radius-structural) border border-border-strong bg-layer-overlay " +
             "shadow-overlay outline-none"
           }
           aria-label="Command palette"
@@ -137,7 +137,7 @@ export function Kbd({ children }: { children: ReactNode }) {
     <kbd
       className={
         "inline-flex h-5 min-w-5 items-center justify-center rounded-(--radius-control) " +
-        "border border-border bg-surface-2 px-1 font-mono text-2xs text-text-secondary"
+        "border border-border bg-layer-sunken px-1 font-mono text-2xs text-text-secondary"
       }
     >
       {children}

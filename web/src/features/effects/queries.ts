@@ -5,10 +5,13 @@ import { queryKeys } from "@/shared/api/query-keys";
 import type { EffectListItem, EffectsEnvelope, InspectPayload } from "@/shared/api/types";
 
 export function useEffectsQuery(search: EffectsSearch) {
+  // `inspect` is docked-inspector UI state, not a Q1 filter — it must not
+  // fragment the cache or reach the request.
+  const { inspect: _inspect, ...filters } = search;
   return useQuery({
-    queryKey: queryKeys.effects(search),
+    queryKey: queryKeys.effects(filters),
     queryFn: () => {
-      const params = effectsSearchToParams(search).toString();
+      const params = effectsSearchToParams(filters).toString();
       return apiGet<EffectsEnvelope>(`/api/v1/effects${params ? `?${params}` : ""}`);
     },
   });
