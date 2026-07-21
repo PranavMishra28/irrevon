@@ -1,0 +1,71 @@
+# Marketing-site Pages deploy — GATED, workflow_dispatch ONLY (no push, no cron).
+# Moved verbatim from site/deploy/README-workflow.yml at consolidation (banner
+# condensed; timeout-minutes + persist-credentials added per .cursor/rules/workflows.mdc).
+# This workflow deploys nothing on its own: enabling GitHub Pages is a repo-settings
+# act that is human-only, and the first real deploy stays blocked behind the gates
+# recorded in docs/review-queue.md (marketing-site ADR ratification, publication
+# clearance, name screen, licensing, repo identity, ADR-0018 Pages-slot amendment).
+# Design notes (RD5 §1.4): build takes --site/--base from actions/configure-pages
+# outputs so the repository URL is never hard-coded; all actions SHA-pinned; the
+# third-party withastro/action composite is deliberately NOT used.
+
+name: site-deploy
+
+on:
+  workflow_dispatch: # deliberately the ONLY trigger — deploys are human acts
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - name: Enable corepack (pinned pnpm from packageManager)
+        run: corepack enable
+      - name: Install (frozen lockfile, hardened pnpm settings)
+        run: pnpm install --frozen-lockfile
+      - name: Gates — token/font/claims drift + astro check
+        run: pnpm run check
+      - name: Build with deploy-provided origin and base path
+        env:
+          SITE_ORIGIN: ${{ steps.pages.outputs.origin }}
+          SITE_BASE: ${{ steps.pages.outputs.base_path }}
+          SITE_REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: pnpm build
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site/dist
+
+  deploy:
+    name: deploy
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write # deploy-pages publishes the built artifact to GitHub Pages
+      id-token: write # deploy-pages requires OIDC to authenticate the deployment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

@@ -169,7 +169,7 @@ web-vrt:
 
 # ── Marketing site gates (appended by the site/ task; see site/README.md) ─────
 # Self-contained Node package, same corepack/pnpm pattern as web/. Deploy stays
-# gated and human-only: site/deploy/README-workflow.yml documents the workflow.
+# gated and human-only: .github/workflows/site-deploy.yml (dispatch-only) documents it.
 .PHONY: site-check site-build site-test
 
 # Static gates: astro check + vendored token/font drift + claims-registry drift.

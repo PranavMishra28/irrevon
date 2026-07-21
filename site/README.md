@@ -3,8 +3,10 @@
 Six complete static pages introducing Detent, built per the redesign contract
 (`.scratch/redesign/site-architecture.md` RD5, as adjudicated by
 `.scratch/redesign/REDESIGN-BRIEF.md` ruling A7). **Deploy is gated and
-human-only** — see [deploy/README-workflow.yml](deploy/README-workflow.yml) for
-the dispatch-only workflow artifact and the full gate list. The site is a repo
+human-only** — see
+[../.github/workflows/site-deploy.yml](../.github/workflows/site-deploy.yml)
+(dispatch-only; the full gate list is recorded in
+[docs/review-queue.md](../docs/review-queue.md)). The site is a repo
 artifact only: it never ships in the Python wheel (ADR-0018) and shares no build
 with `web/`.
 
@@ -101,16 +103,15 @@ node scripts/capture-workbench.mjs   # product imagery from a running web/ dev s
 
 ## Notes for the integrator
 
-1. **Deploy workflow:** move `deploy/README-workflow.yml` to
-   `.github/workflows/site-deploy.yml` (minus its banner) only after the gates
-   in that file's header close. `.github/` was outside this task's ownership.
+1. **Deploy workflow:** DONE at consolidation (2026-07-21) — the artifact now
+   lives at `.github/workflows/site-deploy.yml` (dispatch-only; deploy itself
+   stays blocked behind the gates recorded in the review queue).
 2. **Root touches made by this task:** one clearly-marked appended Makefile
    block (`site-check`, `site-build`, `site-test`); nothing else at root. No
    root `pnpm-workspace.yaml` exists (workspaces are per-directory) — none added.
-3. **Review-queue appends** proposed by RD5 §7 (marketing-site ADR, ADR-0018
-   Pages-slot amendment, Book-a-Demo ruling, contact-address ruling, DE-1
-   coverage confirmation) are integrator/human work — deliberately not appended
-   by this task.
+3. **Review-queue appends** proposed by RD5 §7: appended at consolidation
+   (2026-07-21) — see the review queue (marketing-site ADR item, ADR-0018
+   Pages-slot amendment). Resolution remains human-only.
 4. Workbench screenshots (`public/images/`) were captured from the running
    fixture-backed `web/` app at 1440×900 (2× DPR), both themes, SYNTHETIC
    FIXTURE banner deliberately in frame. Re-capture with
