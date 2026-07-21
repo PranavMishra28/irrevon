@@ -81,6 +81,8 @@ pnpm-workspace.yaml).
 ## Commands
 
 ```bash
+export ASTRO_TELEMETRY_DISABLED=1   # zero-telemetry posture applies to builds too
+                       # (CI sets this in .github/workflows/site-deploy.yml)
 pnpm install           # Node 24 (.nvmrc), pnpm 11
 pnpm dev               # local dev
 pnpm check             # astro check + token/font/claims drift

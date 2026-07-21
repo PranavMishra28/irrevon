@@ -16,7 +16,8 @@
     "sync:fonts": "node scripts/sync-fonts.mjs",
     "claims:md": "node scripts/build-claims-md.mjs",
     "check": "astro check && node scripts/sync-tokens.mjs --check && node scripts/sync-fonts.mjs --check && node scripts/build-claims-md.mjs --check",
-    "test": "playwright test",
+    "test": "playwright test --project checks",
+    "test:shots": "playwright test --project shots",
     "shots": "playwright test --project shots"
   },
   "dependencies": {
