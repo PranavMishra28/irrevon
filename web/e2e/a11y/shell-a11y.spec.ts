@@ -65,6 +65,18 @@ test("interactive targets in chrome meet 24px minimum or spacing exception", asy
   }
 });
 
+test("320px reflow: no body-level horizontal scrolling on prose routes", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  for (const route of ["/learn/start", "/learn/identity", "/learn/tiers", "/health"]) {
+    await page.goto(route);
+    const overflow = await page.evaluate(() => {
+      const root = document.scrollingElement ?? document.documentElement;
+      return root.scrollWidth > root.clientWidth;
+    });
+    expect(overflow, `body overflow at 320px on ${route}`).toBe(false);
+  }
+});
+
 test("reduced motion collapses every motion token to zero", async ({ browser }) => {
   const context = await browser.newContext({ reducedMotion: "reduce" });
   const page = await context.newPage();
