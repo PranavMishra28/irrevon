@@ -1,0 +1,88 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# DOCUMENTED ARTIFACT — NOT AN ACTIVE WORKFLOW.
+#
+# This file lives in site/deploy/ because .github/ is outside the site
+# implementer's ownership. THE INTEGRATOR moves it to
+# .github/workflows/site-deploy.yml (verbatim, minus this banner) only after
+# every gate below is closed by a human. Even once moved, it deploys nothing
+# on its own: the trigger is workflow_dispatch ONLY (no push, no cron), and
+# enabling GitHub Pages itself is a repo-settings act that is human-only
+# (AGENTS.md; review-queue item 14 pattern).
+#
+# GATES THAT BLOCK THE FIRST REAL DEPLOY (site-architecture.md RD5 §6.2):
+#   1. The marketing-site ADR is ratified (RD5 §7 item 1 — proposed, not written).
+#   2. Publication clearance in writing (review-queue §3 item 2 — a marketing
+#      site is unambiguously publication).
+#   3. Name screen resolved (item 4 — collisions recorded: PyPI `detent` taken;
+#      digitaldrywood/detent; detentlabs.ai). Site copy is name-parameterized
+#      (src/config.ts SITE_NAME), but the deploy is name-blocked.
+#   4. Licensing status acceptable to the owner (items 7/18 — deploying before
+#      ADR-0014 closes means deploying "license pending" copy; owner's call).
+#   5. Repo identity resolved (items 10/13 — the Pages origin IS a repo
+#      identity commitment; DIST §1).
+#   6. Pages-slot contention with the M8 MkDocs docs plan resolved (ADR-0018 —
+#      one Pages site per repo; RD5 recommends site at / and docs under /docs/,
+#      which requires amending ADR-0018's M8 mechanics).
+#
+# DESIGN NOTES (per RD5 §1.4, verified against the official Astro starter
+# workflow): the build takes --site/--base from actions/configure-pages
+# outputs so the repository URL is never hard-coded in committed config; all
+# actions are SHA-pinned with version comments (repo convention, ci.yml); the
+# third-party withastro/action composite is deliberately NOT used (harder to
+# pin-review than four first-party steps). No secrets are used anywhere.
+# ══════════════════════════════════════════════════════════════════════════════
+
+name: site-deploy
+
+on:
+  workflow_dispatch: # deliberately the ONLY trigger — deploys are human acts
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - name: Enable corepack (pinned pnpm from packageManager)
+        run: corepack enable
+      - name: Install (frozen lockfile, hardened pnpm settings)
+        run: pnpm install --frozen-lockfile
+      - name: Gates — token/font/claims drift + astro check
+        run: pnpm run check
+      - name: Build with deploy-provided origin and base path
+        env:
+          SITE_ORIGIN: ${{ steps.pages.outputs.origin }}
+          SITE_BASE: ${{ steps.pages.outputs.base_path }}
+          SITE_REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: pnpm build
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

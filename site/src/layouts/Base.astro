@@ -1,0 +1,347 @@
+---
+import "../styles/site.css";
+import Mark from "../components/Mark.astro";
+import { SITE_NAME, REPO_URL, repoDoc } from "../config";
+import { href } from "../lib/url";
+
+interface Props {
+  title: string;
+  description: string;
+}
+const { title, description } = Astro.props;
+
+const nav = [
+  { label: "Engine", path: "/platform/" },
+  { label: "How it works", path: "/how-it-works/" },
+  { label: "Benchmark", path: "/benchmark/" },
+  { label: "Security", path: "/security/" },
+  { label: "Docs", path: "/docs/" },
+];
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const current = Astro.url.pathname.replace(/index\.html$/, "");
+const isCurrent = (path: string) => current === href(path) || current === href(path).replace(/\/$/, "");
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href={href("/favicon.svg")} type="image/svg+xml" />
+    <meta name="color-scheme" content="light dark" />
+    <!-- Theme boot: honors a stored explicit choice before first paint.
+         Without JS, tokens.css's generated prefers-color-scheme block applies. -->
+    <script is:inline>
+      (() => {
+        try {
+          const t = localStorage.getItem("theme");
+          if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+        } catch {
+          /* storage unavailable: system preference applies */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="wordmark" href={href("/")} aria-label={`${SITE_NAME} — home`}>
+          <Mark size={22} />
+          <span class="wordmark-text">{SITE_NAME.toLowerCase()}</span>
+        </a>
+        <nav aria-label="Primary">
+          <ul class="nav-list">
+            {
+              nav.map((item) => (
+                <li>
+                  <a href={href(item.path)} aria-current={isCurrent(item.path) ? "page" : undefined}>
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+        <button id="theme-toggle" type="button" aria-label="Toggle color theme" hidden>
+          <svg
+            class="icon-sun"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="4"></circle>
+            <path
+              d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"
+            ></path>
+          </svg>
+          <svg
+            class="icon-moon"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+          </svg>
+        </button>
+        <!-- The theme toggle is the site's only JavaScript (site contract:
+             zero JS by default; toggle stays <1 KB, no framework). -->
+        <script is:inline>
+          (() => {
+            const btn = document.getElementById("theme-toggle");
+            if (!btn) return;
+            btn.hidden = false;
+            const systemDark = matchMedia("(prefers-color-scheme: dark)");
+            const effective = () => document.documentElement.dataset.theme ?? (systemDark.matches ? "dark" : "light");
+            btn.addEventListener("click", () => {
+              const next = effective() === "dark" ? "light" : "dark";
+              document.documentElement.dataset.theme = next;
+              try {
+                localStorage.setItem("theme", next);
+              } catch {
+                /* persistence unavailable; the in-page toggle still applies */
+              }
+            });
+          })();
+        </script>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <span class="footer-lockup"><Mark size={18} /><span>{SITE_NAME.toLowerCase()}</span></span>
+            <p class="footer-tag">
+              A preregistered benchmark and reference reconciliation engine for irreversible AI-agent actions.
+              Benchmark-first, C2-scoped, pre-release.
+            </p>
+          </div>
+          <nav aria-label="Source of truth">
+            <h2 class="footer-head">Source of truth</h2>
+            <ul>
+              <li><a href={REPO_URL}>Repository</a></li>
+              <li><a href={repoDoc("docs/master-doc.md")}>Master document</a></li>
+              <li><a href={repoDoc("docs/rfc-002-engine-design.md")}>RFC-002 · engine design</a></li>
+              <li><a href={repoDoc("docs/benchmark-preregistration.md")}>Benchmark preregistration (draft)</a></li>
+            </ul>
+          </nav>
+          <nav aria-label="Project governance">
+            <h2 class="footer-head">Governance</h2>
+            <ul>
+              <li><a href={repoDoc("docs/security-policy.md")}>Security policy</a></li>
+              <li><a href={repoDoc("docs/execution-plan.md")}>Execution plan</a></li>
+              <li><a href={repoDoc("docs/decisions/README.md")}>Decision records</a></li>
+              <li><a href={repoDoc("LICENSING.md")}>Licensing status</a></li>
+            </ul>
+          </nav>
+          <nav aria-label="Site pages">
+            <h2 class="footer-head">Site</h2>
+            <ul>
+              {
+                nav.map((item) => (
+                  <li>
+                    <a href={href(item.path)}>{item.label}</a>
+                  </li>
+                ))
+              }
+            </ul>
+          </nav>
+        </div>
+        <div class="footer-status">
+          <p>
+            © 2026 the repository owner. No license granted yet — the licensing decision is an open decision record
+            (ADR-0014); no contributions are accepted while it is open. “{SITE_NAME}” is a working name; the name
+            screen is pending.
+          </p>
+          <p>Pre-release software: not on any package index. This site is static — no analytics, no telemetry, no external requests.</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .site-header {
+    background: var(--ref-surface-1);
+    border-bottom: 1px solid var(--ref-border);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: clamp(14px, 3vw, 32px);
+    min-height: 56px;
+    flex-wrap: wrap;
+    padding-block: 8px;
+  }
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--ref-ink-1);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+  }
+  .wordmark:hover {
+    color: var(--ref-ink-1);
+  }
+  .nav-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 18px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .nav-list a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    font-size: var(--site-text-small);
+    font-weight: 500;
+    color: var(--ref-ink-2);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+  }
+  .nav-list a:hover {
+    color: var(--ref-ink-1);
+  }
+  .nav-list a[aria-current="page"] {
+    color: var(--ref-ink-1);
+    border-bottom-color: var(--ref-accent);
+  }
+  #theme-toggle {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--ref-border);
+    border-radius: 4px;
+    background: var(--ref-surface-1);
+    color: var(--ref-ink-2);
+    cursor: pointer;
+  }
+  #theme-toggle:hover {
+    color: var(--ref-ink-1);
+    border-color: var(--ref-border-strong);
+  }
+  /* The display rule above must not defeat the no-JS hidden attribute. */
+  #theme-toggle[hidden] {
+    display: none;
+  }
+  /* Show the icon for the theme you would switch TO. */
+  .icon-sun {
+    display: none;
+  }
+  :global([data-theme="dark"]) .icon-sun {
+    display: block;
+  }
+  :global([data-theme="dark"]) .icon-moon {
+    display: none;
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme])) .icon-sun {
+      display: block;
+    }
+    :global(:root:not([data-theme])) .icon-moon {
+      display: none;
+    }
+  }
+
+  .site-footer {
+    border-top: 1px solid var(--ref-border);
+    background: var(--ref-surface-1);
+    padding-block: clamp(36px, 6vw, 64px) 28px;
+    margin-top: var(--site-section-gap);
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 32px;
+  }
+  @media (max-width: 900px) {
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 560px) {
+    .footer-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .footer-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--ref-ink-1);
+  }
+  .footer-tag {
+    margin-top: 12px;
+    font-size: var(--site-text-small);
+    color: var(--ref-ink-2);
+    max-width: 34ch;
+  }
+  .footer-head {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ref-ink-3);
+    margin-bottom: 12px;
+  }
+  .site-footer ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+  .site-footer ul a {
+    font-size: var(--site-text-small);
+    color: var(--ref-ink-2);
+    text-decoration: none;
+  }
+  .site-footer ul a:hover {
+    color: var(--ref-accent);
+    text-decoration: underline;
+  }
+  .footer-status {
+    border-top: 1px solid var(--ref-border-subtle);
+    margin-top: 32px;
+    padding-top: 20px;
+    display: grid;
+    gap: 6px;
+  }
+  .footer-status p {
+    font-size: var(--site-text-2xs);
+    font-family: var(--font-mono);
+    line-height: 1.6;
+    color: var(--ref-ink-3);
+    max-width: 90ch;
+  }
+</style>

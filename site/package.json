@@ -1,0 +1,31 @@
+{
+  "name": "detent-site",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0 <25",
+    "pnpm": ">=11"
+  },
+  "packageManager": "pnpm@11.15.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "sync:tokens": "node scripts/sync-tokens.mjs",
+    "sync:fonts": "node scripts/sync-fonts.mjs",
+    "claims:md": "node scripts/build-claims-md.mjs",
+    "check": "astro check && node scripts/sync-tokens.mjs --check && node scripts/sync-fonts.mjs --check && node scripts/build-claims-md.mjs --check",
+    "test": "playwright test",
+    "shots": "playwright test --project shots"
+  },
+  "dependencies": {
+    "astro": "7.0.9"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.9",
+    "@axe-core/playwright": "4.12.1",
+    "@playwright/test": "1.61.1",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,519 @@
+/* Detent marketing site — Instrument Steel adapted for marketing scale.
+   Tokens are the vendored workbench reference tokens (tokens/reference.css);
+   this file adds a site-local display layer only (RD5 §5.2): larger type,
+   more air, same hues, hairlines over shadows, no gradients or glow. */
+
+@import "./tokens/reference.css";
+
+/* ── Self-hosted IBM Plex (synced from web/public/fonts) ──────────────── */
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/ibm-plex-sans-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../assets/fonts/ibm-plex-sans-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../assets/fonts/ibm-plex-sans-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/ibm-plex-mono-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../assets/fonts/ibm-plex-mono-500.woff2") format("woff2");
+}
+
+/* ── Site-local tokens (additive; shared tokens untouched) ─────────────── */
+:root {
+  --font-sans: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --site-text-display: clamp(2rem, 1.1rem + 3.4vw, 3.25rem);
+  --site-text-h1: clamp(1.625rem, 1rem + 2.4vw, 2.375rem);
+  --site-text-h2: clamp(1.3125rem, 1.05rem + 1vw, 1.625rem);
+  --site-text-h3: 1.0625rem;
+  --site-text-body: 0.9375rem;
+  --site-text-small: 0.8125rem;
+  --site-text-2xs: 0.6875rem;
+
+  --site-measure: 68ch;
+  --site-container: 1120px;
+  --site-gutter: clamp(20px, 4vw, 40px);
+  --site-section-gap: clamp(56px, 9vw, 112px);
+}
+
+/* ── Base ──────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--ref-canvas);
+  color: var(--ref-ink-1);
+  font-family: var(--font-sans);
+  font-size: var(--site-text-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  color: var(--ref-ink-1);
+  margin: 0;
+  text-wrap: balance;
+}
+h1 {
+  font-size: var(--site-text-h1);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+h2 {
+  font-size: var(--site-text-h2);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+h3 {
+  font-size: var(--site-text-h3);
+  line-height: 1.3;
+}
+
+p,
+ul,
+ol,
+dl {
+  margin: 0;
+}
+
+a {
+  color: var(--ref-accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--ref-accent) 45%, transparent);
+  text-underline-offset: 3px;
+  border-radius: 2px;
+}
+a:hover {
+  color: var(--ref-accent-hover);
+  text-decoration-color: currentColor;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ref-accent);
+  outline-offset: 2px;
+}
+
+code,
+kbd,
+pre {
+  font-family: var(--font-mono);
+}
+code {
+  font-size: 0.85em;
+  background: var(--ref-surface-2);
+  border: 1px solid var(--ref-border-subtle);
+  border-radius: 2px;
+  padding: 1px 4px;
+  overflow-wrap: anywhere;
+}
+pre {
+  background: var(--ref-surface-2);
+  border: 1px solid var(--ref-border-subtle);
+  border-radius: 2px;
+  padding: 16px 18px;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  overflow-x: auto;
+  margin: 0;
+}
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--ref-border-subtle);
+  margin: 0;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── Layout primitives ─────────────────────────────────────────────────── */
+.container {
+  max-width: var(--site-container);
+  margin-inline: auto;
+  padding-inline: var(--site-gutter);
+}
+
+.section {
+  padding-block: var(--site-section-gap);
+}
+.section + .section {
+  border-top: 1px solid var(--ref-border-subtle);
+}
+
+.prose {
+  max-width: var(--site-measure);
+}
+.prose > * + * {
+  margin-top: 0.9em;
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.3em;
+}
+.prose li + li {
+  margin-top: 0.4em;
+}
+
+.lead {
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--ref-ink-2);
+  max-width: var(--site-measure);
+}
+
+.muted {
+  color: var(--ref-ink-2);
+}
+
+/* Section headers: mono kicker + display heading, the engineering register. */
+.kicker {
+  font-family: var(--font-mono);
+  font-size: var(--site-text-2xs);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ref-ink-3);
+  display: block;
+  margin-bottom: 14px;
+}
+
+.section-head {
+  margin-bottom: clamp(28px, 4vw, 44px);
+  display: grid;
+  gap: 14px;
+}
+.section-head .badge-row {
+  margin-top: 2px;
+}
+
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Panels: L2/L3 grammar — raised surface, hairline seam, no shadow. */
+.panel {
+  background: var(--ref-surface-1);
+  border: 1px solid var(--ref-border);
+  border-radius: 2px;
+  padding: clamp(18px, 3vw, 28px);
+}
+.panel-subtle {
+  background: var(--ref-surface-1);
+  border: 1px solid var(--ref-border-subtle);
+  border-radius: 2px;
+  padding: clamp(18px, 3vw, 28px);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+@media (max-width: 900px) {
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 720px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Tables (the evidence voice) ───────────────────────────────────────── */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--ref-border);
+  border-radius: 2px;
+  background: var(--ref-surface-1);
+}
+.table-wrap > .table-scroll-hint {
+  display: none;
+  font-family: var(--font-mono);
+  font-size: var(--site-text-2xs);
+  color: var(--ref-ink-3);
+  padding: 8px 12px 0;
+}
+@media (max-width: 900px) {
+  .table-wrap > .table-scroll-hint {
+    display: block;
+  }
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--site-text-small);
+  line-height: 1.5;
+}
+caption {
+  text-align: left;
+  padding: 14px 16px 4px;
+  font-weight: 600;
+}
+th {
+  font-family: var(--font-mono);
+  font-size: var(--site-text-2xs);
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ref-ink-3);
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ref-border);
+  white-space: nowrap;
+}
+td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--ref-border-subtle);
+  vertical-align: top;
+  color: var(--ref-ink-2);
+}
+td:first-child,
+th:first-child {
+  padding-left: 18px;
+}
+tbody tr:last-child td {
+  border-bottom: none;
+}
+td strong,
+td b {
+  color: var(--ref-ink-1);
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: var(--site-text-small);
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  border-radius: 4px;
+  padding: 12px 18px;
+  border: 1px solid transparent;
+  min-height: 44px;
+}
+.btn-primary {
+  background: var(--ref-accent);
+  color: var(--ref-ink-inverse);
+}
+.btn-primary:hover {
+  background: var(--ref-accent-hover);
+  color: var(--ref-ink-inverse);
+}
+.btn-secondary {
+  background: var(--ref-surface-1);
+  border-color: var(--ref-border);
+  color: var(--ref-ink-1);
+}
+.btn-secondary:hover {
+  border-color: var(--ref-border-strong);
+  color: var(--ref-ink-1);
+}
+
+/* ── Transcript (recorded-artifact register) ───────────────────────────── */
+.transcript {
+  background: var(--ref-surface-2);
+  border: 1px solid var(--ref-border);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.7;
+  overflow-x: auto;
+}
+.transcript ol {
+  list-style: none;
+  margin: 0;
+  padding: 16px 18px;
+  min-width: max-content;
+}
+.transcript li {
+  display: flex;
+  gap: 14px;
+  white-space: nowrap;
+}
+.transcript .t-step {
+  color: var(--ref-ink-3);
+  min-width: 2ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.transcript .t-event {
+  color: var(--ref-ink-1);
+  font-weight: 500;
+  min-width: 26ch;
+}
+.transcript .t-detail {
+  color: var(--ref-ink-2);
+}
+.transcript .t-seam {
+  border-top: 1px dashed var(--ref-border-strong);
+  margin: 10px 0;
+  padding-top: 10px;
+}
+
+.mono-chip {
+  font-family: var(--font-mono);
+  font-size: var(--site-text-2xs);
+  letter-spacing: 0.04em;
+  color: var(--ref-ink-2);
+  background: var(--ref-surface-2);
+  border: 1px solid var(--ref-border-subtle);
+  border-radius: 2px;
+  padding: 3px 7px;
+  white-space: nowrap;
+}
+
+/* ── Figures / screenshots ─────────────────────────────────────────────── */
+figure {
+  margin: 0;
+}
+figure.screenshot img {
+  border: 1px solid var(--ref-border);
+  border-radius: 2px;
+}
+figcaption {
+  font-size: var(--site-text-small);
+  color: var(--ref-ink-2);
+  margin-top: 12px;
+  max-width: var(--site-measure);
+}
+
+/* Theme-following screenshot pairs (the toggle sets data-theme; without JS the
+   system preference applies via the media query). */
+.themed-shot .shot-dark {
+  display: none;
+}
+[data-theme="dark"] .themed-shot .shot-light {
+  display: none;
+}
+[data-theme="dark"] .themed-shot .shot-dark {
+  display: block;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .themed-shot .shot-light {
+    display: none;
+  }
+  :root:not([data-theme]) .themed-shot .shot-dark {
+    display: block;
+  }
+}
+
+/* ── Status banner (benchmark NO RESULTS YET) ──────────────────────────── */
+.status-banner {
+  border: 1px solid var(--ref-border-strong);
+  border-left: 3px solid var(--ref-ink-1);
+  background: var(--ref-surface-1);
+  border-radius: 2px;
+  padding: 18px 22px;
+  display: grid;
+  gap: 8px;
+}
+.status-banner .status-title {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--site-text-small);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Diagram (conceptual SVG) ──────────────────────────────────────────── */
+.diagram {
+  background: var(--ref-surface-1);
+  border: 1px dashed var(--ref-border-strong);
+  border-radius: 2px;
+  padding: clamp(16px, 3vw, 28px);
+}
+.diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── Skip link ─────────────────────────────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 10;
+  background: var(--ref-surface-1);
+  border: 1px solid var(--ref-border-strong);
+  border-radius: 2px;
+  padding: 10px 14px;
+  transform: translateY(-200%);
+  transition: none;
+}
+.skip-link:focus {
+  transform: none;
+}
+
+/* ── Motion discipline ─────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

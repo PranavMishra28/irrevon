@@ -1,0 +1,57 @@
+---
+// The mandatory three-badge labeling system (RD5 §2): every claim-bearing
+// section carries one. Monochrome by design — dashed border marks the
+// conceptual register (the project's dashed-equals-unadjudicated grammar);
+// status hues are never used for labels.
+import type { BadgeKind } from "../data/claims";
+
+interface Props {
+  kind: BadgeKind;
+}
+const { kind } = Astro.props;
+
+const text: Record<BadgeKind, string> = {
+  recorded: "Recorded artifact",
+  conceptual: "Conceptual",
+  preregistered: "Preregistered methodology — no results yet",
+};
+---
+
+<span class:list={["badge", `badge-${kind}`]}>{text[kind]}</span>
+
+<style>
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ref-ink-2);
+    border: 1px solid var(--ref-border-strong);
+    border-radius: 2px;
+    padding: 5px 8px;
+    background: var(--ref-surface-1);
+  }
+  .badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .badge-recorded::before {
+    background: var(--ref-accent);
+  }
+  .badge-conceptual {
+    border-style: dashed;
+  }
+  .badge-conceptual::before {
+    border: 1px dashed var(--ref-ink-3);
+  }
+  .badge-preregistered::before {
+    border: 1px solid var(--ref-ink-2);
+  }
+</style>
