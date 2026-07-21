@@ -15,7 +15,7 @@ draft plan that ran the spikes first.
 |---|---|---|---|---|
 | P0 | Scaffold (this commit) | — | Tree in place; `make check` green; master doc moved byte-identical and hash-pinned | agent |
 | P1 | Clearances + environment migration | — | (a) external clearances requested in writing (master doc §13; details tracked privately); (b) development-environment review item DE-1 closed (review-queue §3); (c) repo-scoped fine-grained PAT in use | human |
-| P2 | Name screen ("Detent") | — | Registry/trademark screen recorded; name confirmed or ADR-011 fallback triggered | human (agent-assisted searches) |
+| P2 | Name screen ("Irrevon") | — | Registry screen recorded and name adopted 2026-07-21 ([ADR-0023](decisions/0023-rename-to-irrevon.md), superseding ADR-011); the counsel trademark clearance remains open pre-release | human (agent-assisted searches) |
 | P3 | Preregistration Stage-A freeze | P1(b) complete; review-queue amendments affecting §8 ratified or rejected | Stage-A sections of [benchmark-preregistration.md](benchmark-preregistration.md) frozen: signed tag + external timestamp; freeze recorded in the document's §0 | human (agent drafts) |
 | P4 | C2 sandbox spike | P3 done (spike generates observations) | [ADR-0012](decisions/0012-c2-sandbox.md) closed: sandbox chosen after Twilio-persistence and Amadeus-list checks | agent + human ratify |
 | P5 | Stripe API version spike | P3 done | [ADR-0010](decisions/0010-stripe-api-version.md) closed: v1/v2 semantics pinned for the endpoints the adapter touches | agent + human ratify |
@@ -61,7 +61,9 @@ owner-deferred item). **Releasing anything beyond the readable repository** — 
 release/tag with artifacts, a preprint, a demo, Pages — requires ALL of:
 
 1. External clearances **granted in writing** (master doc §13).
-2. Name screen passed (or fallback adopted).
+2. Counsel trademark clearance of "Irrevon" completed (the registry screen is recorded and
+   the name adopted per [ADR-0023](decisions/0023-rename-to-irrevon.md); counsel screening
+   is the remaining half).
 3. Licensing decision closed ([ADR-0014](decisions/0014-licensing.md)) with LICENSE/NOTICE
    and inbound policy in place.
 4. Sanitization review of the release artifacts: tripword scan

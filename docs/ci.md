@@ -12,9 +12,9 @@ platform semantics below are `[VF]` against GitHub docs as of that date.
 | [`ci.yml`](../.github/workflows/ci.yml) | every push + PR | The required PR gate: change detection → conditional jobs → the `ci-required` aggregator | active |
 | [`nightly.yml`](../.github/workflows/nightly.yml) | cron 09:17 UTC + dispatch | Full local gate on a clean machine + online audits (external links, networked zizmor); grows the T3 suites at M3+; files/updates one dedup'd `nightly-failure` issue on red | active |
 | [`sandbox.yml`](../.github/workflows/sandbox.yml) | `workflow_dispatch` only | T4 credentialed sandbox contract tests — skeleton, activates at M4; gated by the `sandbox` environment | skeleton |
-| [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | DetentBench preregistered runs — skeleton, activates at M7; gated by the `benchmark` environment | skeleton |
+| [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | IrrevonBench preregistered runs — skeleton, activates at M7; gated by the `benchmark` environment | skeleton |
 | [`release.yml`](../.github/workflows/release.yml) | disabled (`if: false` guard) | Prepared release pipeline (version check, deterministic build, checksums, SBOM, attestation, human approval, OIDC publish) — enabled only at the public-release gate | disabled |
-| [`site-deploy.yml`](../.github/workflows/site-deploy.yml) | `workflow_dispatch` only | Marketing-site Pages deploy (build with deploy-provided origin/base → upload → deploy) — deploys nothing until a human enables Pages and the review-queue gates close (marketing-site ADR, publication clearance, name screen, licensing, AM-21) | gated |
+| [`site-deploy.yml`](../.github/workflows/site-deploy.yml) | `workflow_dispatch` only | Marketing-site Pages deploy (build with deploy-provided origin/base → upload → deploy) — deploys nothing until a human enables Pages and the review-queue gates close (marketing-site ADR, publication clearance, counsel name clearance (ADR-0023), licensing, AM-21) | gated |
 | [`dependabot.yml`](../.github/dependabot.yml) | monthly | Noise-contained policy (tuned at consolidation, 2026-07-21 — rationale in `.scratch/redesign/dependabot-tuning.md`): one grouped catch-all PR per ecosystem (actions / uv / npm), `open-pull-requests-limit: 1`, 7-day cooldowns (30-day uv majors; npm majors ignored — deliberate human migrations per ADR-0016), owner auto-assigned; security PRs bypass schedule and cooldown | active |
 
 ## Tier table — what runs when
@@ -59,12 +59,12 @@ Now (with this branch's merge):
 
 1. **Secret scanning + push protection** — Settings → Advanced Security → enable
    *Secret scanning*, *Push protection*, and *Scan for non-provider patterns*. CLI:
-   `gh api -X PATCH repos/PranavMishra28/detent --input -` with
+   `gh api -X PATCH repos/PranavMishra28/irrevon --input -` with
    `{"security_and_analysis":{"secret_scanning":{"status":"enabled"},"secret_scanning_push_protection":{"status":"enabled"},"secret_scanning_non_provider_patterns":{"status":"enabled"}}}`.
    Second layer only — local gitleaks (pre-commit + `make secrets`) stays primary.
 2. **Dependabot alerts + security updates** — same pane; or
-   `gh api -X PUT repos/PranavMishra28/detent/vulnerability-alerts` and
-   `gh api -X PUT repos/PranavMishra28/detent/automated-security-fixes`.
+   `gh api -X PUT repos/PranavMishra28/irrevon/vulnerability-alerts` and
+   `gh api -X PUT repos/PranavMishra28/irrevon/automated-security-fixes`.
 3. **Actions posture** — Settings → Actions → General: *Allow PranavMishra28, and select
    non-PranavMishra28, actions* with allowlist `astral-sh/setup-uv@*` (github-owned actions
    allowed; extend with `anchore/*`, `sigstore/*`, `pypa/*` only at the release gate);

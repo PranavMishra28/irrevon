@@ -1,13 +1,13 @@
-# Detent
+# Irrevon
 
-**DetentBench, a fault-injection benchmark for irreversible AI-agent actions, and Detent,
+**IrrevonBench, a fault-injection benchmark for irreversible AI-agent actions, and Irrevon,
 its reference reconciliation engine.** The benchmark plan is written for preregistration
 and is currently a draft; no section is frozen
 ([docs/benchmark-preregistration.md](docs/benchmark-preregistration.md) §0).
 
 When an LLM agent crosses into an irreversible external action and the outcome is ambiguous —
 a lost response, a crash mid-call, or a retry with re-synthesized arguments — duplicate,
-orphaned, or lost effects follow. DetentBench is designed to measure how often that happens
+orphaned, or lost effects follow. IrrevonBench is designed to measure how often that happens
 against real production API contracts, and how much of it a deterministic reconciler
 (identity from stable business identifiers, persist-before-dispatch, reconcile-by-query)
 can eliminate or surface. The project is benchmark-first and scoped to C2 destinations
@@ -34,21 +34,21 @@ remain gated by the execution plan. The roadmap, gates, and what blocks what are
 Prerequisites: [uv](https://docs.astral.sh/uv/), Docker (for local Postgres 17), ~5 minutes.
 
 ```bash
-git clone <this-repo> && cd detent
+git clone <this-repo> && cd irrevon
 uv sync --locked                # toolchain + deps, pinned by uv.lock
-uv run detent init              # writes detent.toml, compose.yaml, .env.example
+uv run irrevon init              # writes irrevon.toml, compose.yaml, .env.example
 cp .env.example .env            # local placeholder password (never committed)
 docker compose up -d --wait     # digest-pinned Postgres 17, loopback only
-uv run detent init              # now applies the plain-SQL migrations
-uv run detent doctor            # read-only checks incl. the identity self-test
-uv run detent demo              # the two-leg flagship story (see below)
-uv run detent inspect <effect_id> --dsn '<printed by the demo>'
+uv run irrevon init              # now applies the plain-SQL migrations
+uv run irrevon doctor            # read-only checks incl. the identity self-test
+uv run irrevon demo              # the two-leg flagship story (see below)
+uv run irrevon inspect <effect_id> --dsn '<printed by the demo>'
 ```
 
-`detent demo` runs the whole thesis in one command, against the deterministic
+`irrevon demo` runs the whole thesis in one command, against the deterministic
 reference destination (a C2 API: queryable status, **no honored idempotency**):
 
-1. **Detent leg** — an intent keyed on stable business identifiers is persisted
+1. **Irrevon leg** — an intent keyed on stable business identifiers is persisted
    before dispatch; the destination commits the order but the response is lost
    on cue; the engine process is **really SIGKILLed**; on restart, recovery
    queries the destination *before any redispatch*, settles the record

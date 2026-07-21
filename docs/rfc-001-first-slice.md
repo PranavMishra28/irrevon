@@ -1,4 +1,4 @@
-# RFC-001: First vertical slice — Detent core
+# RFC-001: First vertical slice — Irrevon core
 
 - **Status:** Draft — acceptance is a human act; implementation follows acceptance.
 - **Date:** 2026-07-20 · amended 2026-07-21 (citation fixes; RFC-002 cross-references)
@@ -31,7 +31,7 @@ by the M3 conformance tests (§12.1) — and explicitly defers everything else. 
 
 ## Guide-level explanation (the demo, as a story)
 
-An agent asks Detent to create an order for `order_id: 9410`. Detent validates the intent
+An agent asks Irrevon to create an order for `order_id: 9410`. Irrevon validates the intent
 contract, persists an INTENDED→PERSISTED record, passes the commit gate, and dispatches to the
 C2 destination. The response is lost on cue; the process is killed. On restart, replay finds
 the AMBIGUOUS record and — before any new dispatch — queries the destination's status by the

@@ -1,4 +1,4 @@
-# DetentBench Preregistration Plan
+# IrrevonBench Preregistration Plan
 
 > **STATUS: DRAFT — NOTHING IN THIS DOCUMENT IS FROZEN.**
 > No section carries integrity weight until it is explicitly marked FROZEN through the §0
@@ -67,7 +67,7 @@
   incommensurable severities and structurally-zero cells and could hide a single-cell
   regression (validity review, finding B5). All other cells run and are reported as
   declared exploratory strata (§2).
-- **H1 (primary, directional):** on the confirmatory stratum, R (Detent) shows a
+- **H1 (primary, directional):** on the confirmatory stratum, R (Irrevon) shows a
   statistically significant, large reduction in duplicate-, orphaned-, and
   lost-legitimate-effect rates versus **both** B5 and the composite **B5+B3+B6** (AM-7,
   ratified with correction: the composite is the **preselected primary comparator**; B5 is
@@ -87,7 +87,7 @@
   (c) no confirmatory cell shows the comparator worse than R by at least the worst-cell
   gate (§5.3) — a pooled equivalence coexisting with a large local regression is reported
   as *inconclusive with a localized signal*, not as a kill and not as a win. If the kill
-  fires, Detent is unnecessary and the project is reframed as a teaching artifact (master
+  fires, Irrevon is unnecessary and the project is reframed as a teaching artifact (master
   doc §14). The benchmark is explicitly not designed so the system must win; clause (b)
   exists so a baseline that beats R kills at least as surely as one that ties it.
 - **Confirmatory vs exploratory:** anything not listed above is exploratory and labeled so.
@@ -170,9 +170,9 @@ client/contract boundary and says so; server-side faults exist only in the discl
 stratum); post-run destination read-back closes the loop for C1/C2; C3 cells score against
 fixture truth only.
 
-- **3.1 Formats.** Workloads: `detentbench/workload/v1`; re-synthesis variant sets:
-  `detentbench/variants/v1`; fault schedules: `detentbench/fault-schedule/v1`; artifact
-  manifest: `detentbench/manifest/v1`. Authored in YAML, frozen as RFC 8785 canonical JSON;
+- **3.1 Formats.** Workloads: `irrevonbench/workload/v1`; re-synthesis variant sets:
+  `irrevonbench/variants/v1`; fault schedules: `irrevonbench/fault-schedule/v1`; artifact
+  manifest: `irrevonbench/manifest/v1`. Authored in YAML, frozen as RFC 8785 canonical JSON;
   SHA-256 over canonical bytes; the manifest's root hash is the single value the Stage-B
   freeze pins and every run references. Field-level schemas are Stage-B artifacts
   (schemas/README.md).
@@ -186,7 +186,7 @@ fixture truth only.
 - **3.3 Fault-injection anchors.** Per §2; anchor semantics are part of the schedule
   format; the per-arm anchor remap table is a Stage-B artifact.
 - **3.4 Seed derivation.** seed(cell, replicate) = first 8 bytes, big-endian, of
-  SHA-256(master_seed ‖ "detentbench/v1" ‖ cell_id ‖ replicate_index). Arm identity is NOT
+  SHA-256(master_seed ‖ "irrevonbench/v1" ‖ cell_id ‖ replicate_index). Arm identity is NOT
   an input (cross-arm pairing by construction). `master_seed_dev` is public and frozen at
   Stage B; the holdout master seed is sealed per §7. Replicates 0–4 = binding floor; 0–9 =
   planned confirmatory set.
@@ -200,7 +200,7 @@ adopting any particular internal data model (finding M11):
 | Metric | Definition (oracle read-back + fixture truth) |
 |---|---|
 | Duplicate-effect rate | Σ over true intents of max(0, destination effects for that intent − 1) ÷ **intents eligible for dispatch** in the cell (fixture-defined). Never computed from finding counts. |
-| Orphaned-effect rate (arm-neutral) | destination effects with no corresponding true fixture intent/operation ÷ total destination effects at read-back. The Detent-operational definition ("no ledger record") is reported separately, descriptive-only. |
+| Orphaned-effect rate (arm-neutral) | destination effects with no corresponding true fixture intent/operation ÷ total destination effects at read-back. The Irrevon-operational definition ("no ledger record") is reported separately, descriptive-only. |
 | Lost-legitimate-effect rate | legitimate intended effects absent at read-back ÷ legitimate intended effects (fixture-defined) |
 | False-suppression rate | legitimate effects blocked ÷ legitimate effects (fixture-defined; oracle labels legitimacy) |
 | Unresolved-ambiguous rate | AMBIGUOUS unresolved at run end ÷ dispatched — **arm-conditional** (requires an ambiguity concept); descriptive, never confirmatory |
@@ -378,8 +378,8 @@ scored per §6, not censored). Second-machine reproduction; independent recomput
 random 10% of cells before any public claim (M7 gate; covers metric values AND verdict
 hashes).
 
-Evidence bundles use `detentbench/evidence/v1`: one append-only directory per run
-(run manifest `detentbench/run-manifest/v1` written first — write-ahead registration, so a
+Evidence bundles use `irrevonbench/evidence/v1`: one append-only directory per run
+(run manifest `irrevonbench/run-manifest/v1` written first — write-ahead registration, so a
 run that dies pre-evidence still exists; structured harness + arm logs; ledger export as
 metadata + digests; destination read-back including intended-but-absent probe results and
 the capability-declaration version defining "absent"; environment manifest; verdict written

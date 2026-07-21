@@ -78,7 +78,7 @@ recorded as a deviation: the workflow never picks step values; the ledger's
 - **PostgreSQL, major version 17, pinned for dev, test, and benchmark environments**
   `[DD]` (resolves the 16/17/18 drift across earlier drafts; requires ≥15 for
   `UNIQUE NULLS NOT DISTINCT`). Plain-SQL migrations per ADR-0013; runner chosen at M2.
-- **Insert-only by privilege:** the application role (`detent_app`) is granted
+- **Insert-only by privilege:** the application role (`irrevon_app`) is granted
   `INSERT`/`SELECT` only on evidence tables and **no direct write** on lifecycle tables
   (§2.3). `UPDATE`/`DELETE` are granted to no application role on any fact table.
   Corrections are new rows.
@@ -227,7 +227,7 @@ reconcile scans proportional to open executions).
 
 ### 2.3 The locked transition writer (fix for C1 B2)
 
-`detent_app` has **no INSERT privilege** on `effect_transitions`, `effect_executions`, or
+`irrevon_app` has **no INSERT privilege** on `effect_transitions`, `effect_executions`, or
 `finding_resolutions`. All lifecycle writes go through `SECURITY DEFINER` SQL functions
 owned by the migration role:
 
@@ -247,7 +247,7 @@ owned by the migration role:
 The static `CHECK` + `UNIQUE` constraints stay in place as a second layer, but the claim
 "the schema alone rejects illegal histories" is **withdrawn**: forks, orphan edges, and
 frontier skips are prevented by the functions, and the M3 matrix tests exercise both the
-functions (legal/illegal edges) and direct-insert attempts as `detent_app` (expecting
+functions (legal/illegal edges) and direct-insert attempts as `irrevon_app` (expecting
 `insufficient_privilege`).
 
 ## 3. The canonical state tables (single source of truth)
@@ -536,13 +536,13 @@ alerting, or annotation side-tables in the first slice.** What ships:
 1. **JSONL structured logs** (one JSON object per line, stderr by default, optional file
    sink): stable `event_name` catalog covering registrations, gate decisions, dispatches,
    settlements, findings, escalations, sweep/replay runs; identifier privacy rule —
-   Detent-minted identifiers raw, upstream values digested or absent, payload bodies never.
-   Severity discipline: ERROR = Detent malfunctioning; WARN = the system working and
+   Irrevon-minted identifiers raw, upstream values digested or absent, payload bodies never.
+   Severity discipline: ERROR = Irrevon malfunctioning; WARN = the system working and
    finding something (AMBIGUOUS, denies, findings). Logs are diagnostics: **no decision
    path reads them; the ledger is the sole source of truth**; crash recovery is ledger
    replay, never log replay. A benchmark run missing its logs is INVALID (run-validity
    evidence), yet no metric is ever computed from logs.
-2. **`detent inspect <id>`** — the ledger-only evidence view: transition history,
+2. **`irrevon inspect <id>`** — the ledger-only evidence view: transition history,
    contract summary (stable-id keys; values redacted by default, `--reveal` local),
    receipts (all attempts, all executions), findings with full resolution history, gate
    history, merged timeline, and an integrity section that recomputes `intent_id` from the
@@ -556,14 +556,14 @@ off.
 
 ## 12. CLI surface for the first slice
 
-Ships: **`detent init`** (scaffold `detent.toml`, `compose.yaml` with digest-pinned
+Ships: **`irrevon init`** (scaffold `irrevon.toml`, `compose.yaml` with digest-pinned
 Postgres 17 + `pg_isready` healthcheck, `.env.example` placeholders — no network, no git,
-no credentials), **`detent doctor`** (read-only environment validation: config, JCS/SHA-256
+no credentials), **`irrevon doctor`** (read-only environment validation: config, JCS/SHA-256
 identity self-test against pinned vectors, DB reachability/migrations/privileges,
 declaration validation incl. consistency bounds, credential *presence* only, clock sanity;
 `--probe` opts into declared read-only liveness calls; never mutates, never dispatches),
-**`detent demo`** (the RFC-001 §9.5 flagship script incl. the B5 contrast leg; exit 3 when
-the contrast fails — never masked), **`detent inspect`** (§11). Conventions: data on
+**`irrevon demo`** (the RFC-001 §9.5 flagship script incl. the B5 contrast leg; exit 3 when
+the contrast fails — never masked), **`irrevon inspect`** (§11). Conventions: data on
 stdout, messages on stderr; `--json`/`--jsonl` with `schema_version`; exit codes 0 success
 · 1 unexpected failure · 2 usage · 3 declared outcome · 4 integrity refusal — one table for
 every command (doctor failures are exit 3). **Deferred:** `bench smoke` (M5), `bench run`
@@ -618,7 +618,7 @@ suffice until multi-writer reopens ADR-002).
 3. **Exhaustive state-matrix tests generated from §3**: every dimension-A pair (legal with
    guards, illegal rejected with typed errors and no rows), every A×B cell, every B×C cell;
    a meta-test fails if any cell lacks an explicit expectation; corrupt direct-insert
-   attempts as `detent_app` must raise `insufficient_privilege` (§2.3); a stateful
+   attempts as `irrevon_app` must raise `insufficient_privilege` (§2.3); a stateful
    property machine drives the public operations with the auditor's legality predicate as
    invariant.
 4. **Classifier isolation**: import-linter contract + adversarial proposal-object feeding
@@ -636,7 +636,7 @@ reopen).
 ## 16. Deferred and cut (recorded so absence is legible)
 
 - OTel instrument catalog, span-link taxonomy, annotation side-table, alerting thresholds —
-  cut for v0.1 (§11); reopen post-M8 if Detent is operated as a service.
+  cut for v0.1 (§11); reopen post-M8 if Irrevon is operated as a service.
 - `bench smoke`/`bench run` CLI — M5/M7. Operator verbs (`reconcile`/`sweep`/`resolve`) —
   M4. `serve` — frontend workstream (ADR-0016).
 - Record schemas — M3 admission ADR per ADR-0019 item 4.
@@ -647,7 +647,7 @@ reopen).
   without adjudication) — `[OQ]`, conservative default stands; decide only with
   destination-specific proxy evidence.
 - Two-band identity diff exhibit and other workbench polish — deferred (ADR-0016); the
-  slice-one evidence surface is `detent inspect` plus a field table.
+  slice-one evidence surface is `irrevon inspect` plus a field table.
 
 ## 17. Validity-review traceability (C1 findings → resolution)
 
