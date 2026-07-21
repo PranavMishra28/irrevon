@@ -48,7 +48,7 @@ export const claims = {
   // ── Recorded artifact (the flagship demo) ───────────────────────────────
   "demo-provenance": {
     claim:
-      "The demo transcript is recorded from a real engine run — seed 777, engine commit a3dd583 — against the reference C2 destination (queryable status, no honored idempotency). Reproducible from the repository.",
+      "The demo transcript is recorded from a real engine run — seed 777, engine commit 0a22114 — against the reference C2 destination (queryable status, no honored idempotency). Reproducible from the repository.",
     source: "web/fixtures/canonical/provenance.json",
     label: "VF",
     badge: "recorded",

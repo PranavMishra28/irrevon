@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-21T10:37:48.648823Z",
-  "engine_commit": "a3dd5832a954fb6b0da62203f5017f64ede8c421",
+  "generated_at": "2026-07-21T23:38:14.076786Z",
+  "engine_commit": "0a221146798312c818908c56cc5c2eb14e76dc71",
   "seed": 777,
-  "source": "real engine run (src/detent) against the refdest-c2 reference destination",
+  "source": "real engine run (src/irrevon) against the refdest-c2 reference destination",
   "notes": [
     "effects.json/findings.json items are exchange shapes assembled from the run's ledger rows and validated against schemas/*.schema.json",
     "inspect/*.json and demo-artifact.json and health.json are verbatim CLI outputs (stable ids redacted by CLI default)",

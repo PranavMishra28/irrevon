@@ -61,7 +61,7 @@
   "summary": {
     "schema_version": "1",
     "seed": 777,
-    "detent_leg": {
+    "irrevon_leg": {
       "destination_effects": 1,
       "duplicate_rejected": true,
       "reconciled": "SETTLED_COMMITTED",

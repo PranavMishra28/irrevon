@@ -25,7 +25,7 @@
       "evidence": {
         "opened_by": "register"
       },
-      "created_at": "2026-07-21 10:37:48.468277+00:00"
+      "created_at": "2026-07-21 23:38:13.888880+00:00"
     },
     {
       "transition_seq": 15,
@@ -38,7 +38,7 @@
       "evidence": {
         "opened_by": "register"
       },
-      "created_at": "2026-07-21 10:37:48.468277+00:00"
+      "created_at": "2026-07-21 23:38:13.888880+00:00"
     },
     {
       "transition_seq": 16,
@@ -52,7 +52,7 @@
         "attempt_id": 4,
         "decision_id": 5
       },
-      "created_at": "2026-07-21 10:37:48.474570+00:00"
+      "created_at": "2026-07-21 23:38:13.893176+00:00"
     },
     {
       "transition_seq": 17,
@@ -65,7 +65,7 @@
       "evidence": {
         "receipt_id": 4
       },
-      "created_at": "2026-07-21 10:37:48.481362+00:00"
+      "created_at": "2026-07-21 23:38:13.899982+00:00"
     },
     {
       "transition_seq": 18,
@@ -81,7 +81,7 @@
           3
         ]
       },
-      "created_at": "2026-07-21 10:37:48.491873+00:00"
+      "created_at": "2026-07-21 23:38:13.915184+00:00"
     }
   ],
   "receipts": [
@@ -95,7 +95,7 @@
       "failure_kind": null,
       "destination_ref": null,
       "recorded_by": "dispatcher",
-      "recorded_at": "2026-07-21 10:37:48.481362+00:00"
+      "recorded_at": "2026-07-21 23:38:13.899982+00:00"
     }
   ],
   "findings": [
@@ -114,7 +114,7 @@
       },
       "evidence_digest": "sha256:bba074d27c01252cd5cf855c2a301197225a68589c8398656d7dcc2b713cb2c6",
       "created_by": "reconciler",
-      "created_at": "2026-07-21 10:37:48.491873+00:00"
+      "created_at": "2026-07-21 23:38:13.915184+00:00"
     }
   ],
   "resolutions": [],
@@ -143,9 +143,9 @@
         }
       ],
       "evidence": {
-        "input_digest": "sha256:c6b66ee3c90a2d702448a4cbeda6eca5a1d4edcb4bc3882e9e4b892e9b6746f7"
+        "input_digest": "sha256:6a65608219b6a97ef943fed15648630b687a0ad52d8e006f846428161dcb35df"
       },
-      "created_at": "2026-07-21 10:37:48.474570+00:00"
+      "created_at": "2026-07-21 23:38:13.893176+00:00"
     }
   ],
   "probes": [
@@ -154,14 +154,14 @@
       "probe_kind": "reconcile_open",
       "result": "ABSENT",
       "n_found": 0,
-      "queried_at": "2026-07-21 10:37:48.488708+00:00"
+      "queried_at": "2026-07-21 23:38:13.910522+00:00"
     },
     {
       "probe_id": 3,
       "probe_kind": "reconcile_open",
       "result": "ABSENT",
       "n_found": 0,
-      "queried_at": "2026-07-21 10:37:48.490997+00:00"
+      "queried_at": "2026-07-21 23:38:13.913997+00:00"
     }
   ],
   "classification": "LOST",

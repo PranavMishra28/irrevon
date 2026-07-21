@@ -24,7 +24,7 @@
       "evidence": {
         "opened_by": "register"
       },
-      "created_at": "2026-07-21 10:37:48.445003+00:00"
+      "created_at": "2026-07-21 23:38:13.861528+00:00"
     },
     {
       "transition_seq": 7,
@@ -37,7 +37,7 @@
       "evidence": {
         "opened_by": "register"
       },
-      "created_at": "2026-07-21 10:37:48.445003+00:00"
+      "created_at": "2026-07-21 23:38:13.861528+00:00"
     },
     {
       "transition_seq": 8,
@@ -51,7 +51,7 @@
         "attempt_id": 2,
         "decision_id": 3
       },
-      "created_at": "2026-07-21 10:37:48.448437+00:00"
+      "created_at": "2026-07-21 23:38:13.865280+00:00"
     },
     {
       "transition_seq": 9,
@@ -64,7 +64,7 @@
       "evidence": {
         "receipt_id": 2
       },
-      "created_at": "2026-07-21 10:37:48.455111+00:00"
+      "created_at": "2026-07-21 23:38:13.872269+00:00"
     }
   ],
   "receipts": [
@@ -78,7 +78,7 @@
       "failure_kind": null,
       "destination_ref": "dest_1d6e8c42e39bfdd9717b848904a398e2",
       "recorded_by": "dispatcher",
-      "recorded_at": "2026-07-21 10:37:48.455111+00:00"
+      "recorded_at": "2026-07-21 23:38:13.872269+00:00"
     }
   ],
   "findings": [],
@@ -108,9 +108,9 @@
         }
       ],
       "evidence": {
-        "input_digest": "sha256:425a65affbe2190123f18ce1eab4b7173cf3435c73dae85179b78c036d27ae2a"
+        "input_digest": "sha256:9c005236f429b679bc397693841e0c85e58a237796d2c6f443286f9f18cf61cf"
       },
-      "created_at": "2026-07-21 10:37:48.448437+00:00"
+      "created_at": "2026-07-21 23:38:13.865280+00:00"
     }
   ],
   "probes": [],

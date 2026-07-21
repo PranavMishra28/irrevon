@@ -3,7 +3,7 @@
   "data": [
     {
       "adapter": "refdest-c2",
-      "destination": "Detent reference destination (C2 profile)",
+      "destination": "Irrevon reference destination (C2 profile)",
       "api_version": "refdest-1",
       "tier": "C2",
       "idempotency": {
@@ -24,10 +24,10 @@
       },
       "compensation_hook": null,
       "citations": [
-        "https://detent.invalid/refdest/contract#c2"
+        "https://irrevon.dev/refdest/contract#c2"
       ],
       "evidence_quality": "VF"
     }
   ],
-  "as_of": "2026-07-21T10:37:48.648823Z"
+  "as_of": "2026-07-21T23:38:14.076786Z"
 }
