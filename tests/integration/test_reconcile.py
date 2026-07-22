@@ -300,7 +300,10 @@ def test_retry_after_clean_failure_new_execution(fresh_db: DBHandles) -> None:
         opened = open_retry_execution(
             ledger,
             reg.effect_id,
-            {"fresh_authority_ref": "auth_rc2", "stamped_at": datetime.now(UTC).isoformat().replace("+00:00", "Z")},
+            {
+                "fresh_authority_ref": "auth_rc2",
+                "stamped_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            },
         )
         assert opened["step"] == 1
         assert opened["operation_id"] == f"{reg.effect_id}:1"
