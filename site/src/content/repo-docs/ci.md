@@ -2,7 +2,7 @@
 title: "CI — how this repository builds"
 description: "The CI workflow map: tiers, required checks, owner settings checklist, and local parity via make targets."
 sourcePath: "docs/ci.md"
-sourceSha256: "033bb365387967b5057b0ba20d18153727567535faebf05a00bf89d6b4ee145c"
+sourceSha256: "9bee5c79191c67ce59278099aba3d4f6553719e188bfa40c8cc46eb3703f3663"
 syncedAt: "2026-07-22"
 section: "Governance"
 renderTitle: false
@@ -103,7 +103,10 @@ Site deploys (not a workflow):
    owner-directed act: build `site/dist` with the deploy-provided `SITE_ORIGIN` /
    `SITE_REPO_URL` (`astro.config.mjs` embeds both at build time) and upload the static
    output; response headers come from `site/vercel.json`. Details in
-   [site/README.md](../site/README.md).
+   [site/README.md](../site/README.md). The repo-root `vercel.json` sets
+   `git.deploymentEnabled: false` so the Vercel GitHub integration never deploys on push
+   (push-triggered deploys are policy-forbidden, and the git-connected project's
+   auto-deploys were failing on every push as a red `Vercel` commit status).
 
 Before the first M4/M7 dispatch:
 

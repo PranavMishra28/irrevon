@@ -93,7 +93,10 @@ Site deploys (not a workflow):
    owner-directed act: build `site/dist` with the deploy-provided `SITE_ORIGIN` /
    `SITE_REPO_URL` (`astro.config.mjs` embeds both at build time) and upload the static
    output; response headers come from `site/vercel.json`. Details in
-   [site/README.md](../site/README.md).
+   [site/README.md](../site/README.md). The repo-root `vercel.json` sets
+   `git.deploymentEnabled: false` so the Vercel GitHub integration never deploys on push
+   (push-triggered deploys are policy-forbidden, and the git-connected project's
+   auto-deploys were failing on every push as a red `Vercel` commit status).
 
 Before the first M4/M7 dispatch:
 
