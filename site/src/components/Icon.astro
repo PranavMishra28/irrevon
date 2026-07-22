@@ -1,0 +1,32 @@
+---
+// Domain icon loader: inlines the N4 hand-written 24-grid SVGs
+// (src/assets/icons/, provenance in site/ASSETS.md). Icons are decorative
+// reinforcement only — every call site pairs one with a visible text label,
+// so they ship aria-hidden.
+const files = import.meta.glob<string>("../assets/icons/*.svg", { query: "?raw", import: "default", eager: true });
+
+interface Props {
+  name: string;
+  size?: number;
+}
+const { name, size = 20 } = Astro.props;
+const raw = files[`../assets/icons/${name}.svg`];
+if (!raw) throw new Error(`Icon: unknown icon "${name}"`);
+// Strip the provenance comment and size the root element.
+const svg = raw
+  .replace(/<!--[\s\S]*?-->\s*/, "")
+  .replace("<svg ", `<svg width="${size}" height="${size}" `);
+---
+
+<span class="icon" set:html={svg} />
+
+<style>
+  .icon {
+    display: inline-flex;
+    flex: none;
+    color: inherit;
+  }
+  .icon :global(svg) {
+    display: block;
+  }
+</style>

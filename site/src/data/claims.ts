@@ -305,6 +305,30 @@ export const claims = {
   },
 
   // ── Status, licensing, availability ─────────────────────────────────────
+  "install-gated": {
+    claim:
+      "Planned distribution (uvx / uv tool install / pipx / pip, one PyPI package with the embedded workbench) is decided but gated: publication requires the public-release gate — clearances granted in writing, the counsel trademark screen, and the licensing decision. Every install command for it renders as PLANNED, never as available today.",
+    source: "docs/decisions/0018-distribution-model.md + docs/review-queue.md §3 item 4 + execution plan (public-release gate)",
+    label: "VF",
+  },
+  "no-releases": {
+    claim:
+      "No release exists: zero git tags, no package, no release artifact. The changelog is computed from git tags at build time, so its empty state is derived, not asserted — the first entry appears when the first signed tag exists, which is human-gated.",
+    source: "repository state (git tag --list) + execution plan (public-release gate)",
+    label: "VF",
+  },
+  "roadmap-no-dates": {
+    claim:
+      "The roadmap is phases and gates, never dates: order is load-bearing (the Stage-A preregistration freeze precedes any sandbox observation), and nothing in the execution plan is a schedule or a commitment.",
+    source: "docs/execution-plan.md (ordering rationale + gate notes)",
+    label: "VF",
+  },
+  "docs-rendered-provenance": {
+    claim:
+      "Rendered repository documents on this site are mechanical, drift-gated copies: each carries its source path and content sha256, a sync script regenerates them, and CI fails on any byte drift — the repository copy is always canonical.",
+    source: "site/scripts/sync-docs.mjs + site/docs-manifest.json (checked in CI via make site-check)",
+    label: "VF",
+  },
   "quickstart-real": {
     claim:
       "The working quickstart is clone + uv + Docker: uv sync --locked, irrevon init, docker compose up, irrevon doctor, irrevon demo. There is no package-index install — nothing is published.",

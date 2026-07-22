@@ -17,7 +17,7 @@ export default defineConfig({
     reuseExistingServer: true,
   },
   projects: [
-    { name: "checks", testMatch: /(a11y|links|budget)\.spec\.ts/ },
+    { name: "checks", testMatch: /\.spec\.ts$/, testIgnore: /shots\.spec\.ts/ },
     { name: "shots", testMatch: /shots\.spec\.ts/ },
   ],
 });

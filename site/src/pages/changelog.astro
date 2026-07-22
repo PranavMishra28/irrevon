@@ -1,0 +1,139 @@
+---
+// Changelog — computed from git tags at build time, never hand-authored.
+// Zero tags exist today, so the page renders a derived empty state: the
+// build proves the emptiness instead of asserting it. When tags exist,
+// entries render from tag name + date + annotation; the tag is the record.
+import { execSync } from "node:child_process";
+import Base from "../layouts/Base.astro";
+import Source from "../components/Source.astro";
+import { SITE_NAME, repoDoc } from "../config";
+import { href } from "../lib/url";
+
+interface TagEntry {
+  tag: string;
+  date: string;
+  subject: string;
+}
+
+// The build already shells to git for the repository URL (astro.config.mjs);
+// reading tags is the same trust level.
+const raw = execSync("git tag --list --sort=-creatordate --format='%(refname:short)\t%(creatordate:short)\t%(subject)'", {
+  encoding: "utf8",
+}).trim();
+const tags: TagEntry[] = raw
+  ? raw.split("\n").map((line) => {
+      const [tag, date, subject] = line.split("\t");
+      return { tag, date: date ?? "", subject: subject ?? "" };
+    })
+  : [];
+const checkedAt = new Date().toISOString().slice(0, 10);
+---
+
+<Base
+  title={`Changelog — ${SITE_NAME}`}
+  description="Releases, derived from git tags at build time. No releases exist yet — the empty state is computed, not written, and the first entry appears with the first signed tag."
+>
+  <section class="section">
+    <div class="container">
+      <span class="kicker">Changelog</span>
+      <h1>Releases, derived from the repository</h1>
+      <p class="lead" style="margin-top: 18px; max-width: 64ch;">
+        This page is computed from <code>git tag --list</code> at build time. No entry is ever hand-authored:
+        the signed tag is the record, and until one exists there is nothing to list — shown, not hidden.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      {
+        tags.length === 0 ? (
+          <div class="empty-state">
+            <p class="empty-count" aria-hidden="true">
+              0
+            </p>
+            <h2>No releases yet.</h2>
+            <p class="empty-body">
+              This project is pre-release: no tag, no package, no release artifact has been published. The
+              first entry appears here when the first signed tag exists — and creating it is human-gated
+              behind the public-release gate: external clearances, the counsel name screen, and the licensing
+              decision.
+            </p>
+            <p class="empty-derived mono-chip">derived from `git tag --list` at build · 0 tags · checked {checkedAt}</p>
+            <div class="empty-links">
+              <a href={href("/roadmap/")}>What has to happen first → the roadmap</a>
+              <a href={repoDoc("docs/execution-plan.md")}>The public-release gate (execution plan)</a>
+            </div>
+            <div style="margin-top: 6px;">
+              <Source id="no-releases" />
+            </div>
+          </div>
+        ) : (
+          <ol class="tag-list">
+            {tags.map((t) => (
+              <li>
+                <span class="mono-chip">{t.tag}</span>
+                <time datetime={t.date}>{t.date}</time>
+                <p>{t.subject}</p>
+              </li>
+            ))}
+          </ol>
+        )
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  .empty-state {
+    border: 1px dashed var(--ref-border-strong);
+    border-radius: 2px;
+    background: var(--ref-layer-panel);
+    padding: clamp(28px, 5vw, 56px);
+    display: grid;
+    gap: 14px;
+    max-width: 72ch;
+    justify-items: start;
+  }
+  .empty-count {
+    font-family: var(--font-mono);
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 1;
+    color: var(--ref-ink-3);
+  }
+  .empty-body {
+    color: var(--ref-ink-2);
+    max-width: 58ch;
+  }
+  .empty-derived {
+    margin-top: 4px;
+  }
+  .empty-links {
+    display: grid;
+    gap: 8px;
+    font-size: var(--site-text-small);
+    margin-top: 6px;
+  }
+  .tag-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+    max-width: 72ch;
+  }
+  .tag-list li {
+    border: 1px solid var(--ref-border-subtle);
+    border-radius: 2px;
+    background: var(--ref-layer-panel);
+    padding: 16px 20px;
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+  }
+  .tag-list time {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    color: var(--ref-ink-3);
+  }
+</style>

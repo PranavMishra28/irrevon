@@ -1,0 +1,256 @@
+---
+// The One-Way Seat master stage (720×300): one SVG whose elements toggle per
+// beat via [data-beat] CSS states — every beat is a complete static frame by
+// construction, so reduced-motion and no-JS readers lose nothing. Geometry is
+// the N4 signature-sequence spec (original, hand-plotted; see site/ASSETS.md);
+// the space diagram matches the workbench graph's boundary-notch semantics:
+// engine pane left, the irreversible boundary rule at x=400 (pawl on the
+// effect lane, evidence-return port above), destination pane right, ledger
+// block bottom-left.
+//
+// The boundary is asymmetric from beat 1: the pawl (nothing that crossed
+// comes back) and the port (reads and receipts may return) are permanent
+// machinery. The hash chip in beat 2 and the re-worded retry in beat 12
+// carry the SAME recorded id string on purpose — beat 12's argument is
+// typographic identity. All interpolated values come from the drift-synced
+// recorded artifact (src/lib/demo-beats.ts).
+import artifact from "../data/demo/demo-artifact.json";
+import { effectShort, citeLabel } from "../lib/demo-beats";
+
+interface Props {
+  /** "interactive" renders at beat 12 (the complete frame — the no-JS state;
+   *  the island drives it); "poster" renders the static beat-10 crop. */
+  mode?: "interactive" | "poster";
+}
+const { mode = "interactive" } = Astro.props;
+const poster = mode === "poster";
+const exitLabel = `SIGKILL · exit ${String(artifact.events[2].exit_status).replace("-", "−")}`;
+const stillSeated = `still seated: ${artifact.summary.irrevon_leg.destination_effects}`;
+
+// Visible-from ranges (cumulative composition, N4 §1.3).
+const FROM: Record<string, number> = {
+  "#facts": 1,
+  "#chip": 2,
+  "#inscription": 3,
+  "#ledger-row-new": 3,
+  "#track-intent": 4,
+  "#gate": 4,
+  "#track-pre": 4,
+  "#track-post": 5,
+  "#seat-block": 5,
+  "#ball": 6,
+  "#ret-lost": 7,
+  "#crash-seam": 8,
+  "#probe": 9,
+  "#evidence-return": 10,
+  "#still-seated": 10,
+  "#ledger-row-settle": 11,
+  "#dup": 12,
+  "#gate-deny-bar": 12,
+};
+// The per-beat accent (the currently acting element).
+const FOCUS: Record<number, string> = {
+  1: "#facts",
+  2: "#chip",
+  3: "#inscription, #ledger-row-new",
+  4: "#gate",
+  5: "#track-post, #pawl",
+  6: "#ball",
+  7: "#ret-lost",
+  8: "#crash-seam",
+  9: "#probe",
+  10: "#evidence-return, #still-seated",
+  11: "#ledger-row-settle, #seat-block",
+  12: "#dup, #gate-deny-bar",
+};
+
+const beatsFrom = (n: number, sel: string) => {
+  const list = [];
+  for (let b = n; b <= 12; b++) list.push(`.oneway-stage[data-beat="${b}"] :is(${sel})`);
+  return list.join(",\n");
+};
+const beatsOnly = (ns: number[], sel: string) =>
+  ns.map((b) => `.oneway-stage[data-beat="${b}"] :is(${sel})`).join(",\n");
+
+const hiddenSel = Object.keys(FROM).join(", ");
+const css = `
+.oneway-stage { color: var(--ref-ink-1); width: 100%; height: auto; display: block; }
+.oneway-stage .mono { font: 500 11px/1 var(--font-mono); letter-spacing: 0.02em; fill: currentColor; }
+.oneway-stage .small { font-size: 9px; fill-opacity: 0.75; }
+.oneway-stage :is(${hiddenSel}) { opacity: 0; transition: opacity var(--seq-dur-draw, 180ms) cubic-bezier(0.2, 0, 0, 1); }
+${Object.entries(FROM)
+  .map(([sel, n]) => `${beatsFrom(n, sel)} { opacity: 1; }`)
+  .join("\n")}
+/* beat 2: the chip is declared, not yet recorded — dashed frame. */
+.oneway-stage[data-beat="2"] #chip-frame { stroke-dasharray: 5 4; }
+/* beats 7–10: the ambiguity frame around the chip. */
+#ambig-frame { opacity: 0; transition: opacity var(--seq-dur-draw, 180ms) cubic-bezier(0.2, 0, 0, 1); }
+${beatsOnly([7, 8, 9, 10], "#ambig-frame")} { opacity: 1; }
+/* beats 4–11 gate ticks; beat 12 swaps them for the deny bar. */
+.oneway-stage[data-beat="12"] #gate-ticks { opacity: 0; }
+/* beat 8: the engine pane dims — the ledger is the only memory that survives. */
+${beatsOnly([8], "#facts, #chip, #track-intent, #gate, #inscription")} { opacity: 0.35; }
+/* beat 11+: settled — heavy chip, heavy seat, emphasized double rule. */
+${beatsFrom(11, "#chip-frame")} { stroke-width: 3; }
+${beatsFrom(11, "#seat-block")} { stroke-width: 3; }
+${beatsFrom(11, "#double-rule-a, #double-rule-b")} { stroke-width: 1.5; }
+/* The acting element carries the single accent per beat. */
+${Object.entries(FOCUS)
+  .map(([b, sel]) => `.oneway-stage[data-beat="${b}"] :is(${sel}) { color: var(--ref-accent); }`)
+  .join("\n")}
+/* Backward steps re-inspect history; they never re-perform it. */
+.oneway-stage.no-anim, .oneway-stage.no-anim * { transition: none !important; }
+/* The CLICK (island-driven WAAPI): the pawl seats about its line-contact point. */
+.oneway-stage #pawl { transform-box: fill-box; transform-origin: 0% 50%; }
+.oneway-stage #dest-pane { transform-box: fill-box; }
+/* Gate ticks land one by one (single 40ms group offset — a step, not a cascade). */
+.oneway-stage #gate-ticks path { transition: opacity 100ms cubic-bezier(0.2, 0, 0, 1); }
+.oneway-stage[data-beat="4"] #gate-ticks path:nth-child(2) { transition-delay: 40ms; }
+.oneway-stage[data-beat="4"] #gate-ticks path:nth-child(3) { transition-delay: 80ms; }
+/* Poster: the beat-10 composite with the beat-11 heavy seat (N4 §1.5). */
+.oneway-stage[data-poster] #seat-block { stroke-width: 3; }
+`;
+---
+
+<svg
+  viewBox={poster ? "120 40 560 240" : "0 0 720 300"}
+  xmlns="http://www.w3.org/2000/svg"
+  role="img"
+  aria-labelledby={poster ? "poster-title" : "seq-title"}
+  class="oneway-stage"
+  data-beat={poster ? "10" : "12"}
+  data-poster={poster ? "" : undefined}
+>
+  {
+    poster ? (
+      <title id="poster-title">
+        The One-Way Seat, beat ten: evidence returns through the boundary port while the seated effect never
+        moves — still seated: 1.
+      </title>
+    ) : (
+      <title id="seq-title">The One-Way Seat — twelve-step recorded sequence</title>
+    )
+  }
+  <!-- ══ permanent machinery (visible every beat) ══ -->
+  <g id="boundary" stroke="currentColor" stroke-width="2">
+    <line x1="400" y1="48" x2="400" y2="72"></line>
+    <line x1="400" y1="106" x2="400" y2="256"></line>
+    <path id="port-chevron" d="M406 84 L398 89 M406 94 L398 89" stroke-width="1.5" fill="none"></path>
+    <path id="pawl" d="M402 176 L418 168 L414 184 Z" fill="currentColor" stroke="none"></path>
+  </g>
+  <g id="ledger" stroke="currentColor" stroke-width="1">
+    <line x1="24" y1="230" x2="196" y2="230"></line>
+    <line x1="24" y1="238" x2="168" y2="238"></line>
+    <line id="ledger-row-new" x1="24" y1="246" x2="188" y2="246"></line>
+    <line id="ledger-row-settle" x1="24" y1="254" x2="188" y2="254"></line>
+    <line id="double-rule-a" x1="24" y1="262" x2="196" y2="262"></line>
+    <line id="double-rule-b" x1="24" y1="266" x2="196" y2="266"></line>
+  </g>
+  <!-- ══ beat 1 — stable identifiers ══ -->
+  <g id="facts" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none">
+    <line x1="40" y1="56" x2="128" y2="56"></line>
+    <line x1="52" y1="72" x2="116" y2="72"></line>
+    <line x1="64" y1="88" x2="104" y2="88"></line>
+    <path d="M84 96 L84 108" stroke-width="1.5"></path>
+  </g>
+  <!-- ══ beat 2 — the intent chip ══ -->
+  <g id="chip">
+    <rect id="chip-frame" x="32" y="116" width="128" height="68" rx="3" fill="none" stroke="currentColor" stroke-width="2"
+    ></rect>
+    <line x1="44" y1="132" x2="120" y2="132" stroke="currentColor" stroke-width="2"></line>
+    <line x1="44" y1="144" x2="100" y2="144" stroke="currentColor" stroke-width="2"></line>
+    <rect x="44" y="156" width="104" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1"></rect>
+    <text x="96" y="169" text-anchor="middle" class="mono small">{effectShort}</text>
+  </g>
+  <rect
+    id="ambig-frame"
+    x="24"
+    y="108"
+    width="144"
+    height="84"
+    rx="4"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.5"
+    stroke-dasharray="5 4"></rect>
+  <!-- ══ beat 3 — the inscription ══ -->
+  <path id="inscription" d="M84 184 L84 224" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#arr)"
+  ></path>
+  <!-- ══ beat 4 — the gate ══ -->
+  <line id="track-intent" x1="160" y1="168" x2="218" y2="168" stroke="currentColor" stroke-width="2"></line>
+  <g id="gate">
+    <path d="M256 132 L292 168 L256 204 L220 168 Z" fill="none" stroke="currentColor" stroke-width="2"></path>
+    <g id="gate-ticks" stroke="currentColor" stroke-width="2" fill="none">
+      <path d="M242 158 l4 4 7-8"></path>
+      <path d="M242 172 l4 4 7-8"></path>
+      <path d="M242 186 l4 4 7-8"></path>
+    </g>
+    <line id="gate-deny-bar" x1="240" y1="168" x2="272" y2="168" stroke="currentColor" stroke-width="2.5"></line>
+  </g>
+  <!-- ══ beats 4–5 — crossing ══ -->
+  <line id="track-pre" x1="292" y1="168" x2="398" y2="168" stroke="currentColor" stroke-width="2" stroke-dasharray="5 4"
+  ></line>
+  <line id="track-post" x1="402" y1="168" x2="506" y2="168" stroke="currentColor" stroke-width="3"></line>
+  <!-- ══ beats 5–6 — the seat (the destination pane takes the CLICK load) ══ -->
+  <g id="dest-pane">
+    <path
+      id="seat-block"
+      d="M512 168 H544 L580 204 L616 168 H648 V220 H512 Z"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"></path>
+    <circle id="ball" cx="580" cy="178.5" r="18" fill="currentColor"></circle>
+    <text id="still-seated" x="580" y="248" text-anchor="middle" class="mono small">{stillSeated}</text>
+  </g>
+  <!-- ══ beat 7 — the lost response ══ -->
+  <g id="ret-lost" stroke="currentColor" stroke-width="1.5" fill="none">
+    <line x1="560" y1="80" x2="476" y2="80"></line>
+    <path d="M468 74 l-6 6 6 6"></path>
+    <text x="452" y="70" class="mono small" stroke="none">⌁ no recognized answer</text>
+  </g>
+  <!-- ══ beat 8 — the crash seam ══ -->
+  <g id="crash-seam">
+    <path d="M182 40 L174 118 L190 108 L178 256" fill="none" stroke="currentColor" stroke-width="2"></path>
+    <text x="196" y="52" class="mono small">{exitLabel}</text>
+  </g>
+  <!-- ══ beat 9 — the recovery probe ══ -->
+  <g id="probe" stroke="currentColor" stroke-width="1.5" fill="none">
+    <path d="M120 224 V96 H132"></path>
+    <line x1="132" y1="80" x2="624" y2="80"></line>
+    <path d="M624 80 V158 M618 158 h12"></path>
+  </g>
+  <!-- ══ beat 10 — evidence returns; the effect stays ══ -->
+  <g id="evidence-return" stroke="currentColor" stroke-width="1.5" fill="none">
+    <line x1="616" y1="96" x2="164" y2="96" marker-end="url(#arr)"></line>
+    <rect x="372" y="90" width="12" height="12" fill="currentColor" stroke="none"></rect>
+  </g>
+  <!-- ══ beat 12 — the duplicate ══ -->
+  <g id="dup">
+    <rect x="32" y="18" width="112" height="52" rx="3" fill="none" stroke="currentColor" stroke-width="2"></rect>
+    <path d="M44 32 q8 -6 16 0 t16 0 t16 0" fill="none" stroke="currentColor" stroke-width="2"></path>
+    <path d="M44 42 q8 -6 12 0 t12 0" fill="none" stroke="currentColor" stroke-width="2"></path>
+    <text x="88" y="62" text-anchor="middle" class="mono small">{effectShort}</text>
+    <path
+      id="dup-path"
+      d="M144 44 C190 60 226 96 250 128"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      marker-end="url(#arr)"></path>
+    <path
+      id="cite-edge"
+      d="M262 206 C300 258 420 262 508 224"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      marker-end="url(#arr)"></path>
+    <text id="cite-label" x="330" y="286" class="mono small">{citeLabel}</text>
+  </g>
+  <defs>
+    <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L8 4 L0 8" fill="none" stroke="currentColor" stroke-width="1.5"></path>
+    </marker>
+  </defs>
+</svg>
+
+<style is:inline set:html={css}></style>

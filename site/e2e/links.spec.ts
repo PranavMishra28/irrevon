@@ -43,5 +43,13 @@ test("nav lists exactly the built pages — no dead item", async ({ page }) => {
   const hrefs = await page
     .locator("nav[aria-label='Primary'] a")
     .evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-  expect(hrefs).toEqual(["/platform/", "/how-it-works/", "/benchmark/", "/security/", "/docs/"]);
+  expect(hrefs).toEqual([
+    "/platform/",
+    "/how-it-works/",
+    "/demo/",
+    "/benchmark/",
+    "/docs/",
+    "/research/",
+    "/install/",
+  ]);
 });

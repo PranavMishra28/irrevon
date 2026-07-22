@@ -1,0 +1,9 @@
+<!-- Irrevon icon: orphan-absence - hand-written original, N4, 2026-07-21.
+     A solid destination observation beside a dashed void slot: something
+     exists at the destination with no ledger record to pair it with.
+     Absence is drawn, never left blank. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <rect x="3" y="6" width="7.5" height="12" rx="1.5"/>
+  <path d="M6.75 10v4"/>
+  <rect x="13.5" y="6" width="7.5" height="12" rx="1.5" stroke-dasharray="2.6 2.6"/>
+</svg>

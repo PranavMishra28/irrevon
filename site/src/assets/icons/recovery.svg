@@ -1,0 +1,9 @@
+<!-- Irrevon icon: recovery - hand-written original, N4, 2026-07-21.
+     A three-quarter replay arc that terminates on the double rule: recovery
+     replays the ledger and adjudicates; it is NOT a circular retry loop -
+     the arc lands, once, on the books. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M18.5 13.5A6.5 6.5 0 1 1 12 7h4.5"/>
+  <path d="m14 4.5 2.5 2.5L14 9.5"/>
+  <path d="M4 20.5h16"/>
+</svg>
