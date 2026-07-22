@@ -4,11 +4,10 @@ Local-first, single-user, **read-only** evidence workbench for Irrevon. Fixture-
 (v0.1): all data comes from MSW-served, schema-derived fixtures; the browser never starts
 an effect and no build of this app can mutate anything.
 
-Contract: `.scratch/rc/frontend/BRIEF.md` (reconciled implementation brief — local-only
-working material, never committed; the durable decisions live in
-[ADR-0016](../docs/decisions/0016-frontend-workbench-stack.md) and this README).
+Design contract: [ADR-0016](../docs/decisions/0016-frontend-workbench-stack.md) plus this
+README (the working brief was internal; its durable decisions are recorded here).
 
-Status: all six BRIEF slices are implemented against the implemented engine on `rc/v0.1`.
+Status: the full workbench scope is implemented against the shipped engine.
 Types generate from the five admitted JSON Schemas plus the RFC-002 §3 canonical state
 tables (`pnpm codegen`, committed, drift-gated, SHA-256-pinned in
 `contracts/schema-pins.json`). The canonical fixtures are **captured transcripts of the
@@ -56,12 +55,12 @@ Notes:
 
 ## Dependency register
 
-Every direct dependency is justified against the BRIEF's budget. Additions require a new
-row here plus a size-limit delta in the PR.
+Every direct dependency is justified against the workbench budgets below. Additions
+require a new row here plus a size-limit delta in the PR.
 
 ### Runtime
 
-| Package                  | Version  | Justification (BRIEF §5)                                                  |
+| Package                  | Version  | Justification                                                             |
 | ------------------------ | -------- | ------------------------------------------------------------------------- |
 | `react`, `react-dom`     | 19.2.7   | UI runtime                                                                |
 | `@tanstack/react-router` | 1.170.18 | typed path + search params; file-based SPA routes                         |
@@ -76,7 +75,7 @@ row here plus a size-limit delta in the PR.
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `vite`, `@vitejs/plugin-react`, `@tailwindcss/vite`, `tailwindcss`                                                                                                                          | 8.1.4 / 6.0.3 / 4.3.2 | build + CSS-first token system                                                                                                                                                                                                                        |
 | `@tanstack/router-plugin`                                                                                                                                                                   | 1.168.20              | file-based route generation (newest release passing the 7-day age gate)                                                                                                                                                                               |
-| `typescript`                                                                                                                                                                                | 5.9.3                 | `[OQ: FE-PIN-1]` resolved: TS 7.0.2 typechecks the scaffold but typescript-eslint 8.64 crashes against it (`typescript-estree` shared.js `Cjs` read); pinned the newest stable 5.x line that the full toolchain passes, per the BRIEF's fallback rule |
+| `typescript`                                                                                                                                                                                | 5.9.3                 | `[OQ: FE-PIN-1]` resolved: TS 7.0.2 typechecks the scaffold but typescript-eslint 8.64 crashes against it (`typescript-estree` shared.js `Cjs` read); pinned the newest stable 5.x line that the full toolchain passes (the documented fallback rule) |
 | `typescript-eslint`, `eslint`, `eslint-plugin-jsx-a11y`, `eslint-plugin-boundaries`, `eslint-import-resolver-typescript`, `@tanstack/eslint-plugin-query`, `@tanstack/eslint-plugin-router` | see `package.json`    | F0 static gates: strict typed lint, a11y lint, import-boundary enforcement (resolver needed for TS-aware boundary resolution)                                                                                                                         |
 | `stylelint`, `stylelint-declaration-strict-value`                                                                                                                                           | 16.26.1 / 1.11.1      | token-usage lint on color-bearing CSS longhands                                                                                                                                                                                                       |
 | `prettier`                                                                                                                                                                                  | 3.9.5                 | formatting gate                                                                                                                                                                                                                                       |
@@ -89,11 +88,11 @@ row here plus a size-limit delta in the PR.
 | `@ibm/plex-sans`, `@ibm/plex-mono`                                                                                                                                                          | 1.1.0 / 2.5.0         | font acquisition only; Latin1 WOFF2 subsets copied to `public/fonts` by `pnpm fonts:sync` (drift-checked)                                                                                                                                             |
 | `@types/node`, `@types/react`, `@types/react-dom`                                                                                                                                           | see `package.json`    | type definitions                                                                                                                                                                                                                                      |
 
-### Version-pin deviations from the BRIEF
+### Version-pin deviations from the designed set
 
-The BRIEF's §5 pins were verified 2026-07-21; several had newer releases inside the 7-day
+The designed pins were verified 2026-07-21; several had newer releases inside the 7-day
 `minimumReleaseAge` window, so the newest _mature_ release was pinned instead (never a
-downgrade below the BRIEF's verified line): `storybook` 10.5.0 (not 10.5.3),
+downgrade below the verified line): `storybook` 10.5.0 (not 10.5.3),
 `tailwindcss` 4.3.2 (not 4.3.3), `vite` 8.1.4 (not 8.1.5), `typescript-eslint` 8.64.0
 (not 8.65.0), `@tanstack/eslint-plugin-query` 5.101.2. `semver@6.3.1` (transitive, via
 Babel) is excluded from `trustPolicy` only — it predates npm provenance; see
@@ -101,7 +100,7 @@ Babel) is excluded from `trustPolicy` only — it predates npm provenance; see
 
 ## Budgets (enforced by `pnpm size`)
 
-Redesign goals (REDESIGN-BRIEF A3): initial ≤115 KB internal cutover goal under the
+Redesign goals: initial ≤115 KB internal cutover goal under the
 published 120 KB soft target; lazy ≤250 KB; CSS ≤20 KB. Palette, shortcut help, the
 mobile drawer, and every route body (including the causal graph, which only the detail
 route chunk carries) are dynamic chunks; the Effects list never imports graph code
@@ -113,7 +112,7 @@ route chunk carries) are dynamic chunks; the Effects list never imports graph co
 | Total lazy JS (gzip, excl. dev-only MSW worker) | ≤250 KB | ≤350 KB   | ~208 KB                        |
 | Total CSS (gzip)                                | ≤20 KB  | ≤50 KB    | ~8.6 KB                        |
 
-## Redesign test suites (REDESIGN-BRIEF §7)
+## Redesign test suites
 
 Beyond the original shell/investigation E2E: `overview.spec.ts`,
 `attention.spec.ts`, `findings.spec.ts`, `graph.spec.ts` (keyboard order, URL

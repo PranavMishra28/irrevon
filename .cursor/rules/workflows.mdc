@@ -9,7 +9,7 @@ alwaysApply: false
 - Pin every third-party action to a full 40-char commit SHA with a trailing `# vX.Y.Z`
   comment (Dependabot maintains both together). Tag or branch refs are findings, not style.
   The one sanctioned exception (SLSA generator, tag-required upstream) is documented in
-  `docs/ci.md` and applies only to the disabled release workflow.
+  the disabled release workflow (`.github/workflows/release.yml`) and applies only to it.
 - Every workflow: top-level permissions of at most `contents: read`, explicit
   least-privilege per-job grants for anything beyond, `timeout-minutes` on every job,
   `concurrency` on every workflow, `persist-credentials: false` on every checkout.

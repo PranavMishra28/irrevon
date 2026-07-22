@@ -1,11 +1,11 @@
 # Marketing-site Pages deploy — GATED, workflow_dispatch ONLY (no push, no cron).
-# Moved verbatim from site/deploy/README-workflow.yml at consolidation (banner
-# condensed; timeout-minutes + persist-credentials added per .cursor/rules/workflows.mdc).
+# Hardened per .cursor/rules/workflows.mdc (timeout-minutes, persist-credentials,
+# SHA-pinned actions, least-privilege job splits).
 # This workflow deploys nothing on its own: enabling GitHub Pages is a repo-settings
 # act that is human-only, and the first real deploy stays blocked behind the gates
 # recorded in docs/review-queue.md (marketing-site ADR ratification, publication
 # clearance, counsel name clearance (ADR-0023), licensing, repo identity, ADR-0018 Pages-slot amendment).
-# Design notes (RD5 §1.4): build takes --site/--base from actions/configure-pages
+# Design notes (site architecture review): build takes --site/--base from actions/configure-pages
 # outputs so the repository URL is never hard-coded; all actions SHA-pinned; the
 # third-party withastro/action composite is deliberately NOT used.
 

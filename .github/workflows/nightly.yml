@@ -1,8 +1,8 @@
 # Irrevon nightly — scheduled validation suite. Map: docs/ci.md.
 #
-# Today (docs-only repo): the full local gate on a clean machine PLUS the online
-# variants the deterministic PR gate deliberately excludes — external link
-# audit (lychee without --offline) and networked zizmor advisories.
+# The full local gate on a clean machine PLUS the online variants the
+# deterministic PR gate deliberately excludes — external link audit (lychee
+# without --offline) and networked zizmor advisories.
 #
 # At M3+ this grows the T3 tier (never at the expense of the PR gate):
 #   - Hypothesis property suites at larger nightly budgets (the >=1,000

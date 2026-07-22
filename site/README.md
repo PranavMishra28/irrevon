@@ -129,7 +129,7 @@ pnpm shots              # every page at 1440/768/375 × light/dark (+ /demo
 pnpm sync:docs | sync:cli | sync:demo | og:build   # regenerate synced artifacts
 ```
 
-## Measured results (2026-07-21, this commit)
+## Measured at last audit (2026-07-21)
 
 - Build: 44 pages green; `astro check` 0 errors / 0 warnings.
 - Playwright: 246 checks green.
@@ -139,15 +139,12 @@ pnpm sync:docs | sync:cli | sync:demo | og:build   # regenerate synced artifacts
   zero fetched scripts (docs lane excepted post-gesture) — unchanged, un-weakened.
 - Claims registry: 53 claims, all source-mapped; CLAIMS.md generated + drift-gated.
 
-## Notes for the integrator
+## Maintenance
 
-1. Deploy workflow: unchanged trigger (dispatch-only). Build step order for the
-   workflow is `pnpm check` → `pnpm build` (pagefind + CSP injection ride inside
-   `pnpm build`) → `pnpm test` — no new secrets, permissions, or triggers needed.
-2. Root touches by this task: none beyond `site/` (the existing Makefile
-   site targets already cover the new gates because they call `pnpm run check/build/test`).
-3. The rendered copy of ADR-0023 quotes the old squatted package name — that page is
-   the sanctioned, provenance-bannered exception in `e2e/install.spec.ts` and should
-   be allowlisted by any repo-wide old-name sweep (append-only history discipline).
-4. Workbench screenshots (`public/images/`) re-capture per the prior cycle's note
-   (`scripts/capture-workbench.mjs`).
+- The rendered copies of pre-rename records (ADR-0023 and the review queue) quote the
+  old product/package name as historical fact — those pages are the sanctioned,
+  provenance-bannered exceptions in `e2e/install.spec.ts` and are allowlisted by any
+  repo-wide old-name sweep (append-only history discipline).
+- Workbench screenshots (`public/images/`) are captured from the running
+  fixture-backed `web/` app — re-capture with `scripts/capture-workbench.mjs` after
+  any workbench visual change, then re-run `pnpm sync:tokens`.

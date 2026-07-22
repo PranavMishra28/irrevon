@@ -42,12 +42,15 @@ jobs:
         with:
           persist-credentials: false
 
+      # Hard stop keyed on the REAL M4 activation artifact: the `sandbox-contract`
+      # make target lands with the adapter harness (docs/ci.md tier table). Keying
+      # on pyproject.toml went stale the moment M3 landed; this guard cannot.
       - name: Not yet implemented (activates at M4)
         run: |
           set -euo pipefail
           echo "reason: ${DISPATCH_REASON}"
-          if [ ! -f pyproject.toml ]; then
-            echo "::error::sandbox suite activates at M4 — no adapter harness exists yet."
+          if ! grep -q '^sandbox-contract:' Makefile; then
+            echo "::error::sandbox suite activates at M4 — make sandbox-contract does not exist yet."
             exit 1
           fi
 

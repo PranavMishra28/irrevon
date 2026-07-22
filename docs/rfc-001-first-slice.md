@@ -1,6 +1,8 @@
 # RFC-001: First vertical slice — Irrevon core
 
-- **Status:** Draft — acceptance is a human act; implementation follows acceptance.
+- **Status:** historical record — slice definition and acceptance test remain canonical
+  here; state tables are canonical in RFC-002 §3; the identity procedure is canonical in
+  ADR-0020.
 - **Date:** 2026-07-20 · amended 2026-07-21 (citation fixes; RFC-002 cross-references)
 - **Scope:** master doc M3 (state model, intent contract + identity, persist-before-dispatch
   ledger, commit gate, crash-recovery replay, orphan sweep) with the flagship demo (§16,

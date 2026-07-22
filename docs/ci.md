@@ -2,8 +2,9 @@
 
 One page. Workflows live in [`.github/workflows/`](../.github/workflows/); every gate they
 run is a [Makefile](../Makefile) target (see [Local parity](#local-parity)). Sources: the
-CI research tracks ratified 2026-07-21 (W7, CI-R1..R3, `.scratch/rc/` — local-only);
-platform semantics below are `[VF]` against GitHub docs as of that date.
+CI design reviews ratified 2026-07-21 (internal working papers; the durable decisions are
+this page + the workflows); platform semantics below are `[VF]` against GitHub docs as of
+that date.
 
 ## Workflow map
 
@@ -15,7 +16,7 @@ platform semantics below are `[VF]` against GitHub docs as of that date.
 | [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | IrrevonBench preregistered runs — skeleton, activates at M7; gated by the `benchmark` environment | skeleton |
 | [`release.yml`](../.github/workflows/release.yml) | disabled (`if: false` guard) | Prepared release pipeline (version check, deterministic build, checksums, SBOM, attestation, human approval, OIDC publish) — enabled only at the public-release gate | disabled |
 | [`site-deploy.yml`](../.github/workflows/site-deploy.yml) | `workflow_dispatch` only | Marketing-site Pages deploy (build with deploy-provided origin/base → upload → deploy) — deploys nothing until a human enables Pages and the review-queue gates close (marketing-site ADR, publication clearance, counsel name clearance (ADR-0023), licensing, AM-21) | gated |
-| [`dependabot.yml`](../.github/dependabot.yml) | monthly | Noise-contained policy (tuned at consolidation, 2026-07-21 — rationale in `.scratch/redesign/dependabot-tuning.md`): one grouped catch-all PR per ecosystem (actions / uv / npm), `open-pull-requests-limit: 1`, 7-day cooldowns (30-day uv majors; npm majors ignored — deliberate human migrations per ADR-0016), owner auto-assigned; security PRs bypass schedule and cooldown | active |
+| [`dependabot.yml`](../.github/dependabot.yml) | monthly | Noise-contained policy (tuned at consolidation, 2026-07-21): one grouped catch-all PR per ecosystem (actions / uv / npm), `open-pull-requests-limit: 1`, 7-day cooldowns (30-day uv majors; npm majors ignored — deliberate human migrations per ADR-0016), owner auto-assigned; security PRs bypass schedule and cooldown | active |
 
 ## Tier table — what runs when
 
@@ -58,15 +59,13 @@ manual UI steps.
 Now (with this branch's merge):
 
 1. **Secret scanning + push protection** — Settings → Advanced Security → enable
-   *Secret scanning*, *Push protection*, and *Scan for non-provider patterns*. CLI:
-   `gh api -X PATCH repos/PranavMishra28/irrevon --input -` with
-   `{"security_and_analysis":{"secret_scanning":{"status":"enabled"},"secret_scanning_push_protection":{"status":"enabled"},"secret_scanning_non_provider_patterns":{"status":"enabled"}}}`.
+   *Secret scanning*, *Push protection*, and *Scan for non-provider patterns*.
+   Automated by `scripts/setup-repo-settings.sh` (phase 1).
    Second layer only — local gitleaks (pre-commit + `make secrets`) stays primary.
-2. **Dependabot alerts + security updates** — same pane; or
-   `gh api -X PUT repos/PranavMishra28/irrevon/vulnerability-alerts` and
-   `gh api -X PUT repos/PranavMishra28/irrevon/automated-security-fixes`.
-3. **Actions posture** — Settings → Actions → General: *Allow PranavMishra28, and select
-   non-PranavMishra28, actions* with allowlist `astral-sh/setup-uv@*` (github-owned actions
+2. **Dependabot alerts + security updates** — same pane; automated by
+   `scripts/setup-repo-settings.sh` (phase 1).
+3. **Actions posture** — Settings → Actions → General: *Allow `<owner>`, and select
+   non-`<owner>`, actions* with allowlist `astral-sh/setup-uv@*` (github-owned actions
    allowed; extend with `anchore/*`, `sigstore/*`, `pypa/*` only at the release gate);
    check **Require actions to be pinned to a full-length commit SHA**; fork-PR approval =
    **Require approval for all external contributors** (the default first-time-only tier is
@@ -82,7 +81,8 @@ After `ci-required` has reported on at least one PR (order matters — see traps
    `ci-required`. Never list individual jobs.
 7. **CodeQL default setup** — Settings → Advanced Security → CodeQL → Default. Idle (no
    supported language yet) but free and safe to enable `[VF]`.
-8. Retention stays 90 days (public max); enable **Private vulnerability reporting**.
+8. Retention stays 90 days (public max). **Private vulnerability reporting**: verified
+   enabled (API read, 2026-07-21) — see [SECURITY.md](../SECURITY.md).
 
 Before the first M4/M7 dispatch:
 
@@ -128,29 +128,30 @@ Before the first M4/M7 dispatch:
 
 ## Design notes — cuts from the source designs `[DD]`
 
-Reconciliation rule: CI-R3's public-repo findings supersede W7's private-repo assumptions.
+Reconciliation rule: the public-repo review findings supersede the earlier private-repo
+design.
 
-- **Cut `gitleaks/gitleaks-action` job** (W7 security.yml): redundant with the `make
-  secrets` parity scan already inside `make check`; W7 itself named the parity scan as the
-  keeper if the redundancy chafed.
+- **Cut `gitleaks/gitleaks-action` job** (from the earlier security.yml design): redundant
+  with the `make secrets` parity scan already inside `make check`; the CI design review
+  itself named the parity scan as the keeper if the redundancy chafed.
 - **Cut `zizmor-action` and separate `security.yml`/`docs-check.yml` workflows**: replaced
   by the pinned zizmor/actionlint binaries from the one bootstrap pin table (offline in
   `make check`, online in `workflow-security`/nightly) and by the single always-running
   ci.yml — required-check semantics on a public repo make the aggregator pattern, not
   separate path-filtered workflows, the correct shape. Two fewer third-party actions.
-- **Cut W7's workflow-level `on.paths` filters** (ci.yml): they break required checks
+- **Cut the workflow-level `on.paths` filters** (ci.yml): they break required checks
   (pending-forever trap); replaced by the `changes` job + aggregator.
 - **Cut Postgres service containers from committed YAML**: no code exists; the digest pin
   would rot unused. The T2/T3 bodies are documented (here and in workflow comments) and
   land with the code at M3.
-- **Cut the GitHub Pro pairing recommendation** (W7 §2): rulesets/environments are free on
+- **Cut the GitHub Pro pairing recommendation** (CI design review): rulesets/environments are free on
   public repos; Pro buys nothing while public.
 - **Deferred: PR template** — the owner is the sole author today; a checklist nobody else
   reads is ceremony. Adopt at code landing or first external contributor (whichever first).
-- **Deferred: CODEOWNERS, auto-labeling, Scorecard, README badges** — per CI-R2/CI-R3
-  rulings (solo repo; Scorecard needs a scoped `security-events: write` exception that
-  deserves its own decision at M3).
-- **Deferred: Cursor CLI diagnostic workflow** (CI-R2 §5): its guardrails are designed, but
+- **Deferred: CODEOWNERS, auto-labeling, Scorecard, README badges** — per the CI design
+  review rulings (solo repo; Scorecard needs a scoped `security-events: write` exception
+  that deserves its own decision at M3).
+- **Deferred: Cursor CLI diagnostic workflow** (CI design review): its guardrails are designed, but
   it requires a `CURSOR_API_KEY` secret — which violates the no-repo-level-secrets rule
   until an owner-created environment holds it — and the vendor installer has no published
   stable checksum to pin. Revisit when both close.

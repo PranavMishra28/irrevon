@@ -114,9 +114,8 @@ jobs:
           BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
         run: make check
 
-  # T0 backend lint/format/type — activates when ADR-0013 code lands (M2/M3).
-  # Until pyproject.toml exists these jobs skip, and the aggregator verifies the
-  # skip is legitimate. The make targets land together with the code.
+  # T0 backend lint/format/type — skips when the backend slice is untouched;
+  # the aggregator verifies each skip against the change detection.
   py-check:
     name: Backend static (make py-check)
     needs: changes
@@ -160,9 +159,9 @@ jobs:
           # profiles registered in tests/conftest.py; dev(100) is local-only.
           HYPOTHESIS_PROFILE: ci
 
-  # F0 frontend static gate — activates when web/ lands. Node is preinstalled on
-  # ubuntu runners; pnpm comes via corepack (no extra action until web/ exists
-  # and pins its own toolchain).
+  # F0 frontend static gate — skips when the web slice is untouched; the
+  # aggregator verifies each skip. Node is preinstalled on ubuntu runners;
+  # pnpm comes via corepack (web/ pins its own toolchain).
   web-check:
     name: Frontend static (make web-check)
     needs: changes
