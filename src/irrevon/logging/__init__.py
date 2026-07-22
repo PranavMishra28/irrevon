@@ -34,6 +34,19 @@ EVENT_NAMES = frozenset(
         "sweep_completed",
         "engine_refused",
         "serve.request",
+        # Continuous-service catalog (ADR-0034, proposed). Names are stable and
+        # low-cardinality by design so they map 1:1 onto OTel span/metric names
+        # if telemetry returns post-M8 (RFC-002 §11 invariant: telemetry stays
+        # derived, lossy, optional — never load-bearing). worker.cycle carries
+        # the operational gauges: open_executions, ambiguous_executions,
+        # oldest_open_age_s, open_findings, adjudicated, escalated, duration_ms.
+        "worker.started",
+        "worker.cycle",
+        "worker.completed",
+        "worker.stop_requested",
+        "worker.stopped",
+        "worker.reconcile_error",
+        "worker.sweep_error",
     }
 )
 

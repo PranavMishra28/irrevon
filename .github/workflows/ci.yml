@@ -125,6 +125,28 @@ jobs:
           BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
         run: make check
 
+  # Supply-chain: fail PRs that introduce known-vulnerable dependencies
+  # (ADR-0034 tranche; supply-chain research 2026-07-22). Deliberately NOT in
+  # the ci-required aggregator: it runs only on pull_request (the API needs a
+  # base/head diff), and adding a sometimes-absent job to the required
+  # aggregator would recreate the pending-forever trap docs/ci.md warns about.
+  # GitHub-owned action, SHA-pinned; contents: read only. One of the
+  # documented non-make-target exceptions (docs/ci.md Local parity).
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: low
+
   # T0 backend lint/format/type — skips when the backend slice is untouched;
   # the aggregator verifies each skip against the change detection.
   py-check:

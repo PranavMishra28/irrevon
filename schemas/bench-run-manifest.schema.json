@@ -56,6 +56,30 @@
         "known_deviations": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 }
+        },
+        "budget": {
+          "description": "Complete evaluated-system budget where applicable (owner directive: model/provider/reasoning mode, prompts, tools, turns, tokens, retries, concurrency, latency, wall time, cost, safeguards, human intervention). Null for deterministic driver arms with no model; REQUIRED at Stage-B for any LLM-embedded (Extended-track) subject.",
+          "type": ["object", "null"],
+          "properties": {
+            "model_provider": { "type": ["string", "null"] },
+            "model": { "type": ["string", "null"] },
+            "model_version": { "type": ["string", "null"] },
+            "reasoning_mode": { "type": ["string", "null"] },
+            "prompt_digests": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+            },
+            "tools_available": { "type": "array", "items": { "type": "string" } },
+            "max_turns": { "type": ["integer", "null"], "minimum": 0 },
+            "input_tokens": { "type": ["integer", "null"], "minimum": 0 },
+            "output_tokens": { "type": ["integer", "null"], "minimum": 0 },
+            "retries": { "type": ["integer", "null"], "minimum": 0 },
+            "concurrency": { "type": ["integer", "null"], "minimum": 1 },
+            "cost_usd": { "type": ["number", "null"], "minimum": 0 },
+            "safeguards": { "type": "array", "items": { "type": "string" } },
+            "human_interventions": { "type": ["integer", "null"], "minimum": 0 }
+          },
+          "additionalProperties": false
         }
       },
       "required": [

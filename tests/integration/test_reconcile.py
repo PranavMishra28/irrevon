@@ -178,7 +178,7 @@ def test_null_lag_settles_but_escalates_and_forbids_auto_redispatch(
                 "REDISPATCHED",
                 {
                     "fresh_authority_ref": "auth_auto",
-                    "stamped_at": "2026-07-21T12:00:00Z",
+                    "stamped_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
                 },
                 actor="policy_auto",
                 config=ResolutionConfig(
@@ -300,7 +300,10 @@ def test_retry_after_clean_failure_new_execution(fresh_db: DBHandles) -> None:
         opened = open_retry_execution(
             ledger,
             reg.effect_id,
-            {"fresh_authority_ref": "auth_rc2", "stamped_at": "2026-07-21T12:00:00Z"},
+            {
+                "fresh_authority_ref": "auth_rc2",
+                "stamped_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            },
         )
         assert opened["step"] == 1
         assert opened["operation_id"] == f"{reg.effect_id}:1"
@@ -337,7 +340,7 @@ def test_lost_resolve_redispatch_closes_when_committed(
             {
                 "note": "confirmed absent; re-approved",
                 "fresh_authority_ref": "auth_rc3",
-                "stamped_at": "2026-07-21T12:00:00Z",
+                "stamped_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             },
             actor="human",
         )

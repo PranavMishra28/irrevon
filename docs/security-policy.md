@@ -121,3 +121,61 @@ attempted injections. Never pipe downloaded content into a shell.
 - [ ] Mirror `deny.sh` registration in user-level `~/.cursor/hooks.json`.
 - [ ] `pre-commit install`; run `gitleaks git -v .` once after any scanner version bump.
 - [ ] 2FA + offline recovery codes on the GitHub account.
+
+## Supply-chain and secure-development posture (completion cycle, 2026-07-22)
+
+Research basis: current OpenSSF/NIST/GitHub primary sources (recorded in the
+ADR-0034 PR). Applied here; owner-only settings stay on the human checklist.
+
+- **OSPS Baseline Level 1 self-assessment** `[DD]`: this project targets the
+  OpenSSF Open Source Project Security Baseline Level 1 (the level defined
+  for projects of any maintainer count). Standing evidence: MFA + reviewed
+  changes via required checks (AC), pinned + checksum-verified build tooling
+  and SHA-pinned actions (BR), SECURITY.md + private vulnerability reporting
+  (VM), LICENSE/NOTICE (LE), CI status checks and this policy (QA/GV/DO/SA).
+  A dated conformance statement belongs to the release gate, not before.
+- **NIST SSDF (SP 800-218) mapping, scoped honestly** `[DD]`: PS.1/PS.2/PS.3
+  (protect code; verify integrity — hash-pinned master doc, drift-gated
+  fixtures, checksum-pinned tools; archive provenance — attestation steps
+  prepared in release.yml); PW.4 (well-secured components — three pinned
+  runtime deps, coverage-gated THIRD-PARTY-NOTICES); PW.8 (testing incl. the
+  fuzz harnesses below); RV.1/RV.2 (SECURITY.md intake + advisory path).
+  Organization-level PO practices do not apply to a solo project and are not
+  claimed.
+- **SLSA posture** `[VF]`: the prepared (disabled) release pipeline's
+  `attest-build-provenance` step yields SLSA v1.0 **Build L2** when it first
+  runs on a GitHub-hosted runner; Build L3 requires the reusable-workflow
+  separation and is a post-first-release upgrade path. No level is claimed
+  until an artifact exists.
+- **Dependency review** `[DD]`: `actions/dependency-review-action` (v5,
+  SHA-pinned, `contents: read`) fails PRs that introduce known-vulnerable
+  dependencies; deliberately outside the `ci-required` aggregator (it exists
+  only on pull_request events — the pending-forever trap).
+- **Fuzzing** `[DD]`: Hypothesis-driven fuzz harnesses cover the two parser
+  trust boundaries — intent-contract validation (arbitrary JSON must produce
+  `ContractInvalid` or a valid contract, never a crash or a bypass) and JCS
+  canonicalization (differential against a stdlib re-encoding on the
+  JSON-safe subset; encoder exceptions only on documented non-representable
+  inputs). OSS-Fuzz enrollment is explicitly out (pre-release projects are
+  declined); harnesses run in the normal pytest tiers.
+
+## Product-threat annex — agent-specific adversaries (cites, not restatement)
+
+The product threat model stays canonical in master doc §9. This annex maps
+its named adversaries onto current external taxonomies so reviewers can
+cross-reference (OWASP Agentic Security Initiative, *Agentic AI — Threats and
+Mitigations* v1.0 2025, T1–T15; MITRE ATLAS AML.T0051 family; CSA MAESTRO
+layering) `[VF]`:
+
+| Irrevon adversary (master doc §9 / RFC-002) | External taxonomy hook | Standing control |
+|---|---|---|
+| Malicious/compromised adapter | ASI T2 Tool Misuse, T3 Privilege Compromise | Declaration schema validation at load; adapters never see oracle truth (import-linter); conformance probes catch declared-vs-observed drift; evidence digests only |
+| Forged destination response | Indirect injection via tool outputs (ATLAS AML.T0051.001 analog) | Unrecognized shapes map to AMBIGUOUS never FAILED (RFC-002 §10); settle requires authoritative probes; CONTRADICTED audit path |
+| Stale/replayed authority | ASI T4 (resource/authority abuse) | Gate freshness check against DB clock; expiry ⇒ deny + safe abort; authority-refresh is an explicit append |
+| Replayed/re-synthesized request (adversarial payee) | ACRFence-class semantic replay | Identity from stable ids only; parameter variants recorded as evidence; gate dedup denial with citations |
+| Poisoned evidence / benchmark gaming | ASI memory-poisoning analog; benchmark-integrity rules | Two independent oracles cross-checked per run (metric/history divergence ⇒ INVALID); write-ahead manifests; canary + holdout leakage gates |
+
+The **evaluation-awareness boundary** (models detecting evaluation) is
+documented with controls and honest non-guarantees in
+[benchmark.md §10](benchmark.md); it cannot be mechanically prevented, only
+measured and disclosed.

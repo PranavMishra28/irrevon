@@ -7,7 +7,7 @@
       "role": "intentContract"
     },
     "schemas/capability-declaration.schema.json": {
-      "sha256": "89f5d6f41e6da410addc2c70426b941407e3b949e5fd67166b30f70e1e2899a4",
+      "sha256": "86e977abe81756c5dbfefa17a46136c69eb7570cab5d56f982f71ae8286376c7",
       "role": "capabilityDeclaration"
     },
     "schemas/effect-record.schema.json": {

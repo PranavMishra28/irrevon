@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://irrevon.dev/schemas/capability-declaration.schema.json",
-  "$comment": "See ADR-0015 (tooling) and ADR-0019 (shape: consistency bounds). $id host is a placeholder identifier until the irrevon.dev domain purchase closes (ADR-0023). Fields client_ref_field and list_queryable implement amendment AM-9 (docs/review-queue.md, ratified 2026-07-21). Shape changes require an ADR.",
+  "$comment": "See ADR-0015 (tooling), ADR-0019 (shape: consistency bounds), and ADR-0033 (attribution block — additive, optional for backward compatibility; REQUIRED for benchmark use at Stage-B). $id host is a placeholder identifier until the irrevon.dev domain purchase closes (ADR-0023). Fields client_ref_field and list_queryable implement amendment AM-9 (docs/review-queue.md, ratified 2026-07-21). Shape changes require an ADR.",
   "title": "Capability declaration",
   "description": "A destination's version-pinned, cited capability declaration (master doc §7.3, §7.5, §7.6): what tier it is, what idempotency it honors, what can be queried, whether the caller can stamp its own reference into the destination object, and what consistency bounds govern absence evidence. client_ref_field and list_queryable determine whether ORPHANED and LOST are even detectable; consistency bounds determine whether confirmed-absence can ever support automatic redispatch (RFC-002 §6).",
   "type": "object",
@@ -87,6 +87,34 @@
     "evidence_quality": {
       "description": "VF = explicit statement in destination docs; EI = evidence-backed inference (e.g. absence from a complete parameter list) — must be labeled per §7.6.",
       "enum": ["VF", "EI"]
+    },
+    "attribution": {
+      "description": "How oracle read-back can attribute a destination effect to a business intent for THIS destination (ADR-0033). The oracle never guesses: an adapter whose best mode is 'ambiguous' or 'impossible' yields marked, never fabricated, attribution — and benchmark cells on such destinations are scored fixture-truth-only. Ordered strongest-first.",
+      "type": "object",
+      "properties": {
+        "modes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "exact",
+              "stable-id-projection",
+              "metadata",
+              "temporal-window",
+              "ambiguous",
+              "impossible"
+            ]
+          }
+        },
+        "fields": {
+          "description": "Destination fields the declared modes read (e.g. metadata keys, stamped references).",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "notes": { "type": "string" }
+      },
+      "required": ["modes"],
+      "additionalProperties": false
     }
   },
   "required": ["adapter", "destination", "api_version", "tier", "idempotency", "queryable", "client_ref_field", "list_queryable", "consistency", "citations", "evidence_quality"],

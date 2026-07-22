@@ -60,6 +60,27 @@ def fail(msg: str) -> None:
 FAILED = False
 
 
+def _stage_b_verifies() -> bool:
+    """Structural stdlib check of the Stage-B registration (the full verifier
+    incl. schema validation runs under pytest; ADR-0033): the file must exist,
+    parse, carry no REQUIRED-HUMAN sentinel, and bind the CURRENT
+    preregistration bytes. Directory existence gates nothing."""
+    path = STAGE_B_RECORD / "registration.json"
+    if not path.is_file():
+        return False
+    try:
+        registration = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if "REQUIRED-HUMAN" in json.dumps(registration):
+        return False
+    expected = registration.get("preregistration_sha256", "")
+    for amendment in registration.get("amendments", []):
+        expected = amendment.get("new_preregistration_sha256", expected)
+    prereg = ROOT / "docs" / "benchmark-preregistration.md"
+    return hashlib.sha256(prereg.read_bytes()).hexdigest() == expected
+
+
 def check_manifests() -> None:
     for manifest_path in sorted(FIXTURES.rglob("manifest.json")):
         split_root = manifest_path.parent
@@ -80,6 +101,23 @@ def check_manifests() -> None:
     print("bench-integrity: manifest digests + root hashes OK")
 
 
+def check_committed_dev_seed() -> None:
+    """The COMMITTED dev split must use the public provisional seed (private
+    splits are legitimate but never live in this repository)."""
+    manifest_path = FIXTURES / "dev" / "manifest.json"
+    if not manifest_path.is_file():
+        return
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    expected = hashlib.sha256(b"irrevonbench master_seed_dev provisional v1").hexdigest()
+    if manifest.get("master_seed") != expected:
+        fail(
+            "bench/fixtures/dev uses a master seed other than the public "
+            "provisional dev seed — private-seed splits must not be committed"
+        )
+    else:
+        print("bench-integrity: committed dev split uses the public dev seed")
+
+
 def check_canary_and_splits() -> None:
     if not FIXTURES.is_dir():
         return
@@ -92,11 +130,13 @@ def check_canary_and_splits() -> None:
                 f"HOLDOUT ARTIFACT IN REPO: {path.relative_to(ROOT)} — the sealed "
                 "holdout never enters this repository (preregistration §7)"
             )
-        if document.get("freeze_status") == "frozen" and not STAGE_B_RECORD.is_dir():
+        if document.get("freeze_status") == "frozen" and not _stage_b_verifies():
             fail(
                 f"{path.relative_to(ROOT)} claims freeze_status=frozen but no "
-                "Stage-B freeze record exists (docs/registrations/stage-b-v1/); "
-                "freezing is a human act"
+                "VERIFYING Stage-B freeze registration exists "
+                "(docs/registrations/stage-b-v1/registration.json must bind the "
+                "current preregistration bytes and carry no REQUIRED-HUMAN "
+                "sentinel); freezing is a human act"
             )
     print("bench-integrity: canary + split + freeze honesty OK")
 
@@ -120,6 +160,7 @@ def main() -> int:
         print("bench-integrity: no bench/fixtures yet - skipped")
         return 0
     check_manifests()
+    check_committed_dev_seed()
     check_canary_and_splits()
     check_arm_oracle_isolation()
     if FAILED:

@@ -96,6 +96,24 @@ def _build_parser() -> argparse.ArgumentParser:
 
     add_bench_parser(sub, common)
 
+    p_worker = sub.add_parser(
+        "worker",
+        help="continuous reconciliation service (single-writer; ADR-0034 proposed)",
+        parents=[common],
+    )
+    p_worker.add_argument("--dsn", default=None,
+                          help="override the ledger DSN")
+    p_worker.add_argument("--interval", type=float, default=30.0,
+                          help="reconcile-cycle interval in seconds (default 30)")
+    p_worker.add_argument("--sweep-interval", type=float, default=300.0,
+                          help="orphan-sweep interval in seconds (default 300)")
+    p_worker.add_argument("--health-file", default=None,
+                          help="freshness file refreshed every cycle "
+                               "(liveness-probe target for non-HTTP deployments)")
+    p_worker.add_argument("--max-cycles", type=int, default=None,
+                          help="stop after N cycles (operational/test affordance; "
+                               "default: run until SIGTERM/SIGINT)")
+
     p_inspect = sub.add_parser(
         "inspect", help="the ledger-only evidence view", parents=[common]
     )
@@ -162,6 +180,17 @@ def main(argv: list[str] | None = None) -> int:
             from irrevon.cli.bench_cmd import run_bench
 
             return run_bench(args, config)
+        if args.command == "worker":
+            from irrevon.cli.worker_cmd import run_worker_cmd
+
+            return run_worker_cmd(
+                config,
+                dsn=args.dsn,
+                interval_s=args.interval,
+                sweep_interval_s=args.sweep_interval,
+                health_file=args.health_file,
+                max_cycles=args.max_cycles,
+            )
         if args.command == "inspect":
             from irrevon.cli.inspect_cmd import run_inspect
 

@@ -84,6 +84,27 @@ def test_extra_file_in_split_is_detected(tmp_path: Path) -> None:
     assert any("unexpected file" in p for p in problems)
 
 
+def test_private_master_seed_split_round_trips(tmp_path: Path) -> None:
+    """The company adoption path: a private 64-hex seed yields a structurally
+    identical split that self-verifies from its OWN manifest seed, differs in
+    content from the public split, and never claims to be it."""
+    import hashlib
+
+    private_seed = hashlib.sha256(b"synthetic private company seed").hexdigest()
+    write_dev_split(tmp_path, private_seed)
+    assert verify_dev_split(tmp_path) == []
+    manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["master_seed"] == private_seed
+    assert manifest["manifest_id"] == "mf_dev.private"
+    public = build_dev_split()
+    assert manifest["root_hash"] != public["manifest.json"]["root_hash"]
+
+
+def test_private_seed_is_validated(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="64-char"):
+        write_dev_split(tmp_path, "not-a-seed")
+
+
 def test_holdout_generation_refuses_repo_paths(tmp_path: Path) -> None:
     """§7: holdout artifacts never enter this repository — the mechanism
     refuses the write, it does not merely warn."""

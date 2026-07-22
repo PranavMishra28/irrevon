@@ -1,0 +1,32 @@
+{
+  "adapter": "easypost-c2",
+  "destination": "EasyPost Shipments (test mode) — DRAFT pending ADR-0012 (recorded fallback C2 candidate)",
+  "api_version": "v2 (2026-07-22 docs)",
+  "tier": "C2",
+  "idempotency": {
+    "supported": false
+  },
+  "queryable": {
+    "supported": true,
+    "by": ["destination_ref"]
+  },
+  "client_ref_field": "reference",
+  "list_queryable": true,
+  "consistency": {
+    "status_settlement_lag": null,
+    "listing_lag": null
+  },
+  "compensation_hook": null,
+  "citations": [
+    "https://www.easypost.com/docs/api",
+    "https://www.easypost.com/docs/easypost-objects",
+    "https://docs.easypost.com/guides/rate-limiting-guide",
+    "https://support.easypost.com/hc/en-us/articles/360042847591-Data-Retention"
+  ],
+  "evidence_quality": "EI",
+  "attribution": {
+    "modes": ["stable-id-projection", "temporal-window"],
+    "fields": ["reference", "id", "created_at"],
+    "notes": "DRAFT (2026-07-22 research pass; no live call has ever been made): shipment creation documents NO request idempotency key (C2 fit); `reference` is caller-set and echoed on read-back but NOT unique and NOT a list filter — queries are by destination id only, and reconciliation coverage runs through windowed enumeration (page_size ≤ 100, before_id paging, ~5 req/s list budget). Test objects retained 30 days — the enumeration/audit horizon. No consistency SLA is documented (null lags ⇒ confirmed-absence escalates to humans, never auto-redispatch, RFC-002 §6.2). evidence_quality EI until the P4 spike contract-tests every claim."
+  }
+}

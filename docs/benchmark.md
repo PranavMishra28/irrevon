@@ -6,9 +6,13 @@
 > proposed). The scientific design authority is
 > [benchmark-preregistration.md](benchmark-preregistration.md) (DRAFT; Stage-A
 > freeze is a human act). **No confirmatory run has occurred and none can occur
-> pre-freeze** — `irrevon bench run` is an integrity refusal (exit 4) until the
-> human Stage-B freeze record exists. Every result the harness can currently
-> produce is labeled `non-confirmatory` at the schema level.
+> pre-freeze** — `irrevon bench run` is an integrity refusal (exit 4) until
+> BOTH human freeze registrations pass machine verification
+> (`irrevonbench/freeze-registration/v1`, ADR-0033: hash-bound to the exact
+> preregistration bytes, analysis sources, §0.1 parameters, fixture root, and
+> holdout commitment; drafts carry `REQUIRED-HUMAN` sentinels and can never
+> verify). Every result the harness can currently produce is labeled
+> `non-confirmatory` at the schema level.
 
 This page answers, in order, the ten questions a benchmark must be able to
 answer about itself. Epistemic labels per master doc §0.
@@ -354,9 +358,14 @@ SaaS surface:
    benchmark use of real sandboxes. Protocol context for declaration
    authoring: [effect-semantics-mappings.md](effect-semantics-mappings.md).
 2. **Private workloads**: generate them with your own master seed via the
-   same generator and schemas (`irrevon bench fixtures --write --dir <private>`
-   derives everything mechanically); private fixtures never need to leave
-   your infrastructure — the harness runs wherever the fixtures are.
+   same generator and schemas
+   (`irrevon bench fixtures --write --dir <private> --master-seed <64-hex>`);
+   the split self-verifies from its own manifest
+   (`irrevon bench fixtures --verify --dir <private>`), shares every
+   contract and gate with the public split, and never needs to leave your
+   infrastructure — committing a private-seed split to THIS repository is
+   itself an integrity failure (`make bench-integrity` pins the public
+   seed).
 3. **Fast CI regression**: `make bench-smoke` (conventional arms, no DB,
    seconds) or a pinned `bench smoke --workloads … --arms <yours>,B5,B5+B3+B6`
    — comparing your existing retry strategy against the ladder is the point.

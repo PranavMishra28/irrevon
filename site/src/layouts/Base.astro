@@ -2,6 +2,7 @@
 import "../styles/site.css";
 import Mark from "../components/Mark.astro";
 import { SITE_NAME, REPO_URL, repoDoc } from "../config";
+import { BUILD_COMMIT, BUILD_COMMIT_SHORT, BUILT_AT } from "../lib/provenance";
 import { href } from "../lib/url";
 
 interface Props {
@@ -252,6 +253,18 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
             Pre-release software: not on any package index. This site is static — no cookies, no third-party
             requests; measurement is limited to Vercel’s same-origin, cookieless Web Analytics and Speed Insights
             (ADR-0029).
+          </p>
+          <p class="footer-provenance" data-provenance>
+            Build provenance: {
+              BUILD_COMMIT_SHORT ? (
+                <>
+                  commit <a href={`${REPO_URL}/commit/${BUILD_COMMIT}`}><code>{BUILD_COMMIT_SHORT}</code></a>
+                </>
+              ) : (
+                <>commit unknown (built outside git)</>
+              )
+            } · built {BUILT_AT}. A static build cannot know whether it still matches the current default
+            branch — compare the commit against the repository before relying on this copy.
           </p>
         </div>
       </div>

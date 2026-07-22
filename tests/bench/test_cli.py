@@ -81,7 +81,18 @@ def test_run_confirmatory_is_integrity_refusal_exit_4() -> None:
     proc = _bench("bench", "run", "--fixtures", "bench/fixtures/dev")
     assert proc.returncode == 4
     assert "INTEGRITY REFUSAL" in proc.stderr
-    assert "Stage-B freeze record" in proc.stderr
+    assert "freeze registration failed verification" in proc.stderr
+
+
+def test_freeze_verify_and_draft_cli(tmp_path: Path) -> None:
+    verify = _bench("bench", "freeze", "--stage", "A", "--verify")
+    assert verify.returncode == 3  # honest: no registration exists today
+    assert "NOT VERIFIED" in verify.stderr
+    draft = _bench("bench", "freeze", "--stage", "A", "--draft-out", str(tmp_path))
+    assert draft.returncode == 0
+    document = json.loads((tmp_path / "registration.draft.json").read_text())
+    assert document["registered_by"] == "REQUIRED-HUMAN"
+    assert len(document["analysis_code_sha256"]) == 6
 
 
 def test_conform_matched_stack_is_conformant() -> None:

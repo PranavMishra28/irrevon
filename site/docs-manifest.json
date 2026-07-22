@@ -134,6 +134,82 @@
       "source": "docs/decisions/0023-rename-to-irrevon.md",
       "slug": "adr-0023-rename-to-irrevon",
       "section": "Decisions"
+    },
+    {
+      "source": "docs/benchmark.md",
+      "slug": "benchmark-guide",
+      "section": "Benchmark",
+      "description": "The benchmark guide: exact measurement boundary, oracle and causal-history checking, tracks and anti-cheating rules, governance, adoption path, and the BetterBench self-assessment.",
+      "title": "IrrevonBench guide — measurement, governance, adoption"
+    },
+    {
+      "source": "docs/effect-semantics-mappings.md",
+      "slug": "effect-semantics-mappings",
+      "section": "Benchmark",
+      "description": "How Irrevon's capability declaration projects onto MCP, A2A, OpenAPI, HTTP, and ACP — and where those protocols carry no effect semantics at all.",
+      "title": "Effect-semantics mappings — declarations over existing protocols"
+    },
+    {
+      "source": "docs/decisions/0024-serve-read-surface.md",
+      "slug": "adr-0024-serve-read-surface",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0025-site-discovery-surface.md",
+      "slug": "adr-0025-site-discovery-surface",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0026-scope-freeze-wording-sanitization.md",
+      "slug": "adr-0026-scope-freeze-wording-sanitization",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0027-site-vercel-deploy.md",
+      "slug": "adr-0027-site-vercel-deploy",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0028-apache-2-license.md",
+      "slug": "adr-0028-apache-2-license",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0029-site-vercel-analytics.md",
+      "slug": "adr-0029-site-vercel-analytics",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0030-bench-harness-contracts.md",
+      "slug": "adr-0030-bench-harness-contracts",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0031-bench-ecosystem-interop.md",
+      "slug": "adr-0031-bench-ecosystem-interop",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0032-causal-histories-and-conformance.md",
+      "slug": "adr-0032-causal-histories-and-conformance",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0033-verifiable-freeze-and-attribution-declarations.md",
+      "slug": "adr-0033-verifiable-freeze-and-attribution-declarations",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0034-continuous-worker-and-provider-adapters.md",
+      "slug": "adr-0034-continuous-worker-and-provider-adapters",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/operations.md",
+      "slug": "operations",
+      "section": "Governance",
+      "description": "Operator documentation: deployment shape, probes, shutdown and upgrades, the ten operator questions, SLO guidance, backup/restore, incident containment.",
+      "title": "Operations — running Irrevon as a service"
     }
   ],
   "linkOnly": [

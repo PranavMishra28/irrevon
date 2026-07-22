@@ -72,4 +72,35 @@ export interface CapabilityDeclaration {
    * VF = explicit statement in destination docs; EI = evidence-backed inference (e.g. absence from a complete parameter list) — must be labeled per §7.6.
    */
   evidence_quality: "VF" | "EI";
+  /**
+   * How oracle read-back can attribute a destination effect to a business intent for THIS destination (ADR-0033). The oracle never guesses: an adapter whose best mode is 'ambiguous' or 'impossible' yields marked, never fabricated, attribution — and benchmark cells on such destinations are scored fixture-truth-only. Ordered strongest-first.
+   */
+  attribution?: {
+    /**
+     * @minItems 1
+     */
+    modes: [
+      (
+        | "exact"
+        | "stable-id-projection"
+        | "metadata"
+        | "temporal-window"
+        | "ambiguous"
+        | "impossible"
+      ),
+      ...(
+        | "exact"
+        | "stable-id-projection"
+        | "metadata"
+        | "temporal-window"
+        | "ambiguous"
+        | "impossible"
+      )[]
+    ];
+    /**
+     * Destination fields the declared modes read (e.g. metadata keys, stamped references).
+     */
+    fields?: string[];
+    notes?: string;
+  };
 }

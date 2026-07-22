@@ -191,7 +191,7 @@ def test_confirmatory_refused_pre_freeze(dev_split: Path, tmp_path: Path) -> Non
     This assertion may only ever be updated by the change that lands the
     HUMAN freeze record itself."""
     fixture_set = load_fixture_set(dev_split)
-    with pytest.raises(IntegrityRefusal, match="Stage-B freeze record"):
+    with pytest.raises(IntegrityRefusal, match="freeze registration failed verification"):
         refuse_unless_confirmatory_allowed(fixture_set)
     with pytest.raises(IntegrityRefusal):
         run_unit(fixture_set, RL_WORKLOAD, "B0", tmp_path, confirmatory=True)
