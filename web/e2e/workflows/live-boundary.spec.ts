@@ -101,6 +101,12 @@ test("failed live reads surface disconnected truth — never fixtures", async ({
   await expect(page.getByText(/NotFoundError|TransportError|Read failed/).first()).toBeVisible({
     timeout: 15_000,
   });
+  // The health poll fails too: the full-width disconnected banner shows and
+  // the LIVE chip never claims a connection — data stays stale-marked, and
+  // no silent fixture fallback is possible (none exists in the bundle).
+  await expect(page.getByTestId("disconnected-banner")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("disconnected-banner")).toContainText("Engine unreachable");
+  await expect(page.getByTestId("live-chip")).toHaveAttribute("data-state", "disconnected");
   // No fixture banner, no fixture rows, no fixture ids.
   await expect(page.getByText("Synthetic fixture — not live or measured")).toHaveCount(0);
   await expect(page.getByText("subscription.cancel")).toHaveCount(0);
