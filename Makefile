@@ -25,8 +25,18 @@ check: links schemas secrets integrity
 # stays strict.
 links:
 	lychee --offline --include-fragments --no-progress --root-dir "$(CURDIR)" \
+	  $(LYCHEE_EXCLUDES) \
 	  --remap "file://$(CURDIR)/fonts/ file://$(CURDIR)/web/public/fonts/" \
 	  --remap "file://$(CURDIR)/brand/ file://$(CURDIR)/web/public/brand/" .
+
+# site/src/content/ is excluded as a SOURCE only: it holds byte-synced mirrors of
+# repository docs (drift-gated by scripts/sync-docs.mjs --check) plus site-authored
+# markdown whose repo-relative links are resolved at build time by
+# site/scripts/satteri-repo-links.mjs. Their links cannot resolve at the mirror
+# location by construction; the canonical files are checked above at their real
+# paths, and the BUILT site's links are checked by the site Playwright link suite
+# (make site-test). Nothing is exempted twice-unchecked.
+links: LYCHEE_EXCLUDES := --exclude-path site/src/content
 
 # Every schema must be valid against its declared metaschema; every valid-*.json
 # example must pass; every invalid-*.json example must be REJECTED (the invalid
