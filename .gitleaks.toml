@@ -10,4 +10,11 @@ description = "Local-only, never-committed material (gitignored)"
 paths = [
   '''^\.scratch/''',
   '''^\.tripwords$''',
+  # Astro's gitignored build cache: JSON-serialized copies of the site's
+  # rendered repository docs. The SOURCE docs (docs/, site/src/content/) stay
+  # fully scanned; the serialized cache re-shapes already-scanned committed
+  # text into `"key":"value"` forms that false-positive the generic rules
+  # (first hit 2026-07-21: adr-0019 content in data-store.json). The path can
+  # never be committed (gitignored), so nothing real is exempted.
+  '''^site/\.astro/''',
 ]
