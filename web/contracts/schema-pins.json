@@ -23,7 +23,7 @@
       "role": "reconciliationFinding"
     },
     "docs/rfc-002-engine-design.md": {
-      "sha256": "30533f372583764b810cd83bf4137b9d2789c9c8b469515bb925844faa4cc4a7",
+      "sha256": "8e97ac7484fa755ca55fde201fd245aa4f743b67446931f8b30c638baa8f5df9",
       "role": "rfc002"
     },
     "schemas/examples/intent-contract/valid-order-create.json": {

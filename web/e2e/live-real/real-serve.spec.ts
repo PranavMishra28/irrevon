@@ -65,7 +65,7 @@ function startEngine(): Promise<string> {
       if (!origin) reject(new Error(`live_server exited ${code} before ready`));
     });
     let buffer = "";
-    proc.stdout?.on("data", (chunk: Buffer) => {
+    proc.stdout.on("data", (chunk: Buffer) => {
       buffer += chunk.toString();
       const line = buffer.split("\n").find((l) => l.includes('"url"'));
       if (line) {
@@ -88,7 +88,7 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  if (engine && engine.exitCode === null && engine.signalCode === null) {
+  if (engine?.exitCode === null && engine.signalCode === null) {
     engine.kill("SIGTERM");
     await new Promise((r) => engine?.once("exit", r));
   }
