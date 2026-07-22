@@ -32,6 +32,7 @@ export default tseslint.config(
     ignores: [
       "dist/**",
       "dist-live-guard/**",
+      "dist-live-stub/**",
       "dist-mock-refused/**",
       "storybook-static/**",
       "node_modules/**",

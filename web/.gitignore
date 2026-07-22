@@ -1,6 +1,7 @@
 node_modules/
 dist/
 dist-live-guard/
+dist-live-stub/
 dist-mock-refused/
 storybook-static/
 test-results/

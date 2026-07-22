@@ -17,9 +17,14 @@ real engine** (`scripts/capture-fixtures.py`, seed 777; commit + derivations rec
 `irrevon inspect --json` payloads (the flagship one from the real SIGKILL demo database),
 the `irrevon doctor --json` transcript, the demo JSONL artifact, and the loaded capability
 declaration — schema-validated at capture, drift-gated by `fixtures/manifest.sha256`.
-Still honestly absent: benchmark run schemas (BI-7 → Bench keeps its no-runs state),
-live mode (BI-4 → the read server is deferred to the `serve` workstream), and evidence
-bundles beyond digests (redaction pipeline pending → digest-only by policy).
+Still honestly absent: benchmark run schemas (BI-7 → Bench keeps its no-runs state) and
+evidence bundles beyond digests (redaction pipeline pending → digest-only by policy).
+Live mode is implemented (BI-4 lifted by owner order 2026-07-21): live builds read the
+same-origin `/api/v1` surface served by `irrevon serve`, drive a LIVE/disconnected status
+from a 15 s `/api/v1/health` poll, and refuse to render on a payload `schema_version`
+mismatch. E2E runs against a test-local stub of the frozen handler shapes
+(`e2e/live-serve/stub-server.mjs` — never shipped; parity assumption documented in-file);
+the joint proof against the real engine lands at consolidation.
 
 ## Working on it
 
@@ -27,6 +32,7 @@ bundles beyond digests (redaction pipeline pending → digest-only by policy).
 # toolchain: Node 24 LTS (.nvmrc) + pnpm 11 (corepack)
 pnpm install --frozen-lockfile
 pnpm dev            # Vite dev server (mock mode), http://localhost:5199
+pnpm dev:live       # live-mode dev against `irrevon serve` (proxies /api to :5180)
 pnpm check          # typecheck + lint + stylelint + format + unit/story tests
 pnpm e2e            # Playwright workflows + a11y against the built review app
 pnpm vrt            # VRT — authoritative only inside the pinned Linux container
@@ -37,10 +43,11 @@ pnpm build          # production build; refuses mock mode
 Notes:
 
 - **Data modes.** `mock` (MSW, permanent “SYNTHETIC FIXTURE” banner) is dev/test/review
-  only; a production build with mock selected fails. Live mode is blocked on the ratified
-  loopback read server (BI-4) and never falls back to fixtures.
+  only; a production build with mock selected fails. Live mode talks to the loopback read
+  server on the same origin and never falls back to fixtures — fixtures are structurally
+  absent from live bundles (DCE + sentinel-scanned by `e2e/workflows/live-boundary.spec.ts`).
 - **Strangers never need Node.** This directory is contributor-tooling only; packaged
-  builds ship as static assets served by the CLI (deferred until BI-4).
+  builds ship as static assets served by the CLI.
 - **Zero telemetry.** No network requests leave loopback (E2E-enforced), fonts are
   self-hosted, Storybook telemetry is disabled.
 - **Supply chain.** pnpm blocks all lifecycle scripts (`allowBuilds` all-false),

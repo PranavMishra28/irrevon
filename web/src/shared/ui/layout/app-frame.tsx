@@ -16,6 +16,7 @@ export function AppFrame({
   banner,
   nav,
   viewLabel,
+  status,
   utilities,
   children,
 }: {
@@ -23,6 +24,8 @@ export function AppFrame({
   nav: ReactNode;
   /** Active-view label, shown only in the 768–1119 header band. */
   viewLabel?: string;
+  /** Connection status chip (live builds), rendered beside the brand. */
+  status?: ReactNode;
   utilities: ReactNode;
   children: ReactNode;
 }) {
@@ -48,6 +51,7 @@ export function AppFrame({
             workbench
           </span>
         </span>
+        {status}
         <nav
           aria-label="Views"
           className="hidden h-full min-w-0 flex-1 items-stretch gap-0.5 min-[1120px]:flex"

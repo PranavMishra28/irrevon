@@ -8,26 +8,29 @@ import type {
 } from "@/shared/contracts/generated/state-model";
 import type { CapabilityDeclaration } from "@/shared/contracts/generated/capability-declaration";
 import {
+  AdapterTierC1,
+  AdapterTierC2,
+  AdapterTierC3,
+  Ambiguous,
   ArrowUpRight,
   Ban,
+  Boundary,
   Check,
   CheckSquare,
   Circle,
   CircleCheck,
   CircleDashed,
   Clock,
+  Compensated,
   Copy,
-  Database,
-  EyeOff,
-  FileCheck,
+  Evidence,
   FileX,
-  HelpCircle,
-  Key,
-  Lock,
+  Ledger,
+  OrphanAbsence,
   OrphanSheet,
+  Probe,
+  Recovery,
   RotateCw,
-  ScanSearch,
-  Search,
   Undo2,
   Unlink,
   User,
@@ -69,27 +72,35 @@ export function humanize(value: string): string {
 
 export const LIFECYCLE_SPEC = {
   INTENDED: { hue: "neutral", Glyph: CircleDashed },
-  PERSISTED: { hue: "blue", Glyph: Database },
+  // ledger, not a storage cylinder: persist-before-dispatch is bookkeeping.
+  PERSISTED: { hue: "blue", Glyph: Ledger },
   DISPATCHED: { hue: "blue", Glyph: ArrowUpRight },
   SETTLED_COMMITTED: { hue: "green", Glyph: Check, strong: true },
   SETTLED_FAILED: { hue: "red", Glyph: X, strong: true },
-  AMBIGUOUS: { hue: "violet", Glyph: HelpCircle, dashed: true },
+  // the dashed slot holding a question — the flagship state's own grammar,
+  // no longer sharing a glyph with the chrome help control.
+  AMBIGUOUS: { hue: "violet", Glyph: Ambiguous, dashed: true },
   CANCELLED: { hue: "neutral", Glyph: Ban, strong: true },
 } as const satisfies Record<Lifecycle, VisualSpec>;
 
 export const CLASSIFICATION_SPEC = {
-  UNRECONCILED: { hue: "neutral", Glyph: ScanSearch, dashed: true },
-  CONFIRMED_UNIQUE: { hue: "green", Glyph: FileCheck },
+  // "awaiting read-back" is precisely the probe drawing.
+  UNRECONCILED: { hue: "neutral", Glyph: Probe, dashed: true },
+  // evidence returned and cited — the confirmation is a read, not a file.
+  CONFIRMED_UNIQUE: { hue: "green", Glyph: Evidence },
   DUPLICATE: { hue: "amber", Glyph: Copy },
-  LOST: { hue: "red", Glyph: Unlink },
+  // confirmed-absent is the void-slot drawing, not hyperlink vocabulary.
+  LOST: { hue: "red", Glyph: OrphanAbsence },
   ORPHANED: { hue: "red", Glyph: OrphanSheet },
   CONTRADICTED: { hue: "red", Glyph: FileX },
 } as const satisfies Record<ClassificationDisplay, VisualSpec>;
 
 export const RESOLUTION_SPEC = {
   OPEN: { hue: "amber", Glyph: Circle },
-  COMPENSATED: { hue: "cyan", Glyph: Undo2 },
-  REDISPATCHED: { hue: "cyan", Glyph: RotateCw },
+  // counter-entry, never an undo arrow: compensation is not rollback (ADR-007).
+  COMPENSATED: { hue: "cyan", Glyph: Compensated },
+  // an adjudicated, recorded re-action that lands once — not a refresh loop.
+  REDISPATCHED: { hue: "cyan", Glyph: Recovery },
   ACCEPTED_AS_IS: { hue: "neutral", Glyph: CheckSquare },
   ESCALATED_HUMAN: { hue: "violet", Glyph: User },
   CLOSED: { hue: "green", Glyph: CircleCheck, strong: true },
@@ -99,7 +110,8 @@ export const EFFECT_CLASS_SPEC = {
   IDEMPOTENT: { hue: "neutral", Glyph: Check },
   REVERSIBLE: { hue: "neutral", Glyph: Undo2 },
   COMPENSABLE: { hue: "neutral", Glyph: RotateCw },
-  IRREVERSIBLE: { hue: "neutral", Glyph: Lock, strong: true },
+  // one-way, not locked-against-access: no security promise is made here.
+  IRREVERSIBLE: { hue: "neutral", Glyph: Boundary, strong: true },
 } as const satisfies Record<EffectClass, VisualSpec>;
 
 export const TRANSPORT_OUTCOME_SPEC = {
@@ -109,10 +121,12 @@ export const TRANSPORT_OUTCOME_SPEC = {
   LOST: { hue: "red", Glyph: Unlink },
 } as const satisfies Record<TransportOutcome, VisualSpec>;
 
+// One glyph family (capability cells filled 3/2/1) makes the tier ordinal —
+// previously three unrelated metaphors (key / magnifier / hidden eye).
 export const TIER_SPEC = {
-  C1: { hue: "green", Glyph: Key, cells: 3, descriptor: "idempotency-keyed" },
-  C2: { hue: "blue", Glyph: Search, cells: 2, descriptor: "queryable" },
-  C3: { hue: "neutral", Glyph: EyeOff, cells: 1, descriptor: "opaque" },
+  C1: { hue: "green", Glyph: AdapterTierC1, cells: 3, descriptor: "idempotency-keyed" },
+  C2: { hue: "blue", Glyph: AdapterTierC2, cells: 2, descriptor: "queryable" },
+  C3: { hue: "neutral", Glyph: AdapterTierC3, cells: 1, descriptor: "opaque" },
 } as const satisfies Record<Tier, VisualSpec & { cells: number; descriptor: string }>;
 
 /** Ink/tint utility classes per hue — the only sanctioned status-color usage. */

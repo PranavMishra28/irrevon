@@ -16,18 +16,13 @@ export {
   CircleDashed,
   Clock,
   Copy,
-  Database,
   Eye,
   EyeOff,
-  FileCheck,
   FileX,
   HelpCircle,
-  Key,
-  Lock,
   Menu,
   Moon,
   RotateCw,
-  ScanSearch,
   Search,
   Sun,
   Undo2,
@@ -35,6 +30,28 @@ export {
   User,
   X,
 } from "lucide-react";
+
+// Domain glyphs — original in-house geometry on the same grid (see domain.tsx).
+export {
+  AdapterTierC1,
+  AdapterTierC2,
+  AdapterTierC3,
+  Ambiguous,
+  Boundary,
+  Compensated,
+  CrashSeam,
+  DuplicateReject,
+  Evidence,
+  GateDeny,
+  Intent,
+  Ledger,
+  OrphanAbsence,
+  Persist,
+  Probe,
+  Recovery,
+  SeatSettle,
+  StableId,
+} from "./domain";
 
 /**
  * Custom domain glyph on Lucide's grid rules (24px, 2px stroke, round caps):

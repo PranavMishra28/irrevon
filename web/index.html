@@ -22,14 +22,18 @@
     />
     <script>
       // Apply persisted theme/density before first paint to avoid a flash.
+      // Reads fall back to the pre-rename "detent.*" keys once so migrated
+      // users keep their preferences on the very first paint (prefs.ts owns
+      // the actual key migration).
       try {
-        var t = localStorage.getItem("irrevon.theme");
+        var t = localStorage.getItem("irrevon.theme") || localStorage.getItem("detent.theme");
         if (t === "dark" || t === "light") {
           document.documentElement.setAttribute("data-theme", t);
         } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
           document.documentElement.setAttribute("data-theme", "dark");
         }
-        var d = localStorage.getItem("irrevon.density");
+        var d =
+          localStorage.getItem("irrevon.density") || localStorage.getItem("detent.density");
         if (d === "dense" || d === "comfortable") {
           document.documentElement.setAttribute("data-density", d);
         }

@@ -1,7 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import type { KeyboardEvent, ReactNode } from "react";
+import type { ComponentType, KeyboardEvent, ReactNode } from "react";
 import type { DemoArtifact, DemoEvent } from "@/shared/api/types";
 import { ContrastFailedNotice } from "@/shared/domain/status/verdicts";
+import {
+  Ambiguous,
+  CrashSeam,
+  DuplicateReject,
+  GateDeny,
+  Intent,
+  Persist,
+  Recovery,
+  SeatSettle,
+  StableId,
+} from "@/shared/ui/icons";
 import { getSingleKeyShortcutsEnabled } from "@/shared/lib/prefs";
 import { truncateEffectId } from "@/shared/lib/ids";
 import { useAnnouncer } from "@/shared/ui/layout/live-regions";
@@ -64,6 +75,23 @@ const NARRATION: Record<string, { title: string; body: string }> = {
   },
 };
 
+// Per-event micro-glyphs (identity brief §1.6): each recorded event name
+// maps onto the domain icon set. Unknown events render without a glyph —
+// the raw-name fallback stays the honest path.
+const EVENT_GLYPH: Record<string, ComponentType<{ size?: number }>> = {
+  registered: Persist,
+  dispatch_response_lost: Ambiguous,
+  crash: CrashSeam,
+  recovered: Recovery,
+  settled_confirmed_unique: SeatSettle,
+  resynthesis_collapsed: StableId,
+  duplicate_rejected: GateDeny,
+  b5_response_lost: Ambiguous,
+  b5_restart: Recovery,
+  b5_retried: Intent,
+  b5_duplicate: DuplicateReject,
+};
+
 const FACT_KEYS = [
   "effect_id",
   "lifecycle",
@@ -123,6 +151,7 @@ function LaneList({
         <ol className="mt-1 flex flex-col" aria-label={`${label} events`}>
           {shown.map(({ event, index }) => {
             const narration = NARRATION[event.event];
+            const MicroGlyph = EVENT_GLYPH[event.event];
             const isCurrent = index === cursor;
             return (
               <li
@@ -134,7 +163,12 @@ function LaneList({
                   (isCurrent ? "bg-(--sys-state-hover)" : "")
                 }
               >
-                <p className="font-mono text-2xs tracking-wide text-text-tertiary uppercase">
+                <p className="flex items-center gap-1.5 font-mono text-2xs tracking-wide text-text-tertiary uppercase">
+                  {MicroGlyph ? (
+                    <span aria-hidden className="text-text-secondary">
+                      <MicroGlyph size={16} />
+                    </span>
+                  ) : null}
                   {index + 1} · {event.event}
                 </p>
                 <p className="mt-0.5 text-sm font-medium text-text-primary">
