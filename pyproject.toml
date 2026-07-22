@@ -1,7 +1,9 @@
 # Irrevon — reference reconciliation engine (first slice).
 # Stack per ADR-0013 (Python 3.13, uv, pytest+Hypothesis, psycopg 3, rfc8785 pinned);
 # packaging per ADR-0018 (single `irrevon` package, src layout, hatchling).
-# No license classifier: licensing is undecided (ADR-0014 OPEN); publishing is human-gated.
+# License: Apache-2.0 (ADR-0028, owner-ratified 2026-07-21). The SPDX license
+# expression + classifier land with the release mechanics (ADR-0018 M8, human-gated);
+# the repository-level grant is the root LICENSE + NOTICE pair.
 
 [build-system]
 requires = ["hatchling"]
@@ -11,7 +13,7 @@ build-backend = "hatchling.build"
 name = "irrevon"
 # Single version source: src/irrevon/__init__.py __version__ (hatch dynamic).
 dynamic = ["version"]
-description = "Reference reconciliation engine for irreversible AI-agent actions (IrrevonBench companion). Not yet released; no license granted (see LICENSING.md)."
+description = "Reference reconciliation engine for irreversible AI-agent actions (IrrevonBench companion). Not yet released; Apache-2.0 (see LICENSING.md)."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

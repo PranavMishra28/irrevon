@@ -2,7 +2,7 @@
 title: "Decision records — index and policy"
 description: "The append-only ADR index and policy. If a decision is not in the index, it has not been made."
 sourcePath: "docs/decisions/README.md"
-sourceSha256: "1936a0740c2c82434108a2101a94396cef8ca7ee3ec56a64d81ae9690e526b8f"
+sourceSha256: "c0ac23215a872ba961c08256919c8a6adb57fbc85d1de36b69f95755ed6edc3d"
 syncedAt: "2026-07-22"
 section: "Decisions"
 renderTitle: false
@@ -19,7 +19,7 @@ drift (split-brain). Files exist only for decisions that are **OPEN** (still bei
 **NEW** (not in §11). When a §11 decision is superseded or reopened, a full ADR file is
 created *then*, per §12.5/§17 — which is when append-only file history becomes necessary.
 
-## Index (complete: 0000–0027)
+## Index (complete: 0000–0029)
 
 | ADR | Title | Status | Canonical text |
 |---|---|---|---|
@@ -37,7 +37,7 @@ created *then*, per §12.5/§17 — which is when append-only file history becom
 | 0011 | Working name "Detent" | **superseded by ADR-0023** (screen fired its reopen trigger) | master doc §11 |
 | 0012 | C2 sandbox selection | **OPEN** | [0012-c2-sandbox.md](0012-c2-sandbox.md) |
 | 0013 | Implementation language and stack | accepted (ratified 2026-07-21) | [0013-implementation-language.md](0013-implementation-language.md) |
-| 0014 | Licensing and contributor governance | **OPEN** | [0014-licensing.md](0014-licensing.md) |
+| 0014 | Licensing and contributor governance | license half resolved by ADR-0028 (Apache-2.0, owner ratification 2026-07-21); contributor-governance half **OPEN** | [0014-licensing.md](0014-licensing.md) |
 | 0015 | Schema dialect and validation tooling | accepted (countersign requested, review-queue §3) | [0015-schema-validation-tooling.md](0015-schema-validation-tooling.md) |
 | 0016 | Frontend workbench stack (Vite SPA + TanStack) | accepted (ratified 2026-07-21) | [0016-frontend-workbench-stack.md](0016-frontend-workbench-stack.md) |
 | 0017 | Build orchestration (plain Make over uv/pnpm) | accepted (ratified 2026-07-21) | [0017-build-orchestration.md](0017-build-orchestration.md) |
@@ -51,6 +51,8 @@ created *then*, per §12.5/§17 — which is when append-only file history becom
 | 0025 | Marketing site + discovery surface (`site/`), deploy gated | accepted (owner rebuild directive 2026-07-21); deploy mechanics (items 4–5) superseded by ADR-0027 | [0025-site-discovery-surface.md](0025-site-discovery-surface.md) |
 | 0026 | Sanitization supersession of ADR-0000's non-goals wording | **proposed** (owner countersign required) | [0026-scope-freeze-wording-sanitization.md](0026-scope-freeze-wording-sanitization.md) |
 | 0027 | Site hosting — Vercel at the origin root (retires the Pages plan) | accepted (owner deploy directive 2026-07-21; supersedes ADR-0025 items 4–5) | [0027-site-vercel-deploy.md](0027-site-vercel-deploy.md) |
+| 0028 | Outbound license — Apache-2.0 for the whole repository | accepted (owner ratification 2026-07-21; resolves ADR-0014's license half) | [0028-apache-2-license.md](0028-apache-2-license.md) |
+| 0029 | Site telemetry — first-party Vercel Web Analytics + Speed Insights | accepted (owner platform directive 2026-07-21; amends ADR-0025's site posture) | [0029-site-vercel-analytics.md](0029-site-vercel-analytics.md) |
 
 ## Policy
 

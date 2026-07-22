@@ -100,12 +100,14 @@ human-gated acts (the reconciliation record lives in
 
 ## Repository status and licensing
 
-This repository is public (owner decision, 2026-07-21) but **not yet released software**:
-there is no LICENSE file, all rights are reserved, and **no contributions are accepted**
-while the licensing decision ([ADR-0014](docs/decisions/0014-licensing.md)) is open. Do not
-build on this repository yet. Packaged releases, published artifacts, and the contribution
-policy arrive only through the public-release gate in
-[docs/execution-plan.md](docs/execution-plan.md). See [LICENSING.md](LICENSING.md).
+This repository is public and licensed under **Apache-2.0** ([LICENSE](LICENSE) +
+[NOTICE](NOTICE); decision record [ADR-0028](docs/decisions/0028-apache-2-license.md),
+owner-ratified 2026-07-21) — but it is **not yet released software**: nothing is on any
+package index, and **no contributions are accepted** while the contributor-governance
+half of [ADR-0014](docs/decisions/0014-licensing.md) (DCO, inbound policy) remains open.
+Packaged releases, published artifacts, and the contribution policy arrive only through
+the public-release gate in [docs/execution-plan.md](docs/execution-plan.md). See
+[LICENSING.md](LICENSING.md).
 
 ## Reading order
 

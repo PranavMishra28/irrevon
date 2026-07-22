@@ -252,8 +252,9 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
         <span class="kicker">Get started</span>
         <h2>Clone it and run the flagship demo</h2>
         <p class="lead">
-          Pre-release: nothing is on a package index, and the repository carries no license yet. The demo runs
-          locally against a deterministic reference destination — about five minutes with uv and Docker.
+          Pre-release: nothing is on a package index; the repository is Apache-2.0-licensed (ADR-0028). The
+          demo runs locally against a deterministic reference destination — about five minutes with uv and
+          Docker.
         </p>
       </div>
       <pre><code>git clone {REPO_URL}.git && cd irrevon
@@ -263,7 +264,7 @@ docker compose up -d --wait
 uv run irrevon doctor    # read-only checks incl. the identity self-test
 uv run irrevon demo      # the two-leg flagship story</code></pre>
       <div style="margin-top: 14px;">
-        <Source id="quickstart-real" also={["not-published", "license-pending"]} />
+        <Source id="quickstart-real" also={["not-published", "license-apache2"]} />
       </div>
       <div class="hero-ctas" style="margin-top: 24px;">
         <a class="btn btn-primary" href={REPO_URL}>Open the repository</a>

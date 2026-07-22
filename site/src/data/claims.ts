@@ -275,8 +275,8 @@ export const claims = {
   },
   "zero-telemetry": {
     claim:
-      "Zero telemetry, zero analytics, zero external requests — engine and workbench. The workbench's no-external-request and read-only properties are E2E-enforced. This site is static, self-hosts its fonts, and calls nothing.",
-    source: "web/README.md (enforced budgets and tests)",
+      "Zero telemetry, zero analytics, zero external requests — engine and workbench. The workbench's no-external-request and read-only properties are E2E-enforced. This site is static, self-hosts its fonts, and makes no third-party requests; its only measurement is Vercel's cookieless, same-origin Web Analytics and Speed Insights (owner-enabled, ADR-0029) — an allowance the site's budget tests pin to exactly those two first-party scripts.",
+    source: "web/README.md (enforced budgets and tests) + site/e2e/budget.spec.ts + docs/decisions/0029-site-vercel-analytics.md",
     label: "VF",
   },
   "supply-chain": {
@@ -341,10 +341,10 @@ export const claims = {
     source: "docs/decisions/0023-rename-to-irrevon.md + docs/review-queue.md §3 item 4",
     label: "VF",
   },
-  "license-pending": {
+  "license-apache2": {
     claim:
-      "License not yet finalized: deciding between an engine-AGPL-3.0 / harness-Apache-2.0 hybrid and all-Apache-2.0 (ADR-0014, open). Until decided, the repository carries no license and does not accept contributions.",
-    source: "LICENSING.md + docs/review-queue.md §3 items 7/18",
+      "Licensed under Apache-2.0 (owner ratification 2026-07-21; ADR-0028 resolves ADR-0014's license half; LICENSE + NOTICE at the repository root). Contributions remain closed while inbound governance — ADR-0014's contributor-governance half (DCO, engine contribution policy) — stays open.",
+    source: "LICENSE + LICENSING.md + docs/decisions/0028-apache-2-license.md",
     label: "VF",
   },
   "thirty-min-target": {

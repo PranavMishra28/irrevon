@@ -10,10 +10,10 @@ claims:
   - demo-contrast
 ---
 
-Irrevon is pre-release: nothing is on a package index, and the repository carries no
-license yet. The only install path today is a clone — and that is a five-minute path,
-with a deterministic demo at the end of it. Planned distribution is documented on the
-[install page](/install/), future tense.
+Irrevon is pre-release: nothing is on a package index; the repository is licensed
+Apache-2.0 (ADR-0028). The only install path today is a clone — and that is a
+five-minute path, with a deterministic demo at the end of it. Planned distribution is
+documented on the [install page](/install/), future tense.
 
 ## Prerequisites
 

@@ -67,11 +67,15 @@ Install (7 slots); Security/Changelog/Roadmap live in the footer.
   and a11y fixes (scrollable tables/pre get `tabindex`, GFM checkboxes render as
   typographic marks). Syntax highlighting is off by design (plain mono matches the
   site register; cannot fail contrast).
-- **JS discipline.** Zero fetched scripts on every page except docs-after-gesture:
-  the inline theme boot/toggle (~1 KB) everywhere; the `/demo` island (3.4 KB
-  source, ≤8 KB budget) on the demo page; the search bootstrap on docs pages, which
-  loads the self-hosted Pagefind bundle (`dist/pagefind/`, built post-build) only on
-  focus/input. Budget e2e runs two lanes over a dist-derived page inventory.
+- **JS discipline.** No fetched scripts on any page except two documented lanes: the
+  same-origin Vercel Web Analytics + Speed Insights loaders on every page
+  (`/_vercel/…/script.js` — owner-enabled, [ADR-0029](../docs/decisions/0029-site-vercel-analytics.md);
+  cookieless, first-party, beacons ride the same origin) and the docs-after-gesture
+  Pagefind bundle (`dist/pagefind/`, built post-build, loads only on focus/input).
+  Everything else is inline: the theme boot/toggle (~1 KB) everywhere; the `/demo`
+  island (3.4 KB source, ≤8 KB budget) on the demo page. Budget e2e runs two lanes
+  over a dist-derived page inventory and pins the telemetry allowance to exactly
+  those two loader paths.
 - **SEO/metadata:** `@astrojs/sitemap` (+`sitemap-index.xml`), `robots.txt` endpoint,
   canonical + OG/Twitter cards per page (committed OG PNGs rendered from
   `og/template.svg` by `scripts/build-og.mjs`, drift-gated via `og/manifest.json`),

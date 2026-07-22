@@ -3,7 +3,8 @@
 Irrevon is a planned benchmark (IrrevonBench, preregistration drafted but not frozen) +
 reference reconciliation engine for irreversible AI-agent actions, benchmark-first and
 C2-scoped. Current status: see [README §Status](README.md#status). The public repository
-carries no license and accepts no contributions (ADR-0014 open).
+is licensed Apache-2.0 (LICENSE + NOTICE; ADR-0028) and still accepts no contributions
+(ADR-0014's contributor-governance half remains open).
 
 This file is the map. Read the canonical file for a concern instead of guessing; link to it
 instead of restating it.

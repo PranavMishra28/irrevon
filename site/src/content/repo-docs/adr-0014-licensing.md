@@ -1,13 +1,13 @@
 ---
 title: "Outbound license and contributor-governance posture"
 sourcePath: "docs/decisions/0014-licensing.md"
-sourceSha256: "573a2ef22dba3ed1e87ce5f1ad01849a80157155171f0cbb8409441a647e72ca"
+sourceSha256: "6d47d0166ddd13393ab8cea1a6516fd1b359b96c631eacf408df90f9a0d5b95c"
 syncedAt: "2026-07-22"
 section: "Decisions"
 renderTitle: true
 adr:
   id: "ADR-0014"
-  status: "open"
+  status: "open (contributor-governance half only); license choice resolved by ADR-0028 — Apache-2.0, Candidate A, owner ratification 2026-07-21"
   date: "2026-07-20 (analysis refreshed 2026-07-21 from the LIC-2 deep research)"
   supersedes: "—"
 ---

@@ -55,7 +55,7 @@
       "source": "LICENSING.md",
       "slug": "licensing",
       "section": "Governance",
-      "description": "Why the repository currently carries no license and accepts no contributions, and what closes that decision.",
+      "description": "Apache-2.0 (ADR-0028): the grant, the NOTICE attribution, and what stays closed — contributions, trademarks, and release mechanics.",
       "title": "Licensing status"
     },
     {

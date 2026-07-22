@@ -10,9 +10,13 @@
 // Pages cannot set. The full when-we-have-an-edge header set lives in
 // site/docs/headers-spec.md.
 //
-// Docs pages additionally get script-src 'self' + 'wasm-unsafe-eval' and the
-// Pagefind fetches ride connect-src 'self' — search assets are same-origin
-// by construction.
+// script-src carries 'self' on every page: the Vercel Web Analytics /
+// Speed Insights loaders (/_vercel/.../script.js, ADR-0029) are same-origin
+// platform-served files a build cannot hash. Inline scripts still require the
+// computed hashes ('self' never permits inline). Docs pages additionally get
+// 'wasm-unsafe-eval' for Pagefind's WASM; Pagefind fetches and the telemetry
+// beacons both ride connect-src 'self' — everything is same-origin by
+// construction.
 //
 // Usage: node scripts/inject-csp.mjs [dist-dir]
 
@@ -52,7 +56,8 @@ for (const file of htmlFiles(dist)) {
 
   const isDocs = /\/docs\//.test(file.replace(dist, ""));
   const scriptSrc = [
-    ...(isDocs ? ["'self'", "'wasm-unsafe-eval'"] : []),
+    "'self'",
+    ...(isDocs ? ["'wasm-unsafe-eval'"] : []),
     ...[...hashes].sort(),
   ];
   const policy = [

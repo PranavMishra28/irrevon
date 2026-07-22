@@ -1,8 +1,8 @@
 ---
 title: "Licensing status"
-description: "Why the repository currently carries no license and accepts no contributions, and what closes that decision."
+description: "Apache-2.0 (ADR-0028): the grant, the NOTICE attribution, and what stays closed — contributions, trademarks, and release mechanics."
 sourcePath: "LICENSING.md"
-sourceSha256: "766148e8f44dd934cec7e568c07a09d252b639481b61ac5f72b79b4f80eff4dd"
+sourceSha256: "4c7d0279cd04bff2b74220f9a982cb1edccaf13b33a2ff1d1f962bc9c9ea426b"
 syncedAt: "2026-07-22"
 section: "Governance"
 renderTitle: false
@@ -10,20 +10,32 @@ renderTitle: false
 
 # Licensing
 
-**Copyright (c) 2026 the repository owner. All rights reserved.**
+**This repository is licensed under the Apache License, Version 2.0** — see
+[LICENSE](LICENSE) (verbatim text) and [NOTICE](NOTICE) (attribution: "Irrevon —
+Copyright 2026 Irrevon contributors"). The decision record is
+[ADR-0028](docs/decisions/0028-apache-2-license.md), ratified by the owner in writing on
+2026-07-21; it resolves the license half of
+[ADR-0014](docs/decisions/0014-licensing.md). Since the repository is public, the grant
+is effective immediately.
 
-This repository is publicly readable but is **not released software**. It deliberately
-contains no LICENSE file: under default copyright law, no one may reproduce, distribute,
-or create derivative works from it. A license will be added only when the licensing
-decision closes at the public-release gate — granting rights earlier would narrow that
-decision before it is made.
+What this does **not** change:
 
-- The licensing decision is **OPEN**: see
-  [ADR-0014](docs/decisions/0014-licensing.md) for the options analysis, one-way doors,
-  precedents, and current recommendation. It closes at the public-release gate
-  ([docs/execution-plan.md](docs/execution-plan.md)), not before.
-- **No contributions are accepted** while the decision is open. Do not open pull requests
-  with code or content; they cannot be merged (there is no inbound-license basis for
-  outside work in an unlicensed repository).
-- At first release: LICENSE and NOTICE files, a contribution policy, and a named copyright
-  holder replace this notice (release-gate deliverables, ADR-0014).
+- **Contributions are still not accepted.** The contributor-governance half of ADR-0014
+  (DCO enforcement, engine contribution policy, CONTRIBUTING.md) remains open; those
+  mechanisms must land — a human decision — before any outside pull request can be
+  merged. Do not open PRs yet.
+- **Pre-release status.** Nothing is on any package index; packaged releases remain
+  gated by the execution-plan public-release gate (clearances, counsel name screen,
+  sanitization review, human sign-off). Packaging license metadata (SPDX expression and
+  classifier) lands with the ADR-0018 M8 release mechanics.
+- **Trademarks.** Apache-2.0 §6 grants no rights to the "Irrevon" name or marks; the
+  trademark/conformance policy (TRADEMARKS.md) rides the counsel name screen.
+
+Third-party material: the direct-dependency inventory lives in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) (drift-gated by `make check`); the
+vendored IBM Plex font subsets in `web/` and `site/` remain under the SIL Open Font
+License (their OFL.txt travels with them); asset provenance is ledgered in
+[ASSETS.md](ASSETS.md) and [site/ASSETS.md](site/ASSETS.md). psycopg
+(LGPL-3.0-only) is the single non-permissive runtime dependency — separately installed,
+never vendored; the recorded compatibility analysis is in the review queue, with the
+documented-exception ruling still owed.

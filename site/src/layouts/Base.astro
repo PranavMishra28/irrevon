@@ -101,6 +101,25 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
         }
       })();
     </script>
+    <!-- Vercel Web Analytics + Speed Insights (owner directive, ADR-0029): the
+         static-HTML snippets. Cookieless, first-party — both loaders and their
+         beacon endpoints live on this origin (/_vercel/...); off-Vercel (local
+         dev, CI preview) the loaders 404 harmlessly and nothing beacons. The
+         bootstrap below is hashed into the per-page CSP like every inline script. -->
+    <script is:inline>
+      window.va =
+        window.va ||
+        function () {
+          (window.vaq = window.vaq || []).push(arguments);
+        };
+      window.si =
+        window.si ||
+        function () {
+          (window.siq = window.siq || []).push(arguments);
+        };
+    </script>
+    <script is:inline defer src="/_vercel/insights/script.js"></script>
+    <script is:inline defer src="/_vercel/speed-insights/script.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -225,11 +244,15 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
         </div>
         <div class="footer-status">
           <p>
-            © 2026 the repository owner. No license granted yet — the licensing decision is an open decision record
-            (ADR-0014); no contributions are accepted while it is open. “{SITE_NAME}” is a working name; the name
-            screen is pending.
+            © 2026 Irrevon contributors. Licensed under Apache-2.0 (ADR-0028). Contributions are not yet accepted —
+            inbound governance (ADR-0014’s remaining half) is still open. “{SITE_NAME}” is a working name; the
+            counsel name screen is pending.
           </p>
-          <p>Pre-release software: not on any package index. This site is static — no analytics, no telemetry, no external requests.</p>
+          <p>
+            Pre-release software: not on any package index. This site is static — no cookies, no third-party
+            requests; measurement is limited to Vercel’s same-origin, cookieless Web Analytics and Speed Insights
+            (ADR-0029).
+          </p>
         </div>
       </div>
     </footer>

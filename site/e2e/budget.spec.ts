@@ -1,15 +1,21 @@
-// Bundle discipline, two lanes (neither gate weakened):
-//   - non-docs pages: zero fetched scripts, ever — the only JS is inline and
-//     ≤10 KB total per page (the /demo island lives inside that gate and is
-//     additionally capped in demo.spec.ts).
-//   - docs pages: zero fetched scripts BEFORE interaction; after a search
-//     gesture, every fetched URL must be the same-origin Pagefind bundle.
-// No request ever leaves the preview origin on any page.
+// Bundle discipline, two lanes:
+//   - non-docs pages: no fetched scripts EXCEPT the two same-origin Vercel
+//     telemetry loaders (ADR-0029, owner directive — the sole sanctioned
+//     exception); the only other JS is inline and ≤10 KB total per page (the
+//     /demo island lives inside that gate and is additionally capped in
+//     demo.spec.ts).
+//   - docs pages: same rule BEFORE interaction; after a search gesture, every
+//     additional fetched URL must be the same-origin Pagefind bundle.
+// No request ever leaves the preview origin on any page (the telemetry
+// loaders and their beacons are same-origin /_vercel/ paths; locally they 404
+// and nothing beacons).
 import { expect, test } from "@playwright/test";
 import { ALL_PAGES, DOCS_PAGES, NON_DOCS_PAGES } from "./pages";
 
 const JS_BUDGET_BYTES = 10 * 1024;
 const ORIGIN_HOST = "localhost:4977";
+// The exact allowlist ADR-0029 sanctions — nothing else may be fetched.
+const VERCEL_TELEMETRY = /^\/_vercel\/(insights|speed-insights)\/script\.js$/;
 
 function track(page: import("@playwright/test").Page) {
   const external: string[] = [];
@@ -17,13 +23,13 @@ function track(page: import("@playwright/test").Page) {
   page.on("request", (req) => {
     const url = new URL(req.url());
     if (url.host !== ORIGIN_HOST) external.push(req.url());
-    if (req.resourceType() === "script") scripts.push(url.pathname);
+    if (req.resourceType() === "script" && !VERCEL_TELEMETRY.test(url.pathname)) scripts.push(url.pathname);
   });
   return { external, scripts };
 }
 
 for (const path of NON_DOCS_PAGES) {
-  test(`budget + network (zero fetched JS): ${path}`, async ({ page }) => {
+  test(`budget + network (no fetched JS beyond the ADR-0029 telemetry loaders): ${path}`, async ({ page }) => {
     const { external, scripts } = track(page);
     await page.goto(path, { waitUntil: "networkidle" });
     expect(external, external.join("\n")).toEqual([]);
@@ -40,7 +46,8 @@ for (const path of DOCS_PAGES) {
     const { external, scripts } = track(page);
     await page.goto(path, { waitUntil: "networkidle" });
     expect(external, external.join("\n")).toEqual([]);
-    // Zero fetched scripts before any user gesture, docs pages included.
+    // No fetched scripts before any user gesture (beyond the ADR-0029
+    // telemetry loaders the tracker already accounts for), docs pages included.
     expect(scripts, scripts.join("\n")).toEqual([]);
     const inlineJsBytes = await page.evaluate(() =>
       Array.from(document.querySelectorAll("script")).reduce((sum, s) => sum + (s.textContent?.length ?? 0), 0),
@@ -54,6 +61,7 @@ test("docs search: after a gesture, only same-origin /pagefind/ is fetched", asy
   const fetched: string[] = [];
   page.on("request", (req) => {
     const url = new URL(req.url());
+    if (VERCEL_TELEMETRY.test(url.pathname)) return; // ADR-0029 loaders, accounted for above
     if (url.host === ORIGIN_HOST && (url.pathname.startsWith("/pagefind/") || req.resourceType() === "script"))
       fetched.push(url.pathname);
   });
