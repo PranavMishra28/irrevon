@@ -2,8 +2,9 @@
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { defineConfig, passthroughImageService } from "astro/config";
+import sitemap from "@astrojs/sitemap";
 import { satteri } from "@astrojs/markdown-satteri";
-import { repoLinksPlugin } from "./scripts/satteri-repo-links.mjs";
+import { repoLinksPlugin, scrollableFocusPlugin } from "./scripts/satteri-repo-links.mjs";
 
 /**
  * Repository URL is deployment-provided, never committed (DIST §1: nothing may
@@ -39,7 +40,16 @@ export default defineConfig({
   base,
   trailingSlash: "ignore",
   image: { service: passthroughImageService() },
+  // sitemap-index.xml + sitemap-0.xml; URLs derive from `site`, so the
+  // deploy-provided origin/base flow through with zero new code. /404 is
+  // excluded (an error page is not a destination).
+  integrations: [sitemap({ filter: (page) => !page.includes("/404") })],
   markdown: {
+    // Plain code blocks, no syntax highlighting: the hand-authored pages set
+    // that register (structural ink, mono on sunken panel), theme-pair
+    // switching would need four-state CSS wiring, and un-tinted code cannot
+    // fail the contrast gate. Recorded as a deliberate deviation.
+    syntaxHighlight: false,
     // Rendered repo docs keep their repo-relative links in the committed
     // copies; this build-time plugin resolves them to rendered sibling pages
     // or the repository on GitHub (scripts/satteri-repo-links.mjs).
@@ -51,6 +61,7 @@ export default defineConfig({
           base,
         }),
       ],
+      hastPlugins: [scrollableFocusPlugin()],
     }),
   },
   vite: {

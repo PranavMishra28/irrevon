@@ -5,6 +5,8 @@ import { getCollection, render } from "astro:content";
 import DocsShell from "../../layouts/DocsShell.astro";
 import Badge from "../../components/Badge.astro";
 import Source from "../../components/Source.astro";
+import { techArticle, breadcrumbs } from "../../lib/jsonld";
+import { href } from "../../lib/url";
 import type { ClaimId } from "../../data/claims";
 
 export async function getStaticPaths() {
@@ -16,9 +18,17 @@ const { guide } = Astro.props;
 const { Content, headings } = await render(guide);
 const toc = headings.filter((h) => h.depth === 2);
 const claimIds = guide.data.claims as ClaimId[];
+const pageUrl = new URL(href(`/docs/${guide.id}/`), Astro.site);
+const jsonLd = [
+  techArticle({ title: guide.data.title, description: guide.data.description, url: pageUrl }),
+  breadcrumbs([
+    { name: "Docs", url: new URL(href("/docs/"), Astro.site) },
+    { name: guide.data.title, url: pageUrl },
+  ]),
+];
 ---
 
-<DocsShell title={`${guide.data.title} — Irrevon docs`} description={guide.data.description}>
+<DocsShell title={`${guide.data.title} — Irrevon docs`} description={guide.data.description} jsonLd={jsonLd}>
   <article class="doc-article" data-pagefind-body>
     <header class="guide-head">
       <span class="kicker">Guide</span>

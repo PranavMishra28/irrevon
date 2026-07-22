@@ -49,3 +49,36 @@ export function repoLinksPlugin({ manifestPath, repoUrl, base }) {
     definition: visit,
   };
 }
+
+// Markdown tables and code blocks render as horizontally scrollable regions
+// (.doc-body CSS); a scrollable region must be keyboard-reachable (WCAG 2.1.1
+// / axe scrollable-region-focusable), so give them tabindex="0" at build.
+export function scrollableFocusPlugin() {
+  return {
+    name: "scrollable-focus",
+    element: [
+      {
+        filter: ["table", "pre"],
+        visit(node, ctx) {
+          ctx.setProperty(node, "tabIndex", 0);
+        },
+      },
+      {
+        // GFM task-list checkboxes render as unlabeled disabled <input>s —
+        // an axe `label` violation, and a lie besides (nothing is
+        // interactive on a static document). Render them as typographic
+        // marks; the list item's own text carries the meaning.
+        filter: ["input"],
+        visit(node, ctx) {
+          if (node.properties?.type !== "checkbox") return;
+          ctx.replaceNode(node, {
+            type: "element",
+            tagName: "span",
+            properties: { className: ["task-check"], "aria-hidden": "true" },
+            children: [{ type: "text", value: node.properties?.checked ? "☑ " : "☐ " }],
+          });
+        },
+      },
+    ],
+  };
+}

@@ -7,8 +7,27 @@ import { href } from "../lib/url";
 interface Props {
   title: string;
   description: string;
+  /** OpenGraph type; research posts pass "article". */
+  ogType?: "website" | "article";
+  /** Path (under the site base) to this page's OG card; defaults to the site card. */
+  ogImage?: string;
+  /** ISO date for article:published_time (research posts). */
+  publishedTime?: string;
+  /** Adds <link rel="alternate"> to the research RSS feed. */
+  rssAlternate?: boolean;
+  /** JSON-LD structured-data objects (rendered as data blocks; never offers/ratings). */
+  jsonLd?: Record<string, unknown>[];
 }
-const { title, description } = Astro.props;
+const {
+  title,
+  description,
+  ogType = "website",
+  ogImage = "/og/og-default.png",
+  publishedTime,
+  rssAlternate = false,
+  jsonLd = [],
+} = Astro.props;
+const ogImageAbs = new URL(href(ogImage), Astro.site);
 
 // Seven top slots is the ceiling; Security, Changelog, and Roadmap stay
 // reachable from the footer.
@@ -43,6 +62,33 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
     <link rel="canonical" href={canonical} />
     <link rel="icon" href={href("/favicon.svg")} type="image/svg+xml" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <!-- Open Graph / Twitter. Image URLs are absolute from the deploy-provided
+         site origin; the committed cards are drift-gated (scripts/build-og.mjs). -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageAbs} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageAbs} />
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {
+      rssAlternate && (
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title={`${SITE_NAME} — Research`}
+          href={href("/research/rss.xml")}
+        />
+      )
+    }
+    {jsonLd.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
     <!-- Theme boot: honors a stored explicit choice before first paint.
          Without JS, tokens.css's generated prefers-color-scheme block applies. -->
     <script is:inline>

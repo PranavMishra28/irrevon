@@ -7,6 +7,7 @@ import Badge from "../../components/Badge.astro";
 import Source from "../../components/Source.astro";
 import { repoDoc } from "../../config";
 import { href } from "../../lib/url";
+import { article } from "../../lib/jsonld";
 import type { ClaimId } from "../../data/claims";
 
 export async function getStaticPaths() {
@@ -19,9 +20,20 @@ const { Content } = await render(post);
 const claimIds = post.data.claims as ClaimId[];
 const resolveSource = (url: string) =>
   url.startsWith("repo:") ? repoDoc(url.slice(5)) : url.startsWith("/") ? href(url) : url;
+const postUrl = new URL(href(`/research/${post.id}/`), Astro.site);
 ---
 
-<Base title={`${post.data.title} — Irrevon research`} description={post.data.summary}>
+<Base
+  title={`${post.data.title} — Irrevon research`}
+  description={post.data.summary}
+  ogType="article"
+  ogImage="/og/og-research.png"
+  publishedTime={post.data.date}
+  rssAlternate
+  jsonLd={[
+    article({ title: post.data.title, description: post.data.summary, url: postUrl, datePublished: post.data.date }),
+  ]}
+>
   <article class="section">
     <div class="container post-container">
       <header class="post-head">

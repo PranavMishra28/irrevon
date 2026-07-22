@@ -14,6 +14,8 @@ const posts = (await getCollection("research")).sort((a, b) => b.data.date.local
 <Base
   title={`Research — ${SITE_NAME}`}
   description="Research notes from the Irrevon project: the benchmark preregistration story and the prior-art record. No preprint exists yet; the venue path is a plan."
+  ogImage="/og/og-research.png"
+  rssAlternate
 >
   <section class="section">
     <div class="container">

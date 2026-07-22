@@ -5,11 +5,16 @@ import Source from "../components/Source.astro";
 import DemoTranscript from "../components/DemoTranscript.astro";
 import { SITE_NAME, BENCH_NAME, REPO_URL, repoDoc } from "../config";
 import { href, asset } from "../lib/url";
+import { softwareSourceCode, webSite } from "../lib/jsonld";
+
+const siteUrl = new URL(href("/"), Astro.site);
+const searchUrl = new URL(href("/docs/search/"), Astro.site);
 ---
 
 <Base
   title={`${SITE_NAME} — honest handling of irreversible AI-agent actions`}
   description="A preregistered benchmark and reference reconciliation engine for irreversible AI-agent actions. Identity from stable business identifiers, persist-before-dispatch, reconcile-by-query. Pre-release, open research."
+  jsonLd={[softwareSourceCode(siteUrl), webSite(siteUrl, searchUrl)]}
 >
   <!-- ── Hero ─────────────────────────────────────────────────────────── -->
   <section class="section hero">

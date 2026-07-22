@@ -30,8 +30,16 @@ const BANNED_INSTALLS = [
   "pipx install detent",
 ];
 
+// The ONE sanctioned exception: the rendered copy of ADR-0023 — the
+// append-only decision record that QUOTES the squatted-package collision as
+// the reason for the rename. It renders under a provenance banner; the
+// historical record keeping the old name is the append-only discipline
+// working as designed.
+const ADR_0023 = /docs\/reference\/adr-0023-rename-to-irrevon\/index\.html$/;
+
 test("literal ban: no install command for the old squatted package name", () => {
   for (const file of htmlFiles(dist)) {
+    if (ADR_0023.test(file)) continue;
     const html = readFileSync(file, "utf8").toLowerCase();
     for (const banned of BANNED_INSTALLS) {
       expect(html.includes(banned), `${file} contains banned literal "${banned}"`).toBe(false);
@@ -42,6 +50,7 @@ test("literal ban: no install command for the old squatted package name", () => 
 test("no package-index install command renders as available today", () => {
   const commands = [/pip install irrevon/, /uvx irrevon/, /uv tool install irrevon/, /pipx install irrevon/];
   for (const file of htmlFiles(dist)) {
+    if (ADR_0023.test(file)) continue; // historical decision text, provenance-bannered
     const html = readFileSync(file, "utf8");
     for (const re of commands) {
       if (!re.test(html)) continue;

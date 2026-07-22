@@ -6,6 +6,8 @@ import { getCollection, render } from "astro:content";
 import DocsShell from "../../../layouts/DocsShell.astro";
 import RenderedFrom from "../../../components/RenderedFrom.astro";
 import Badge from "../../../components/Badge.astro";
+import { techArticle, breadcrumbs } from "../../../lib/jsonld";
+import { href } from "../../../lib/url";
 
 export async function getStaticPaths() {
   const docs = await getCollection("repo-docs");
@@ -18,9 +20,17 @@ const toc = headings.filter((h) => h.depth === 2);
 const description =
   doc.data.description ??
   `Rendered copy of ${doc.data.sourcePath} — the repository copy is canonical; this rendering is drift-gated.`;
+const pageUrl = new URL(href(`/docs/reference/${doc.id}/`), Astro.site);
+const jsonLd = [
+  techArticle({ title: doc.data.title, description, url: pageUrl }),
+  breadcrumbs([
+    { name: "Docs", url: new URL(href("/docs/"), Astro.site) },
+    { name: doc.data.title, url: pageUrl },
+  ]),
+];
 ---
 
-<DocsShell title={`${doc.data.title} — Irrevon docs`} description={description}>
+<DocsShell title={`${doc.data.title} — Irrevon docs`} description={description} jsonLd={jsonLd}>
   <article class="doc-article" data-pagefind-body>
     <RenderedFrom
       sourcePath={doc.data.sourcePath}

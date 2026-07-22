@@ -10,8 +10,9 @@ import { href } from "../lib/url";
 interface Props {
   title: string;
   description: string;
+  jsonLd?: Record<string, unknown>[];
 }
-const { title, description } = Astro.props;
+const { title, description, jsonLd = [] } = Astro.props;
 
 const guides = (await getCollection("guides")).sort((a, b) => a.data.order - b.data.order);
 
@@ -39,7 +40,7 @@ const refTitle: Record<string, string> = {
 };
 ---
 
-<Base title={title} description={description}>
+<Base title={title} description={description} ogImage="/og/og-docs.png" jsonLd={jsonLd}>
   <div class="container docs-grid">
     <aside class="docs-side">
       <details class="docs-nav-disclosure">
