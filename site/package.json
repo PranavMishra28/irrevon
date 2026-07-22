@@ -17,10 +17,11 @@
     "sync:docs": "node scripts/sync-docs.mjs",
     "sync:cli": "node scripts/sync-cli-reference.mjs",
     "claims:md": "node scripts/build-claims-md.mjs",
-    "check": "astro check && node scripts/sync-tokens.mjs --check && node scripts/sync-fonts.mjs --check && node scripts/build-claims-md.mjs --check && node scripts/sync-docs.mjs --check && node scripts/sync-cli-reference.mjs --check",
+    "check": "astro check && node scripts/sync-tokens.mjs --check && node scripts/sync-fonts.mjs --check && node scripts/build-claims-md.mjs --check && node scripts/sync-docs.mjs --check && node scripts/sync-cli-reference.mjs --check && node scripts/sync-demo.mjs --check",
     "test": "playwright test --project checks",
     "test:shots": "playwright test --project shots",
-    "shots": "playwright test --project shots"
+    "shots": "playwright test --project shots",
+    "sync:demo": "node scripts/sync-demo.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "4.0.19",

@@ -1,0 +1,475 @@
+---
+// /demo — the flagship recorded story as a step-driven, twelve-beat
+// sequence. Build-time-rendered: every number, id, and status comes from the
+// drift-synced recorded artifact (src/data/demo/, checked against
+// web/fixtures/canonical), so a fabricated value is structurally impossible;
+// the anti-fabrication e2e asserts the rendered HTML against the same JSON.
+//
+// Interaction contract: step-driven, never scroll-jacked, never autoplaying.
+// Without JS the page is the complete linear story (all beats visible, the
+// stage showing beat 12 — the complete frame). The single inline island
+// (≤8 KB source budget, enforced in e2e) collapses it to stepper mode.
+import Base from "../layouts/Base.astro";
+import Badge from "../components/Badge.astro";
+import Source from "../components/Source.astro";
+import OneWayStage from "../components/OneWayStage.astro";
+import { SITE_NAME, REPO_URL } from "../config";
+import { href } from "../lib/url";
+import { beats, b5Lane, contrast, effectShort, seed, engineCommit, adapterId } from "../lib/demo-beats";
+---
+
+<Base
+  title={`Demo — the One-Way Seat, recorded — ${SITE_NAME}`}
+  description="Step through the recorded flagship run: a lost response, a real SIGKILL, recovery by asking the destination, and a re-synthesized retry refused with citations — versus the strongest conventional baseline creating a duplicate."
+>
+  <section class="section demo-head-section">
+    <div class="container">
+      <span class="kicker">The recorded run, step by step</span>
+      <h1>The One-Way Seat</h1>
+      <p class="lead" style="margin-top: 16px;">
+        One intent crosses an irreversible boundary once. The response is lost, the process is killed, and a
+        re-worded retry comes back for a second try. Twelve beats, every value from the recorded artifact —
+        nothing dramatized, nothing invented.
+      </p>
+      <div class="badge-row" style="margin-top: 18px;">
+        <Badge kind="recorded" />
+        <span class="mono-chip">seed {seed}</span>
+        <span class="mono-chip">engine {engineCommit}</span>
+        <span class="mono-chip">{adapterId}</span>
+        <span class="mono-chip">effect {effectShort}</span>
+      </div>
+      <p class="demo-repro">
+        Reproduce it from the repository: <code>uv run irrevon demo</code> — see{" "}
+        <a href={href("/install/")}>install</a> or the <a href={href("/docs/getting-started/")}>getting-started guide</a>.
+      </p>
+      <div style="margin-top: 10px;"><Source id="demo-provenance" also={["demo-sequence"]} /></div>
+    </div>
+  </section>
+
+  <section class="section" aria-label="The twelve-beat sequence">
+    <div class="container">
+      <div class="demo-app" id="demo-app">
+        <div class="stage-panel">
+          <OneWayStage />
+          <div class="stage-controls" id="stage-controls" hidden>
+            <button type="button" class="btn btn-secondary" id="beat-prev">← Previous</button>
+            <div class="beat-rail" role="group" aria-label="Go to a beat" id="beat-rail">
+              {
+                beats.map((b) => (
+                  <button type="button" class="beat-tick" data-n={b.n} aria-label={`Beat ${b.n}: ${b.title}`} />
+                ))
+              }
+            </div>
+            <button type="button" class="btn btn-secondary" id="beat-next">Next →</button>
+          </div>
+          <p class="stage-hint" id="stage-hint" hidden>
+            Keyboard: <kbd>←</kbd> <kbd>→</kbd> step · <kbd>Home</kbd>/<kbd>End</kbd> jump. Stepping back never
+            replays the crossing — history is re-inspected, not re-performed.
+          </p>
+        </div>
+        <ol class="beats" id="beats">
+          {
+            beats.map((b) => (
+              <li class="beat" id={b.id} data-n={b.n}>
+                <h2>
+                  <span class="beat-n">{String(b.n).padStart(2, "0")} / 12</span>
+                  {b.title}
+                </h2>
+                <p class="beat-caption">{b.caption}</p>
+                <dl class="beat-facts">
+                  {b.facts.map((f) => (
+                    <div>
+                      <dt>{f.label}</dt>
+                      <dd>{f.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </li>
+            ))
+          }
+        </ol>
+        <p class="sr-only" aria-live="polite" id="beat-announce"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- The island: the page's only JS beyond the theme toggle. Budgeted ≤8 KB
+       source (target ~3 KB), enforced by demo.spec.ts. -->
+  <script is:inline>
+    (() => {
+      const app = document.getElementById("demo-app");
+      const stage = app.querySelector(".oneway-stage");
+      const controls = document.getElementById("stage-controls");
+      const hint = document.getElementById("stage-hint");
+      const announce = document.getElementById("beat-announce");
+      const ticks = Array.from(app.querySelectorAll(".beat-tick"));
+      const sections = Array.from(app.querySelectorAll(".beat"));
+      const prevBtn = document.getElementById("beat-prev");
+      const nextBtn = document.getElementById("beat-next");
+      const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+      let beat = 0;
+      let clicked = false; // the one-time CLICK latch — an irreversible crossing does not re-perform
+
+      const boundaryClick = () => {
+        if (clicked || reduced.matches || !stage.animate) return;
+        clicked = true;
+        const seat = { duration: 140, easing: "cubic-bezier(0.3,0,0.05,1)" };
+        const pawl = stage.querySelector("#pawl");
+        const pane = stage.querySelector("#dest-pane");
+        pawl.animate(
+          [{ transform: "rotate(-8deg) translateY(-1px)" }, { transform: "rotate(0deg) translateY(0)" }],
+          seat,
+        );
+        pane.animate([{ transform: "translateY(1px)" }, { transform: "translateY(0)" }], seat);
+      };
+
+      const set = (n, fromUser) => {
+        n = Math.min(12, Math.max(1, n));
+        const backward = n < beat;
+        if (backward) stage.classList.add("no-anim");
+        beat = n;
+        stage.dataset.beat = String(n);
+        if (backward) requestAnimationFrame(() => stage.classList.remove("no-anim"));
+        else if (n === 5) boundaryClick();
+        sections.forEach((s) => s.classList.toggle("active", Number(s.dataset.n) === n));
+        ticks.forEach((t) => {
+          const on = Number(t.dataset.n) === n;
+          t.setAttribute("aria-current", on ? "step" : "false");
+          t.classList.toggle("on", on);
+        });
+        prevBtn.disabled = n === 1;
+        nextBtn.disabled = n === 12;
+        const active = sections[n - 1];
+        announce.textContent = `Beat ${n} of 12. ${active.querySelector("h2").textContent.trim()} ${active.querySelector(".beat-caption").textContent.trim()}`;
+        if (fromUser) history.replaceState(null, "", `#beat-${String(n).padStart(2, "0")}`);
+      };
+
+      // First act: collapse the linear document into stepper mode.
+      app.dataset.mode = "stepper";
+      controls.hidden = false;
+      hint.hidden = false;
+      const fromHash = /^#beat-(\d{2})$/.exec(location.hash);
+      set(fromHash ? Number(fromHash[1]) : 1, false);
+
+      prevBtn.addEventListener("click", () => set(beat - 1, true));
+      nextBtn.addEventListener("click", () => set(beat + 1, true));
+      ticks.forEach((t) => t.addEventListener("click", () => set(Number(t.dataset.n), true)));
+      app.addEventListener("keydown", (e) => {
+        const k = e.key;
+        if (k === "ArrowRight" || k === "ArrowDown") set(beat + 1, true);
+        else if (k === "ArrowLeft" || k === "ArrowUp") set(beat - 1, true);
+        else if (k === "Home") set(1, true);
+        else if (k === "End") set(12, true);
+        else return;
+        e.preventDefault();
+      });
+      addEventListener("hashchange", () => {
+        const m = /^#beat-(\d{2})$/.exec(location.hash);
+        if (m) set(Number(m[1]), false);
+      });
+    })();
+  </script>
+
+  <section class="section" aria-labelledby="b5-head">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">The contrast lane</span>
+        <h2 id="b5-head">The same faults against the strongest conventional stack</h2>
+        <p class="lead">
+          The recorded B5 baseline leg: a durable runtime, stable operation IDs, idempotency keys sent — the
+          identical fault schedule. Four recorded events; a different ending. The twelve-beat stage above
+          deliberately does not drive these — they are the control, not the story.
+        </p>
+        <div class="badge-row"><Badge kind="recorded" /></div>
+      </div>
+      <ol class="b5-lane">
+        {
+          b5Lane.map((e, i) => (
+            <li>
+              <span class="b5-n">{i + 1}</span>
+              <div>
+                <p class="b5-event">{e.event}</p>
+                <p class="b5-detail">{e.detail}</p>
+                <p class="b5-caption">{e.caption}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+
+      <div class="demo-outcome" role="group" aria-label="Recorded outcome">
+        <div class="outcome-cell">
+          <span class="outcome-label">{SITE_NAME} leg</span>
+          <span class="outcome-value">{contrast.irrevon.destinationEffects} destination effect</span>
+          <span class="outcome-note">
+            duplicate {contrast.irrevon.duplicateRejected ? "rejected" : "—"} · {contrast.irrevon.reconciled}
+          </span>
+        </div>
+        <div class="outcome-cell">
+          <span class="outcome-label">B5 leg</span>
+          <span class="outcome-value">{contrast.b5.destinationEffects} destination effects</span>
+          <span class="outcome-note">duplicate {contrast.b5.duplicateCreated ? "created" : "—"} · same fault schedule</span>
+        </div>
+        <div class="outcome-cell">
+          <span class="outcome-label">contrast_holds</span>
+          <span class="outcome-value">{String(contrast.holds)}</span>
+          <span class="outcome-note">recorded in the artifact summary</span>
+        </div>
+      </div>
+      <div style="margin-top: 14px;"><Source id="demo-contrast" /></div>
+
+      <p style="margin-top: 24px;">
+        The <a href={href("/") + "#recorded"}>full eleven-event transcript</a> is on the home page;{" "}
+        <a href={href("/how-it-works/")}>how it works</a> explains the mechanism behind each beat. The raw
+        artifact lives in the repository: <a href={`${REPO_URL}/blob/HEAD/web/fixtures/canonical/demo-artifact.json`}
+          ><code>web/fixtures/canonical/demo-artifact.json</code></a
+        >.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .demo-head-section {
+    padding-bottom: clamp(24px, 4vw, 40px);
+  }
+  .demo-repro {
+    margin-top: 16px;
+    color: var(--ref-ink-2);
+    font-size: var(--site-text-small);
+  }
+  .demo-app {
+    display: grid;
+    gap: clamp(20px, 3vw, 32px);
+  }
+  .stage-panel {
+    border: 1px solid var(--ref-border);
+    border-radius: 2px;
+    background: var(--ref-layer-panel);
+    padding: clamp(14px, 2.5vw, 28px);
+    display: grid;
+    gap: 14px;
+    max-width: 860px;
+  }
+  .stage-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .stage-controls[hidden] {
+    display: none;
+  }
+  .beat-rail {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+    min-width: 160px;
+    justify-content: center;
+  }
+  .beat-tick {
+    width: 18px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    position: relative;
+  }
+  .beat-tick::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    transform: translateX(-50%);
+    background: var(--ref-border-strong);
+  }
+  .beat-tick:hover::after {
+    background: var(--ref-ink-2);
+  }
+  .beat-tick.on::after {
+    background: var(--ref-accent);
+    width: 3px;
+  }
+  .stage-hint {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    color: var(--ref-ink-3);
+  }
+  .stage-hint[hidden] {
+    display: none;
+  }
+  kbd {
+    border: 1px solid var(--ref-border);
+    border-radius: 2px;
+    padding: 0 4px;
+    background: var(--ref-layer-sunken);
+  }
+
+  .beats {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 18px;
+  }
+  .beat {
+    border: 1px solid var(--ref-border-subtle);
+    border-radius: 2px;
+    background: var(--ref-layer-panel);
+    padding: 18px 22px;
+    display: grid;
+    gap: 10px;
+    max-width: 860px;
+  }
+  .beat h2 {
+    font-size: var(--site-text-h3);
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+  .beat-n {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    font-weight: 500;
+    color: var(--ref-ink-3);
+    letter-spacing: 0.06em;
+  }
+  .beat-caption {
+    color: var(--ref-ink-2);
+    max-width: 60ch;
+  }
+  .beat-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+  }
+  .beat-facts div {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .beat-facts dt {
+    color: var(--ref-ink-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .beat-facts dd {
+    margin: 0;
+    color: var(--ref-ink-1);
+    overflow-wrap: anywhere;
+  }
+
+  /* Stepper mode (JS present): one beat at a time. Without JS, everything
+     above renders in document order — the complete story. */
+  .demo-app[data-mode="stepper"] .beat {
+    display: none;
+  }
+  .demo-app[data-mode="stepper"] .beat.active {
+    display: grid;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .b5-lane {
+    list-style: none;
+    margin: 0 0 28px;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+    max-width: 760px;
+  }
+  .b5-lane li {
+    display: flex;
+    gap: 16px;
+    border: 1px solid var(--ref-border-subtle);
+    border-radius: 2px;
+    background: var(--ref-layer-panel);
+    padding: 14px 18px;
+  }
+  .b5-n {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    color: var(--ref-ink-3);
+    padding-top: 3px;
+  }
+  .b5-event {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--ref-ink-1);
+    font-size: var(--site-text-small);
+  }
+  .b5-detail {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    color: var(--ref-ink-2);
+    margin-top: 2px;
+  }
+  .b5-caption {
+    color: var(--ref-ink-2);
+    font-size: var(--site-text-small);
+    margin-top: 6px;
+    max-width: 56ch;
+  }
+
+  .demo-outcome {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid var(--ref-border);
+    border-radius: 2px;
+    background: var(--ref-layer-panel);
+    max-width: 860px;
+  }
+  .outcome-cell {
+    display: grid;
+    gap: 4px;
+    padding: 16px 18px;
+    align-content: start;
+  }
+  .outcome-cell + .outcome-cell {
+    border-left: 1px solid var(--ref-border-subtle);
+  }
+  .outcome-label {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ref-ink-3);
+  }
+  .outcome-value {
+    font-weight: 600;
+    font-size: 1.0625rem;
+    color: var(--ref-ink-1);
+    font-variant-numeric: tabular-nums;
+  }
+  .outcome-note {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    color: var(--ref-ink-2);
+  }
+  @media (max-width: 720px) {
+    .demo-outcome {
+      grid-template-columns: 1fr;
+    }
+    .outcome-cell + .outcome-cell {
+      border-left: none;
+      border-top: 1px solid var(--ref-border-subtle);
+    }
+  }
+</style>
