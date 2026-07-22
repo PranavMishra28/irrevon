@@ -4,12 +4,19 @@
 # deterministic PR gate deliberately excludes — external link audit (lychee
 # without --offline) and networked zizmor advisories.
 #
-# At M3+ this grows the T3 tier (never at the expense of the PR gate):
-#   - Hypothesis property suites at larger nightly budgets (the >=1,000
-#     cases/invariant CI floor is spec and never the ceiling here),
-#   - the master-doc-mandated fault-matrix subset vs the STUB destination
-#     (RFC-001 section 10) on a digest-pinned Postgres service container,
-#   - randomized kill sweep / recovery-idempotence sweeps per the testing design.
+# T3 tier (M3 landed; grown at the rebuild consolidation, never at the expense
+# of the PR gate):
+#   - t3-backend: the property suites at the conformance profile (the >=1,000
+#     cases/invariant CI floor is spec and never the ceiling here) plus the
+#     full integration suite — incl. the fault-matrix/process tests vs the
+#     STUB destination — against the digest-pinned compose Postgres.
+#   - wheel-smoke: `make dist-smoke` — the ADR-0018 no-Node guarantee chain
+#     (wheel + sdist installed and exercised inside python:3.13-slim).
+#     Nightly, not PR: it needs docker + a full web build + wheel build on
+#     top of the PR gate's already-run builds, and the PR-side integration
+#     truth is covered by the web-e2e-live job (docs/ci.md tier table).
+#   Future T3 growth: randomized kill sweep / recovery-idempotence sweeps per
+#   the testing design.
 #   No sandbox credentials are used or available to this workflow, ever.
 #
 # OWNER AWARENESS (public-repo behavior): scheduled workflows are AUTO-DISABLED
@@ -63,12 +70,54 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: zizmor --persona=pedantic .github/workflows/
 
+  # T3 backend: conformance-budget properties + the full integration suite
+  # (fault-matrix/process tests vs the stub destination, compose Postgres).
+  t3-backend:
+    name: T3 backend (conformance properties + integration)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+      - name: make py-test (conformance profile)
+        run: make py-test
+        env:
+          HYPOTHESIS_PROFILE: conformance
+      - name: make py-test-integration
+        run: make py-test-integration
+        env:
+          HYPOTHESIS_PROFILE: conformance
+
+  # Wheel/sdist smoke — the ADR-0018 no-Node chain in a Node-less container
+  # (see the header for the nightly-not-PR placement ruling).
+  wheel-smoke:
+    name: Wheel smoke (make dist-smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+      - run: corepack enable
+      - run: make dist-smoke
+
   # A red night on a cron workflow is silent by default; this files or updates
   # exactly ONE issue (dedup by label). Prerequisite, owner, one-time: create the
   # `nightly-failure` label. Uses only trusted workflow context — no event text.
   report-failure:
     name: File or update failure issue
-    needs: validate
+    needs: [validate, t3-backend, wheel-smoke]
     if: failure()
     runs-on: ubuntu-latest
     timeout-minutes: 5

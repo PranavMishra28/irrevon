@@ -28,10 +28,13 @@ that date.
 | F0 web static | `web-check` (ci) | `web/` paths changed AND `web/` exists | `make web-check` | active (workbench landed; skips cleanly on non-web PRs) |
 | F1/F2 web tests | `web-test` (ci) | same | `make web-test` | active (same skip rule) |
 | workflow security | `workflow-security` (ci) | `.github/workflows/**` changed | actionlint + zizmor (online, pedantic) | active |
+| T2 integration | `py-test-integration` (ci) | backend changes | `make py-test-integration` vs the digest-pinned compose Postgres | active (wired at the rebuild consolidation, per this row's earlier "due" note) |
+| site static | `site-check` (ci) | `site/` changed | `make site-check` (astro check + every drift gate) | active (wired at the rebuild consolidation) |
+| site tests | `site-test` (ci) | `site/` changed | `make site-test` (build + Playwright a11y/keyboard/no-JS/links/budgets/search/anti-fabrication/SEO) | active |
+| live E2E | `web-e2e-live` (ci) | backend OR `web/` changed (both slices must exist) | `make web-e2e-live` (real demo → real `irrevon serve` → Playwright against the staged packaged workbench) | active |
 | — | `ci-required` (ci) | `if: always()` | aggregates all of the above; the ONLY required check | active |
-| T2 integration | *(added to ci.yml at M3)* | backend changes | `make py-test-integration` vs digest-pinned Postgres service container | **due**: the M3 engine + integration suite landed at consolidation; wire the service-container job in the next CI change |
-| T3 nightly | `validate` (nightly) | cron | today: `make check` + online audits; M3+: big-budget properties, fault-matrix subset vs stub destination | active |
-| site gates | *(local make targets — no ci.yml job yet)* | — | `make site-check` / `make site-build` / `make site-test` (astro check + vendored-identity/claims drift; build; Playwright a11y/links/no-JS/budget) | local-only: wire a conditional `site` job in the next CI change if `site/` churn warrants it |
+| T3 nightly | `validate` + `t3-backend` (nightly) | cron | `make check` + online audits; conformance-budget properties + full integration suite (fault-matrix subset vs the stub destination) | active |
+| wheel smoke | `wheel-smoke` (nightly) | cron | `make dist-smoke` (= `make dist` + the Node-less container smoke; ADR-0018 chain, wheel + sdist legs) | active — nightly, not PR: needs docker + a second full web build + wheel build; the PR-side integration truth is `web-e2e-live` |
 | T4 sandbox | `sandbox-contract` (sandbox) | human dispatch + env approval | M4: `make sandbox-contract` | skeleton |
 | benchmark | `bench` (benchmark) | human dispatch + env approval | M7: preregistered suites, cache-free, sanitized evidence | skeleton |
 

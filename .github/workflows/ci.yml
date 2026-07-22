@@ -42,9 +42,12 @@ jobs:
     outputs:
       code: ${{ steps.filter.outputs.code }}
       web: ${{ steps.filter.outputs.web }}
+      site: ${{ steps.filter.outputs.site }}
+      live: ${{ steps.filter.outputs.live }}
       workflows: ${{ steps.filter.outputs.workflows }}
       py_exists: ${{ steps.filter.outputs.py_exists }}
       web_exists: ${{ steps.filter.outputs.web_exists }}
+      site_exists: ${{ steps.filter.outputs.site_exists }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -75,20 +78,28 @@ jobs:
             CHANGED=$(git ls-files)
           fi
           printf 'changed files:\n%s\n' "$CHANGED"
-          code=false; web=false; workflows=false
+          code=false; web=false; site=false; live=false; workflows=false
           # schemas/ and Makefile are the cross-cutting inputs: they appear in
           # every code slice's filter (build-orchestration design, docs/ci.md).
           printf '%s\n' "$CHANGED" | grep -qE '^(src/|tests/|migrations/|pyproject\.toml$|uv\.lock$|\.python-version$|schemas/|Makefile$)' && code=true
           printf '%s\n' "$CHANGED" | grep -qE '^(web/|schemas/|Makefile$)' && web=true
+          printf '%s\n' "$CHANGED" | grep -qE '^(site/|Makefile$)' && site=true
+          # The serve↔workbench joint proof runs when either side of the
+          # integration surface moved (engine/serve code or the web client).
+          { [ "$code" = "true" ] || [ "$web" = "true" ]; } && live=true
           printf '%s\n' "$CHANGED" | grep -qE '^\.github/(workflows/|actions/)' && workflows=true
           py_exists=false; [ -f pyproject.toml ] && py_exists=true
           web_exists=false; [ -d web ] && web_exists=true
+          site_exists=false; [ -d site ] && site_exists=true
           {
             echo "code=$code"
             echo "web=$web"
+            echo "site=$site"
+            echo "live=$live"
             echo "workflows=$workflows"
             echo "py_exists=$py_exists"
             echo "web_exists=$web_exists"
+            echo "site_exists=$site_exists"
           } >> "$GITHUB_OUTPUT"
 
   # T0 docs/static gate — unconditional on every push and PR: the exact local
@@ -159,6 +170,29 @@ jobs:
           # profiles registered in tests/conftest.py; dev(100) is local-only.
           HYPOTHESIS_PROFILE: ci
 
+  # T2 integration — the digest-pinned local Postgres from docker-compose.yml
+  # (the same compose file the local gate uses; runner docker provides the
+  # daemon). Promised by the docs/ci.md tier table ("wire the service-container
+  # job in the next CI change") — this is that change.
+  py-test-integration:
+    name: Backend integration (make py-test-integration)
+    needs: [changes, py-test]
+    if: needs.changes.outputs.py_exists == 'true' && needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+      - run: make py-test-integration
+        env:
+          HYPOTHESIS_PROFILE: ci
+
   # F0 frontend static gate — skips when the web slice is untouched; the
   # aggregator verifies each skip. Node is preinstalled on ubuntu runners;
   # pnpm comes via corepack (web/ pins its own toolchain).
@@ -193,6 +227,69 @@ jobs:
       - run: corepack enable
       - run: make web-test
 
+  # Site static gates — astro check + every drift gate (tokens, fonts, claims,
+  # docs sync, CLI reference, demo artifacts, OG cards). Skips when site/ is
+  # untouched; the aggregator verifies each skip.
+  site-check:
+    name: Site static (make site-check)
+    needs: changes
+    if: needs.changes.outputs.site_exists == 'true' && needs.changes.outputs.site == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - run: make site-check
+
+  # Site build + Playwright suite (axe both themes, keyboard, no-JS, links,
+  # budgets, search, demo anti-fabrication, install honesty, SEO/CSP).
+  site-test:
+    name: Site tests (make site-test)
+    needs: [changes, site-check]
+    if: needs.changes.outputs.site_exists == 'true' && needs.changes.outputs.site == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - run: make site-test
+
+  # The serve↔workbench joint proof: real `irrevon demo --keep` data, real
+  # `irrevon serve` serving the staged packaged workbench, Playwright driving
+  # it (LIVE chip, flagship deep link, sentinel-zero scan, SIGKILL-disconnect).
+  # Runs when either integration side (backend code or web/) changed.
+  web-e2e-live:
+    name: Live E2E (make web-e2e-live)
+    needs: [changes, py-test, web-check]
+    # needs are advisory ordering only when their slices changed; the job's own
+    # condition is the live flag. `always()` would swallow upstream failures,
+    # so gate on non-failure of whichever ran.
+    if: |
+      !cancelled() && needs.changes.outputs.live == 'true'
+      && needs.changes.outputs.py_exists == 'true' && needs.changes.outputs.web_exists == 'true'
+      && needs.py-test.result != 'failure' && needs.web-check.result != 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+      - run: corepack enable
+      - run: make web-e2e-live
+
   # Workflow security — ONLINE actionlint + zizmor audit on workflow changes.
   # The offline variant runs in every `make check`; this adds zizmor's networked
   # advisory data (known-vulnerable action versions) using the read-only job token.
@@ -224,7 +321,20 @@ jobs:
   ci-required:
     # The job name IS the required-check context; it must stay exactly "ci-required".
     name: ci-required
-    needs: [changes, docs, py-check, py-test, web-check, web-test, workflow-security]
+    needs:
+      [
+        changes,
+        docs,
+        py-check,
+        py-test,
+        py-test-integration,
+        web-check,
+        web-test,
+        site-check,
+        site-test,
+        web-e2e-live,
+        workflow-security,
+      ]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -235,9 +345,12 @@ jobs:
           NEEDS: ${{ toJSON(needs) }}
           CODE: ${{ needs.changes.outputs.code }}
           WEB: ${{ needs.changes.outputs.web }}
+          SITE: ${{ needs.changes.outputs.site }}
+          LIVE: ${{ needs.changes.outputs.live }}
           WORKFLOWS: ${{ needs.changes.outputs.workflows }}
           PY_EXISTS: ${{ needs.changes.outputs.py_exists }}
           WEB_EXISTS: ${{ needs.changes.outputs.web_exists }}
+          SITE_EXISTS: ${{ needs.changes.outputs.site_exists }}
         run: |
           set -euo pipefail
           echo "$NEEDS" | jq .
@@ -268,6 +381,7 @@ jobs:
           [ "$PY_EXISTS" = "true" ] && [ "$CODE" = "true" ] && py_required=true
           conditional py-check "$py_required"
           conditional py-test "$py_required"
+          conditional py-test-integration "$py_required"
 
           # Rule 3: frontend jobs must run iff web/ exists and changed.
           web_required=false
@@ -275,7 +389,19 @@ jobs:
           conditional web-check "$web_required"
           conditional web-test "$web_required"
 
-          # Rule 4: workflow-security must run on workflow changes.
+          # Rule 4: site jobs must run iff site/ exists and changed.
+          site_required=false
+          [ "$SITE_EXISTS" = "true" ] && [ "$SITE" = "true" ] && site_required=true
+          conditional site-check "$site_required"
+          conditional site-test "$site_required"
+
+          # Rule 5: the live E2E must run iff both integration sides exist and
+          # either side changed.
+          live_required=false
+          [ "$PY_EXISTS" = "true" ] && [ "$WEB_EXISTS" = "true" ] && [ "$LIVE" = "true" ] && live_required=true
+          conditional web-e2e-live "$live_required"
+
+          # Rule 6: workflow-security must run on workflow changes.
           conditional workflow-security "$WORKFLOWS"
 
           if [ "$fail" -eq 0 ]; then

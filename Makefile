@@ -202,7 +202,7 @@ site-test:
 # the honesty hook (hatch_build.py, IRREVON_REQUIRE_WEB=1) fails the build if
 # they are missing or were never staged. dist-smoke proves the whole no-Node
 # chain inside python:3.13-slim (scripts/dist-smoke.sh).
-.PHONY: web-build dist-stage dist dist-smoke py-test-serve serve-live
+.PHONY: web-build dist-stage dist dist-smoke py-test-serve serve-live web-e2e-live
 
 web-build:
 	cd web && pnpm install --frozen-lockfile && pnpm run build
@@ -253,3 +253,15 @@ third-party:
 serve-live: py-db-up
 	uv sync --locked --quiet
 	uv run python tests/serve/live_server.py
+
+# THE joint proof (consolidation ladder): real demo data → real `irrevon serve`
+# serving the staged packaged workbench → Playwright (web/e2e/live-real/,
+# config web/playwright.live.config.ts — the suite spawns serve-live itself so
+# the SIGKILL-disconnect test kills the REAL engine process). The stub-backed
+# live suite (web-e2e) stays the fast PR-side approximation; this is the
+# integration truth.
+web-e2e-live: py-db-up web-build dist-stage
+	uv sync --locked --quiet
+	cd web && pnpm install --frozen-lockfile \
+	  && pnpm exec playwright install chromium --only-shell \
+	  && pnpm exec playwright test --config=playwright.live.config.ts
