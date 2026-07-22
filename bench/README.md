@@ -33,5 +33,11 @@ checker verdict (`history-verdict.json`); the §4 metrics and the history
 checker must agree per run or the run is finalized harness-INVALID
 (ADR-0032's differential guard).
 
-`irrevon bench run` (confirmatory, M7) refuses with exit 4 until the human
-Stage-B freeze exists. That refusal is load-bearing; never weaken it.
+`irrevon bench run` (confirmatory, M7) refuses with exit 4 until BOTH human
+freeze registrations pass machine verification (ADR-0033):
+`irrevon bench freeze --stage A --verify`. A registration must bind the exact
+preregistration bytes, the analysis sources, the §0.1 parameters, and (Stage
+B) the fixture root + holdout commitment; drafts
+(`irrevon bench freeze --stage A --draft-out …`) carry `REQUIRED-HUMAN`
+sentinels and can never verify — completing one is the human freeze act.
+That refusal is load-bearing; never weaken it.

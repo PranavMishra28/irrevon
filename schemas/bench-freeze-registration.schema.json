@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://irrevon.dev/schemas/bench-freeze-registration.schema.json",
+  "$comment": "irrevonbench/freeze-registration/v1 — proposed by ADR-0033. The machine-verifiable freeze package: binds the exact preregistration bytes, the analysis implementation sources, the §0.1 human parameters, and (Stage B) the fixture root + holdout commitment. Confirmatory execution requires verify_freeze_registration() to pass — a directory's mere existence gates nothing. Human-reserved fields carry REQUIRED-HUMAN sentinels in drafts; verification rejects sentinels everywhere. Creating docs/registrations/ content is a human-only act (AGENTS.md; review-queue). Shape changes require an ADR.",
+  "title": "IrrevonBench freeze registration",
+  "type": "object",
+  "properties": {
+    "format": { "const": "irrevonbench/freeze-registration/v1" },
+    "stage": { "enum": ["A", "B"] },
+    "registered_by": { "type": "string", "minLength": 1 },
+    "registered_at": { "type": "string", "format": "date-time" },
+    "owner_attestation": {
+      "description": "The human's written freeze statement. Verification additionally rejects any REQUIRED-HUMAN sentinel content.",
+      "type": "string",
+      "minLength": 20
+    },
+    "external_stamp": {
+      "description": "Out-of-band evidence reviewers verify independently (preregistration §0 stamping method).",
+      "type": "object",
+      "properties": {
+        "method": { "enum": ["signed-git-tag", "opentimestamps", "osf", "other"] },
+        "reference": { "type": "string", "minLength": 1 }
+      },
+      "required": ["method", "reference"],
+      "additionalProperties": false
+    },
+    "preregistration_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "analysis_code_sha256": {
+      "description": "Per-file SHA-256 over the bound analysis implementation (REQUIRED_ANALYSIS_PATHS).",
+      "type": "object",
+      "minProperties": 6,
+      "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+    },
+    "parameters": {
+      "description": "The §0.1 human freeze parameters as NUMBERS — a draft with sentinels cannot validate.",
+      "type": "object",
+      "properties": {
+        "trials_per_cell": { "type": "integer", "minimum": 1 },
+        "confirmatory_seed_count": { "type": "integer", "minimum": 5 },
+        "equivalence_margin": { "type": "number", "exclusiveMinimum": 0 },
+        "c1_equivalence_margin": { "type": "number", "exclusiveMinimum": 0 },
+        "worst_cell_gate_pp": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "required": [
+        "trials_per_cell",
+        "confirmatory_seed_count",
+        "equivalence_margin",
+        "c1_equivalence_margin",
+        "worst_cell_gate_pp"
+      ],
+      "additionalProperties": false
+    },
+    "amendments": {
+      "description": "Append-only post-freeze amendments; each records what had been observed and the new preregistration hash.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "amended_at": { "type": "string", "format": "date-time" },
+          "new_preregistration_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "observed_before_amendment": { "type": "string", "minLength": 1 },
+          "note": { "type": "string", "minLength": 1 }
+        },
+        "required": [
+          "amended_at",
+          "new_preregistration_sha256",
+          "observed_before_amendment",
+          "note"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "stage_b": {
+      "description": "Stage-B execution bindings (required iff stage = B).",
+      "type": "object",
+      "properties": {
+        "fixture_manifest_root_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "master_seed_dev": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "holdout_ciphertext_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "holdout_plaintext_root_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "adapters": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "required": [
+        "fixture_manifest_root_hash",
+        "master_seed_dev",
+        "holdout_ciphertext_sha256",
+        "holdout_plaintext_root_hash",
+        "adapters"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "format",
+    "stage",
+    "registered_by",
+    "registered_at",
+    "owner_attestation",
+    "external_stamp",
+    "preregistration_sha256",
+    "analysis_code_sha256",
+    "parameters",
+    "amendments"
+  ],
+  "allOf": [
+    {
+      "if": { "properties": { "stage": { "const": "B" } } },
+      "then": { "required": ["stage_b"] },
+      "else": { "not": { "required": ["stage_b"] } }
+    }
+  ],
+  "additionalProperties": false
+}

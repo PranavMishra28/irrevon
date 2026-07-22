@@ -8,7 +8,10 @@
   },
   "queryable": {
     "supported": true,
-    "by": ["destination_ref", "client_ref"]
+    "by": [
+      "destination_ref",
+      "client_ref"
+    ]
   },
   "client_ref_field": "client_ref",
   "list_queryable": true,
@@ -17,6 +20,19 @@
     "listing_lag": "PT0S"
   },
   "compensation_hook": null,
-  "citations": ["https://irrevon.dev/refdest/contract#c2"],
-  "evidence_quality": "VF"
+  "citations": [
+    "https://irrevon.dev/refdest/contract#c2"
+  ],
+  "evidence_quality": "VF",
+  "attribution": {
+    "modes": [
+      "exact",
+      "stable-id-projection"
+    ],
+    "fields": [
+      "client_ref",
+      "payload"
+    ],
+    "notes": "Deterministic reference destination: stored ground truth carries the dispatched payload; the enrichment quirk exercises the projection fallback."
+  }
 }

@@ -112,10 +112,24 @@ def add_bench_parser(
     p_run.add_argument("--arms", default=None)
     p_run.add_argument("--dsn", default=None)
 
+    p_freeze = bench_sub.add_parser(
+        "freeze",
+        help="freeze-registration tooling: draft the machine-verifiable "
+             "package or verify an existing registration (the freeze act "
+             "itself is human-only)",
+    )
+    p_freeze.add_argument("--stage", choices=("A", "B"), required=True)
+    mode_f = p_freeze.add_mutually_exclusive_group(required=True)
+    mode_f.add_argument("--draft-out", default=None,
+                        help="write registration.draft.json (bindings filled, "
+                             "human fields sentinelled — can never verify)")
+    mode_f.add_argument("--verify", action="store_true",
+                        help="verify docs/registrations/stage-<s>-v1/registration.json")
+
 
 def run_bench(args: argparse.Namespace, config: Config) -> int:
     if args.bench_command is None:
-        print("usage: irrevon bench {fixtures,validate,smoke,conform,analyze,run} …",
+        print("usage: irrevon bench {fixtures,validate,smoke,conform,analyze,run,freeze} …",
               file=sys.stderr)
         return 2
 
@@ -174,6 +188,29 @@ def run_bench(args: argparse.Namespace, config: Config) -> int:
 
     if args.bench_command == "analyze":
         return _run_analyze(args)
+
+    if args.bench_command == "freeze":
+        from pathlib import Path as _Path
+
+        from irrevon.bench.freeze import (
+            draft_registration,
+            render_verification,
+            verify_freeze_registration,
+        )
+
+        if args.draft_out is not None:
+            path = draft_registration(args.stage, _Path(args.draft_out))
+            print(
+                f"bench freeze: draft written to {path} — bindings computed from "
+                "the current tree; REQUIRED-HUMAN fields must be completed, "
+                "externally stamped, and committed under docs/registrations/ by "
+                "the human (the draft can never verify)",
+                file=sys.stderr,
+            )
+            return 0
+        verification = verify_freeze_registration(args.stage)
+        print(render_verification(verification), file=sys.stderr)
+        return 0 if verification.ok else 3
 
     if args.bench_command == "run":
         from irrevon.bench.formats import load_fixture_set

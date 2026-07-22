@@ -46,7 +46,6 @@ __all__ = [
     "UnitOutcome",
     "refuse_unless_confirmatory_allowed",
     "run_unit",
-    "stage_b_freeze_record_exists",
 ]
 
 ALL_ARM_IDS = (*CONVENTIONAL_SPECS.keys(), "R")
@@ -65,23 +64,27 @@ def _repo_root() -> Path | None:
     return None
 
 
-def stage_b_freeze_record_exists() -> bool:
-    """True only when the human Stage-B freeze record exists (preregistration
-    §8 artifact homes). Agents never create that directory."""
-    root = _repo_root()
+def refuse_unless_confirmatory_allowed(
+    fixture_set: FixtureSet, repo_root: Path | None = None
+) -> None:
+    """Confirmatory mode requires BOTH freeze registrations to pass full
+    structural + hash-binding verification (ADR-0033): the registration must
+    schema-validate, carry no REQUIRED-HUMAN sentinel, and bind the CURRENT
+    preregistration bytes, analysis sources, fixture root, and holdout
+    commitment. A directory's mere existence gates nothing."""
+    from irrevon.bench.freeze import verify_freeze_registration
+
+    root = repo_root or _repo_root()
     if root is None:
-        return False
-    record = root / "docs" / "registrations" / "stage-b-v1"
-    return record.is_dir() and any(record.iterdir())
-
-
-def refuse_unless_confirmatory_allowed(fixture_set: FixtureSet) -> None:
-    if not stage_b_freeze_record_exists():
-        raise IntegrityRefusal(
-            "confirmatory mode refused: no Stage-B freeze record exists under "
-            "docs/registrations/stage-b-v1/ (preregistration §0 — freezing is "
-            "a human act; run non-confirmatory smoke mode instead)"
-        )
+        raise IntegrityRefusal("confirmatory mode refused: repository root not found")
+    for stage in ("A", "B"):
+        verification = verify_freeze_registration(stage, root)
+        if not verification.ok:
+            raise IntegrityRefusal(
+                f"confirmatory mode refused: Stage-{stage} freeze registration "
+                "failed verification (preregistration §0 — freezing is a human "
+                "act): " + "; ".join(verification.failures)
+            )
     if fixture_set.manifest["freeze_status"] != "frozen":
         raise IntegrityRefusal(
             "confirmatory mode refused: fixture manifest is not frozen "

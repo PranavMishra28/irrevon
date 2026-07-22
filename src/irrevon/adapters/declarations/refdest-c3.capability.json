@@ -16,6 +16,14 @@
     "listing_lag": null
   },
   "compensation_hook": null,
-  "citations": ["https://irrevon.dev/refdest/contract#c3"],
-  "evidence_quality": "VF"
+  "citations": [
+    "https://irrevon.dev/refdest/contract#c3"
+  ],
+  "evidence_quality": "VF",
+  "attribution": {
+    "modes": [
+      "impossible"
+    ],
+    "notes": "Fire-and-forget: no public reference, query, or listing exists — attribution is impossible from the public surface; benchmark cells are fixture-truth-only (preregistration §2.1 L1)."
+  }
 }

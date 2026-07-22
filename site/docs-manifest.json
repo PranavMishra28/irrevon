@@ -134,6 +134,20 @@
       "source": "docs/decisions/0023-rename-to-irrevon.md",
       "slug": "adr-0023-rename-to-irrevon",
       "section": "Decisions"
+    },
+    {
+      "source": "docs/benchmark.md",
+      "slug": "benchmark-guide",
+      "section": "Benchmark",
+      "description": "The benchmark guide: exact measurement boundary, oracle and causal-history checking, tracks and anti-cheating rules, governance, adoption path, and the BetterBench self-assessment.",
+      "title": "IrrevonBench guide — measurement, governance, adoption"
+    },
+    {
+      "source": "docs/effect-semantics-mappings.md",
+      "slug": "effect-semantics-mappings",
+      "section": "Benchmark",
+      "description": "How Irrevon's capability declaration projects onto MCP, A2A, OpenAPI, HTTP, and ACP — and where those protocols carry no effect semantics at all.",
+      "title": "Effect-semantics mappings — declarations over existing protocols"
     }
   ],
   "linkOnly": [

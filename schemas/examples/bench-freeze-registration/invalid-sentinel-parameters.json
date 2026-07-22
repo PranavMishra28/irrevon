@@ -1,0 +1,28 @@
+{
+  "format": "irrevonbench/freeze-registration/v1",
+  "stage": "A",
+  "registered_by": "Repository owner (example)",
+  "registered_at": "2026-08-01T00:00:00Z",
+  "owner_attestation": "I reviewed the bound preregistration bytes and parameters and perform this Stage-A freeze.",
+  "external_stamp": {
+    "method": "opentimestamps",
+    "reference": "ots proof example-ref"
+  },
+  "preregistration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "analysis_code_sha256": {
+    "src/irrevon/bench/analysis.py": "1111111111111111111111111111111111111111111111111111111111111111",
+    "src/irrevon/bench/stats.py": "2222222222222222222222222222222222222222222222222222222222222222",
+    "src/irrevon/bench/metrics.py": "3333333333333333333333333333333333333333333333333333333333333333",
+    "src/irrevon/bench/history.py": "4444444444444444444444444444444444444444444444444444444444444444",
+    "src/irrevon/bench/oracle.py": "5555555555555555555555555555555555555555555555555555555555555555",
+    "src/irrevon/bench/seeds.py": "6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "parameters": {
+    "trials_per_cell": "REQUIRED-HUMAN",
+    "confirmatory_seed_count": "REQUIRED-HUMAN",
+    "equivalence_margin": "REQUIRED-HUMAN",
+    "c1_equivalence_margin": "REQUIRED-HUMAN",
+    "worst_cell_gate_pp": "REQUIRED-HUMAN"
+  },
+  "amendments": []
+}

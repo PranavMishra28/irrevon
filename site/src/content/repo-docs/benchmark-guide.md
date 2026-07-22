@@ -1,3 +1,13 @@
+---
+title: "IrrevonBench guide — measurement, governance, adoption"
+description: "The benchmark guide: exact measurement boundary, oracle and causal-history checking, tracks and anti-cheating rules, governance, adoption path, and the BetterBench self-assessment."
+sourcePath: "docs/benchmark.md"
+sourceSha256: "4e489490088b5e57fe5ee5e8b8f249e17f7b01de9dcf4440da4b5faba7961ae6"
+syncedAt: "2026-07-22"
+section: "Benchmark"
+renderTitle: false
+---
+
 # IrrevonBench — benchmark guide
 
 > **STATUS: FOUNDATION LAYER, PRE-FREEZE.** This page documents the benchmark
