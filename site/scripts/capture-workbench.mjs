@@ -1,7 +1,8 @@
 // Captures workbench product imagery for the marketing site from the running
 // web/ dev server (read-only usage) at the pinned 1440×900 viewport, both
 // themes. The fixture-backed workbench renders the recorded seed-777 artifact;
-// the SYNTHETIC FIXTURE banner is deliberately kept in frame (RD5 §5.3).
+// the SYNTHETIC FIXTURE banner is deliberately kept in frame (honest
+// provenance: the imagery never pretends to show live data).
 //
 // Usage: WEB_URL=http://localhost:5199 node scripts/capture-workbench.mjs
 
@@ -26,7 +27,7 @@ for (const theme of ["light", "dark"]) {
     colorScheme: theme,
   });
   await context.addInitScript((t) => {
-    localStorage.setItem("detent.theme", t);
+    localStorage.setItem("irrevon.theme", t);
   }, theme);
   const page = await context.newPage();
   for (const s of shots) {

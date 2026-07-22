@@ -11,7 +11,8 @@ Schemas (`schemas/`):
 - Schemas define the trust boundary (master doc §6.3). Changing a schema's shape, enums,
   or required fields needs an ADR first (§12.5) — extending examples does not.
 - Dialect is JSON Schema 2020-12; one schema resource per file; `$id` values are
-  placeholder URIs until the name screen closes (see schemas/README.md).
+  placeholder URIs until the irrevon.dev domain purchase closes (ADR-0023; see
+  schemas/README.md).
 - Every schema keeps both example suites honest: `valid-*.json` must pass, `invalid-*.json`
   must fail. If a change flips an example's status, that is a shape change — ADR first.
 - Never add fields sourced from a proposed-but-unratified amendment as if settled; mark

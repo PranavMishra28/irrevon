@@ -3,7 +3,7 @@
 Conformance: master doc §12.1 row 3 (M3), B×C leg — every classification ×
 action cell asserted against ledger_resolve on real Postgres, plus the status
 chain (OPEN → action → CLOSED; ESCALATED_HUMAN re-routing; first-write-wins).
-Oracle: detent.statetable LEGAL_ACTIONS / LEGAL_STATUS_EDGES (validated against
+Oracle: irrevon.statetable LEGAL_ACTIONS / LEGAL_STATUS_EDGES (validated against
 the SQL seed by test_state_seed.py).
 """
 
@@ -13,7 +13,7 @@ import psycopg
 import pytest
 from psycopg.types.json import Jsonb
 
-from detent.statetable import (
+from irrevon.statetable import (
     CLASSIFICATIONS,
     LEGAL_ACTIONS,
     RESOLUTION_ACTIONS,

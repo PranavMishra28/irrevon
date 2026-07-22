@@ -58,7 +58,7 @@ test.describe("findings", () => {
     await expect(inspector).toBeVisible();
     await expect(inspector.getByText("Destination observation")).toBeVisible();
     await expect(inspector.getByText("Absent ledger record")).toBeVisible();
-    await expect(inspector.getByText("never intended through Detent")).toBeVisible();
+    await expect(inspector.getByText("never intended through Irrevon")).toBeVisible();
     await expect(inspector.locator('a[href^="/effects/"]')).toHaveCount(0);
   });
 

@@ -1,0 +1,230 @@
+---
+// Roadmap — a styled projection of the rendered execution plan (repo-docs
+// collection, drift-gated against docs/execution-plan.md). The phase table
+// is PARSED from the document at build time, not restated by hand, so this
+// page cannot fork the plan. No dates, ever: order is the promise.
+import { getEntry } from "astro:content";
+import Base from "../layouts/Base.astro";
+import Source from "../components/Source.astro";
+import { SITE_NAME, repoDoc } from "../config";
+import { href } from "../lib/url";
+
+const plan = await getEntry("repo-docs", "execution-plan");
+if (!plan) throw new Error("roadmap: rendered execution-plan missing — run pnpm sync:docs");
+
+// Strip inline markdown for chip/cell display (links → text, emphasis off).
+const strip = (s: string) =>
+  s
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/\*\*/g, "")
+    .replace(/`/g, "")
+    .trim();
+
+interface Phase {
+  id: string;
+  name: string;
+  gate: string;
+  exit: string;
+  owner: string;
+  done: boolean;
+}
+
+const phases: Phase[] = (plan.body ?? "")
+  .split("\n")
+  .filter((l) => /^\|\s*P\d/.test(l))
+  .map((line) => {
+    const cells = line.split("|").map((c) => c.trim());
+    // | # | Phase | Gate | Exit criterion | Owner |
+    const [, id, name, gate, exit, owner] = cells;
+    return {
+      id: strip(id),
+      name: strip(name),
+      gate: strip(gate),
+      exit: strip(exit),
+      owner: strip(owner),
+      done: /\bDone\b/.test(exit) || /\(this commit\)/.test(name),
+    };
+  });
+if (phases.length === 0) throw new Error("roadmap: could not parse the phase table from execution-plan");
+---
+
+<Base
+  title={`Roadmap — ${SITE_NAME}`}
+  description="Phases and gates from the execution plan — parsed from the canonical document at build time. No dates: order is load-bearing, and nothing here is a schedule or a commitment."
+>
+  <section class="section">
+    <div class="container">
+      <span class="kicker">Roadmap</span>
+      <h1>Phases and gates, not dates</h1>
+      <p class="lead" style="margin-top: 18px; max-width: 64ch;">
+        This page is a projection of the execution plan, parsed from the canonical document at build time.
+      </p>
+      <div class="status-banner" role="note" style="margin-top: 24px; max-width: 76ch;">
+        <span class="status-title">No dates are promised</span>
+        <p>
+          Nothing on this page is a schedule or a commitment; order is load-bearing — the Stage-A
+          preregistration freeze precedes any sandbox observation, because a preregistration only has
+          integrity value if the hypotheses demonstrably predate every observation.
+        </p>
+        <Source id="roadmap-no-dates" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">The phases</span>
+        <h2>P0 – P8, in order</h2>
+      </div>
+      <ol class="phase-list">
+        {
+          phases.map((p) => (
+            <li class:list={["phase", { done: p.done }]}>
+              <div class="phase-rail" aria-hidden="true">
+                <span class="phase-dot" />
+              </div>
+              <div class="phase-body">
+                <div class="phase-head">
+                  <span class="phase-id">{p.id}</span>
+                  <h3>{p.name}</h3>
+                  <span class:list={["phase-chip", p.done ? "chip-done" : "chip-open"]}>
+                    {p.done ? "DONE (recorded in the plan)" : "OPEN / GATED"}
+                  </span>
+                </div>
+                {p.gate && p.gate !== "—" && (
+                  <p class="phase-gate">
+                    <strong>Gate:</strong> {p.gate}
+                  </p>
+                )}
+                <p class="phase-exit">
+                  <strong>Exit:</strong> {p.exit}
+                </p>
+                <p class="phase-owner">owner: {p.owner}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="muted" style="margin-top: 20px; max-width: 70ch; font-size: var(--site-text-small);">
+        Status chips appear only where the plan records them. Beyond these phases: real destination adapters
+        (M4) and the benchmark harness (M5+) remain gated per the master document's milestones; any packaged
+        release waits behind the public-release gate below.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">The last gate</span>
+        <h2>Nothing publishes until the public-release gate holds</h2>
+        <p class="lead">
+          Releasing anything beyond the readable repository — a package, a tag with artifacts, a preprint,
+          a deployed site — requires all of: external clearances granted in writing, the counsel trademark
+          screen of “{SITE_NAME}”, the licensing decision closed, a sanitization review, the distribution
+          mechanics of ADR-0018, and human sign-off. No agent ever performs a publication step.
+        </p>
+      </div>
+      <p>
+        Read the canonical text: <a href={href("/docs/reference/execution-plan/")}>execution plan (rendered)</a> ·{" "}
+        <a href={repoDoc("docs/execution-plan.md")}>repository copy</a>
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .phase-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    max-width: 82ch;
+  }
+  .phase {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 16px;
+  }
+  .phase-rail {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+  .phase-rail::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--ref-border);
+  }
+  .phase:first-child .phase-rail::before {
+    top: 8px;
+  }
+  .phase:last-child .phase-rail::before {
+    bottom: auto;
+    height: 8px;
+  }
+  .phase-dot {
+    position: relative;
+    z-index: 1;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--ref-ink-3);
+    background: var(--ref-canvas);
+    margin-top: 6px;
+  }
+  .phase.done .phase-dot {
+    background: var(--ref-ink-1);
+    border-color: var(--ref-ink-1);
+  }
+  .phase-body {
+    padding-bottom: 26px;
+    display: grid;
+    gap: 6px;
+  }
+  .phase-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .phase-id {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--ref-ink-3);
+  }
+  .phase-head h3 {
+    font-size: var(--site-text-h3);
+  }
+  .phase-chip {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    letter-spacing: 0.06em;
+    border-radius: 2px;
+    padding: 2px 7px;
+    border: 1px solid var(--ref-border-strong);
+    color: var(--ref-ink-2);
+  }
+  .chip-done {
+    border-style: solid;
+    color: var(--ref-ink-1);
+  }
+  .chip-open {
+    border-style: dashed;
+  }
+  .phase-gate,
+  .phase-exit {
+    color: var(--ref-ink-2);
+    font-size: var(--site-text-small);
+    max-width: 70ch;
+  }
+  .phase-owner {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    color: var(--ref-ink-3);
+  }
+</style>

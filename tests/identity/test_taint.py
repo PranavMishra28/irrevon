@@ -15,8 +15,8 @@ from typing import Any
 import pytest
 from hypothesis import given
 
-from detent.contract import ModelTainted, TaintViolation, validate_intent_contract
-from detent.identity import (
+from irrevon.contract import ModelTainted, TaintViolation, validate_intent_contract
+from irrevon.identity import (
     derive_idempotency_key,
     derive_intent_id,
     derive_operation_id,

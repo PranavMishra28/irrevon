@@ -1,0 +1,9 @@
+<!-- Irrevon icon: probe (read-back) - hand-written original, N4, 2026-07-21.
+     A query line reaching down to touch a hatched destination stratum and
+     nothing more: reconcile-by-query reads, it never writes. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M12 3v9.5"/>
+  <path d="M12 12.5l2.8-2.8"/>
+  <path d="M4 17h16"/>
+  <path d="M6 20.5h2M11 20.5h2M16 20.5h2"/>
+</svg>

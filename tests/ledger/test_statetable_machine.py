@@ -17,7 +17,7 @@ from typing import Any
 from hypothesis import strategies as st
 from hypothesis.stateful import RuleBasedStateMachine, invariant, precondition, rule
 
-from detent.statetable import (
+from irrevon.statetable import (
     CLASSIFICATIONS,
     LIFECYCLE_EDGES,
     LIFECYCLE_STATES,

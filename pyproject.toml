@@ -1,6 +1,6 @@
-# Detent — reference reconciliation engine (first slice).
+# Irrevon — reference reconciliation engine (first slice).
 # Stack per ADR-0013 (Python 3.13, uv, pytest+Hypothesis, psycopg 3, rfc8785 pinned);
-# packaging per ADR-0018 (single `detent` package, src layout, hatchling).
+# packaging per ADR-0018 (single `irrevon` package, src layout, hatchling).
 # No license classifier: licensing is undecided (ADR-0014 OPEN); publishing is human-gated.
 
 [build-system]
@@ -8,9 +8,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "detent"
-version = "0.1.0.dev0"
-description = "Reference reconciliation engine for irreversible AI-agent actions (DetentBench companion). Not yet released; no license granted (see LICENSING.md)."
+name = "irrevon"
+# Single version source: src/irrevon/__init__.py __version__ (hatch dynamic).
+dynamic = ["version"]
+description = "Reference reconciliation engine for irreversible AI-agent actions (IrrevonBench companion). Not yet released; no license granted (see LICENSING.md)."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -35,15 +36,42 @@ dev = [
 ]
 
 [project.scripts]
-detent = "detent.cli:entrypoint"
+irrevon = "irrevon.cli:entrypoint"
+
+[tool.hatch.version]
+path = "src/irrevon/__init__.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/detent"]
+packages = ["src/irrevon"]
+# The prebuilt workbench (web/dist staged to src/irrevon/_web by `make
+# dist-stage`) is gitignored built output: hatchling `artifacts` is the
+# mechanism that re-includes it without breaking editable installs when it is
+# absent (ADR-0018; a plain force-include of a missing dir would fail).
+artifacts = ["src/irrevon/_web/**"]
 
-# Built wheels carry the canonical trust-boundary schemas; editable/dev installs
-# resolve the repo's schemas/ directory directly (see detent.contract.validation).
+# Built wheels carry the canonical trust-boundary schemas AND the plain-SQL
+# migrations; editable/dev installs resolve the repo directories directly
+# (see irrevon.contract.validation and irrevon.ledger.db.migrations_dir).
 [tool.hatch.build.targets.wheel.force-include]
-"schemas" = "detent/_schemas"
+"schemas" = "irrevon/_schemas"
+"migrations" = "irrevon/_migrations"
+
+# The sdist is wheel-buildable with NO Node: it carries the prebuilt workbench
+# assets alongside the sources (ADR-0018: prebuilt assets in wheel AND sdist).
+[tool.hatch.build.targets.sdist]
+include = [
+    "src",
+    "schemas",
+    "migrations",
+    "README.md",
+    "LICENSING.md",
+    "hatch_build.py",
+]
+artifacts = ["src/irrevon/_web/**"]
+
+# Build honesty hook (hatch_build.py): IRREVON_REQUIRE_WEB=1 refuses to build
+# a distributable artifact when the staged workbench is missing.
+[tool.hatch.build.hooks.custom]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -73,32 +101,33 @@ allowed-confusables = ["×", "−", "–"]
 # Contracts are part of the frozen conformance surface — weakening one is an
 # invariant-affecting change (ADR first), never a convenience edit.
 [tool.importlinter]
-root_package = "detent"
+root_package = "irrevon"
 
 [[tool.importlinter.contracts]]
 name = "identity is pure: no imports from modules that handle raw model arguments"
 type = "forbidden"
-source_modules = ["detent.identity"]
-forbidden_modules = ["detent.contract"]
+source_modules = ["irrevon.identity"]
+forbidden_modules = ["irrevon.contract"]
 
 # ADR-006 / RFC-002 §14: no authority module imports advisory, direct or
 # indirect. The type-level layer (ClassifierProposal rejection) is enforced via
-# the marker in detent.errors, tested in tests/advisory/.
+# the marker in irrevon.errors, tested in tests/advisory/.
 [[tool.importlinter.contracts]]
 name = "advisory is never on the authority path (ADR-006)"
 type = "forbidden"
 source_modules = [
-    "detent.identity",
-    "detent.contract",
-    "detent.ledger",
-    "detent.gate",
-    "detent.dispatcher",
-    "detent.reconciler",
-    "detent.recovery",
-    "detent.resolution",
-    "detent.sweep",
-    "detent.adapters",
-    "detent.api",
-    "detent.cli",
+    "irrevon.identity",
+    "irrevon.contract",
+    "irrevon.ledger",
+    "irrevon.gate",
+    "irrevon.dispatcher",
+    "irrevon.reconciler",
+    "irrevon.recovery",
+    "irrevon.resolution",
+    "irrevon.sweep",
+    "irrevon.adapters",
+    "irrevon.api",
+    "irrevon.cli",
+    "irrevon.serve",
 ]
-forbidden_modules = ["detent.advisory"]
+forbidden_modules = ["irrevon.advisory"]

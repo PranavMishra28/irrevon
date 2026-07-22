@@ -17,8 +17,8 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from detent.contract import validate_intent_contract
-from detent.identity import (
+from irrevon.contract import validate_intent_contract
+from irrevon.identity import (
     derive_idempotency_key,
     derive_intent_id,
     derive_operation_id,
@@ -249,7 +249,7 @@ def test_operation_id_and_key_derive_only_from_identity(
 
 _SUBPROCESS_PROGRAM = """
 import json, sys
-from detent.identity import derive_intent_id
+from irrevon.identity import derive_intent_id
 corpus = json.load(sys.stdin)
 print(json.dumps([derive_intent_id(c["stable_ids"], c["effect_type"], c["scope"])
                   for c in corpus]))

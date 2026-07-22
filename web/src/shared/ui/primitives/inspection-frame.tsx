@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 /**
- * The Detent Click (REDESIGN-BRIEF §3.2): THE inspected object's machined
+ * The Irrevon Click (REDESIGN-BRIEF §3.2): THE inspected object's machined
  * accent frame — 1.5px h-accent rectangle at the structural radius, four 6px
  * 45° corner ticks (the D1 notch walls quoted at the corners), and a 1px
  * translate-to-rest seat settle. No fill change, no shadow, no glow.

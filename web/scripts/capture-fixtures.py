@@ -1,6 +1,6 @@
 """Capture the canonical workbench fixture set from the REAL engine.
 
-Runs the implemented engine (src/detent at the current rc/v0.1 commit) against
+Runs the implemented engine (src/irrevon at the current rc/v0.1 commit) against
 its reference C2 destination and a scratch Postgres database, drives a spread
 of scenarios (clean settle, lost response + reconcile, rejected dispatch,
 destination-internal duplicate, unresolved ambiguity, orphan sweep, and the
@@ -8,10 +8,10 @@ re-synthesis denial), then writes:
 
   web/fixtures/canonical/effects.json       Q1 envelope of EffectRecord exchange shapes
   web/fixtures/canonical/findings.json      Q2 envelope of ReconciliationFinding shapes
-  web/fixtures/canonical/inspect/<id>.json  verbatim `detent inspect --json` payloads
-  web/fixtures/canonical/health.json        verbatim `detent doctor --json` payload
+  web/fixtures/canonical/inspect/<id>.json  verbatim `irrevon inspect --json` payloads
+  web/fixtures/canonical/health.json        verbatim `irrevon doctor --json` payload
   web/fixtures/canonical/adapters.json      the real capability declaration(s)
-  web/fixtures/canonical/demo-artifact.json events + summary of `detent demo --seed 777`
+  web/fixtures/canonical/demo-artifact.json events + summary of `irrevon demo --seed 777`
   web/fixtures/canonical/provenance.json    commit, seed, commands, generated-at
   web/fixtures/manifest.sha256              content hashes (drift-gated in CI)
 
@@ -22,8 +22,8 @@ and resolution evidence digests, which are RFC 8785 canonical digests of the
 stored resolution evidence (derivation noted in provenance.json).
 
 Usage (from the repo root, with the engine venv):
-  DETENT_LEDGER_PASSWORD=... .venv/bin/python web/scripts/capture-fixtures.py \
-      --dsn postgresql://detent@localhost:5544/detent --seed 777
+  IRREVON_LEDGER_PASSWORD=... .venv/bin/python web/scripts/capture-fixtures.py \
+      --dsn postgresql://irrevon@localhost:5544/irrevon --seed 777
 """
 
 from __future__ import annotations
@@ -54,11 +54,11 @@ SCHEMAS = REPO / "schemas"
 
 sys.path.insert(0, str(REPO / "src"))
 
-from detent.adapters.base import declarations_dir, load_declaration  # noqa: E402
-from detent.api import Engine  # noqa: E402
-from detent.cli.inspect_cmd import run_inspect  # noqa: E402
-from detent.ledger.db import apply_migrations  # noqa: E402
-from detent.reconciler import ReconcileConfig  # noqa: E402
+from irrevon.adapters.base import declarations_dir, load_declaration  # noqa: E402
+from irrevon.api import Engine  # noqa: E402
+from irrevon.cli.inspect_cmd import run_inspect  # noqa: E402
+from irrevon.ledger.db import apply_migrations  # noqa: E402
+from irrevon.reconciler import ReconcileConfig  # noqa: E402
 
 
 def iso(dt: Any) -> str:
@@ -387,16 +387,16 @@ def main() -> None:
     parser.add_argument("--dsn", required=True, help="admin DSN (password via env)")
     parser.add_argument("--seed", type=int, default=777)
     parser.add_argument("--demo-jsonl", default=None,
-                        help="path to a captured `detent demo --jsonl` transcript")
+                        help="path to a captured `irrevon demo --jsonl` transcript")
     parser.add_argument("--doctor-json", default=None,
-                        help="path to a captured `detent doctor --json` payload")
+                        help="path to a captured `irrevon doctor --json` payload")
     parser.add_argument("--flagship-dsn", default=None,
-                        help="kept demo database (detent_demo_s<seed>); when given, "
+                        help="kept demo database (irrevon_demo_s<seed>); when given, "
                              "the flagship effect's record + inspect are sourced from "
                              "the REAL crash-and-recovery run instead of the in-process rerun")
     args = parser.parse_args()
 
-    fixture_db = f"detent_wbfix_s{args.seed}"
+    fixture_db = f"irrevon_wbfix_s{args.seed}"
     with psycopg.connect(args.dsn, autocommit=True) as admin:
         admin.execute(
             sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(fixture_db))
@@ -406,7 +406,7 @@ def main() -> None:
     apply_migrations(dsn)
 
     refdest = subprocess.Popen(
-        [sys.executable, "-m", "detent.adapters.refdest_server", "--port", "0",
+        [sys.executable, "-m", "irrevon.adapters.refdest_server", "--port", "0",
          "--seed", str(args.seed)],
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
@@ -416,7 +416,7 @@ def main() -> None:
     base_url = f"http://127.0.0.1:{int(refdest.stdout.readline().strip().rsplit(' ', 1)[1])}"
 
     declaration = load_declaration(declarations_dir() / "refdest-c2.capability.json")
-    from detent.adapters.refdest import RefdestAdapter
+    from irrevon.adapters.refdest import RefdestAdapter
 
     adapter = RefdestAdapter("refdest-c2", declaration, base_url=base_url)
     try:
@@ -517,7 +517,7 @@ def main() -> None:
             "generated_at": as_of,
             "engine_commit": commit,
             "seed": args.seed,
-            "source": "real engine run (src/detent) against the refdest-c2 reference destination",
+            "source": "real engine run (src/irrevon) against the refdest-c2 reference destination",
             "notes": [
                 "effects.json/findings.json items are exchange shapes assembled from the run's ledger rows and validated against schemas/*.schema.json",
                 "inspect/*.json and demo-artifact.json and health.json are verbatim CLI outputs (stable ids redacted by CLI default)",

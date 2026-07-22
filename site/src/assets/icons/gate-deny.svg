@@ -1,0 +1,7 @@
+<!-- Irrevon icon: gate-deny - hand-written original, N4, 2026-07-21.
+     The same gate diamond carrying the do-not-enter bar: a DENY is an
+     evidenced outcome at the same station, not an error state. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M12 2.5 21.5 12 12 21.5 2.5 12z"/>
+  <path d="M8.5 12h7"/>
+</svg>

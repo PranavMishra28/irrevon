@@ -1,0 +1,9 @@
+<!-- Irrevon icon: duplicate-reject - hand-written original, N4, 2026-07-21.
+     Two offset cards collapsing to one: the front card is whole, the rear
+     duplicate is barred where it overlaps. Re-synthesis collapses to one
+     identity; the excess is refused with a citation. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <rect x="3" y="8" width="13" height="13" rx="2"/>
+  <path d="M8 5V4a1.5 1.5 0 0 1 1.5-1.5H19A1.5 1.5 0 0 1 20.5 4v9.5A1.5 1.5 0 0 1 19 15"/>
+  <path d="M6.5 14.5h6"/>
+</svg>

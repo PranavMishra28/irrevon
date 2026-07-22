@@ -3,7 +3,7 @@ import { SunkenWell } from "@/shared/ui/primitives/panel";
 
 /**
  * Declared adapter topology (REDESIGN-BRIEF §5.7, graph-semantics §1.4c):
- * Caller → Detent → adapter(s) → destination(s). Caller and Detent carry a
+ * Caller → Irrevon → adapter(s) → destination(s). Caller and Irrevon carry a
  * persistent CONCEPTUAL label (no contract row backs them); adapter and
  * destination nodes are factual/declarative, and the adapter→destination
  * edge is dashed — DECLARED, not observed. The declaration cards below are
@@ -55,7 +55,7 @@ export function AdapterTopology({
           {arrow("registers intent", false)}
           <div className={conceptualNode}>
             <span className="font-mono text-[10px] font-medium tracking-wide text-text-tertiary uppercase">
-              Detent — CONCEPTUAL
+              Irrevon — CONCEPTUAL
             </span>
             <span className="text-xs text-text-secondary">ledger · gate · reconciler</span>
           </div>
@@ -90,7 +90,7 @@ export function AdapterTopology({
         </div>
       </SunkenWell>
       <figcaption className="mt-1.5 text-2xs text-text-tertiary">
-        Dashed adapter→destination means DECLARED, not observed. Caller and Detent are
+        Dashed adapter→destination means DECLARED, not observed. Caller and Irrevon are
         conceptual — no contract row backs them. Exact fields live in the declaration cards.
       </figcaption>
     </figure>

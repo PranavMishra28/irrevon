@@ -174,6 +174,16 @@ import { SITE_NAME, repoDoc } from "../config";
       <div style="margin-top: 14px;">
         <Source id="supply-chain" />
       </div>
+      <div class="panel-subtle" style="margin-top: 24px; max-width: 80ch;">
+        <h3>This site’s own headers, honestly</h3>
+        <p class="muted" style="margin-top: 8px;">
+          GitHub Pages cannot set custom response headers, so this site ships what a <code>&lt;meta&gt;</code> tag
+          can carry: a per-page Content-Security-Policy with build-computed script hashes, and a strict referrer
+          policy. The full header set for a future edge — real CSP with <code>frame-ancestors</code>, HSTS,
+          nosniff, permissions policy — is committed as a ready-to-apply spec:{" "}
+          <a href={repoDoc("site/docs/headers-spec.md")}>site/docs/headers-spec.md</a>.
+        </p>
+      </div>
     </div>
   </section>
 

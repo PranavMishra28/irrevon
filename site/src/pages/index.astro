@@ -3,13 +3,20 @@ import Base from "../layouts/Base.astro";
 import Badge from "../components/Badge.astro";
 import Source from "../components/Source.astro";
 import DemoTranscript from "../components/DemoTranscript.astro";
+import OneWayStage from "../components/OneWayStage.astro";
+import Icon from "../components/Icon.astro";
 import { SITE_NAME, BENCH_NAME, REPO_URL, repoDoc } from "../config";
 import { href, asset } from "../lib/url";
+import { softwareSourceCode, webSite } from "../lib/jsonld";
+
+const siteUrl = new URL(href("/"), Astro.site);
+const searchUrl = new URL(href("/docs/search/"), Astro.site);
 ---
 
 <Base
   title={`${SITE_NAME} — honest handling of irreversible AI-agent actions`}
   description="A preregistered benchmark and reference reconciliation engine for irreversible AI-agent actions. Identity from stable business identifiers, persist-before-dispatch, reconcile-by-query. Pre-release, open research."
+  jsonLd={[softwareSourceCode(siteUrl), webSite(siteUrl, searchUrl)]}
 >
   <!-- ── Hero ─────────────────────────────────────────────────────────── -->
   <section class="section hero">
@@ -35,6 +42,20 @@ import { href, asset } from "../lib/url";
         <div class="badge-row">
           <Badge kind="recorded" />
         </div>
+        <!-- Beat-10 poster crop (0 JS): evidence returns through the boundary
+             port; the seated effect never moves — the thesis in one still. -->
+        <figure class="hero-poster">
+          <OneWayStage mode="poster" />
+          <figcaption class="hero-proof-note">
+            Beat 10 of the recorded sequence: evidence returns; the effect does not.
+          </figcaption>
+        </figure>
+        <a class="btn btn-secondary hero-poster-cta" href={href("/demo/") + "#beat-01"}>
+          <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" fill="currentColor">
+            <path d="M2 1 L11 6 L2 11 Z"></path>
+          </svg>
+          Step through the recorded sequence
+        </a>
         <p class="hero-proof-line">
           Same fault schedule — a lost response, a SIGKILL, a re-synthesized retry — recorded twice:
         </p>
@@ -82,7 +103,7 @@ import { href, asset } from "../lib/url";
       </div>
       <div class="grid-3">
         <article class="panel-subtle pillar">
-          <span class="pillar-index">01</span>
+          <span class="pillar-index"><Icon name="stable-id" size={20} /> 01</span>
           <h3>Identity from business facts, never model output</h3>
           <p>
             Effect identity is a hash of stable upstream identifiers — order IDs, invoice IDs, authorization
@@ -92,7 +113,7 @@ import { href, asset } from "../lib/url";
           <Source id="identity-stable-ids" />
         </article>
         <article class="panel-subtle pillar">
-          <span class="pillar-index">02</span>
+          <span class="pillar-index"><Icon name="persist" size={20} /> 02</span>
           <h3>Persist before dispatch</h3>
           <p>
             Nothing is sent without a durable record carrying the operation identity and idempotency evidence.
@@ -102,7 +123,7 @@ import { href, asset } from "../lib/url";
           <Source id="persist-before-dispatch" />
         </article>
         <article class="panel-subtle pillar">
-          <span class="pillar-index">03</span>
+          <span class="pillar-index"><Icon name="probe" size={20} /> 03</span>
           <h3>Reconcile by asking the destination</h3>
           <p>
             Ambiguous outcomes are resolved by querying the destination’s authoritative status — never by
@@ -177,7 +198,7 @@ import { href, asset } from "../lib/url";
         <img
           class="shot-light"
           src={asset("/images/workbench-effects-light.png")}
-          alt="Detent workbench Effects table listing recorded effects with separate lifecycle, classification, and resolution columns; a synthetic-fixture banner is visible at the top."
+          alt="Irrevon workbench Effects table listing recorded effects with separate lifecycle, classification, and resolution columns; a synthetic-fixture banner is visible at the top."
           width="1440"
           height="900"
           loading="lazy"
@@ -185,7 +206,7 @@ import { href, asset } from "../lib/url";
         <img
           class="shot-dark"
           src={asset("/images/workbench-effects-dark.png")}
-          alt="Detent workbench Effects table in dark theme, listing recorded effects with separate lifecycle, classification, and resolution columns; a synthetic-fixture banner is visible at the top."
+          alt="Irrevon workbench Effects table in dark theme, listing recorded effects with separate lifecycle, classification, and resolution columns; a synthetic-fixture banner is visible at the top."
           width="1440"
           height="900"
           loading="lazy"
@@ -235,12 +256,12 @@ import { href, asset } from "../lib/url";
           locally against a deterministic reference destination — about five minutes with uv and Docker.
         </p>
       </div>
-      <pre><code>git clone {REPO_URL}.git && cd detent
+      <pre><code>git clone {REPO_URL}.git && cd irrevon
 uv sync --locked        # toolchain + deps, pinned by uv.lock
-uv run detent init      # config, compose file, then migrations
+uv run irrevon init      # config, compose file, then migrations
 docker compose up -d --wait
-uv run detent doctor    # read-only checks incl. the identity self-test
-uv run detent demo      # the two-leg flagship story</code></pre>
+uv run irrevon doctor    # read-only checks incl. the identity self-test
+uv run irrevon demo      # the two-leg flagship story</code></pre>
       <div style="margin-top: 14px;">
         <Source id="quickstart-real" also={["not-published", "license-pending"]} />
       </div>
@@ -355,6 +376,23 @@ uv run detent demo      # the two-leg flagship story</code></pre>
     font-size: var(--site-text-2xs);
     color: var(--ref-ink-3);
     letter-spacing: 0.1em;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero-poster {
+    display: grid;
+    gap: 8px;
+    border: 1px solid var(--ref-border-subtle);
+    border-radius: 2px;
+    background: var(--ref-layer-sunken);
+    padding: 12px 14px 10px;
+  }
+  .hero-poster-cta {
+    justify-self: start;
+  }
+  .hero-poster-cta svg {
+    flex: none;
   }
   .pillar p {
     color: var(--ref-ink-2);

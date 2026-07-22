@@ -1,6 +1,6 @@
-# Detent — Bugbot review guide
+# Irrevon — Bugbot review guide
 
-Detent is a reconciliation engine + preregistered benchmark (DetentBench) for irreversible
+Irrevon is a reconciliation engine + preregistered benchmark (IrrevonBench) for irreversible
 AI-agent actions. The costliest bugs here are not crashes — they are silent violations of
 identity, durability, and benchmark-integrity invariants. Review for these first.
 Canonical sources: docs/master-doc.md §6–§9, §12; docs/rfc-001-first-slice.md; AGENTS.md.

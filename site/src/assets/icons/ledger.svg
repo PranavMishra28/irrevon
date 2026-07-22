@@ -1,0 +1,11 @@
+<!-- Irrevon icon: ledger - hand-written original, N4, 2026-07-21.
+     Ruled append-only rows closed by the accountant's double rule beneath
+     the last entry: totals are struck, never rewritten. Replaces the
+     "Database" cylinder, which claims storage, not bookkeeping. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M4 5h16"/>
+  <path d="M4 9.5h16"/>
+  <path d="M4 14h10"/>
+  <path d="M4 18.5h16"/>
+  <path d="M4 21.5h16"/>
+</svg>

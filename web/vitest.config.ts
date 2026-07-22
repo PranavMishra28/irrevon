@@ -13,6 +13,9 @@ export default defineConfig({
   resolve: {
     alias: { "@": new URL("./src", import.meta.url).pathname },
   },
+  // Mirror the vite.config.ts define so modules that read the build-time
+  // data mode (data-mode.ts and its importers) load under test.
+  define: { __IRREVON_DATA_MODE__: JSON.stringify("mock") },
   test: {
     retry: 0,
     projects: [

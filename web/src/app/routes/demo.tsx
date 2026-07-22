@@ -12,7 +12,7 @@ import { Page } from "@/shared/ui/layout/page";
  * only, and never autoplays on load. The browser starts nothing.
  */
 
-const LANES: readonly Lane[] = ["detent", "baseline", "both"];
+const LANES: readonly Lane[] = ["irrevon", "baseline", "both"];
 
 interface DemoSearch {
   step?: number;
@@ -91,8 +91,8 @@ function DemoPage() {
         <div className="max-w-6xl">
           <p className="mb-4 text-xs text-text-tertiary">
             Replaying the artifact of{" "}
-            <span className="font-mono">detent demo --seed {artifact.data.summary.seed}</span> —
-            a real engine run with a real crash. The browser never starts an effect.
+            <span className="font-mono">irrevon demo --seed {artifact.data.summary.seed}</span>{" "}
+            — a real engine run with a real crash. The browser never starts an effect.
           </p>
           <DemoStage
             artifact={artifact.data}

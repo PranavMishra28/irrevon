@@ -172,7 +172,7 @@ export function OrphanPairedView({ finding }: { finding: ReconciliationFinding }
             Absent ledger record
           </p>
           <p className="mt-1.5 text-sm text-text-primary">
-            No ledger record — this destination effect was never intended through Detent.
+            No ledger record — this destination effect was never intended through Irrevon.
           </p>
           <p className="mt-1.5 text-2xs text-text-tertiary">
             The pair is shown adjacent, not connected: the served evidence is digest-only, so no

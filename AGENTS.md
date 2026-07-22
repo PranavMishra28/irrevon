@@ -1,13 +1,9 @@
-# AGENTS.md — Detent agent operating guide
+# AGENTS.md — Irrevon agent operating guide
 
-Detent is a planned benchmark (DetentBench, preregistration drafted but not frozen) +
+Irrevon is a planned benchmark (IrrevonBench, preregistration drafted but not frozen) +
 reference reconciliation engine for irreversible AI-agent actions, benchmark-first and
-C2-scoped. **Status: first slice implemented (M3 core, tasks T-101–T-104): engine, ledger,
-reference destinations, and the flagship demo live in `src/detent/` + `migrations/`; the CI
-pipeline (`.github/workflows/` + `docs/ci.md`) and the fixture-backed read-only workbench
-(`web/`) are merged.** Real-sandbox adapters (M4), the bench harness (M5+), and releases
-remain gated by the execution plan; the public repository carries no license and accepts no
-contributions (ADR-0014 open).
+C2-scoped. Current status: see [README §Status](README.md#status). The public repository
+carries no license and accepts no contributions (ADR-0014 open).
 
 This file is the map. Read the canonical file for a concern instead of guessing; link to it
 instead of restating it.
@@ -27,10 +23,10 @@ instead of restating it.
 | Engine design: state tables, ledger, reconciliation mechanics | [docs/rfc-002-engine-design.md](docs/rfc-002-engine-design.md) |
 | Benchmark plan (DRAFT), holdout + artifact policy | [docs/benchmark-preregistration.md](docs/benchmark-preregistration.md) |
 | CI: workflow map, tiers, owner settings checklist | [docs/ci.md](docs/ci.md) (workflows in `.github/workflows/`; every job body is one `make` target) |
-| Workbench frontend (fixture-backed, read-only; v0.2 redesign: Overview at `/`, causal graph, responsive shell) | `web/` — see [web/README.md](web/README.md); stack per [ADR-0016](docs/decisions/0016-frontend-workbench-stack.md), gates `make web-check` / `web-test` (pixel gate `make web-vrt`, container-only) |
+| Workbench frontend (read-only; fixture + live data modes; v0.2 redesign: Overview at `/`, causal graph, responsive shell) | `web/` — see [web/README.md](web/README.md); stack per [ADR-0016](docs/decisions/0016-frontend-workbench-stack.md), serve surface per [ADR-0024](docs/decisions/0024-serve-read-surface.md), gates `make web-check` / `web-test` (pixel gate `make web-vrt`, container-only) |
 | Marketing site (built + gated; deploy human-only, dispatch-only workflow) | `site/` — see [site/README.md](site/README.md); ADR proposed (review-queue §3 item 20), gates `make site-check` / `site-build` / `site-test` |
 | Machine-readable contracts + what is deferred | [schemas/README.md](schemas/README.md) |
-| Engine implementation (first slice) | `src/detent/` — module boundaries per [RFC-002 §14](docs/rfc-002-engine-design.md); the ratified state tables are encoded ONCE in `src/detent/statetable.py` (generated-from, never hand-copied) |
+| Engine implementation (first slice) | `src/irrevon/` — module boundaries per [RFC-002 §14](docs/rfc-002-engine-design.md); the ratified state tables are encoded ONCE in `src/irrevon/statetable.py` (generated-from, never hand-copied) |
 | Ledger schema + locked transition functions | [migrations/](migrations/) (plain SQL per ADR-0013; runner ADR-0022) |
 | Test architecture (template-DB-per-test, crash/sync points, auditor) | `tests/` — process harness in `tests/process/`, flagship E2E in `tests/e2e/` |
 | Bounded-task process and template | [tasks/README.md](tasks/README.md) |
@@ -38,7 +34,7 @@ instead of restating it.
 | Validation commands | [Makefile](Makefile) (`make check`; full ladder `make check-all`) |
 
 **Finding a decision:** check [docs/decisions/README.md](docs/decisions/README.md) first — its
-index covers every ADR id 0000–0022, including the rows whose full text lives in master doc
+index covers every ADR id 0000–0026, including the rows whose full text lives in master doc
 §11. If a decision is not in the index, it has not been made; treat it as open.
 
 ## Working protocol

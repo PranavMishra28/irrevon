@@ -16,6 +16,7 @@ export function AppFrame({
   banner,
   nav,
   viewLabel,
+  status,
   utilities,
   children,
 }: {
@@ -23,6 +24,8 @@ export function AppFrame({
   nav: ReactNode;
   /** Active-view label, shown only in the 768–1119 header band. */
   viewLabel?: string;
+  /** Connection status chip (live builds), rendered beside the brand. */
+  status?: ReactNode;
   utilities: ReactNode;
   children: ReactNode;
 }) {
@@ -43,11 +46,12 @@ export function AppFrame({
       <header className="flex h-12 shrink-0 items-center gap-3 border-b border-border bg-layer-nav px-4">
         <span className="flex shrink-0 items-center gap-2 text-text-primary">
           <SeatMark size={18} />
-          <span className="text-sm font-semibold tracking-tight select-none">detent</span>
+          <span className="text-sm font-semibold tracking-tight select-none">irrevon</span>
           <span className="mt-px hidden text-2xs font-medium tracking-wide text-text-tertiary uppercase select-none min-[480px]:inline">
             workbench
           </span>
         </span>
+        {status}
         <nav
           aria-label="Views"
           className="hidden h-full min-w-0 flex-1 items-stretch gap-0.5 min-[1120px]:flex"

@@ -1,4 +1,4 @@
-# Detent benchmark (DetentBench, L4b) — SKELETON. ACTIVATES AT M7 (preregistered
+# Irrevon benchmark (IrrevonBench, L4b) — SKELETON. ACTIVATES AT M7 (preregistered
 # runs; master doc section 15). Human-dispatched only; never add implicit
 # triggers. Map: docs/ci.md.
 #
@@ -41,7 +41,7 @@ concurrency:
 
 jobs:
   bench:
-    name: DetentBench run (M7 skeleton)
+    name: IrrevonBench run (M7 skeleton)
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: benchmark

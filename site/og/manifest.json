@@ -1,0 +1,49 @@
+{
+  "templateSha256": "32f89d3984952259a154ce5dfeb4fdc3174c1919681faa6a3cac290a931c6a3d",
+  "product": "Irrevon",
+  "footer": "SEED 777 · RECORDED RUN · 1 DESTINATION EFFECT",
+  "cards": {
+    "og-default": [
+      "Agents retry.",
+      "Destinations don’t forgive."
+    ],
+    "og-platform": [
+      "Persist. Dispatch.",
+      "Reconcile — with evidence."
+    ],
+    "og-how-it-works": [
+      "Identity from facts,",
+      "never model output."
+    ],
+    "og-demo": [
+      "One crash, one retry.",
+      "One destination effect."
+    ],
+    "og-benchmark": [
+      "Preregistered.",
+      "No results yet — by design."
+    ],
+    "og-docs": [
+      "Documentation,",
+      "drift-gated from the repo."
+    ],
+    "og-research": [
+      "Written before",
+      "the results exist."
+    ],
+    "og-install": [
+      "Build from source today.",
+      "Distribution: gated."
+    ]
+  },
+  "png": {
+    "og-default": "d52afd75163307c52fa6d76069a82a8abbf5366063ccb4eed92615754e5abb1e",
+    "og-platform": "3772864fb442376f69693cc2de310540480d27c1cc6a6b62ab19d793bb29323b",
+    "og-how-it-works": "611f0b40eec7b2ec1ff29eee1238b2cd482cd15d5520424f7438a3da79040673",
+    "og-demo": "7e878bc8e6110af304cd0de64cecf86ae0609dda8e8b60e617b1641ac0422596",
+    "og-benchmark": "dd3810799887e708aff806d3ba4a061c726478b79c5952989c236d7a8351afe6",
+    "og-docs": "6837b8de23d48056dac5e78388672df0120a6da86330f8117442a4bf72940527",
+    "og-research": "04f363dac183548a18ff1fa00fd628ebf2d068d09511ab585345df08abe15fa9",
+    "og-install": "401190017999c68967bbdd6738ec173cf1da2171205995b59da9d1a39276a249"
+  }
+}

@@ -81,7 +81,7 @@ class RefdestControl:
 @pytest.fixture
 def refdest_server() -> Iterator[tuple[str, RefdestControl]]:
     proc = subprocess.Popen(
-        [sys.executable, "-m", "detent.adapters.refdest_server", "--port", "0"],
+        [sys.executable, "-m", "irrevon.adapters.refdest_server", "--port", "0"],
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
         text=True,
@@ -113,10 +113,10 @@ class EngineProcess:
         env = dict(os.environ)
         env.update(
             {
-                "DETENT_DSN": dsn,
-                "DETENT_REFDEST_URL": refdest_url,
-                "DETENT_TEST_HOOKS": "1",
-                "DETENT_REREAD_GAP_S": "0",
+                "IRREVON_DSN": dsn,
+                "IRREVON_REFDEST_URL": refdest_url,
+                "IRREVON_TEST_HOOKS": "1",
+                "IRREVON_REREAD_GAP_S": "0",
             }
         )
         env.update(env_extra or {})

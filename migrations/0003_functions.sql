@@ -1,10 +1,10 @@
--- Detent ledger migration 0003 — the locked transition writer (RFC-002 §2.3).
+-- Irrevon ledger migration 0003 — the locked transition writer (RFC-002 §2.3).
 --
--- detent_app has NO INSERT privilege on effect_transitions, effect_executions,
+-- irrevon_app has NO INSERT privilege on effect_transitions, effect_executions,
 -- findings, or finding_resolutions. All lifecycle writes go through these
 -- SECURITY DEFINER functions, owned by the migration role. Any violation
 -- raises; nothing is written. Custom SQLSTATEs (mapped to typed errors by
--- src/detent/ledger/db.py):
+-- src/irrevon/ledger/db.py):
 --   DT001 illegal lifecycle edge     DT002 stale expected_from / lost race
 --   DT003 illegal classification attachment
 --   DT004 illegal resolution         DT005 precondition violation

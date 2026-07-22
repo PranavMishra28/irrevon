@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://detent.invalid/schemas/effect-record.schema.json",
-  "$comment": "Admitted at M3 (T-102) by ADR-0021 per the ADR-0019 item-4 criteria. Exchange/view shape (Q1 item core); storage DDL lives in migrations/. Lifecycle enum is generated from the ratified state table (RFC-002 §3.1 / detent.statetable — cross-checked by tests/schemas/test_enum_sync.py, never hand-copied). $id host is a placeholder pending the name screen. Shape changes require an ADR.",
+  "$id": "https://irrevon.dev/schemas/effect-record.schema.json",
+  "$comment": "Admitted at M3 (T-102) by ADR-0021 per the ADR-0019 item-4 criteria. Exchange/view shape (Q1 item core); storage DDL lives in migrations/. Lifecycle enum is generated from the ratified state table (RFC-002 §3.1 / irrevon.statetable — cross-checked by tests/schemas/test_enum_sync.py, never hand-copied). $id host is a placeholder until the irrevon.dev domain purchase closes (ADR-0023). Shape changes require an ADR.",
   "title": "Effect record",
   "description": "One effect's ledger view: identity, intent members, destination binding, and the latest execution's lifecycle (dimension A). Dimension-B classification lives on findings, not here (ORPHANED is representable only as a finding — master doc §7.1). Append-only discipline: this exchange shape presents the current view; corrections are new rows.",
   "type": "object",

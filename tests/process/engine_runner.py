@@ -2,7 +2,7 @@
 (testing.md §3.2). Boot order per RFC-002 §7.1: writer lock → recovery →
 READY. Stdout carries the line-oriented sentinel protocol; commands arrive on
 stdin. This is TEST HARNESS wiring — the product composition root is
-``detent.api`` (T-104); the engine mechanics under test are the real modules.
+``irrevon.api`` (T-104); the engine mechanics under test are the real modules.
 
 Protocol:
   stdout: "RECOVERY DONE <json>", "READY", "RESULT <json>", "HOOK <seam> REACHED"
@@ -18,22 +18,22 @@ import sys
 from dataclasses import asdict
 from typing import Any
 
-from detent.adapters.base import declarations_dir, load_declaration
-from detent.adapters.refdest import RefdestAdapter
-from detent.errors import DetentError
-from detent.ledger import Ledger
-from detent.reconciler import ReconcileConfig, reconcile_effect
-from detent.recovery import run_recovery
-from detent.resolution import ResolutionConfig
-from detent.sweep import sweep as run_sweep
-from detent.testhooks import assert_arming_sane
+from irrevon.adapters.base import declarations_dir, load_declaration
+from irrevon.adapters.refdest import RefdestAdapter
+from irrevon.errors import IrrevonError
+from irrevon.ledger import Ledger
+from irrevon.reconciler import ReconcileConfig, reconcile_effect
+from irrevon.recovery import run_recovery
+from irrevon.resolution import ResolutionConfig
+from irrevon.sweep import sweep as run_sweep
+from irrevon.testhooks import assert_arming_sane
 
 
 def _config() -> ReconcileConfig:
     return ReconcileConfig(
-        stuck_threshold_s=float(os.environ.get("DETENT_STUCK_THRESHOLD_S", "300")),
+        stuck_threshold_s=float(os.environ.get("IRREVON_STUCK_THRESHOLD_S", "300")),
         absence_reread_gap_s=float(
-            os.environ.get("DETENT_REREAD_GAP_S", "0")
+            os.environ.get("IRREVON_REREAD_GAP_S", "0")
         ),
         probe_deadline_s=5.0,
     )
@@ -41,8 +41,8 @@ def _config() -> ReconcileConfig:
 
 def main() -> None:
     assert_arming_sane()
-    dsn = os.environ["DETENT_DSN"]
-    refdest_url = os.environ["DETENT_REFDEST_URL"]
+    dsn = os.environ["IRREVON_DSN"]
+    refdest_url = os.environ["IRREVON_REFDEST_URL"]
     declaration = load_declaration(declarations_dir() / "refdest-c2.capability.json")
     adapter = RefdestAdapter("refdest-c2", declaration, base_url=refdest_url)
     adapters = {"refdest-c2": adapter}
@@ -56,7 +56,7 @@ def main() -> None:
     resolution_config = ResolutionConfig(
         auto_redispatch_effect_types=frozenset(
             t
-            for t in os.environ.get("DETENT_AUTO_REDISPATCH_TYPES", "").split(",")
+            for t in os.environ.get("IRREVON_AUTO_REDISPATCH_TYPES", "").split(",")
             if t
         ),
         reconcile=config,
@@ -78,7 +78,7 @@ def main() -> None:
     )
     print("READY", flush=True)
 
-    from detent.dispatcher import dispatch
+    from irrevon.dispatcher import dispatch
 
     for line in sys.stdin:
         line = line.strip()
@@ -127,7 +127,7 @@ def main() -> None:
             else:
                 result = {"error": f"unknown verb {verb}"}
             print("RESULT " + json.dumps(result, default=str), flush=True)
-        except DetentError as err:
+        except IrrevonError as err:
             print("RESULT " + json.dumps(err.to_envelope()), flush=True)
 
 

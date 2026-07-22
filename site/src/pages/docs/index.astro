@@ -1,0 +1,191 @@
+---
+// Docs landing: guides, the rendered reference library, search, and the
+// canonical-links block. The quickstart itself now lives at /install and in
+// the Getting started guide.
+import { readFileSync } from "node:fs";
+import { getCollection } from "astro:content";
+import DocsShell from "../../layouts/DocsShell.astro";
+import SearchBox from "../../components/SearchBox.astro";
+import Source from "../../components/Source.astro";
+import { SITE_NAME, repoDoc } from "../../config";
+import { href } from "../../lib/url";
+import manifest from "../../../docs-manifest.json";
+
+const guides = (await getCollection("guides")).sort((a, b) => a.data.order - b.data.order);
+
+// The master doc is link-only by explicit ruling; name its pinned hash so
+// the reader can verify the canonical copy.
+const masterDocHash = readFileSync(
+  new URL("../../../../scripts/master-doc.sha256", import.meta.url),
+  "utf8",
+).trim();
+
+const referenceSections = ["Design", "Benchmark", "Contracts", "Governance", "Decisions"] as const;
+const withDescription = (section: string) =>
+  manifest.render.filter((e) => e.section === section && "description" in e);
+---
+
+<DocsShell
+  title={`Docs — ${SITE_NAME}`}
+  description="Guides for getting started, integrating, and writing adapters, plus the rendered repository documents: RFCs, benchmark preregistration, decision records, schemas, and governance."
+>
+  <header class="docs-hero">
+    <span class="kicker">Docs</span>
+    <h1>Documentation</h1>
+    <p class="lead">
+      Six written guides, and the repository's canonical documents rendered in place — mechanically synced,
+      drift-gated, and searchable. The repository copy always wins.
+    </p>
+    <SearchBox />
+  </header>
+
+  <section class="docs-block" aria-labelledby="guides-head">
+    <h2 id="guides-head">Guides</h2>
+    <ul class="guide-grid">
+      {
+        guides.map((g) => (
+          <li>
+            <a href={href(`/docs/${g.id}/`)}>{g.data.title}</a>
+            <p>{g.data.description}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="docs-block" aria-labelledby="reference-head">
+    <h2 id="reference-head">Reference — rendered from the repository</h2>
+    <p class="muted docs-block-note">
+      Each page below is a rendered copy of a repository document, carrying its source path and content hash.
+      A sync script regenerates them; CI fails on any drift, so these cannot fork the truth.
+    </p>
+    {
+      referenceSections.map((section) => {
+        const entries = withDescription(section);
+        return entries.length > 0 ? (
+          <div class="ref-group">
+            <h3>{section}</h3>
+            <ul class="ref-list">
+              {entries.map((e) => (
+                <li>
+                  <a href={href(`/docs/reference/${e.slug}/`)}>{"title" in e ? String(e.title) : e.slug}</a>
+                  <p>{"description" in e ? e.description : ""}</p>
+                  <span class="mono-chip">{e.source}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null;
+      })
+    }
+  </section>
+
+  <section class="docs-block" aria-labelledby="canonical-head">
+    <h2 id="canonical-head">Canonical, linked only</h2>
+    <ul class="ref-list">
+      <li>
+        <a href={repoDoc("docs/master-doc.md")}>Master document</a>
+        <p>
+          The single authoritative document: thesis, evidence, architecture, state model, benchmark design,
+          decisions, operations. Hash-pinned and amended only by human ratification — deliberately linked, not
+          rendered, so no second copy can drift.
+        </p>
+        <span class="mono-chip">pinned sha256 {masterDocHash.slice(0, 16)}…</span>
+      </li>
+      <li>
+        <a href={repoDoc("docs/review-queue.md")}>Review queue</a>
+        <p>Open questions and proposed amendments awaiting human resolution — a working queue, linked for transparency.</p>
+        <span class="mono-chip">docs/review-queue.md</span>
+      </li>
+      <li>
+        <a href={repoDoc("web/README.md")}>Workbench README</a>
+        <p>The read-only evidence workbench: budgets, fixture provenance, and zero-external-request guarantees.</p>
+        <span class="mono-chip">web/README.md</span>
+      </li>
+    </ul>
+    <div class="docs-src"><Source id="solo-governed" /></div>
+  </section>
+</DocsShell>
+
+<style>
+  .docs-hero {
+    display: grid;
+    gap: 14px;
+    margin-bottom: clamp(28px, 4vw, 44px);
+  }
+  .docs-block {
+    border-top: 1px solid var(--ref-border-subtle);
+    padding-top: clamp(24px, 3vw, 36px);
+    margin-top: clamp(24px, 3vw, 36px);
+    display: grid;
+    gap: 16px;
+  }
+  .docs-block-note {
+    font-size: var(--site-text-small);
+    max-width: var(--site-measure);
+  }
+  .guide-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  @media (max-width: 720px) {
+    .guide-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .guide-grid li {
+    border: 1px solid var(--ref-border-subtle);
+    border-radius: 2px;
+    background: var(--ref-layer-panel);
+    padding: 16px 18px;
+    display: grid;
+    gap: 8px;
+    align-content: start;
+  }
+  .guide-grid a {
+    font-weight: 600;
+  }
+  .guide-grid p,
+  .ref-list p {
+    color: var(--ref-ink-2);
+    font-size: var(--site-text-small);
+  }
+  .ref-group {
+    display: grid;
+    gap: 10px;
+  }
+  .ref-group h3 {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ref-ink-3);
+  }
+  .ref-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+  }
+  .ref-list li {
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+    border: 1px solid var(--ref-border-subtle);
+    border-radius: 2px;
+    background: var(--ref-layer-panel);
+    padding: 14px 18px;
+  }
+  .ref-list a {
+    font-weight: 600;
+  }
+  .docs-src {
+    margin-top: 4px;
+  }
+</style>

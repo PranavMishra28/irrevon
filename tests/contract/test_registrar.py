@@ -11,13 +11,13 @@ from typing import Any
 
 import pytest
 
-from detent.contract import (
+from irrevon.contract import (
     PersistedIdentity,
     adjudicate_reregistration,
     validate_intent_contract,
 )
-from detent.errors import IdentityConflict
-from detent.identity import derive_intent_id
+from irrevon.errors import IdentityConflict
+from irrevon.identity import derive_intent_id
 
 
 def _raw(**overrides: Any) -> dict[str, Any]:

@@ -1,13 +1,13 @@
-# Detent
+# Irrevon
 
-**DetentBench, a fault-injection benchmark for irreversible AI-agent actions, and Detent,
+**IrrevonBench, a fault-injection benchmark for irreversible AI-agent actions, and Irrevon,
 its reference reconciliation engine.** The benchmark plan is written for preregistration
 and is currently a draft; no section is frozen
 ([docs/benchmark-preregistration.md](docs/benchmark-preregistration.md) §0).
 
 When an LLM agent crosses into an irreversible external action and the outcome is ambiguous —
 a lost response, a crash mid-call, or a retry with re-synthesized arguments — duplicate,
-orphaned, or lost effects follow. DetentBench is designed to measure how often that happens
+orphaned, or lost effects follow. IrrevonBench is designed to measure how often that happens
 against real production API contracts, and how much of it a deterministic reconciler
 (identity from stable business identifiers, persist-before-dispatch, reconcile-by-query)
 can eliminate or surface. The project is benchmark-first and scoped to C2 destinations
@@ -22,8 +22,11 @@ The full product rationale, architecture, benchmark design, and decision log liv
 **First slice implemented (M3 core): identity + ledger + gate + dispatcher +
 reconciliation + recovery + sweep + the flagship demo**, per
 [docs/rfc-002-engine-design.md](docs/rfc-002-engine-design.md) (tasks T-101–T-104).
-The CI pipeline (required PR gate + nightly; [docs/ci.md](docs/ci.md)) and the
-fixture-backed, read-only workbench frontend ([web/](web/README.md)) are also in.
+Also in: the CI pipeline (required PR gate + nightly; [docs/ci.md](docs/ci.md)); the
+read-only workbench frontend ([web/](web/README.md)) with a loopback live mode over
+`irrevon serve` ([ADR-0024](docs/decisions/0024-serve-read-surface.md)); wheel/sdist
+packaging with `make dist` / `dist-smoke` (built, unpublished); and the expanded
+marketing/discovery site ([site/](site/README.md) — built, deploy gated).
 Real destination adapters (M4), the benchmark harness (M5+), and any packaged release
 remain gated by the execution plan. The roadmap, gates, and what blocks what are in
 [docs/execution-plan.md](docs/execution-plan.md). Items awaiting human decision are in
@@ -34,21 +37,21 @@ remain gated by the execution plan. The roadmap, gates, and what blocks what are
 Prerequisites: [uv](https://docs.astral.sh/uv/), Docker (for local Postgres 17), ~5 minutes.
 
 ```bash
-git clone <this-repo> && cd detent
+git clone <this-repo> && cd irrevon
 uv sync --locked                # toolchain + deps, pinned by uv.lock
-uv run detent init              # writes detent.toml, compose.yaml, .env.example
+uv run irrevon init              # writes irrevon.toml, compose.yaml, .env.example
 cp .env.example .env            # local placeholder password (never committed)
 docker compose up -d --wait     # digest-pinned Postgres 17, loopback only
-uv run detent init              # now applies the plain-SQL migrations
-uv run detent doctor            # read-only checks incl. the identity self-test
-uv run detent demo              # the two-leg flagship story (see below)
-uv run detent inspect <effect_id> --dsn '<printed by the demo>'
+uv run irrevon init              # now applies the plain-SQL migrations
+uv run irrevon doctor            # read-only checks incl. the identity self-test
+uv run irrevon demo              # the two-leg flagship story (see below)
+uv run irrevon inspect <effect_id> --dsn '<printed by the demo>'
 ```
 
-`detent demo` runs the whole thesis in one command, against the deterministic
+`irrevon demo` runs the whole thesis in one command, against the deterministic
 reference destination (a C2 API: queryable status, **no honored idempotency**):
 
-1. **Detent leg** — an intent keyed on stable business identifiers is persisted
+1. **Irrevon leg** — an intent keyed on stable business identifiers is persisted
    before dispatch; the destination commits the order but the response is lost
    on cue; the engine process is **really SIGKILLed**; on restart, recovery
    queries the destination *before any redispatch*, settles the record
@@ -70,9 +73,12 @@ web-test` (workbench static gates + unit/story tests), or everything:
 
 ## Workbench (`web/`)
 
-A local-first, **read-only** evidence workbench over the engine's contracts —
-fixture-backed in v0.1 (all data is captured transcripts of the real engine; the
-browser can never mutate anything). The v0.2 redesign adds an honest Overview at
+A local-first, **read-only** evidence workbench over the engine's contracts. Two
+data modes, never mixed: fixture-backed (captured transcripts of the real engine;
+dev/test/review only) and **live mode** against the loopback read server
+(`irrevon serve` — GET/HEAD-only, `irrevon_read` SELECT-only role, 127.0.0.1
+only; [ADR-0024](docs/decisions/0024-serve-read-surface.md)). The browser can
+never mutate anything in either mode. The v0.2 redesign adds an honest Overview at
 `/` (complete-snapshot counts with explicit refusals), a custom-SVG causal
 investigation graph on effect detail (single-effect only — see the A1 note in
 [docs/review-queue.md](docs/review-queue.md) §2), the six-layer surface system,
@@ -83,10 +89,12 @@ and a responsive shell down to 375 px (mobile drawer navigation). Toolchain
 
 ## Marketing site (`site/`)
 
-A zero-JS-by-default Astro package with six public pages, a drift-gated claims
-registry, and identity vendored from the workbench tokens — built and tested,
-**deploy gated and human-only** (the `site-deploy` workflow is
-`workflow_dispatch`-only; the gate list lives in
+A zero-JS-by-default Astro package: the six original pages plus the discovery
+surface (drift-gated rendered repository docs with self-hosted search, the
+recorded interactive demo, research/changelog/roadmap/install, full SEO
+metadata), a drift-gated claims registry, and identity vendored from the
+workbench tokens — built and tested, **deploy gated and human-only** (the
+`site-deploy` workflow is `workflow_dispatch`-only; the gate list lives in
 [docs/review-queue.md](docs/review-queue.md)). See [site/README.md](site/README.md).
 
 ## Repository status and licensing

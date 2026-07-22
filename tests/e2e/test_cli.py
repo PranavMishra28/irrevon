@@ -13,7 +13,7 @@ import psycopg
 import pytest
 from psycopg.rows import dict_row
 
-from detent.cli import main
+from irrevon.cli import main
 from tests.integration.conftest import ADMIN_DSN, DBHandles
 
 pytestmark = pytest.mark.integration
@@ -21,13 +21,13 @@ pytestmark = pytest.mark.integration
 REPO_ROOT = Path(__file__).parent.parent.parent
 
 
-# ── detent init ───────────────────────────────────────────────────────────────
+# ── irrevon init ───────────────────────────────────────────────────────────────
 
 
 def test_init_writes_templates_non_destructively(tmp_path: Path, capsys: Any) -> None:
     # Pin the config to an unreachable DSN so init's migration attempt cannot
     # touch any real database from the test environment.
-    unreachable = tmp_path / "cfg" / "detent.toml"
+    unreachable = tmp_path / "cfg" / "irrevon.toml"
     unreachable.parent.mkdir()
     unreachable.write_text(
         'schema_version = "1"\n\n[ledger]\ndsn = "postgresql://nobody@127.0.0.1:1/none"\n'
@@ -35,8 +35,8 @@ def test_init_writes_templates_non_destructively(tmp_path: Path, capsys: Any) ->
     rc = main(["init", "--dir", str(tmp_path), "--json", "--config", str(unreachable)])
     assert rc == 0
     out = json.loads(capsys.readouterr().out)
-    assert sorted(out["written"]) == [".env.example", "compose.yaml", "detent.toml"]
-    assert out["next"] == "detent doctor"
+    assert sorted(out["written"]) == [".env.example", "compose.yaml", "irrevon.toml"]
+    assert out["next"] == "irrevon doctor"
     assert out["migrations_applied"] is None and out["db_note"], (
         "unreachable DB is a normal first-run state, reported not fatal"
     )
@@ -48,26 +48,26 @@ def test_init_writes_templates_non_destructively(tmp_path: Path, capsys: Any) ->
     assert "127.0.0.1:5432" in compose, "loopback only"
 
     # Refuses to overwrite without --force.
-    (tmp_path / "detent.toml").write_text("# user-edited\nschema_version = \"1\"\n")
+    (tmp_path / "irrevon.toml").write_text("# user-edited\nschema_version = \"1\"\n")
     rc = main(["init", "--dir", str(tmp_path), "--json", "--config", str(unreachable)])
     out = json.loads(capsys.readouterr().out)
     assert rc == 0
-    assert "detent.toml" in out["skipped"]
-    assert (tmp_path / "detent.toml").read_text().startswith("# user-edited")
+    assert "irrevon.toml" in out["skipped"]
+    assert (tmp_path / "irrevon.toml").read_text().startswith("# user-edited")
 
     rc = main(
         ["init", "--dir", str(tmp_path), "--force", "--json", "--config",
          str(unreachable)]
     )
     out = json.loads(capsys.readouterr().out)
-    assert "detent.toml" in out["written"]
+    assert "irrevon.toml" in out["written"]
 
 
-# ── detent doctor ─────────────────────────────────────────────────────────────
+# ── irrevon doctor ─────────────────────────────────────────────────────────────
 
 
 def _write_config(tmp_path: Path, dsn: str) -> Path:
-    cfg = tmp_path / "detent.toml"
+    cfg = tmp_path / "irrevon.toml"
     cfg.write_text(
         f'schema_version = "1"\n\n[ledger]\ndsn = "{dsn}"\n\n[demo]\nseed = 4242\n'
     )
@@ -111,7 +111,7 @@ def test_doctor_fails_cleanly_when_db_unreachable(
 
 
 def test_config_unknown_keys_rejected(tmp_path: Path, capsys: Any) -> None:
-    cfg = tmp_path / "detent.toml"
+    cfg = tmp_path / "irrevon.toml"
     cfg.write_text('schema_version = "1"\n\n[ledgr]\ndsn = "x"\n')
     rc = main(["doctor", "--config", str(cfg)])
     captured = capsys.readouterr()
@@ -120,19 +120,21 @@ def test_config_unknown_keys_rejected(tmp_path: Path, capsys: Any) -> None:
     assert envelope["error"]["code"] == "config_invalid"
 
 
-# ── detent demo (the acceptance criterion) ────────────────────────────────────
+# ── irrevon demo (the acceptance criterion) ────────────────────────────────────
 
 
 def test_demo_exits_zero_with_the_contrast(
     template_db: str, tmp_path: Path
 ) -> None:
-    """T-104 acceptance: `detent demo` exits 0 with the Detent leg at 1
+    """T-104 acceptance: `irrevon demo` exits 0 with the Irrevon leg at 1
     destination effect + reconciled SETTLED_COMMITTED + evidenced dedup deny,
     and the B5 leg at 2 destination effects, proven by read-back."""
     _write_config(tmp_path, ADMIN_DSN)
+    artifact = tmp_path / "irrevon-demo-artifact.json"
     proc = subprocess.run(
-        [sys.executable, "-m", "detent.cli", "demo", "--jsonl", "--no-keep",
-         "--seed", "4242", "--config", str(tmp_path / "detent.toml")],
+        [sys.executable, "-m", "irrevon.cli", "demo", "--jsonl", "--no-keep",
+         "--seed", "4242", "--config", str(tmp_path / "irrevon.toml"),
+         "--artifact", str(artifact)],
         capture_output=True,
         text=True,
         cwd=REPO_ROOT,
@@ -142,11 +144,21 @@ def test_demo_exits_zero_with_the_contrast(
     lines = [json.loads(line) for line in proc.stdout.strip().splitlines()]
     summary = lines[-1]
     assert summary["contrast_holds"] is True
-    assert summary["detent_leg"]["destination_effects"] == 1
-    assert summary["detent_leg"]["duplicate_rejected"] is True
-    assert summary["detent_leg"]["reconciled"] == "SETTLED_COMMITTED"
+    assert summary["irrevon_leg"]["destination_effects"] == 1
+    assert summary["irrevon_leg"]["duplicate_rejected"] is True
+    assert summary["irrevon_leg"]["reconciled"] == "SETTLED_COMMITTED"
     assert summary["b5_leg"]["destination_effects"] == 2
     assert summary["b5_leg"]["duplicate_created"] is True
+    # Serve handoff (additive --jsonl fields) + the written demo artifact.
+    assert summary["artifact_path"] == str(artifact)
+    effect_id = summary["irrevon_leg"]["effect_id"]
+    assert summary["workbench_url"] == f"http://127.0.0.1:5180/effects/{effect_id}"
+    written = json.loads(artifact.read_text())
+    assert written["schema_version"] == "1"
+    assert written["summary"]["contrast_holds"] is True
+    assert [e["event"] for e in written["events"]] == [
+        line["event"] for line in lines[:-1]
+    ]
     events = [line.get("event") for line in lines[:-1]]
     for expected in (
         "registered",
@@ -163,14 +175,14 @@ def test_demo_exits_zero_with_the_contrast(
         assert expected in events, f"missing demo event {expected}"
 
 
-# ── detent inspect ────────────────────────────────────────────────────────────
+# ── irrevon inspect ────────────────────────────────────────────────────────────
 
 
 @pytest.fixture
 def settled_effect(fresh_db: DBHandles) -> tuple[str, str]:
-    from detent.adapters.base import declarations_dir, load_declaration
-    from detent.adapters.refdest import RefDest, RefdestAdapter
-    from detent.api import Engine
+    from irrevon.adapters.base import declarations_dir, load_declaration
+    from irrevon.adapters.refdest import RefDest, RefdestAdapter
+    from irrevon.api import Engine
 
     declaration = load_declaration(declarations_dir() / "refdest-c2.capability.json")
     refdest = RefDest(seed=5)

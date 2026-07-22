@@ -102,7 +102,7 @@ def test_recovery_is_reentrant_under_mid_recovery_kills(
     # Crash during recovery after the 1st record, then after the 2nd.
     for nth in ("1", "2"):
         crashing = engine_factory(
-            {"DETENT_CRASH_AT": f"recovery.after_record:{nth}"}, wait_ready=False
+            {"IRREVON_CRASH_AT": f"recovery.after_record:{nth}"}, wait_ready=False
         )
         crashing.assert_died_by_sigkill()
 

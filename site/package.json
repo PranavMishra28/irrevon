@@ -1,5 +1,5 @@
 {
-  "name": "detent-site",
+  "name": "irrevon-site",
   "private": true,
   "version": "0.0.1",
   "type": "module",
@@ -10,23 +10,31 @@
   "packageManager": "pnpm@11.15.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && pagefind --site dist && node scripts/inject-csp.mjs",
     "preview": "astro preview",
     "sync:tokens": "node scripts/sync-tokens.mjs",
     "sync:fonts": "node scripts/sync-fonts.mjs",
+    "sync:docs": "node scripts/sync-docs.mjs",
+    "sync:cli": "node scripts/sync-cli-reference.mjs",
     "claims:md": "node scripts/build-claims-md.mjs",
-    "check": "astro check && node scripts/sync-tokens.mjs --check && node scripts/sync-fonts.mjs --check && node scripts/build-claims-md.mjs --check",
+    "check": "astro check && node scripts/sync-tokens.mjs --check && node scripts/sync-fonts.mjs --check && node scripts/build-claims-md.mjs --check && node scripts/sync-docs.mjs --check && node scripts/sync-cli-reference.mjs --check && node scripts/sync-demo.mjs --check && node scripts/build-og.mjs --check",
     "test": "playwright test --project checks",
     "test:shots": "playwright test --project shots",
-    "shots": "playwright test --project shots"
+    "shots": "playwright test --project shots",
+    "sync:demo": "node scripts/sync-demo.mjs",
+    "og:build": "node scripts/build-og.mjs"
   },
   "dependencies": {
+    "@astrojs/rss": "4.0.19",
+    "@astrojs/sitemap": "3.7.3",
     "astro": "7.0.9"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.9",
+    "@astrojs/markdown-satteri": "0.3.4",
     "@axe-core/playwright": "4.12.1",
     "@playwright/test": "1.61.1",
+    "pagefind": "1.5.2",
     "typescript": "5.9.3"
   }
 }

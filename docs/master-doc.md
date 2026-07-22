@@ -1,8 +1,8 @@
-# Detent — Master Project Document
+# Irrevon — Master Project Document
 
 **An open-source benchmark and reference reconciliation engine for honest handling of irreversible AI-agent actions.**
 
-Detent (reference layer) · DetentBench (benchmark) · Statement Autopsy (demo) · Self-contained edition · July 20, 2026
+Irrevon (reference layer) · IrrevonBench (benchmark) · Statement Autopsy (demo) · Self-contained edition · July 20, 2026
 
 ---
 
@@ -118,7 +118,7 @@ The contribution is the **combination and its measurement**, not the invention o
 ### 4.3 Competitor / prior-art status (July 2026)
 
 
-| Project                    | Status                  | Overlap | Differentiation from Detent                                                                                                       |
+| Project                    | Status                  | Overlap | Differentiation from Irrevon                                                                                                       |
 | -------------------------- | ----------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | Atomix (2602.14849)        | arXiv prototype         | High    | Runtime + frontier gating; in-memory dedup (crash before log persist can duplicate — its own stated limit); no reconcile-by-query |
 | Cordon (2606.17573)        | arXiv research          | High    | Shadow-state runtime containment, not a benchmark/reconcile engine                                                                |
@@ -140,14 +140,14 @@ The contribution is the **combination and its measurement**, not the invention o
 
 ### 5.1 Components
 
-- **DetentBench (the benchmark — the public lead):** a preregistered, seeded fault-injection suite against real sandbox APIs, reporting duplicate / orphaned / lost-legitimate / false-suppression / precision-recall / human-review metrics across the full baseline ladder. The flagship demo is a reproducible semantic-rollback → duplicate-effect attack that idempotency-keys-only miss and the reference engine catches or surfaces.
-- **Detent (the reference reconciliation engine):** the "proposed system" baseline within the benchmark — Intent Registrar → Effect Ledger → Commit Gate → Dispatcher → Reconciliation Engine (+ Orphan Sweep), with capability-tiered adapters and an advisory-only Outcome Classifier.
+- **IrrevonBench (the benchmark — the public lead):** a preregistered, seeded fault-injection suite against real sandbox APIs, reporting duplicate / orphaned / lost-legitimate / false-suppression / precision-recall / human-review metrics across the full baseline ladder. The flagship demo is a reproducible semantic-rollback → duplicate-effect attack that idempotency-keys-only miss and the reference engine catches or surfaces.
+- **Irrevon (the reference reconciliation engine):** the "proposed system" baseline within the benchmark — Intent Registrar → Effect Ledger → Commit Gate → Dispatcher → Reconciliation Engine (+ Orphan Sweep), with capability-tiered adapters and an advisory-only Outcome Classifier.
 - **Effect-contract registry (lightweight companion):** a machine-readable way to declare a destination's capability tier (C1/C2/C3) and its idempotency/query semantics.
 - **Statement Autopsy (demo only):** a consumer-legible demonstration flagging possible duplicate agent-era charges. No accounts, no hosted service, no revenue, and no definitive-verdict / "detects fraud" / "guarantees savings" language (FTC Section 5 / Operation AI Comply risk; the Cleo AI settlement is the precedent).
 
 ### 5.2 POC scope
 
-Smallest version that proves the thesis and the honest null: the Detent core (intent contract, persist-before-dispatch ledger, commit gate, reconciliation engine, orphan sweep) plus two primary adapters — a **C1** idempotency-keyed destination (Stripe test mode) and a **C2** queryable destination (one of Amadeus test / Shopify dev store / Twilio test / EasyPost test) — plus an optional **C3** opaque destination for the impossibility-boundary demo, and DetentBench running the full fault × effect-class matrix against those real sandboxes.
+Smallest version that proves the thesis and the honest null: the Irrevon core (intent contract, persist-before-dispatch ledger, commit gate, reconciliation engine, orphan sweep) plus two primary adapters — a **C1** idempotency-keyed destination (Stripe test mode) and a **C2** queryable destination (one of Amadeus test / Shopify dev store / Twilio test / EasyPost test) — plus an optional **C3** opaque destination for the impossibility-boundary demo, and IrrevonBench running the full fault × effect-class matrix against those real sandboxes.
 
 ### 5.3 Future product (only if G0 is met)
 
@@ -176,7 +176,7 @@ A hosted reconciliation service or a supported adapter suite for a specific C2-h
 | Reconciliation Engine         | Deterministically resolves AMBIGUOUS effects by querying destination status; assigns reconciliation classifications; runs the out-of-ledger Orphan Sweep.                      |
 | Outcome Classifier (advisory) | Optional model-assisted triage proposing classifications for human review. Advisory only; architecturally unable to reach gate or resolve APIs.                                |
 | Adapters                      | Per-destination dispatch / status-query / dedup-check + a version-pinned, cited capability declaration.                                                                        |
-| DetentBench Harness           | Seeded workload + fault injection + ground-truth oracle + metrics computation.                                                                                                 |
+| IrrevonBench Harness           | Seeded workload + fault injection + ground-truth oracle + metrics computation.                                                                                                 |
 
 
 ### 6.2 Architecture diagram
@@ -200,7 +200,7 @@ flowchart TD
   HR -->|resolution| L
   RE --> SW[Orphan Sweep]
   SW -->|destination-only findings| L
-  L --> EB[DetentBench harness]
+  L --> EB[IrrevonBench harness]
 
 ```
 
@@ -292,7 +292,7 @@ Effect identity derives from an explicit business-intent contract keyed on stabl
 ```mermaid
 sequenceDiagram
   participant Ag as Agent
-  participant DT as Detent
+  participant DT as Irrevon
   participant L as Ledger
   participant X as Destination
   Ag->>DT: registerIntent(stable ids)
@@ -317,7 +317,7 @@ sequenceDiagram
 
 | Tier                 | Destination property                                                      | Duplicates                                                                 | Lost / orphans                                             | Example APIs                                                                                  |
 | -------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| C1 idempotency-keyed | Accepts caller key with defined replay window                             | PREVENTED within window (native; Detent adds no advantage — expected null) | Detected via receipts + query                              | Stripe; QuickBooks Online (RequestId)                                                         |
+| C1 idempotency-keyed | Accepts caller key with defined replay window                             | PREVENTED within window (native; Irrevon adds no advantage — expected null) | Detected via receipts + query                              | Stripe; QuickBooks Online (RequestId)                                                         |
 | C2 queryable         | Stable external refs; list/status query, no dependable native idempotency | DETECTED via query; safe re-dispatch after confirmed absence               | Detected via sweep; LOST provable                          | Amadeus Flight Create Orders; Twilio Messages; EasyPost/Shippo shipments; Shopify orderCreate |
 | C3 opaque            | No key, no query, no stable ID                                            | Client-side dedup of identical ops only                                    | UNDETECTABLE — impossibility boundary, demonstrated openly | fire-and-forget notifications                                                                 |
 
@@ -332,11 +332,11 @@ Each adapter ships a version-pinned CapabilityDeclaration with citations to dest
 
 ---
 
-## 8. DetentBench — Benchmark Design
+## 8. IrrevonBench — Benchmark Design
 
 ### 8.1 Credibility bar (post-2026 benchmark crisis)
 
-`[VF]` DetentBench is designed to clear the standard SWE-bench Verified and SWE-bench Pro failed in 2026. OpenAI stopped reporting SWE-bench Verified (Feb 23, 2026) after an audit found gains "increasingly reflect how much the model was exposed to the benchmark at training time," and retracted its SWE-bench Pro recommendation (July 8, 2026) after flagging ~27–34% of public tasks as broken. DetentBench therefore self-scores against **BetterBench** (Reuel et al., NeurIPS 2024 Datasets & Benchmarks; 46 lifecycle criteria), ships **Datasheets for Datasets** documentation and Croissant metadata, preregisters hypotheses/metrics/analysis (public, timestamped) before any run, and maintains a **private held-out fault-seed split** that is never exposed pre-publication.
+`[VF]` IrrevonBench is designed to clear the standard SWE-bench Verified and SWE-bench Pro failed in 2026. OpenAI stopped reporting SWE-bench Verified (Feb 23, 2026) after an audit found gains "increasingly reflect how much the model was exposed to the benchmark at training time," and retracted its SWE-bench Pro recommendation (July 8, 2026) after flagging ~27–34% of public tasks as broken. IrrevonBench therefore self-scores against **BetterBench** (Reuel et al., NeurIPS 2024 Datasets & Benchmarks; 46 lifecycle criteria), ships **Datasheets for Datasets** documentation and Croissant metadata, preregisters hypotheses/metrics/analysis (public, timestamped) before any run, and maintains a **private held-out fault-seed split** that is never exposed pre-publication.
 
 ### 8.2 Oracle
 
@@ -355,7 +355,7 @@ Fixtures are the oracle: seeded workloads with known true intent identity; seman
 | B5  | Durable runtime + native idempotency     | C1 + own-state exactly-once                             | punts external APIs to idempotency keys; no C2 adjudication |
 | B6  | Provider-native status check / reconcile | some detection                                          | not general; varies by provider                             |
 | B7  | Model-assisted semantic matching         | flags likely dupes                                      | probabilistic; unsafe as sole authority                     |
-| R   | Proposed system (Detent)                 | C2 detection + safe re-dispatch + orphan/lost surfacing | none beyond destination capability (C3 unsolvable)          |
+| R   | Proposed system (Irrevon)                 | C2 detection + safe re-dispatch + orphan/lost surfacing | none beyond destination capability (C3 unsolvable)          |
 
 
 ### 8.4 Scenarios and metrics
@@ -371,7 +371,7 @@ Fixtures are the oracle: seeded workloads with known true intent identity; seman
 ### 8.6 Success criteria and pre-committed falsification
 
 - **Success (capability-stratified):** C1 — R matches native idempotency on duplicate rate (no regression) while improving ambiguous-case detection/recovery; **C2 — R shows a statistically significant, large reduction in duplicate/orphaned/lost rates vs. the strongest baseline (B5) across ≥5 seeds**; all tiers — R's false-suppression ≤ B1, and R reduces unresolved-ambiguous and human-review burden.
-- **Pre-committed falsification** `[TH]`**:** if "durable runtime + native idempotency + stable operation IDs" (B5 + B3) reduces C2 rates to statistically indistinguishable from R (overlapping CIs across ≥5 seeds), **Detent is unnecessary** and the project is reframed as a teaching artifact (Section 14 kill). The benchmark is explicitly not designed so the system must win.
+- **Pre-committed falsification** `[TH]`**:** if "durable runtime + native idempotency + stable operation IDs" (B5 + B3) reduces C2 rates to statistically indistinguishable from R (overlapping CIs across ≥5 seeds), **Irrevon is unnecessary** and the project is reframed as a teaching artifact (Section 14 kill). The benchmark is explicitly not designed so the system must win.
 
 ### 8.7 Publish threshold and venue
 
@@ -414,7 +414,7 @@ Each decision carries its rejected alternatives and a reopen trigger. Template f
 | 008 Oracle         | Frozen seeded oracle; client-side fault injection vs. real destinations; disclosed realism bounds                                                  | Live-LLM workloads (irreproducible); mock destinations (abandons real-API claim)                   | External replication shows materially different rates with fresh variants                              |
 | 009 Scope          | Benchmark-first, C2-scoped; reference engine is a baseline, not a product                                                                          | Runtime/SDK-first (incumbent-absorbable; over-scoped for solo)                                     | A design partner shows recurring material losses (G0)                                                  |
 | 010 Stripe version | OPEN: pin Stripe API version (v1 24h first-response replay vs. v2 30-day retry-without-side-effects) after an M4 spike, before contract tests      | Assuming one version silently                                                                      | Decide at M4; changes the C1 contract and B4/B5 expectations                                           |
-| 011 Name           | Working name "Detent" (the catch that holds a ratchet and prevents reversal); replaces "Pawl" (collides with ratchetphp/Pawl + PyPI + GitHub user) | Pawl (collision); Escapement (harder to spell); Backstop (finance collisions)                      | Registry/trademark screen reveals a Detent collision — fall back to a runner-up                        |
+| 011 Name           | Working name "Irrevon" (the catch that holds a ratchet and prevents reversal); replaces "Pawl" (collides with ratchetphp/Pawl + PyPI + GitHub user) | Pawl (collision); Escapement (harder to spell); Backstop (finance collisions)                      | Registry/trademark screen reveals a Irrevon collision — fall back to a runner-up                        |
 
 
 ---
@@ -463,7 +463,7 @@ Invariant-affecting changes (state model, guarantees, identity rules, ledger pro
 - [ ] ADR-010: Stripe API version pinned after the M4 spike, before contract tests. (Technical.)
 - [ ] C2 sandbox provider selected (Amadeus / Shopify / Twilio / EasyPost); if a self-hosted reference destination substitutes, disclose it (weakens the "real API" claim for that adapter). (Technical.)
 - [ ] Benchmark plan preregistered and hash-stamped before any experiment exists. (Integrity.)
-- [ ] Name screen completed — registry + trademark checks for "Detent" before first public commit; fall back to a runner-up if it collides. (Adoption; no trademark claim made here.)
+- [ ] Name screen completed — registry + trademark checks for "Irrevon" before first public commit; fall back to a runner-up if it collides. (Adoption; no trademark claim made here.)
 
 ---
 
@@ -471,7 +471,7 @@ Invariant-affecting changes (state model, guarantees, identity rules, ledger pro
 
 ### 14.1 Success definitions
 
-- **Technical:** DetentBench meets the capability-stratified criteria (8.6) with reproducible, independently recomputed results — including an honest C1 null and a significant C2 win.
+- **Technical:** IrrevonBench meets the capability-stratified criteria (8.6) with reproducible, independently recomputed results — including an honest C1 null and a significant C2 win.
 - **Professional:** a repo + benchmark + essay a senior agent-reliability engineer inspects and concludes the author understands real production-agent failure. Requires no revenue.
 - **Optional commercial:** G0 satisfied (3.3) — deferred behind external clearances.
 
@@ -483,7 +483,7 @@ Invariant-affecting changes (state model, guarantees, identity rules, ledger pro
 | "Stable op-IDs + durable exec + native idempotency already cover it" | True on C1; the residue is C2                             | Pre-commit to the C1 null; if no C2 advantage over B5 → reframe as teaching artifact (kill) |
 | Wedge closes via native-idempotency adoption                         | Payments converging (ACP); travel/logistics/messaging not | Monitor C2 destinations quarterly (O-3)                                                     |
 | Incumbent absorbs the reconcile adapter                              | Adapters are thin                                         | Lead with the benchmark (harder to absorb)                                                  |
-| Re-synthesis stays academic                                          | Named in ACRFence; thin in-the-wild counts                | DetentBench generates the missing data; 60-day evidence review                              |
+| Re-synthesis stays academic                                          | Named in ACRFence; thin in-the-wild counts                | IrrevonBench generates the missing data; 60-day evidence review                              |
 | Frequency too low to matter                                          | 0.8% irreversible (Anthropic)                             | Position as high-severity/low-frequency reliability tooling, not a metered runtime          |
 | Solo bandwidth                                                       | ~10 hrs/week                                              | Below that 4+ weeks → deliberate pause; milestones independently shippable                  |
 
@@ -518,11 +518,11 @@ Solo, ~10 hrs/week; each milestone is independently shippable with an exit test 
 ## 16. Immediate Next Actions
 
 1. Send the external clearance requests (Section 13) today. These are the true critical path; nothing publishes without them.
-2. Screen the name "Detent" across GitHub, PyPI, npm, company names, and a basic trademark search; claim the org/package/repo names if clear, else adopt a runner-up.
-3. Write ADR-000 (scope freeze) and **preregister + hash-stamp the DetentBench plan** — including the full baseline ladder and the private held-out fault-seed split — before any experiment.
+2. Screen the name "Irrevon" across GitHub, PyPI, npm, company names, and a basic trademark search; claim the org/package/repo names if clear, else adopt a runner-up.
+3. Write ADR-000 (scope freeze) and **preregister + hash-stamp the IrrevonBench plan** — including the full baseline ladder and the private held-out fault-seed split — before any experiment.
 4. Select the C2 sandbox (recommend starting with whichever of Amadeus / Shopify dev store / Twilio / EasyPost has the fastest sandbox onboarding) and resolve ADR-010 (Stripe version) with a short spike.
 5. Start M2: Apache-2.0 repo, CI with secret scanning, local Postgres, sandbox projects, runbook.
-6. Build the M3 core to the point of the flagship demo — a lost-response + crash + re-synthesized retry that B5 mishandles on C2 and Detent reconciles — and capture it as the first public artifact.
+6. Build the M3 core to the point of the flagship demo — a lost-response + crash + re-synthesized retry that B5 mishandles on C2 and Irrevon reconciles — and capture it as the first public artifact.
 
 ---
 

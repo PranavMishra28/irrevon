@@ -14,11 +14,11 @@ from typing import Any
 
 import pytest
 
-from detent.adapters.base import declarations_dir, load_declaration
-from detent.adapters.refdest import RefDest, RefdestAdapter
-from detent.dispatcher import dispatch
-from detent.ledger import Ledger
-from detent.sweep import sweep
+from irrevon.adapters.base import declarations_dir, load_declaration
+from irrevon.adapters.refdest import RefDest, RefdestAdapter
+from irrevon.dispatcher import dispatch
+from irrevon.ledger import Ledger
+from irrevon.sweep import sweep
 from tests.integration.conftest import DBHandles
 
 pytestmark = pytest.mark.integration
@@ -44,12 +44,12 @@ def test_k_oob_effects_yield_exactly_k_orphans(fresh_db: DBHandles) -> None:
     refdest = RefDest(seed=11)
     adapter = RefdestAdapter("refdest-c2", C2_DECL, instance=refdest)
     with Ledger(fresh_db.app_dsn) as ledger:
-        # J = 2 legitimate dispatches through Detent in the same window.
+        # J = 2 legitimate dispatches through Irrevon in the same window.
         for i in range(2):
             reg = ledger.register_intent(_raw(f"sw-legit-{i}"), adapter.declaration_digest())
             report = dispatch(ledger, adapter, reg.effect_id)
             assert report.lifecycle == "SETTLED_COMMITTED"
-        # K = 3 out-of-band effects bypassing Detent entirely.
+        # K = 3 out-of-band effects bypassing Irrevon entirely.
         oob_refs = {
             refdest.control_oob_create("order.create", {"oob": i})["destination_ref"]
             for i in range(3)

@@ -1,4 +1,4 @@
-// The claims registry (RD5 §3.0): every key claim on the site lives here —
+// The claims registry: every key claim on the site lives here —
 // claim text, source (doc + section), epistemic label, badge. Pages reference
 // claims by id via <Source id="…"/>; scripts/build-claims-md.mjs renders the
 // committed site/CLAIMS.md table from this file so "cite sources per claim"
@@ -48,7 +48,7 @@ export const claims = {
   // ── Recorded artifact (the flagship demo) ───────────────────────────────
   "demo-provenance": {
     claim:
-      "The demo transcript is recorded from a real engine run — seed 777, engine commit a3dd583 — against the reference C2 destination (queryable status, no honored idempotency). Reproducible from the repository.",
+      "The demo transcript is recorded from a real engine run — seed 777, engine commit 0a22114 — against the reference C2 destination (queryable status, no honored idempotency). Reproducible from the repository.",
     source: "web/fixtures/canonical/provenance.json",
     label: "VF",
     badge: "recorded",
@@ -62,7 +62,7 @@ export const claims = {
   },
   "demo-contrast": {
     claim:
-      "Recorded contrast: the Detent leg ends with 1 destination effect and the duplicate rejected; the B5 baseline leg (durable runtime, stable op-IDs, idempotency keys sent) under the identical fault schedule retries on restart and ends with 2 destination effects — the C2 destination ignores the key.",
+      "Recorded contrast: the Irrevon leg ends with 1 destination effect and the duplicate rejected; the B5 baseline leg (durable runtime, stable op-IDs, idempotency keys sent) under the identical fault schedule retries on restart and ends with 2 destination effects — the C2 destination ignores the key.",
     source: "web/fixtures/canonical/demo-artifact.json (summary)",
     label: "VF",
     badge: "recorded",
@@ -108,7 +108,7 @@ export const claims = {
   },
   "tiers-table": {
     claim:
-      "Guarantees are destination-tiered: C1 (idempotency-keyed) duplicates are PREVENTED natively — Detent adds no advantage there, the expected null; C2 (queryable) duplicates are DETECTED via query with safe re-dispatch after confirmed absence; C3 (opaque) lost and orphaned effects are UNDETECTABLE — an impossibility boundary demonstrated openly.",
+      "Guarantees are destination-tiered: C1 (idempotency-keyed) duplicates are PREVENTED natively — Irrevon adds no advantage there, the expected null; C2 (queryable) duplicates are DETECTED via query with safe re-dispatch after confirmed absence; C3 (opaque) lost and orphaned effects are UNDETECTABLE — an impossibility boundary demonstrated openly.",
     source: "master doc §7.5",
     label: "DD",
   },
@@ -160,7 +160,7 @@ export const claims = {
   // ── Benchmark ───────────────────────────────────────────────────────────
   "prereg-draft-status": {
     claim:
-      "The DetentBench preregistration is a DRAFT — nothing is frozen, no section carries integrity weight yet, and no benchmark run, sandbox spike, or fault trial may occur before the Stage-A freeze. Freezing is a human act.",
+      "The IrrevonBench preregistration is a DRAFT — nothing is frozen, no section carries integrity weight yet, and no benchmark run, sandbox spike, or fault trial may occur before the Stage-A freeze. Freezing is a human act.",
     source: "docs/benchmark-preregistration.md §0",
     label: "VF",
     badge: "preregistered",
@@ -179,7 +179,7 @@ export const claims = {
   },
   "credibility-controls": {
     claim:
-      "DetentBench self-scores against BetterBench (46 lifecycle criteria), ships Datasheets for Datasets documentation and Croissant metadata, preregisters hypotheses/metrics/analysis before any run, and seals a private held-out fault-seed split that never enters the repository.",
+      "IrrevonBench self-scores against BetterBench (46 lifecycle criteria), ships Datasheets for Datasets documentation and Croissant metadata, preregisters hypotheses/metrics/analysis before any run, and seals a private held-out fault-seed split that never enters the repository.",
     source: "master doc §8.1 + preregistration §0, §7",
     label: "DD",
     badge: "preregistered",
@@ -193,14 +193,14 @@ export const claims = {
   },
   "kill-criterion": {
     claim:
-      "The falsification criterion is pre-committed: if the composite comparator is statistically equivalent to or better than Detent on every primary metric of the confirmatory stratum (TOST, with a worst-cell gate), Detent is unnecessary and the project is reframed as a teaching artifact. The benchmark is explicitly not designed so the system must win.",
+      "The falsification criterion is pre-committed: if the composite comparator is statistically equivalent to or better than Irrevon on every primary metric of the confirmatory stratum (TOST, with a worst-cell gate), Irrevon is unnecessary and the project is reframed as a teaching artifact. The benchmark is explicitly not designed so the system must win.",
     source: "preregistration §1 (implements master doc §8.6 + AM-14)",
     label: "TH",
     badge: "preregistered",
   },
   "c1-null-precommit": {
     claim:
-      "The pre-committed C1 null: on C1 destinations Detent is expected to show NO advantage over native idempotency on duplicate rate, and that null will be reported as prominently as any positive result.",
+      "The pre-committed C1 null: on C1 destinations Irrevon is expected to show NO advantage over native idempotency on duplicate rate, and that null will be reported as prominently as any positive result.",
     source: "master doc §1.2, §8.6 + preregistration §1 (H0-C1)",
     label: "TH",
     badge: "preregistered",
@@ -287,7 +287,7 @@ export const claims = {
   },
   "security-non-claims": {
     claim:
-      "What Detent is NOT: not an authorization or approval gateway, not an audit-compliance product, no SOC 2 or ISO certification (none exists), not a hosted service — and the LLM never holds sole authority over an irreversible action.",
+      "What Irrevon is NOT: not an authorization or approval gateway, not an audit-compliance product, no SOC 2 or ISO certification (none exists), not a hosted service — and the LLM never holds sole authority over an irreversible action.",
     source: "master doc §5.4, §9",
     label: "DD",
   },
@@ -305,16 +305,40 @@ export const claims = {
   },
 
   // ── Status, licensing, availability ─────────────────────────────────────
+  "install-gated": {
+    claim:
+      "Planned distribution (uvx / uv tool install / pipx / pip, one PyPI package with the embedded workbench) is decided but gated: publication requires the public-release gate — clearances granted in writing, the counsel trademark screen, and the licensing decision. Every install command for it renders as PLANNED, never as available today.",
+    source: "docs/decisions/0018-distribution-model.md + docs/review-queue.md §3 item 4 + execution plan (public-release gate)",
+    label: "VF",
+  },
+  "no-releases": {
+    claim:
+      "No release exists: zero git tags, no package, no release artifact. The changelog is computed from git tags at build time, so its empty state is derived, not asserted — the first entry appears when the first signed tag exists, which is human-gated.",
+    source: "repository state (git tag --list) + execution plan (public-release gate)",
+    label: "VF",
+  },
+  "roadmap-no-dates": {
+    claim:
+      "The roadmap is phases and gates, never dates: order is load-bearing (the Stage-A preregistration freeze precedes any sandbox observation), and nothing in the execution plan is a schedule or a commitment.",
+    source: "docs/execution-plan.md (ordering rationale + gate notes)",
+    label: "VF",
+  },
+  "docs-rendered-provenance": {
+    claim:
+      "Rendered repository documents on this site are mechanical, drift-gated copies: each carries its source path and content sha256, a sync script regenerates them, and CI fails on any byte drift — the repository copy is always canonical.",
+    source: "site/scripts/sync-docs.mjs + site/docs-manifest.json (checked in CI via make site-check)",
+    label: "VF",
+  },
   "quickstart-real": {
     claim:
-      "The working quickstart is clone + uv + Docker: uv sync --locked, detent init, docker compose up, detent doctor, detent demo. There is no package-index install — nothing is published.",
+      "The working quickstart is clone + uv + Docker: uv sync --locked, irrevon init, docker compose up, irrevon doctor, irrevon demo. There is no package-index install — nothing is published.",
     source: "README.md (Quickstart)",
     label: "VF",
   },
   "not-published": {
     claim:
-      "Pre-release: not on any package index. The PyPI name 'detent' is taken by an unrelated project; the name screen is a pending human decision.",
-    source: "docs/review-queue.md §3 item 4 + ADR-011 (§11)",
+      "Pre-release: not on any package index. The name is decided — Irrevon (ADR-0023, superseding ADR-011); the PyPI name 'irrevon' appeared available at screening and its registration is unblocked pending external clearances and the counsel trademark screen. When published, the install will be `uv tool install irrevon` — future tense until then.",
+    source: "docs/decisions/0023-rename-to-irrevon.md + docs/review-queue.md §3 item 4",
     label: "VF",
   },
   "license-pending": {

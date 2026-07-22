@@ -7,7 +7,7 @@ import "./styles.css";
 
 async function start() {
   // Literal define comparison: the whole MSW chunk is eliminated from live builds.
-  if (__DETENT_DATA_MODE__ === "mock") {
+  if (__IRREVON_DATA_MODE__ === "mock") {
     try {
       const { worker } = await import("./mocks/browser");
       await worker.start({ onUnhandledRequest: "bypass", quiet: true });

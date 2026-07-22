@@ -1,11 +1,11 @@
-# Detent release pipeline — PREPARED BUT DISABLED. The only job is a hard-stop
+# Irrevon release pipeline — PREPARED BUT DISABLED. The only job is a hard-stop
 # guard (`if: false`); the real pipeline lives below as a structured comment so
 # it can be reviewed and adopted deliberately, not triggered accidentally.
 #
 # GATES THAT MUST CLOSE BEFORE THIS IS ENABLED (all human-only):
 #   1. The execution-plan public-release gate (docs/execution-plan.md) — release
 #      artifacts ship from the sanitized public repository that gate creates.
-#   2. Master doc section 13 blockers: employer IP clearance on file, name
+#   2. Master doc section 13 blockers: external clearances granted in writing, name
 #      screen, preregistration stamping.
 #   3. ADR-0013 ratified (packaging path below assumes Python/uv; adjust if not).
 #   4. Owner one-time setup on the release repo: immutable releases enabled;

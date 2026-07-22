@@ -3,27 +3,27 @@
   "generated_by": "scripts/codegen.mjs",
   "sources": {
     "schemas/intent-contract.schema.json": {
-      "sha256": "93dd8e904dbe4bdb5c90aeefb613bebcc2ee81a8a3d1f7ceb16e6bc4c6ae267d",
+      "sha256": "ed0ab134bad204e2bd5521605ba56c92e3c96a78ca4d0333a27d61d188608699",
       "role": "intentContract"
     },
     "schemas/capability-declaration.schema.json": {
-      "sha256": "97286032a74ba06a4757ad333fe4c153f98fea17ccff233526b169c63e0f295a",
+      "sha256": "89f5d6f41e6da410addc2c70426b941407e3b949e5fd67166b30f70e1e2899a4",
       "role": "capabilityDeclaration"
     },
     "schemas/effect-record.schema.json": {
-      "sha256": "fb5de2f0b4d0ab705293e29ad5378a140b212e0f6e4aaf132adedec9712d3ce5",
+      "sha256": "90b3e566f8ab9f2a11a7e6da06f20f80ecc67fb1d3c5cdf90933b204361655ba",
       "role": "effectRecord"
     },
     "schemas/dispatch-receipt.schema.json": {
-      "sha256": "3c9eba85281fa88184868ea11d18d5665c221910e7714d753febf714045827a6",
+      "sha256": "274b368c1b774b9810069857b4752e48d42f2e19b859817c22161b37e96c6973",
       "role": "dispatchReceipt"
     },
     "schemas/reconciliation-finding.schema.json": {
-      "sha256": "078b704ab9f3db939bd6aec2ea313653908adad18af9d43b4db4ee470ba90d60",
+      "sha256": "3a22353ff1d21f5af4f6814f125235fe0e4a687e51b3f443bfc405929b345b15",
       "role": "reconciliationFinding"
     },
     "docs/rfc-002-engine-design.md": {
-      "sha256": "d8ee9a6996ae0fcf917e8e4e3faf7e972c7ad42da9e8318ecd9bd0184ce5d12a",
+      "sha256": "8e97ac7484fa755ca55fde201fd245aa4f743b67446931f8b30c638baa8f5df9",
       "role": "rfc002"
     },
     "schemas/examples/intent-contract/valid-order-create.json": {

@@ -37,7 +37,7 @@ const MOBILE_SCREENS = [
   ["m-findings-orphan", ORPHAN_SELECTED],
   ["m-attention", "/attention"],
   ["m-adapters-topology", "/adapters"],
-  ["m-demo-lane", "/demo?lane=detent"],
+  ["m-demo-lane", "/demo?lane=irrevon"],
   ["m-health", "/health"],
   ["m-bench", "/bench"],
 ] as const;

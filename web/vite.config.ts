@@ -9,7 +9,7 @@ import { defineConfig, loadEnv, type Plugin } from "vite";
 function stripMockWorker(dataMode: string): Plugin {
   let outDir = "dist";
   return {
-    name: "detent:strip-mock-worker",
+    name: "irrevon:strip-mock-worker",
     apply: "build",
     configResolved(config) {
       // Respect --outDir: a side build must never reach into another build's output.
@@ -24,10 +24,10 @@ function stripMockWorker(dataMode: string): Plugin {
 }
 
 // Mock mode is a dev/test/review capability only. A production build with
-// VITE_DETENT_DATA_MODE=mock is refused outright (BRIEF §3.2).
+// VITE_IRREVON_DATA_MODE=mock is refused outright (BRIEF §3.2).
 export default defineConfig(({ command, mode }) => {
-  const env = loadEnv(mode, process.cwd(), "VITE_DETENT_");
-  const dataMode = env.VITE_DETENT_DATA_MODE ?? (mode === "production" ? "live" : "mock");
+  const env = loadEnv(mode, process.cwd(), "VITE_IRREVON_");
+  const dataMode = env.VITE_IRREVON_DATA_MODE ?? (mode === "production" ? "live" : "mock");
 
   if (command === "build" && mode === "production" && dataMode === "mock") {
     throw new Error(
@@ -52,9 +52,18 @@ export default defineConfig(({ command, mode }) => {
       alias: { "@": new URL("./src", import.meta.url).pathname },
     },
     define: {
-      __DETENT_DATA_MODE__: JSON.stringify(dataMode),
+      __IRREVON_DATA_MODE__: JSON.stringify(dataMode),
     },
-    server: { port: 5199, strictPort: true },
+    server: {
+      port: 5199,
+      strictPort: true,
+      // `pnpm dev:live` only: proxy API reads to a local `irrevon serve`.
+      // MSW dev (`pnpm dev`) is untouched — the proxy exists only when the
+      // live env var is set, so mock mode never grows a network path.
+      ...(command === "serve" && dataMode === "live"
+        ? { proxy: { "/api": "http://127.0.0.1:5180" } }
+        : {}),
+    },
     preview: { port: 5199, strictPort: true },
     build: { sourcemap: false },
   };

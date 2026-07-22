@@ -1,8 +1,8 @@
-// One configurable project name (the name screen is pending — review-queue item 4;
-// the site must be renameable by config, RD5 §3.9) and the deployment-provided
-// repository URL (resolved in astro.config.mjs, never committed).
+// One configurable project name (Irrevon per ADR-0023; kept configurable so a
+// future rename is one edit) and the deployment-provided repository URL (resolved in
+// astro.config.mjs, never committed).
 
-export const SITE_NAME = "Detent";
+export const SITE_NAME = "Irrevon";
 export const BENCH_NAME = `${SITE_NAME}Bench`;
 
 declare const __REPO_URL__: string;

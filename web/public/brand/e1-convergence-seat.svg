@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Detent">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Irrevon">
   <style>
     :root { color: oklch(0.25 0.015 255); }
     @media (prefers-color-scheme: dark) { :root { color: oklch(0.92 0.005 250); } }

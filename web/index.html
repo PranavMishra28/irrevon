@@ -5,7 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="/brand/e1-convergence-seat.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
-    <title>Detent Workbench</title>
+    <title>Irrevon Workbench</title>
     <link
       rel="preload"
       href="/fonts/ibm-plex-sans-400.woff2"
@@ -22,14 +22,18 @@
     />
     <script>
       // Apply persisted theme/density before first paint to avoid a flash.
+      // Reads fall back to the pre-rename "detent.*" keys once so migrated
+      // users keep their preferences on the very first paint (prefs.ts owns
+      // the actual key migration).
       try {
-        var t = localStorage.getItem("detent.theme");
+        var t = localStorage.getItem("irrevon.theme") || localStorage.getItem("detent.theme");
         if (t === "dark" || t === "light") {
           document.documentElement.setAttribute("data-theme", t);
         } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
           document.documentElement.setAttribute("data-theme", "dark");
         }
-        var d = localStorage.getItem("detent.density");
+        var d =
+          localStorage.getItem("irrevon.density") || localStorage.getItem("detent.density");
         if (d === "dense" || d === "comfortable") {
           document.documentElement.setAttribute("data-density", d);
         }

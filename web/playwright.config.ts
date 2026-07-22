@@ -7,7 +7,7 @@ import { defineConfig, devices } from "@playwright/test";
  *   container (make web-vrt); a bare local run skips the project.
  *   Zero retries: a flaky screenshot means determinism leaked.
  */
-const IS_VRT_ENV = process.env.DETENT_VRT_CONTAINER === "1";
+const IS_VRT_ENV = process.env.IRREVON_VRT_CONTAINER === "1";
 
 export default defineConfig({
   testDir: "./e2e",

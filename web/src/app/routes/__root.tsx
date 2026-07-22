@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { isMockMode } from "@/app/data-mode";
+import { useLiveStatus } from "@/app/live-status";
 import { useGlobalShortcuts } from "@/app/shortcuts";
 import {
   getDensity,
@@ -16,6 +17,7 @@ import {
   type Density,
   type Theme,
 } from "@/shared/lib/prefs";
+import { DisconnectedBanner, LiveChip, VersionRefusal } from "@/shared/domain/status/live-mode";
 import { AppFrame, DataModeBanner } from "@/shared/ui/layout/app-frame";
 import { HelpCircle, Menu, Moon, Search, Sun } from "@/shared/ui/icons";
 import { IconButton } from "@/shared/ui/primitives/button";
@@ -88,6 +90,9 @@ function RootLayout() {
   });
   const [theme, setThemeState] = useState<Theme>(() => getTheme());
   const [density, setDensityState] = useState<Density>(() => getDensity());
+  // Inert in mock builds (no poll); drives the LIVE chip / disconnected
+  // banner / version-refusal states in live builds.
+  const liveStatus = useLiveStatus();
 
   const openPalette = () => {
     setOverlaysRequested((s) => (s.palette ? s : { ...s, palette: true }));
@@ -152,19 +157,28 @@ function RootLayout() {
     if (item.matchPrefix) return pathname.startsWith(item.matchPrefix);
     return pathname === item.to || pathname.startsWith(`${item.to}/`);
   });
-  const viewLabel = activeItem?.label ?? "Detent";
+  const viewLabel = activeItem?.label ?? "Irrevon";
 
   const themeLabel = theme === "dark" ? "Switch to light theme" : "Switch to dark theme";
   const densityLabel =
     density === "dense" ? "Switch to comfortable density" : "Switch to dense density";
+
+  // A version-skewed evidence surface is worse than none: the refusal
+  // replaces the whole frame — no nav, no route content behind it.
+  if (!isMockMode && liveStatus.state === "unsupported") {
+    return <VersionRefusal observed={liveStatus.observed} supported={liveStatus.supported} />;
+  }
 
   return (
     <AppFrame
       banner={
         isMockMode ? (
           <DataModeBanner>Synthetic fixture — not live or measured</DataModeBanner>
+        ) : liveStatus.state === "disconnected" ? (
+          <DisconnectedBanner />
         ) : undefined
       }
+      status={isMockMode ? undefined : <LiveChip status={liveStatus} />}
       nav={NAV_ITEMS.map((item) => (
         <NavLink key={item.to} to={item.to} label={item.label} exact={item.exact ?? false} />
       ))}

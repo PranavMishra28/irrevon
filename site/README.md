@@ -1,121 +1,150 @@
-# site/ — the public marketing site (built, undeployed)
+# site/ — the public marketing + discovery site (built, undeployed)
 
-Six complete static pages introducing Detent, built per the redesign contract
-(`.scratch/redesign/site-architecture.md` RD5, as adjudicated by
-`.scratch/redesign/REDESIGN-BRIEF.md` ruling A7). **Deploy is gated and
-human-only** — see
-[../.github/workflows/site-deploy.yml](../.github/workflows/site-deploy.yml)
+The Irrevon public site: the original six pages plus the discovery surface added by
+the site-expansion cycle (docs section with drift-gated rendered repository documents,
+searchable via self-hosted Pagefind; the interactive recorded demo; research,
+changelog, roadmap, install; full SEO/metadata). **Deploy is gated and human-only** —
+see [../.github/workflows/site-deploy.yml](../.github/workflows/site-deploy.yml)
 (dispatch-only; the full gate list is recorded in
-[docs/review-queue.md](../docs/review-queue.md)). The site is a repo
-artifact only: it never ships in the Python wheel (ADR-0018) and shares no build
-with `web/`.
+[docs/review-queue.md](../docs/review-queue.md)). The site is a repo artifact only:
+it never ships in the Python wheel (ADR-0018) and shares no build with `web/`.
 
-## The six pages (ruling A7 — quality over coverage; no public stubs)
+## Page inventory
 
 | Route | Page |
 |---|---|
-| `/` | Home — problem, the recorded seed-777 artifact, three mechanisms, non-guarantees, bench no-results teaser, clone-and-make CTA |
-| `/platform` | **Engine** (honest title per RD5 §3.2) — components, conceptual architecture, implemented-today strip, capability declaration, roadmap boundary |
-| `/how-it-works` | Mechanism — re-synthesis failure, identity derivation, three-dimension state model, the recorded ambiguous case, the whole C1/C2/C3 table, prior art credited |
-| `/benchmark` | DetentBench — DRAFT status banner, credibility controls, the full baseline ladder, the kill criterion verbatim, metrics glossary, research integrity |
-| `/security` | Security & trust — trust boundary, data posture, supply-chain practice, explicit non-claims |
-| `/docs` | Docs — real quickstart (clone + uv + Docker; no package-index install), links to canonical repo documents, honest status |
+| `/` | Home — problem, recorded artifact, beat-10 hero poster + step-through link, three mechanisms, non-guarantees, bench teaser, get-started |
+| `/platform` | Engine (honest title) — components, implemented-today strip, capability declaration, roadmap boundary |
+| `/how-it-works` | Mechanism — re-synthesis failure, identity, state model, the recorded ambiguous case (+ link into /demo), tiers, prior art |
+| `/benchmark` | IrrevonBench — DRAFT banner, credibility controls, baseline ladder, kill criterion, metrics, integrity (+ reproduction-guide link) |
+| `/security` | Security & trust — trust boundary, data posture, supply chain, non-claims, this site's own headers (+ headers-spec link) |
+| `/demo` | **The One-Way Seat** — the recorded flagship run as a step-driven 12-beat sequence + B5 contrast lane (anti-fabrication-gated) |
+| `/docs/` | Docs landing — guides, rendered reference library, search box, canonical link-only block (master doc + pinned hash) |
+| `/docs/<guide>/` | Six guides: getting-started, cli-reference (generated from `--help`), integration, adapter-development, benchmark-reproduction (NO RESULTS YET), architecture |
+| `/docs/reference/<slug>/` | 23 rendered repository documents (RFCs, preregistration, execution plan, CI, security policy, schemas, licensing, ADR index + 14 ADRs) |
+| `/docs/search/` | Pagefind search (docs-scoped, loads on gesture, no-JS fallback) |
+| `/research/` (+2 posts, `/research/rss.xml`) | Preregistration story + prior-art credit; explicit no-preprint statement |
+| `/changelog` | Computed from `git tag --list` at build — honest empty state (zero tags) |
+| `/roadmap` | Phases parsed from the rendered execution plan; no-dates banner |
+| `/install` | Works-today from source; planned distribution future-tense in a PLANNED block |
+| `/404` | Not-found page (Pages serves `404.html`) |
 
-Use Cases, About/Company, Contact, and any demo-request page are **omitted, not
-stubbed** (ruling A7; the Book-a-Demo tension is an open owner decision, RD5 §4).
-Navigation lists only the six built pages.
+Use Cases, About/Company, Contact, and any demo-request page remain **omitted, not
+stubbed**. Navigation: Engine · How it works · Demo · Benchmark · Docs · Research ·
+Install (7 slots); Security/Changelog/Roadmap live in the footer.
 
 ## Truth discipline
 
 - **Claims registry:** every key claim lives in
-  [`src/data/claims.ts`](src/data/claims.ts) (claim, source, epistemic label,
-  badge); pages cite by id via the `Source` component, and
-  [`CLAIMS.md`](CLAIMS.md) is generated from the registry
-  (`pnpm claims:md`; `--check` gates drift).
-- **Three-badge system** (`Badge.astro`, required on claim-bearing sections):
-  `RECORDED ARTIFACT` (the seed-777 demo; exact numbers only from
-  `web/fixtures/canonical/demo-artifact.json`), `CONCEPTUAL` (diagrams),
-  `PREREGISTERED METHODOLOGY — NO RESULTS YET` (everything DetentBench).
-- **What cannot appear anywhere** (RD5 §2): pricing, customers, testimonials,
-  SLAs, benchmark numbers, uncited numbers, `pip install`, "exactly-once" /
-  "rollback" unqualified, fake forms, employer identifiers.
+  [`src/data/claims.ts`](src/data/claims.ts) (53 claims); pages cite by id via the
+  `Source` component; [`CLAIMS.md`](CLAIMS.md) is generated (`pnpm claims:md`,
+  `--check` gates drift). Guide/research frontmatter `claims` arrays are
+  zod-validated against the registry — an unknown id fails the build.
+- **Three-badge system** (`Badge.astro`): `RECORDED ARTIFACT`, `CONCEPTUAL`,
+  `PREREGISTERED METHODOLOGY — NO RESULTS YET`.
+- **Rendered docs cannot fork the truth:** `scripts/sync-docs.mjs` +
+  `docs-manifest.json` copy repository documents into the content collection with
+  `sourceSha256` provenance frontmatter (rendered banner on every page); `--check`
+  fails CI on any byte drift. The master doc is deliberately link-only (its pinned
+  hash is named on the docs landing). The CLI reference is captured verbatim from
+  `uv run irrevon --help` (`scripts/sync-cli-reference.mjs`; tamper-evidence fallback
+  where uv is absent).
+- **The demo cannot fabricate:** `/demo` renders every number/id/status from
+  `src/data/demo/` (synced + drift-gated from `web/fixtures/canonical` by
+  `scripts/sync-demo.mjs`); `e2e/demo.spec.ts` asserts the rendered HTML against the
+  same JSON, including a 64-hex allowlist.
+- **What cannot appear anywhere:** pricing, customers, testimonials, SLAs, benchmark
+  numbers, uncited numbers, any old-name install literal (e2e-banned), any
+  package-index command outside the PLANNED block, "exactly-once"/"rollback"
+  unqualified, fake forms, employer identifiers.
 
 ## Architecture
 
-- Astro `7.0.9` (exact pin — the newest 7.x release older than the 7-day
-  `minimumReleaseAge` policy on 2026-07-21; 7.1.x was < 7 days old), static
-  output, `passthroughImageService` (no sharp, no build scripts).
-- **Zero JS by default.** The only JavaScript on any page is the inline theme
-  boot + toggle (~1 KB total); the budget test fails any page over 10 KB inline
-  JS or any fetched script file.
-- **Base-path ready:** internal links go through `src/lib/url.ts`
-  (`import.meta.env.BASE_URL`); the deploy workflow passes `--site`/`--base`
-  from `actions/configure-pages` outputs. The repository URL is
-  deployment-provided (`SITE_REPO_URL` env or the local git remote — never
-  committed; the build fails if unresolved).
-- **Vendored identity, drift-checked:** `scripts/sync-tokens.mjs` copies the
-  workbench Instrument Steel reference tokens (and generates a
-  `prefers-color-scheme` block for no-JS dark mode); `scripts/sync-fonts.mjs`
-  copies the self-hosted IBM Plex woff2 subsets. Both `--check` in `pnpm check`.
-  Site-local additions (marketing display scale) live only in
-  `src/styles/site.css`.
-- One configurable project name (`src/config.ts` `SITE_NAME`) — the name screen
-  is pending (review-queue item 4).
+- Astro `7.0.9` (exact pin), static output, `passthroughImageService`. Markdown via
+  the native Sätteri processor with two local plugins
+  (`scripts/satteri-repo-links.mjs`): repo-relative link rewriting (rendered docs
+  never embed a repo URL — the build resolves links to rendered siblings or GitHub)
+  and a11y fixes (scrollable tables/pre get `tabindex`, GFM checkboxes render as
+  typographic marks). Syntax highlighting is off by design (plain mono matches the
+  site register; cannot fail contrast).
+- **JS discipline.** Zero fetched scripts on every page except docs-after-gesture:
+  the inline theme boot/toggle (~1 KB) everywhere; the `/demo` island (3.4 KB
+  source, ≤8 KB budget) on the demo page; the search bootstrap on docs pages, which
+  loads the self-hosted Pagefind bundle (`dist/pagefind/`, built post-build) only on
+  focus/input. Budget e2e runs two lanes over a dist-derived page inventory.
+- **SEO/metadata:** `@astrojs/sitemap` (+`sitemap-index.xml`), `robots.txt` endpoint,
+  canonical + OG/Twitter cards per page (committed OG PNGs rendered from
+  `og/template.svg` by `scripts/build-og.mjs`, drift-gated via `og/manifest.json`),
+  JSON-LD (`SoftwareSourceCode`/`WebSite`+SearchAction on Home, `Article` on
+  research, `TechArticle`+`BreadcrumbList` on docs — never `SoftwareApplication`,
+  never offers/ratings). **robots.txt caveat:** on a project Pages site it is not at
+  the origin root and is therefore not authoritative (RFC 9309); it becomes real
+  with a custom domain.
+- **Security headers:** GitHub Pages cannot set response headers, so
+  `scripts/inject-csp.mjs` injects a per-page meta CSP with build-computed inline
+  script hashes (docs pages add `'self' 'wasm-unsafe-eval'` for Pagefind) plus a
+  strict referrer policy; the full future-edge header set is committed at
+  [`docs/headers-spec.md`](docs/headers-spec.md). Meta-CSP cannot carry
+  frame-ancestors/report-uri/sandbox — stated there.
+- **Base-path ready:** internal links via `src/lib/url.ts`; markdown site-absolute
+  links get the base at build; sitemap/RSS/OG URLs derive from the
+  deploy-provided origin. The repository URL is deployment-provided
+  (`SITE_REPO_URL` env or the local git remote — never committed).
+- **Vendored identity, drift-checked:** tokens + fonts synced from `web/`
+  (`--check` in `pnpm check`); domain icons + the One-Way Seat stage are original
+  in-house geometry — provenance ledger in [`ASSETS.md`](ASSETS.md).
 
 ## Dependency register (per-dep justification)
 
 | Package | Why |
 |---|---|
 | `astro` 7.0.9 | The static site framework (zero-JS-by-default; Pages `site`/`base` support) |
-| `@astrojs/check` 0.9.9 | `astro check` type/diagnostic gate |
-| `typescript` 5.9.3 | Required by astro check; same pin as `web/` |
-| `@playwright/test` 1.61.1 | a11y/link/budget gates + review screenshots; same pin as `web/` |
-| `@axe-core/playwright` 4.12.1 | WCAG 2.2 AA scans as test failures; same pin as `web/` |
+| `@astrojs/sitemap` 3.7.3 | First-party sitemap; URLs from the deploy-provided origin |
+| `@astrojs/rss` 4.0.19 | First-party RSS for /research |
+| `@astrojs/markdown-satteri` 0.3.4 | Explicit pin of Astro 7's own markdown processor so the local mdast/hast plugins import a declared dependency |
+| `pagefind` 1.5.2 (dev) | Post-build static search index + self-hosted UI; MIT; loads only on docs gesture |
+| `@astrojs/check` 0.9.9 / `typescript` 5.9.3 | `astro check` gate |
+| `@playwright/test` 1.61.1 | e2e gates + review screenshots + OG card rendering (no extra raster dep) |
+| `@axe-core/playwright` 4.12.1 | WCAG 2.2 AA scans as test failures |
 
-pnpm hardening matches `web/`: `allowBuilds` all-false, `minimumReleaseAge`
-10080, `trustPolicy: no-downgrade`, `blockExoticSubdeps`, exact pins, frozen
-lockfile in CI. One reviewed `trustPolicyExclude`: `chokidar@4.0.3` (19 months
-old, canonical maintainer; attestation-artifact signal — see
-pnpm-workspace.yaml).
+pnpm hardening unchanged: `allowBuilds` all-false, `minimumReleaseAge` 10080,
+`trustPolicy: no-downgrade`, `blockExoticSubdeps`, exact pins, frozen lockfile
+(one reviewed `trustPolicyExclude`: `chokidar@4.0.3`).
 
 ## Commands
 
 ```bash
-export ASTRO_TELEMETRY_DISABLED=1   # zero-telemetry posture applies to builds too
-                       # (CI sets this in .github/workflows/site-deploy.yml)
-pnpm install           # Node 24 (.nvmrc), pnpm 11
-pnpm dev               # local dev
-pnpm check             # astro check + token/font/claims drift
-pnpm build             # static build to dist/
-pnpm test              # Playwright: axe (both themes, all pages), keyboard,
-                       # no-JS render, internal links, JS budget + zero external requests
-pnpm shots             # 1440/768/375 × light/dark review screenshots -> shots/
-node scripts/capture-workbench.mjs   # product imagery from a running web/ dev server
+export ASTRO_TELEMETRY_DISABLED=1
+pnpm install            # Node 24 (.nvmrc), pnpm 11
+pnpm dev                # local dev (search + CSP exist only in built output)
+pnpm check              # astro check + every drift gate: tokens, fonts, claims,
+                        # docs sync, CLI reference, demo artifacts, OG cards
+pnpm build              # astro build && pagefind --site dist && inject-csp
+pnpm test               # Playwright checks: axe (every page × both themes incl.
+                        # /demo stepped states), keyboard, no-JS, links, budgets
+                        # (two lanes), search, demo anti-fabrication, install
+                        # honesty, SEO/CSP
+pnpm shots              # every page at 1440/768/375 × light/dark (+ /demo
+                        # reduced-motion beats) -> shots/
+pnpm sync:docs | sync:cli | sync:demo | og:build   # regenerate synced artifacts
 ```
 
-## Measured results (2026-07-21, this commit)
+## Measured at last audit (2026-07-21)
 
-- Build: 6 pages, green. `astro check`: 0 errors / 0 warnings.
-- Playwright: 24/24 checks green (12 axe runs = 6 pages × 2 themes, keyboard,
-  no-JS, links, budgets).
-- JS weight: **1,032 bytes inline per page, zero fetched scripts** (budget
-  ≤ 10 KB; brief goal ≤ 5 KB — met with margin). CSS: one 14 KB file, ~3 KB
-  gzip (≤ 40 KB budget).
-- Claims registry: 49 claims, all source-mapped; CLAIMS.md generated + drift-gated.
+- Build: 44 pages green; `astro check` 0 errors / 0 warnings.
+- Playwright: 248 checks green.
+- JS weight: non-docs pages ~1 KB inline, zero fetched; `/demo` 4.4 KB inline
+  total (island 3,396 B source vs ≤8 KB budget); docs pages zero-fetch until a
+  search gesture, then same-origin `/pagefind/` only. Global gate: ≤10 KB inline,
+  zero fetched scripts (docs lane excepted post-gesture) — unchanged, un-weakened.
+- Claims registry: 53 claims, all source-mapped; CLAIMS.md generated + drift-gated.
 
-## Notes for the integrator
+## Maintenance
 
-1. **Deploy workflow:** DONE at consolidation (2026-07-21) — the artifact now
-   lives at `.github/workflows/site-deploy.yml` (dispatch-only; deploy itself
-   stays blocked behind the gates recorded in the review queue).
-2. **Root touches made by this task:** one clearly-marked appended Makefile
-   block (`site-check`, `site-build`, `site-test`); nothing else at root. No
-   root `pnpm-workspace.yaml` exists (workspaces are per-directory) — none added.
-3. **Review-queue appends** proposed by RD5 §7: appended at consolidation
-   (2026-07-21) — see the review queue (marketing-site ADR item, ADR-0018
-   Pages-slot amendment). Resolution remains human-only.
-4. Workbench screenshots (`public/images/`) were captured from the running
-   fixture-backed `web/` app at 1440×900 (2× DPR), both themes, SYNTHETIC
-   FIXTURE banner deliberately in frame. Re-capture with
-   `scripts/capture-workbench.mjs` after any workbench visual change
-   (e.g. the Slice-7 h238/E1 cutover), then re-run `pnpm sync:tokens`.
+- The rendered copies of pre-rename records (ADR-0023 and the review queue) quote the
+  old product/package name as historical fact — those pages are the sanctioned,
+  provenance-bannered exceptions in `e2e/install.spec.ts` and are allowlisted by any
+  repo-wide old-name sweep (append-only history discipline).
+- Workbench screenshots (`public/images/`) are captured from the running
+  fixture-backed `web/` app — re-capture with `scripts/capture-workbench.mjs` after
+  any workbench visual change, then re-run `pnpm sync:tokens`.

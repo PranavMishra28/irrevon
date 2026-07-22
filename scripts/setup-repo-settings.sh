@@ -35,7 +35,9 @@
 #   - CodeQL default setup, private vulnerability reporting (items 7–8).
 set -euo pipefail
 
-REPO="${DETENT_REPO:-PranavMishra28/detent}"
+# Derive the slug from the checkout's GitHub remote (rename-proof); IRREVON_REPO
+# overrides. Fails loudly outside a repo context — this script is owner-run only.
+REPO="${IRREVON_REPO:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"
 RULESET_NAME="main-protection-phase1"
 REQUIRED_CONTEXT="ci-required"
 

@@ -20,6 +20,27 @@ for (const path of PAGES) {
   }
 }
 
+// The /demo stepper's stepped states are distinct UI (controls visible, one
+// beat collapsed in) — axe them separately in both themes at representative
+// beats (the CLICK beat and the compound final beat).
+for (const theme of ["light", "dark"] as const) {
+  test(`axe: /demo/ stepped states [${theme}]`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: theme });
+    await page.goto("/demo/");
+    for (const beat of [5, 12]) {
+      await page.locator(`.beat-tick[data-n="${beat}"]`).click();
+      await page.waitForTimeout(250);
+      const results = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"])
+        .analyze();
+      expect(
+        results.violations,
+        results.violations.map((v) => `beat ${beat} ${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join("; ")}`).join("\n"),
+      ).toEqual([]);
+    }
+  });
+}
+
 test("keyboard: skip link is first tab stop and lands on main", async ({ page }) => {
   await page.goto("/");
   await page.keyboard.press("Tab");
@@ -48,7 +69,7 @@ test("no-JS: content and nav render without JavaScript", async ({ browser }) => 
   const page = await context.newPage();
   await page.goto("/");
   await expect(page.locator("h1")).toBeVisible();
-  await expect(page.locator("nav[aria-label='Primary'] a")).toHaveCount(5);
+  await expect(page.locator("nav[aria-label='Primary'] a")).toHaveCount(7);
   // The theme toggle is JS-only and must stay hidden without it.
   await expect(page.locator("#theme-toggle")).toBeHidden();
   await context.close();

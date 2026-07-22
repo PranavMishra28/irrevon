@@ -1,0 +1,130 @@
+---
+// Docs search: a plain HTML form first (no-JS fallback submits to the search
+// page), upgraded to the self-hosted Pagefind UI on the first user gesture.
+// The Pagefind assets (built into dist/pagefind/ post-build) are fetched
+// same-origin and ONLY after focus/input — every other page keeps zero
+// fetched scripts, and docs pages stay zero-fetch until interaction. The
+// budget e2e enforces both lanes.
+import { href } from "../lib/url";
+
+interface Props {
+  /** Auto-upgrade when the page is opened with ?q= (search page only). */
+  autoFromQuery?: boolean;
+}
+const { autoFromQuery = false } = Astro.props;
+const searchPath = href("/docs/search/");
+const pagefindBase = href("/pagefind/");
+---
+
+<div class="docs-search" data-pagefind-ignore>
+  <form class="docs-search-form" action={searchPath} method="get" role="search">
+    <label class="docs-search-label" for="docs-search-input">Search the docs</label>
+    <div class="docs-search-row">
+      <input
+        id="docs-search-input"
+        type="search"
+        name="q"
+        placeholder="Search guides, RFCs, decisions…"
+        autocomplete="off"
+      />
+      <button type="submit" class="btn btn-secondary">Search</button>
+    </div>
+  </form>
+  <div id="pagefind-container" hidden></div>
+  <noscript>
+    <p class="docs-search-noscript">
+      Client-side search needs JavaScript. Without it, use the guide and reference lists below — every
+      document is plainly linked.
+    </p>
+  </noscript>
+</div>
+
+<script is:inline define:vars={{ pagefindBase, autoFromQuery }}>
+  (() => {
+    const form = document.querySelector(".docs-search-form");
+    const input = document.getElementById("docs-search-input");
+    const container = document.getElementById("pagefind-container");
+    if (!form || !input || !container) return;
+    let loading = false;
+
+    const activate = (query) => {
+      if (loading) return;
+      loading = true;
+      const css = document.createElement("link");
+      css.rel = "stylesheet";
+      css.href = pagefindBase + "pagefind-ui.css";
+      document.head.appendChild(css);
+      const s = document.createElement("script");
+      s.src = pagefindBase + "pagefind-ui.js";
+      s.onload = () => {
+        form.hidden = true;
+        container.hidden = false;
+        new window.PagefindUI({ element: "#pagefind-container", showSubResults: true, showImages: false });
+        const ui = container.querySelector("input");
+        if (!ui) return;
+        if (query) {
+          ui.value = query;
+          ui.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        ui.focus();
+      };
+      document.head.appendChild(s);
+    };
+
+    input.addEventListener("focus", () => activate(input.value), { once: true });
+    const q = new URLSearchParams(location.search).get("q");
+    if (autoFromQuery && q) {
+      input.value = q;
+      activate(q);
+    }
+  })();
+</script>
+
+<style>
+  .docs-search {
+    display: grid;
+    gap: 8px;
+  }
+  .docs-search-label {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ref-ink-3);
+  }
+  .docs-search-row {
+    display: flex;
+    gap: 10px;
+  }
+  .docs-search-row input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    color: var(--ref-ink-1);
+    background: var(--ref-layer-panel);
+    border: 1px solid var(--ref-border);
+    border-radius: 2px;
+    padding: 10px 14px;
+  }
+  .docs-search-row input:focus-visible {
+    outline: 2px solid var(--ref-accent);
+    outline-offset: 1px;
+  }
+  .docs-search-noscript {
+    font-size: var(--site-text-small);
+    color: var(--ref-ink-2);
+  }
+
+  /* Pagefind UI, retinted to the site's tokens (self-hosted assets). */
+  #pagefind-container {
+    --pagefind-ui-scale: 0.9;
+    --pagefind-ui-primary: var(--ref-accent);
+    --pagefind-ui-text: var(--ref-ink-1);
+    --pagefind-ui-background: var(--ref-layer-panel);
+    --pagefind-ui-border: var(--ref-border);
+    --pagefind-ui-border-width: 1px;
+    --pagefind-ui-border-radius: 2px;
+    --pagefind-ui-font: var(--font-sans);
+  }
+</style>

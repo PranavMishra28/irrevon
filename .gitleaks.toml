@@ -1,4 +1,4 @@
-# Detent gitleaks config: default rules, generic only.
+# Irrevon gitleaks config: default rules, generic only.
 # Sensitive local tripwords (e.g. identifiers that must never be committed) live in the
 # untracked .tripwords file and are checked by scripts/check-integrity.sh — never here.
 

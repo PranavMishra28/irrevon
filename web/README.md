@@ -1,25 +1,29 @@
-# Detent Workbench (`web/`)
+# Irrevon Workbench (`web/`)
 
-Local-first, single-user, **read-only** evidence workbench for Detent. Fixture-backed
+Local-first, single-user, **read-only** evidence workbench for Irrevon. Fixture-backed
 (v0.1): all data comes from MSW-served, schema-derived fixtures; the browser never starts
 an effect and no build of this app can mutate anything.
 
-Contract: `.scratch/rc/frontend/BRIEF.md` (reconciled implementation brief — local-only
-working material, never committed; the durable decisions live in
-[ADR-0016](../docs/decisions/0016-frontend-workbench-stack.md) and this README).
+Design contract: [ADR-0016](../docs/decisions/0016-frontend-workbench-stack.md) plus this
+README (the working brief was internal; its durable decisions are recorded here).
 
-Status: all six BRIEF slices are implemented against the implemented engine on `rc/v0.1`.
+Status: the full workbench scope is implemented against the shipped engine.
 Types generate from the five admitted JSON Schemas plus the RFC-002 §3 canonical state
 tables (`pnpm codegen`, committed, drift-gated, SHA-256-pinned in
 `contracts/schema-pins.json`). The canonical fixtures are **captured transcripts of the
 real engine** (`scripts/capture-fixtures.py`, seed 777; commit + derivations recorded in
 `fixtures/canonical/provenance.json`): Q1/Q2 exchange envelopes, verbatim
-`detent inspect --json` payloads (the flagship one from the real SIGKILL demo database),
-the `detent doctor --json` transcript, the demo JSONL artifact, and the loaded capability
+`irrevon inspect --json` payloads (the flagship one from the real SIGKILL demo database),
+the `irrevon doctor --json` transcript, the demo JSONL artifact, and the loaded capability
 declaration — schema-validated at capture, drift-gated by `fixtures/manifest.sha256`.
-Still honestly absent: benchmark run schemas (BI-7 → Bench keeps its no-runs state),
-live mode (BI-4 → the read server is deferred to the `serve` workstream), and evidence
-bundles beyond digests (redaction pipeline pending → digest-only by policy).
+Still honestly absent: benchmark run schemas (BI-7 → Bench keeps its no-runs state) and
+evidence bundles beyond digests (redaction pipeline pending → digest-only by policy).
+Live mode is implemented (BI-4 lifted by owner order 2026-07-21): live builds read the
+same-origin `/api/v1` surface served by `irrevon serve`, drive a LIVE/disconnected status
+from a 15 s `/api/v1/health` poll, and refuse to render on a payload `schema_version`
+mismatch. E2E runs against a test-local stub of the frozen handler shapes
+(`e2e/live-serve/stub-server.mjs` — never shipped; parity assumption documented in-file);
+the joint proof against the real engine lands at consolidation.
 
 ## Working on it
 
@@ -27,6 +31,7 @@ bundles beyond digests (redaction pipeline pending → digest-only by policy).
 # toolchain: Node 24 LTS (.nvmrc) + pnpm 11 (corepack)
 pnpm install --frozen-lockfile
 pnpm dev            # Vite dev server (mock mode), http://localhost:5199
+pnpm dev:live       # live-mode dev against `irrevon serve` (proxies /api to :5180)
 pnpm check          # typecheck + lint + stylelint + format + unit/story tests
 pnpm e2e            # Playwright workflows + a11y against the built review app
 pnpm vrt            # VRT — authoritative only inside the pinned Linux container
@@ -37,10 +42,11 @@ pnpm build          # production build; refuses mock mode
 Notes:
 
 - **Data modes.** `mock` (MSW, permanent “SYNTHETIC FIXTURE” banner) is dev/test/review
-  only; a production build with mock selected fails. Live mode is blocked on the ratified
-  loopback read server (BI-4) and never falls back to fixtures.
+  only; a production build with mock selected fails. Live mode talks to the loopback read
+  server on the same origin and never falls back to fixtures — fixtures are structurally
+  absent from live bundles (DCE + sentinel-scanned by `e2e/workflows/live-boundary.spec.ts`).
 - **Strangers never need Node.** This directory is contributor-tooling only; packaged
-  builds ship as static assets served by the CLI (deferred until BI-4).
+  builds ship as static assets served by the CLI.
 - **Zero telemetry.** No network requests leave loopback (E2E-enforced), fonts are
   self-hosted, Storybook telemetry is disabled.
 - **Supply chain.** pnpm blocks all lifecycle scripts (`allowBuilds` all-false),
@@ -49,12 +55,12 @@ Notes:
 
 ## Dependency register
 
-Every direct dependency is justified against the BRIEF's budget. Additions require a new
-row here plus a size-limit delta in the PR.
+Every direct dependency is justified against the workbench budgets below. Additions
+require a new row here plus a size-limit delta in the PR.
 
 ### Runtime
 
-| Package                  | Version  | Justification (BRIEF §5)                                                  |
+| Package                  | Version  | Justification                                                             |
 | ------------------------ | -------- | ------------------------------------------------------------------------- |
 | `react`, `react-dom`     | 19.2.7   | UI runtime                                                                |
 | `@tanstack/react-router` | 1.170.18 | typed path + search params; file-based SPA routes                         |
@@ -69,7 +75,7 @@ row here plus a size-limit delta in the PR.
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `vite`, `@vitejs/plugin-react`, `@tailwindcss/vite`, `tailwindcss`                                                                                                                          | 8.1.4 / 6.0.3 / 4.3.2 | build + CSS-first token system                                                                                                                                                                                                                        |
 | `@tanstack/router-plugin`                                                                                                                                                                   | 1.168.20              | file-based route generation (newest release passing the 7-day age gate)                                                                                                                                                                               |
-| `typescript`                                                                                                                                                                                | 5.9.3                 | `[OQ: FE-PIN-1]` resolved: TS 7.0.2 typechecks the scaffold but typescript-eslint 8.64 crashes against it (`typescript-estree` shared.js `Cjs` read); pinned the newest stable 5.x line that the full toolchain passes, per the BRIEF's fallback rule |
+| `typescript`                                                                                                                                                                                | 5.9.3                 | `[OQ: FE-PIN-1]` resolved: TS 7.0.2 typechecks the scaffold but typescript-eslint 8.64 crashes against it (`typescript-estree` shared.js `Cjs` read); pinned the newest stable 5.x line that the full toolchain passes (the documented fallback rule) |
 | `typescript-eslint`, `eslint`, `eslint-plugin-jsx-a11y`, `eslint-plugin-boundaries`, `eslint-import-resolver-typescript`, `@tanstack/eslint-plugin-query`, `@tanstack/eslint-plugin-router` | see `package.json`    | F0 static gates: strict typed lint, a11y lint, import-boundary enforcement (resolver needed for TS-aware boundary resolution)                                                                                                                         |
 | `stylelint`, `stylelint-declaration-strict-value`                                                                                                                                           | 16.26.1 / 1.11.1      | token-usage lint on color-bearing CSS longhands                                                                                                                                                                                                       |
 | `prettier`                                                                                                                                                                                  | 3.9.5                 | formatting gate                                                                                                                                                                                                                                       |
@@ -82,11 +88,11 @@ row here plus a size-limit delta in the PR.
 | `@ibm/plex-sans`, `@ibm/plex-mono`                                                                                                                                                          | 1.1.0 / 2.5.0         | font acquisition only; Latin1 WOFF2 subsets copied to `public/fonts` by `pnpm fonts:sync` (drift-checked)                                                                                                                                             |
 | `@types/node`, `@types/react`, `@types/react-dom`                                                                                                                                           | see `package.json`    | type definitions                                                                                                                                                                                                                                      |
 
-### Version-pin deviations from the BRIEF
+### Version-pin deviations from the designed set
 
-The BRIEF's §5 pins were verified 2026-07-21; several had newer releases inside the 7-day
+The designed pins were verified 2026-07-21; several had newer releases inside the 7-day
 `minimumReleaseAge` window, so the newest _mature_ release was pinned instead (never a
-downgrade below the BRIEF's verified line): `storybook` 10.5.0 (not 10.5.3),
+downgrade below the verified line): `storybook` 10.5.0 (not 10.5.3),
 `tailwindcss` 4.3.2 (not 4.3.3), `vite` 8.1.4 (not 8.1.5), `typescript-eslint` 8.64.0
 (not 8.65.0), `@tanstack/eslint-plugin-query` 5.101.2. `semver@6.3.1` (transitive, via
 Babel) is excluded from `trustPolicy` only — it predates npm provenance; see
@@ -94,7 +100,7 @@ Babel) is excluded from `trustPolicy` only — it predates npm provenance; see
 
 ## Budgets (enforced by `pnpm size`)
 
-Redesign goals (REDESIGN-BRIEF A3): initial ≤115 KB internal cutover goal under the
+Redesign goals: initial ≤115 KB internal cutover goal under the
 published 120 KB soft target; lazy ≤250 KB; CSS ≤20 KB. Palette, shortcut help, the
 mobile drawer, and every route body (including the causal graph, which only the detail
 route chunk carries) are dynamic chunks; the Effects list never imports graph code
@@ -106,7 +112,7 @@ route chunk carries) are dynamic chunks; the Effects list never imports graph co
 | Total lazy JS (gzip, excl. dev-only MSW worker) | ≤250 KB | ≤350 KB   | ~208 KB                        |
 | Total CSS (gzip)                                | ≤20 KB  | ≤50 KB    | ~8.6 KB                        |
 
-## Redesign test suites (REDESIGN-BRIEF §7)
+## Redesign test suites
 
 Beyond the original shell/investigation E2E: `overview.spec.ts`,
 `attention.spec.ts`, `findings.spec.ts`, `graph.spec.ts` (keyboard order, URL
@@ -129,7 +135,7 @@ docker run --rm --ipc=host -e CI=1 -v "$PWD":/work -w /work \
   mcr.microsoft.com/playwright:v1.61.1-noble \
   bash -lc 'corepack enable && \
             pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store && \
-            DETENT_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
+            IRREVON_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
 ```
 
 Add `--update-snapshots` only when a PR states why pixels changed. A bare local `pnpm vrt`

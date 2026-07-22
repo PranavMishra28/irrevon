@@ -18,7 +18,7 @@ const TIERS: readonly Tier[] = [
     name: "Idempotency-keyed",
     capability: "Destination accepts a caller-supplied key with a defined replay window.",
     duplicates:
-      "PREVENTED within the window — natively. Detent adds no advantage here; the benchmark pre-commits to reporting this null.",
+      "PREVENTED within the window — natively. Irrevon adds no advantage here; the benchmark pre-commits to reporting this null.",
     lost: "Detected via receipts plus query.",
     boundary: "None beyond the replay window. This tier is already solved upstream.",
   },
@@ -31,7 +31,7 @@ const TIERS: readonly Tier[] = [
       "DETECTED via the authoritative status query; redispatch is safe only after confirmed absence.",
     lost: "Detected via sweep; LOST is provable.",
     boundary:
-      "The gap Detent exists for: the destination answers questions but does not deduplicate.",
+      "The gap Irrevon exists for: the destination answers questions but does not deduplicate.",
   },
   {
     id: "C3",

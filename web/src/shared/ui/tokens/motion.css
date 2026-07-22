@@ -6,7 +6,7 @@
   --sys-dur-fast: 100ms;
   --sys-dur-base: 150ms;
   --sys-dur-slow: 220ms;
-  /* The detent click: hard-stop deceleration, no overshoot, no wobble. */
+  /* The seated click: hard-stop deceleration, no overshoot, no wobble. */
   --sys-dur-seat: 140ms;
   --sys-ease-out: cubic-bezier(0.2, 0, 0, 1);
   --sys-ease-in: cubic-bezier(0.4, 0, 1, 1);

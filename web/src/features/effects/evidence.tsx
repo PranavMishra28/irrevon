@@ -432,7 +432,7 @@ export function RawJsonSection({ payload }: { payload: InspectPayload }) {
   return (
     <SectionCard
       title="Raw response"
-      lead="The exact detent inspect --json payload this page is rendered from."
+      lead="The exact irrevon inspect --json payload this page is rendered from."
     >
       <details>
         <summary className="cursor-default text-xs text-accent hover:underline">

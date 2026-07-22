@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://detent.invalid/schemas/reconciliation-finding.schema.json",
-  "$comment": "Admitted at M3 (T-102) by ADR-0021 per the ADR-0019 item-4 criteria: schema_version required; conditional subject requirements (ORPHANED ⇔ destination-keyed); conditional resolution requirements (terminal status ⇒ resolved_at + evidence digest); DUPLICATE ⇒ excess_effect_count ≥ 1; classification enum incl. CONTRADICTED generated from the ratified state table (AM-18; RFC-002 §3.2 via detent.statetable, tests/schemas/test_enum_sync.py). UNRECONCILED is the ABSENCE of findings, not a finding (RFC-002 §3.2). $id host is a placeholder pending the name screen. Shape changes require an ADR.",
+  "$id": "https://irrevon.dev/schemas/reconciliation-finding.schema.json",
+  "$comment": "Admitted at M3 (T-102) by ADR-0021 per the ADR-0019 item-4 criteria: schema_version required; conditional subject requirements (ORPHANED ⇔ destination-keyed); conditional resolution requirements (terminal status ⇒ resolved_at + evidence digest); DUPLICATE ⇒ excess_effect_count ≥ 1; classification enum incl. CONTRADICTED generated from the ratified state table (AM-18; RFC-002 §3.2 via irrevon.statetable, tests/schemas/test_enum_sync.py). UNRECONCILED is the ABSENCE of findings, not a finding (RFC-002 §3.2). $id host is a placeholder until the irrevon.dev domain purchase closes (ADR-0023). Shape changes require an ADR.",
   "title": "Reconciliation finding",
   "description": "A dimension-B classification with evidence, plus its dimension-C resolution chain state. Subject is a strict oneOf so ORPHANED findings (destination-keyed, no ledger record — master doc §7.1) are first-class.",
   "type": "object",

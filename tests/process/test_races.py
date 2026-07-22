@@ -15,12 +15,12 @@ import psycopg
 import pytest
 from psycopg.rows import dict_row
 
-from detent.adapters.base import declarations_dir, load_declaration
-from detent.adapters.refdest import RefdestAdapter
-from detent.dispatcher import dispatch
-from detent.ledger import Ledger
-from detent.reconciler import ReconcileConfig, reconcile_effect
-from detent.sweep import sweep
+from irrevon.adapters.base import declarations_dir, load_declaration
+from irrevon.adapters.refdest import RefdestAdapter
+from irrevon.dispatcher import dispatch
+from irrevon.ledger import Ledger
+from irrevon.reconciler import ReconcileConfig, reconcile_effect
+from irrevon.sweep import sweep
 from tests.integration.conftest import DBHandles
 from tests.process.conftest import RefdestControl, contract
 
@@ -66,7 +66,7 @@ def test_dispatch_racing_reconcile_denies_retry(
     sync_dir = tmp_path / "sync"
     sync_dir.mkdir()
     engine = engine_factory(
-        {"DETENT_SYNC_AT": "reconcile.pre_settle", "DETENT_SYNC_DIR": str(sync_dir)},
+        {"IRREVON_SYNC_AT": "reconcile.pre_settle", "IRREVON_SYNC_DIR": str(sync_dir)},
         wait_ready=False,
     )
     # Recovery itself reconciles this record — it hits the sync point.
@@ -108,7 +108,7 @@ def test_reconcile_racing_inflight_dispatch_classifies_nothing(
     sync_dir = tmp_path / "sync"
     sync_dir.mkdir()
     pinned = engine_factory(
-        {"DETENT_SYNC_AT": "adapter.pre_call", "DETENT_SYNC_DIR": str(sync_dir)},
+        {"IRREVON_SYNC_AT": "adapter.pre_call", "IRREVON_SYNC_DIR": str(sync_dir)},
         wait_ready=False,
     )
     pinned.wait_sentinel("READY")
@@ -156,7 +156,7 @@ def test_sweep_racing_dispatch_no_false_orphan(
     sync_dir = tmp_path / "sync"
     sync_dir.mkdir()
     pinned = engine_factory(
-        {"DETENT_SYNC_AT": "adapter.post_call", "DETENT_SYNC_DIR": str(sync_dir)},
+        {"IRREVON_SYNC_AT": "adapter.post_call", "IRREVON_SYNC_DIR": str(sync_dir)},
         wait_ready=False,
     )
     pinned.wait_sentinel("READY")
@@ -197,7 +197,7 @@ def test_sweep_vs_killed_dispatcher_single_finding(
     reg = engine.send("REGISTER " + contract("race-svk"))
     engine.close()
 
-    armed = engine_factory({"DETENT_CRASH_AT": "receipt.pre_commit"})
+    armed = engine_factory({"IRREVON_CRASH_AT": "receipt.pre_commit"})
     armed.send_nowait("DISPATCH " + reg["effect_id"])
     armed.assert_died_by_sigkill()
     assert len(control.state()) == 1

@@ -9,11 +9,11 @@ drift (split-brain). Files exist only for decisions that are **OPEN** (still bei
 **NEW** (not in §11). When a §11 decision is superseded or reopened, a full ADR file is
 created *then*, per §12.5/§17 — which is when append-only file history becomes necessary.
 
-## Index (complete: 0000–0022)
+## Index (complete: 0000–0026)
 
 | ADR | Title | Status | Canonical text |
 |---|---|---|---|
-| 0000 | Scope freeze | accepted (countersign pending) | [0000-scope-freeze.md](0000-scope-freeze.md) |
+| 0000 | Scope freeze | accepted (countersign pending); wording of one non-goals bullet superseded by ADR-0026 (decision content unchanged) | [0000-scope-freeze.md](0000-scope-freeze.md) |
 | 0001 | Identity from stable upstream identifiers | accepted | master doc §11 |
 | 0002 | Persist-before-dispatch; append-only ledger | accepted | master doc §11 |
 | 0003 | Destination capability tiers C1/C2/C3 | accepted | master doc §11 |
@@ -24,7 +24,7 @@ created *then*, per §12.5/§17 — which is when append-only file history becom
 | 0008 | Frozen seeded oracle; client-side fault injection | accepted | master doc §11 |
 | 0009 | Benchmark-first, C2-scoped | accepted | master doc §11 |
 | 0010 | Stripe API version pin | **OPEN** | [0010-stripe-api-version.md](0010-stripe-api-version.md) |
-| 0011 | Working name "Detent" | accepted (screen pending, §13) | master doc §11 |
+| 0011 | Working name "Detent" | **superseded by ADR-0023** (screen fired its reopen trigger) | master doc §11 |
 | 0012 | C2 sandbox selection | **OPEN** | [0012-c2-sandbox.md](0012-c2-sandbox.md) |
 | 0013 | Implementation language and stack | accepted (ratified 2026-07-21) | [0013-implementation-language.md](0013-implementation-language.md) |
 | 0014 | Licensing and contributor governance | **OPEN** | [0014-licensing.md](0014-licensing.md) |
@@ -36,6 +36,10 @@ created *then*, per §12.5/§17 — which is when append-only file history becom
 | 0020 | Identity procedure (JCS + SHA-256, RFC-001 §1 items 1–4) | **proposed** | [0020-identity-procedure.md](0020-identity-procedure.md) |
 | 0021 | Record schemas admitted at M3 (ADR-0019 criteria) | **proposed** | [0021-record-schemas-admission.md](0021-record-schemas-admission.md) |
 | 0022 | Migration runner (in-package plain-SQL, hash journal) | **proposed** | [0022-migration-runner.md](0022-migration-runner.md) |
+| 0023 | Rename: Detent → Irrevon; DetentBench → IrrevonBench | accepted (owner written directive 2026-07-21; supersedes ADR-011) | [0023-rename-to-irrevon.md](0023-rename-to-irrevon.md) |
+| 0024 | `irrevon serve` — loopback read-only workbench surface | accepted (owner serve directive 2026-07-21) | [0024-serve-read-surface.md](0024-serve-read-surface.md) |
+| 0025 | Marketing site + discovery surface (`site/`), deploy gated | accepted (owner rebuild directive 2026-07-21) | [0025-site-discovery-surface.md](0025-site-discovery-surface.md) |
+| 0026 | Sanitization supersession of ADR-0000's non-goals wording | **proposed** (owner countersign required) | [0026-scope-freeze-wording-sanitization.md](0026-scope-freeze-wording-sanitization.md) |
 
 ## Policy
 

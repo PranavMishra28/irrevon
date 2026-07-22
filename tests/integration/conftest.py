@@ -24,11 +24,11 @@ import psycopg
 import pytest
 from psycopg import sql
 
-from detent.ledger.auditor import audit
-from detent.ledger.db import apply_migrations, migrations_dir
+from irrevon.ledger.auditor import audit
+from irrevon.ledger.db import apply_migrations, migrations_dir
 
 ADMIN_DSN = os.environ.get(
-    "DETENT_TEST_ADMIN_DSN", "postgresql://postgres@127.0.0.1:54329/postgres"
+    "IRREVON_TEST_ADMIN_DSN", "postgresql://postgres@127.0.0.1:54329/postgres"
 )
 _TEMPLATE_LOCK = 0x_DE7E_2026
 
@@ -37,7 +37,7 @@ _TEMPLATE_LOCK = 0x_DE7E_2026
 class DBHandles:
     name: str
     admin_dsn: str  # superuser — oracle SQL, corrupt-ledger seeding
-    app_dsn: str  # detent_app — what the engine itself is allowed to do
+    app_dsn: str  # irrevon_app — what the engine itself is allowed to do
 
 
 def _dsn_for(dbname: str, user: str | None = None) -> str:
@@ -55,7 +55,7 @@ def template_db() -> str:
     for path in sorted(migrations_dir().glob("*.sql")):
         digest.update(path.name.encode())
         digest.update(path.read_bytes())
-    name = f"detent_tpl_{digest.hexdigest()[:12]}"
+    name = f"irrevon_tpl_{digest.hexdigest()[:12]}"
     try:
         admin = psycopg.connect(ADMIN_DSN, autocommit=True)
     except psycopg.OperationalError as err:  # pragma: no cover
@@ -84,7 +84,7 @@ def template_db() -> str:
 
 
 def _clone(template: str) -> DBHandles:
-    name = f"detent_test_{uuid.uuid4().hex[:12]}"
+    name = f"irrevon_test_{uuid.uuid4().hex[:12]}"
     with psycopg.connect(ADMIN_DSN, autocommit=True) as admin:
         admin.execute(
             sql.SQL("CREATE DATABASE {} TEMPLATE {}").format(
@@ -92,7 +92,7 @@ def _clone(template: str) -> DBHandles:
             )
         )
     return DBHandles(
-        name=name, admin_dsn=_dsn_for(name), app_dsn=_dsn_for(name, "detent_app")
+        name=name, admin_dsn=_dsn_for(name), app_dsn=_dsn_for(name, "irrevon_app")
     )
 
 

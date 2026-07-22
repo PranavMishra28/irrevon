@@ -39,7 +39,7 @@ const components = [
 // Verbatim from schemas/examples/capability-declaration/valid-refdest-c2.json.
 const declaration = `{
   "adapter": "refdest-c2",
-  "destination": "Detent reference destination (C2 profile)",
+  "destination": "Irrevon reference destination (C2 profile)",
   "api_version": "refdest-1",
   "tier": "C2",
   "idempotency": { "supported": false },
@@ -54,14 +54,15 @@ const declaration = `{
     "listing_lag": "PT0S"
   },
   "compensation_hook": null,
-  "citations": ["https://detent.invalid/refdest/contract#c2"],
+  "citations": ["https://irrevon.dev/refdest/contract#c2"],
   "evidence_quality": "VF"
 }`;
 ---
 
 <Base
   title={`Engine — ${SITE_NAME}`}
-  description="The Detent reference reconciliation engine: intent registrar, append-only effect ledger, commit gate, dispatcher, reconciliation engine, orphan sweep — local-first, no hosted service, no accounts."
+  description="The Irrevon reference reconciliation engine: intent registrar, append-only effect ledger, commit gate, dispatcher, reconciliation engine, orphan sweep — local-first, no hosted service, no accounts."
+  ogImage="/og/og-platform.png"
 >
   <section class="section">
     <div class="container">
@@ -254,7 +255,7 @@ const declaration = `{
         <img
           class="shot-light"
           src={asset("/images/workbench-inspect-light.png")}
-          alt="Detent workbench inspecting the flagship effect: identity, lifecycle, classification and resolution panels with the recorded transition history."
+          alt="Irrevon workbench inspecting the flagship effect: identity, lifecycle, classification and resolution panels with the recorded transition history."
           width="1440"
           height="900"
           loading="lazy"
@@ -262,7 +263,7 @@ const declaration = `{
         <img
           class="shot-dark"
           src={asset("/images/workbench-inspect-dark.png")}
-          alt="Detent workbench inspecting the flagship effect in dark theme: identity, lifecycle, classification and resolution panels with the recorded transition history."
+          alt="Irrevon workbench inspecting the flagship effect in dark theme: identity, lifecycle, classification and resolution panels with the recorded transition history."
           width="1440"
           height="900"
           loading="lazy"

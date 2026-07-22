@@ -1,4 +1,4 @@
-# Detent — Dependabot: noise-contained configuration (see .scratch/redesign/dependabot-tuning.md).
+# Irrevon — Dependabot: noise-contained configuration (rationale: docs/ci.md workflow map, dependabot row).
 # Target steady state: at most one grouped version PR per ecosystem per month (≤3/month),
 # plus rare security PRs (which bypass schedule and cooldown by design).
 # github-actions cooldown is the tag-hijack shield: action compromises have historically

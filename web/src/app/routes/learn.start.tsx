@@ -8,7 +8,7 @@ function StartPage() {
   return (
     <Page
       title="Start here"
-      lead="Agents retry; destinations don't forgive. Detent persists a stable business identity before dispatch, and queries ambiguous outcomes instead of guessing."
+      lead="Agents retry; destinations don't forgive. Irrevon persists a stable business identity before dispatch, and queries ambiguous outcomes instead of guessing."
     >
       <div className="flex max-w-3xl flex-col gap-5">
         <section className="rounded-(--radius-structural) border border-border bg-layer-panel p-5">
@@ -43,7 +43,7 @@ function StartPage() {
             your terminal — the browser never starts an effect:
           </p>
           <pre className="mt-3 overflow-x-auto rounded-(--radius-control) border border-border-subtle bg-layer-sunken px-3 py-2 font-mono text-xs text-text-primary">
-            detent demo --keep
+            irrevon demo --keep
           </pre>
           {isMockMode ? (
             <p className="mt-3 text-sm text-text-secondary">

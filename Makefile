@@ -1,4 +1,4 @@
-# Detent validation gates. `make check` is the required local gate; it must pass
+# Irrevon validation gates. `make check` is the required local gate; it must pass
 # before any commit (pre-commit additionally runs the secret scan on every commit).
 # One-time install: `make tools` (installs, then verifies versions via tools-check).
 # Local installs are version-pinned below, not checksum-pinned — the checksum-verified
@@ -25,8 +25,18 @@ check: links schemas secrets integrity
 # stays strict.
 links:
 	lychee --offline --include-fragments --no-progress --root-dir "$(CURDIR)" \
+	  $(LYCHEE_EXCLUDES) \
 	  --remap "file://$(CURDIR)/fonts/ file://$(CURDIR)/web/public/fonts/" \
 	  --remap "file://$(CURDIR)/brand/ file://$(CURDIR)/web/public/brand/" .
+
+# site/src/content/ is excluded as a SOURCE only: it holds byte-synced mirrors of
+# repository docs (drift-gated by scripts/sync-docs.mjs --check) plus site-authored
+# markdown whose repo-relative links are resolved at build time by
+# site/scripts/satteri-repo-links.mjs. Their links cannot resolve at the mirror
+# location by construction; the canonical files are checked above at their real
+# paths, and the BUILT site's links are checked by the site Playwright link suite
+# (make site-test). Nothing is exempted twice-unchecked.
+links: LYCHEE_EXCLUDES := --exclude-path site/src/content
 
 # Every schema must be valid against its declared metaschema; every valid-*.json
 # example must pass; every invalid-*.json example must be REJECTED (the invalid
@@ -165,7 +175,7 @@ web-vrt:
 	  mcr.microsoft.com/playwright:v1.61.1-noble \
 	  bash -lc 'corepack enable && \
 	            pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store && \
-	            DETENT_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
+	            IRREVON_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
 
 # ── Marketing site gates (appended by the site/ task; see site/README.md) ─────
 # Self-contained Node package, same corepack/pnpm pattern as web/. Deploy stays
@@ -185,3 +195,73 @@ site-test:
 	cd site && pnpm install --frozen-lockfile \
 	  && pnpm exec playwright install chromium --only-shell \
 	  && pnpm run build && pnpm test
+
+# ── Serve + distribution targets (appended by the BE serve task; ADR-0024 ─────
+# proposed). `make dist` is THE ordering ADR-0018 requires: web assets are
+# built FIRST (the only step that touches Node), staged into the package, and
+# the honesty hook (hatch_build.py, IRREVON_REQUIRE_WEB=1) fails the build if
+# they are missing or were never staged. dist-smoke proves the whole no-Node
+# chain inside python:3.13-slim (scripts/dist-smoke.sh).
+.PHONY: web-build dist-stage dist dist-smoke py-test-serve serve-live web-e2e-live
+
+web-build:
+	cd web && pnpm install --frozen-lockfile && pnpm run build
+
+dist-stage:
+	rm -rf src/irrevon/_web && mkdir -p src/irrevon/_web && cp -R web/dist/. src/irrevon/_web/
+
+dist: web-build dist-stage
+	rm -rf dist && IRREVON_REQUIRE_WEB=1 uv build
+	@ls -l dist/
+
+dist-smoke: dist py-db-up
+	bash scripts/dist-smoke.sh
+
+# Serve-layer suite only (unit + integration; the full ladder already includes
+# it via py-test / py-test-integration).
+py-test-serve: py-db-up
+	uv sync --locked --quiet
+	uv run pytest tests/serve -p no:cacheprovider
+
+# ── Governance registries (appended at rebuild consolidation; N5 design) ──────
+# Two committed, generated, drift-gated registries (the site/CLAIMS.md pattern):
+#   ASSETS.md                — asset provenance (sha256 + coverage sweep)
+#   THIRD-PARTY-NOTICES.md   — third-party inventory (direct-dep coverage)
+# Both checks are stdlib-python3-only and read committed files exclusively, so
+# `check` stays node-free and install-free. Regeneration is a normal commit.
+.PHONY: assets third-party
+check: assets third-party
+
+assets:
+	python3 scripts/build-assets-registry.py --check
+
+third-party:
+	python3 scripts/build-third-party-notices.py --check
+
+# Live E2E foundation for the consolidator's `web-e2e-live` (WEB's Playwright
+# suite consumes this). Invocation contract (tests/serve/live_server.py):
+#   - seeds the test Postgres (127.0.0.1:54329, override IRREVON_TEST_ADMIN_DSN)
+#     via `irrevon demo --keep --seed 42` — kept DB irrevon_demo_s42; flagship
+#     effect id 0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5;
+#     demo artifact at /tmp/irrevon-demo-artifact.json (IRREVON_LIVE_ARTIFACT)
+#   - then starts `irrevon serve --json` on IRREVON_LIVE_PORT (default 0 =
+#     ephemeral) and prints serve's single-line JSON ready document on stdout:
+#     {"schema_version":"1","url":"http://127.0.0.1:<port>/","port":<port>,...}
+#   - Playwright targets ready.url; stop with SIGINT/SIGTERM (exit 0).
+# The same contract is available in-process as the `live_serve` pytest fixture
+# (tests/serve/conftest.py) for Python-side E2E tests.
+serve-live: py-db-up
+	uv sync --locked --quiet
+	uv run python tests/serve/live_server.py
+
+# THE joint proof (consolidation ladder): real demo data → real `irrevon serve`
+# serving the staged packaged workbench → Playwright (web/e2e/live-real/,
+# config web/playwright.live.config.ts — the suite spawns serve-live itself so
+# the SIGKILL-disconnect test kills the REAL engine process). The stub-backed
+# live suite (web-e2e) stays the fast PR-side approximation; this is the
+# integration truth.
+web-e2e-live: py-db-up web-build dist-stage
+	uv sync --locked --quiet
+	cd web && pnpm install --frozen-lockfile \
+	  && pnpm exec playwright install chromium --only-shell \
+	  && pnpm exec playwright test --config=playwright.live.config.ts

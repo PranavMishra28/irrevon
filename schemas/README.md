@@ -7,8 +7,9 @@ rationale: [ADR-0015](../docs/decisions/0015-schema-validation-tooling.md). Shap
 require an ADR (`.cursor/rules/contracts.mdc`); the current shapes were set by
 [ADR-0019](../docs/decisions/0019-record-schemas-and-api-contracts.md) (2026-07-21).
 
-`$id` values use the placeholder host `detent.invalid` — identifiers, not locators; final
-URIs are set after the name screen closes (master doc §13).
+`$id` values use the host `irrevon.dev` — identifiers, not locators, and still a
+**placeholder**: the name is decided (ADR-0023) but the domain is not yet purchased
+(owner spend decision, launch checklist). URIs become locators only after that purchase.
 
 ## Shipped now (5)
 
@@ -21,7 +22,7 @@ URIs are set after the name screen closes (master doc §13).
 | [reconciliation-finding.schema.json](reconciliation-finding.schema.json) | Same admission; strict `oneOf` subject (destination-keyed ORPHANED per master doc §7.1), AM-18 classification enum (DUPLICATE n>1 + CONTRADICTED), digest-only evidence until the redaction pipeline exists. |
 
 Record-schema enums are **generated from the ratified state table** (RFC-002 §3 via
-`src/detent/statetable.py`) and mechanically checked by `tests/schemas/test_enum_sync.py`
+`src/irrevon/statetable.py`) and mechanically checked by `tests/schemas/test_enum_sync.py`
 plus the integration seed-table cross-checks — never hand-copied (ADR-0019 item 4).
 
 ## Deferred, and why

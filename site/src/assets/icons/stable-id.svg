@@ -1,0 +1,9 @@
+<!-- Irrevon icon: stable-id - hand-written original, N4, 2026-07-21.
+     Three business facts of shrinking length funnel to one filled point:
+     many identifiers, one identity (SHA-256 over stable_ids). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M4 5h16"/>
+  <path d="M6.5 9.5h11"/>
+  <path d="M9 14h6"/>
+  <circle cx="12" cy="19" r="1.6" fill="currentColor" stroke="none"/>
+</svg>

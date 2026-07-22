@@ -1,6 +1,6 @@
 # Security policy — development process
 
-Scope: the threat model and execution policy for **developing** Detent with autonomous coding
+Scope: the threat model and execution policy for **developing** Irrevon with autonomous coding
 agents on a **public**, docs-first repository (visibility is an owner decision of
 2026-07-21, final; the tracked tree was sanitized the same day — amendment AM-16). The
 **product** threat model (trust boundaries, adversarial payee, authority resurrection,
