@@ -487,6 +487,66 @@ figcaption {
   display: block;
 }
 
+/* ── Markdown body typography (rendered docs, guides, research posts) ──── */
+.doc-body {
+  max-width: 76ch;
+  min-width: 0;
+}
+.doc-body > * + * {
+  margin-top: 0.95em;
+}
+.doc-body h1 {
+  font-size: var(--site-text-h1);
+  margin-top: 0;
+}
+.doc-body h2 {
+  font-size: var(--site-text-h2);
+  margin-top: 1.9em;
+  padding-top: 0.9em;
+  border-top: 1px solid var(--ref-border-subtle);
+}
+.doc-body h3 {
+  font-size: var(--site-text-h3);
+  margin-top: 1.5em;
+}
+.doc-body h4 {
+  font-size: var(--site-text-body);
+  margin-top: 1.3em;
+}
+.doc-body ul,
+.doc-body ol {
+  padding-left: 1.4em;
+  display: grid;
+  gap: 0.35em;
+}
+.doc-body li > ul,
+.doc-body li > ol {
+  margin-top: 0.35em;
+}
+.doc-body blockquote {
+  margin: 0;
+  border-left: 3px solid var(--ref-border-strong);
+  background: var(--ref-layer-panel);
+  padding: 10px 16px;
+  color: var(--ref-ink-2);
+}
+.doc-body table {
+  display: block;
+  overflow-x: auto;
+  border: 1px solid var(--ref-border);
+  border-radius: 2px;
+  background: var(--ref-layer-panel);
+  max-width: 100%;
+  width: fit-content;
+}
+.doc-body pre {
+  max-width: 100%;
+}
+.doc-body img {
+  border: 1px solid var(--ref-border-subtle);
+  border-radius: 2px;
+}
+
 /* ── Skip link ─────────────────────────────────────────────────────────── */
 .skip-link {
   position: absolute;

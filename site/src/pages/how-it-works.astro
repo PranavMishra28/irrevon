@@ -4,6 +4,7 @@ import Badge from "../components/Badge.astro";
 import Source from "../components/Source.astro";
 import DemoTranscript from "../components/DemoTranscript.astro";
 import { SITE_NAME } from "../config";
+import { href } from "../lib/url";
 
 const priorArt = [
   { primitive: "Effect ledger / persist-before-dispatch", art: "Transactional outbox pattern (established)" },
@@ -136,6 +137,9 @@ path reads model output.</code></pre>
         </p>
       </div>
       <DemoTranscript heading="Recorded sequence (seed 777)" />
+      <p style="margin-top: 16px;">
+        Prefer it beat by beat? <a href={href("/demo/")}>Step through the recorded sequence on the demo page →</a>
+      </p>
       <div class="panel" style="margin-top: 24px;">
         <h3>The recovery rule</h3>
         <p class="prose" style="margin-top: 8px;">

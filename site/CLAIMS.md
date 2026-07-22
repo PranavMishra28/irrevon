@@ -5,7 +5,7 @@ GENERATED from [`src/data/claims.ts`](src/data/claims.ts) by
 `--check` gates CI). Every claim-bearing section on the site references an id from
 this table; epistemic labels per master doc §0.
 
-49 claims.
+53 claims.
 
 | id | claim | source | label | badge |
 |---|---|---|---|---|
@@ -52,6 +52,10 @@ this table; epistemic labels per master doc §0.
 | `security-non-claims` | What Irrevon is NOT: not an authorization or approval gateway, not an audit-compliance product, no SOC 2 or ISO certification (none exists), not a hosted service — and the LLM never holds sole authority over an irreversible action. | master doc §5.4, §9 | `[DD]` | — |
 | `incident-taxonomy` | An incident taxonomy and response procedure exist and are public: declare → classify (Sev-1..3) → contain via the deny-list → preserve evidence first → RCA with deadlines → close only with a corrective change and a seeded regression test. | master doc §12.4 | `[DD]` | — |
 | `credentials-policy` | Credentials are sandbox-only in a secret store; pre-commit secret scanning; a production-scope credential anywhere is an immediate stop-and-rotate incident. | master doc §9 | `[DD]` | — |
+| `install-gated` | Planned distribution (uvx / uv tool install / pipx / pip, one PyPI package with the embedded workbench) is decided but gated: publication requires the public-release gate — clearances granted in writing, the counsel trademark screen, and the licensing decision. Every install command for it renders as PLANNED, never as available today. | docs/decisions/0018-distribution-model.md + docs/review-queue.md §3 item 4 + execution plan (public-release gate) | `[VF]` | — |
+| `no-releases` | No release exists: zero git tags, no package, no release artifact. The changelog is computed from git tags at build time, so its empty state is derived, not asserted — the first entry appears when the first signed tag exists, which is human-gated. | repository state (git tag --list) + execution plan (public-release gate) | `[VF]` | — |
+| `roadmap-no-dates` | The roadmap is phases and gates, never dates: order is load-bearing (the Stage-A preregistration freeze precedes any sandbox observation), and nothing in the execution plan is a schedule or a commitment. | docs/execution-plan.md (ordering rationale + gate notes) | `[VF]` | — |
+| `docs-rendered-provenance` | Rendered repository documents on this site are mechanical, drift-gated copies: each carries its source path and content sha256, a sync script regenerates them, and CI fails on any byte drift — the repository copy is always canonical. | site/scripts/sync-docs.mjs + site/docs-manifest.json (checked in CI via make site-check) | `[VF]` | — |
 | `quickstart-real` | The working quickstart is clone + uv + Docker: uv sync --locked, irrevon init, docker compose up, irrevon doctor, irrevon demo. There is no package-index install — nothing is published. | README.md (Quickstart) | `[VF]` | — |
 | `not-published` | Pre-release: not on any package index. The name is decided — Irrevon (ADR-0023, superseding ADR-011); the PyPI name 'irrevon' appeared available at screening and its registration is unblocked pending external clearances and the counsel trademark screen. When published, the install will be `uv tool install irrevon` — future tense until then. | docs/decisions/0023-rename-to-irrevon.md + docs/review-queue.md §3 item 4 | `[VF]` | — |
 | `license-pending` | License not yet finalized: deciding between an engine-AGPL-3.0 / harness-Apache-2.0 hybrid and all-Apache-2.0 (ADR-0014, open). Until decided, the repository carries no license and does not accept contributions. | LICENSING.md + docs/review-queue.md §3 items 7/18 | `[VF]` | — |

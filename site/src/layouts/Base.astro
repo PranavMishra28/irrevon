@@ -10,12 +10,22 @@ interface Props {
 }
 const { title, description } = Astro.props;
 
+// Seven top slots is the ceiling; Security, Changelog, and Roadmap stay
+// reachable from the footer.
 const nav = [
   { label: "Engine", path: "/platform/" },
   { label: "How it works", path: "/how-it-works/" },
+  { label: "Demo", path: "/demo/" },
   { label: "Benchmark", path: "/benchmark/" },
-  { label: "Security", path: "/security/" },
   { label: "Docs", path: "/docs/" },
+  { label: "Research", path: "/research/" },
+  { label: "Install", path: "/install/" },
+];
+const footerPages = [
+  ...nav,
+  { label: "Security", path: "/security/" },
+  { label: "Changelog", path: "/changelog/" },
+  { label: "Roadmap", path: "/roadmap/" },
 ];
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
@@ -158,7 +168,7 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
             <h2 class="footer-head">Site</h2>
             <ul>
               {
-                nav.map((item) => (
+                footerPages.map((item) => (
                   <li>
                     <a href={href(item.path)}>{item.label}</a>
                   </li>

@@ -1,0 +1,53 @@
+---
+// 404 — GitHub Pages serves 404.html automatically. Zero JS beyond the
+// shared theme toggle; base-path-safe links back into the site.
+import Base from "../layouts/Base.astro";
+import { SITE_NAME } from "../config";
+import { href } from "../lib/url";
+---
+
+<Base
+  title={`Page not found — ${SITE_NAME}`}
+  description="This page does not exist. The ledger has no record of it — here is the way back."
+>
+  <section class="section">
+    <div class="container nf-wrap">
+      <p class="nf-code" aria-hidden="true">404</p>
+      <h1>No record of this page</h1>
+      <p class="lead nf-lead">
+        Whatever linked you here promised something this site never recorded. Unlike an irreversible dispatch,
+        this one is easy to recover from.
+      </p>
+      <nav aria-label="Recovery options" class="nf-links">
+        <a class="btn btn-primary" href={href("/")}>Back to the start</a>
+        <a class="btn btn-secondary" href={href("/docs/")}>Browse the docs</a>
+        <a class="btn btn-secondary" href={href("/docs/search/")}>Search the docs</a>
+      </nav>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf-wrap {
+    display: grid;
+    gap: 16px;
+    justify-items: start;
+    padding-block: clamp(32px, 8vw, 96px);
+  }
+  .nf-code {
+    font-family: var(--font-mono);
+    font-size: clamp(3rem, 9vw, 5.5rem);
+    line-height: 1;
+    color: var(--ref-ink-3);
+    letter-spacing: 0.04em;
+  }
+  .nf-lead {
+    max-width: 48ch;
+  }
+  .nf-links {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+</style>

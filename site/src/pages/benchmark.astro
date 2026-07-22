@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import Badge from "../components/Badge.astro";
 import Source from "../components/Source.astro";
 import { SITE_NAME, BENCH_NAME, repoDoc } from "../config";
+import { href } from "../lib/url";
 
 const baselines = [
   { id: "B0", name: "No protection", solves: "nothing", residual: "all duplicates / orphans / lost" },
@@ -49,6 +50,10 @@ const metrics = [
         </p>
         <Source id="prereg-draft-status" also={["no-results-exist", "stamping-planned"]} />
       </div>
+      <p style="margin-top: 20px;">
+        The reproduction contract is published before the first run:{" "}
+        <a href={href("/docs/benchmark-reproduction/")}>benchmark reproduction guide →</a>
+      </p>
     </div>
   </section>
 

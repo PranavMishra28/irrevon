@@ -1,0 +1,109 @@
+---
+// Research post pages. Frontmatter claims validate against the registry;
+// the source line renders them, and primary sources are listed explicitly.
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Badge from "../../components/Badge.astro";
+import Source from "../../components/Source.astro";
+import { repoDoc } from "../../config";
+import { href } from "../../lib/url";
+import type { ClaimId } from "../../data/claims";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("research");
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const claimIds = post.data.claims as ClaimId[];
+const resolveSource = (url: string) =>
+  url.startsWith("repo:") ? repoDoc(url.slice(5)) : url.startsWith("/") ? href(url) : url;
+---
+
+<Base title={`${post.data.title} — Irrevon research`} description={post.data.summary}>
+  <article class="section">
+    <div class="container post-container">
+      <header class="post-head">
+        <span class="kicker">Research note</span>
+        <h1>{post.data.title}</h1>
+        <div class="post-meta">
+          <time datetime={post.data.date}>{post.data.date}</time>
+          {post.data.badges.map((b) => <Badge kind={b} />)}
+        </div>
+        <p class="lead">{post.data.summary}</p>
+      </header>
+      <div class="doc-body" data-pagefind-ignore>
+        <Content />
+      </div>
+      <footer class="post-foot">
+        {
+          post.data.sources.length > 0 && (
+            <nav aria-label="Primary sources">
+              <h2>Primary sources</h2>
+              <ul>
+                {post.data.sources.map((s) => (
+                  <li>
+                    <a href={resolveSource(s.url)}>{s.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )
+        }
+        {claimIds.length > 0 && <Source id={claimIds[0]} also={claimIds.slice(1)} />}
+        <p class="post-back"><a href={href("/research/")}>← All research notes</a></p>
+      </footer>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .post-container {
+    max-width: calc(76ch + 2 * var(--site-gutter));
+  }
+  .post-head {
+    display: grid;
+    gap: 14px;
+    margin-bottom: clamp(28px, 4vw, 44px);
+    justify-items: start;
+  }
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .post-meta time {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    color: var(--ref-ink-3);
+  }
+  .post-foot {
+    border-top: 1px solid var(--ref-border-subtle);
+    margin-top: clamp(28px, 4vw, 44px);
+    padding-top: 20px;
+    display: grid;
+    gap: 16px;
+  }
+  .post-foot h2 {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ref-ink-3);
+    margin-bottom: 8px;
+  }
+  .post-foot ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+    font-size: var(--site-text-small);
+  }
+  .post-back {
+    font-size: var(--site-text-small);
+  }
+</style>

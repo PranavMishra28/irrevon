@@ -48,7 +48,7 @@ test("no-JS: content and nav render without JavaScript", async ({ browser }) => 
   const page = await context.newPage();
   await page.goto("/");
   await expect(page.locator("h1")).toBeVisible();
-  await expect(page.locator("nav[aria-label='Primary'] a")).toHaveCount(5);
+  await expect(page.locator("nav[aria-label='Primary'] a")).toHaveCount(7);
   // The theme toggle is JS-only and must stay hidden without it.
   await expect(page.locator("#theme-toggle")).toBeHidden();
   await context.close();

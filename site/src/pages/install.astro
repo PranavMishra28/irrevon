@@ -1,0 +1,173 @@
+---
+// /install — the honest split: what works today (build from source, ~5
+// minutes) versus the decided-but-gated distribution future. Every planned
+// command renders inside an explicitly PLANNED-labeled block, future tense;
+// the install e2e enforces that no install command renders as available
+// today and that the old squatted package name never appears.
+import Base from "../layouts/Base.astro";
+import Badge from "../components/Badge.astro";
+import Source from "../components/Source.astro";
+import { SITE_NAME, REPO_URL } from "../config";
+import { href } from "../lib/url";
+
+const packageName = SITE_NAME.toLowerCase();
+const planned = [
+  { cmd: `uvx ${packageName}`, note: "run without installing" },
+  { cmd: `uv tool install ${packageName}`, note: "the primary documented path" },
+  { cmd: `pipx install ${packageName}`, note: "isolated CLI install" },
+  { cmd: `pip install ${packageName}`, note: "plain pip, one package" },
+];
+---
+
+<Base
+  title={`Install — ${SITE_NAME}`}
+  description="Install from source today (clone, uv, Docker — about five minutes). Package-index distribution is decided but gated; every planned command is future tense until the release gate opens."
+>
+  <section class="section">
+    <div class="container">
+      <span class="kicker">Install</span>
+      <h1>One path works today. The rest is future tense.</h1>
+      <p class="lead" style="margin-top: 18px; max-width: 64ch;">
+        {SITE_NAME} is pre-release: nothing is on any package index, and the repository carries no license
+        yet. Building from source works now and takes about five minutes; everything else on this page is a
+        documented plan behind a human-gated release.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" id="from-source">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Works today</span>
+        <h2>Install from source</h2>
+        <p class="lead">
+          Prerequisites, honestly: <a href="https://docs.astral.sh/uv/">uv</a>, Docker (for a local,
+          digest-pinned Postgres 17 on loopback), and about five minutes.
+        </p>
+      </div>
+      <pre><code># pre-release: clone only — no package-index install exists
+git clone {REPO_URL}.git && cd {packageName}
+
+uv sync --locked                # toolchain + deps, pinned by uv.lock
+uv run irrevon init             # writes irrevon.toml, compose.yaml, .env.example
+cp .env.example .env            # local placeholder password (never committed)
+docker compose up -d --wait     # digest-pinned Postgres 17, loopback only
+uv run irrevon init             # now applies the plain-SQL migrations
+uv run irrevon doctor           # read-only checks incl. the identity self-test
+uv run irrevon demo             # the two-leg flagship story</code></pre>
+      <div style="margin-top: 14px;">
+        <Source id="quickstart-real" also={["not-published"]} />
+      </div>
+      <p style="margin-top: 18px;">
+        Then step through what the demo recorded: <a href={href("/demo/")}>the One-Way Seat</a>, or follow the{" "}
+        <a href={href("/docs/getting-started/")}>getting-started guide</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" id="planned">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Decided, not yet real</span>
+        <h2>Planned distribution — gated</h2>
+        <p class="lead">
+          The distribution model is decided (one PyPI package, workbench embedded, zero recurring cost) and
+          the name is decided — {SITE_NAME}, with PyPI registration of “{packageName}” unblocked pending
+          external clearances and the counsel trademark screen. Until the public-release gate opens, none of
+          the commands below works, and this site will not pretend otherwise.
+        </p>
+      </div>
+      <div class="planned-block" data-planned>
+        <div class="planned-head">
+          <span class="planned-chip">PLANNED — not yet published</span>
+          <span class="mono-chip">future tense</span>
+        </div>
+        <ul class="planned-list">
+          {
+            planned.map((p) => (
+              <li>
+                <code>{p.cmd}</code>
+                <span>{p.note}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="planned-note">
+          These will work only after: external clearances granted in writing · counsel trademark screen of
+          “{SITE_NAME}” · licensing decision closed (ADR-0014) · sanitization review · trusted publishing per
+          ADR-0018 · human sign-off. Publication is never an agent act.
+        </p>
+        <Source id="install-gated" also={["license-pending"]} />
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="uninstall">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Leaving</span>
+        <h2>Uninstall</h2>
+        <p class="lead">Nothing global is installed, so removal is complete and local.</p>
+      </div>
+      <pre><code>docker compose down -v          # drop the local database volume
+cd .. && rm -rf {packageName}   # remove the clone (irrevon.toml, .env, compose.yaml live inside it)</code></pre>
+      <p class="muted" style="margin-top: 14px; font-size: var(--site-text-small);">
+        When packaged distribution exists, uninstall will be documented as package removal plus the same two
+        steps — no global state, by design (ADR-0018).
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .planned-block {
+    border: 1px dashed var(--ref-border-strong);
+    border-radius: 2px;
+    background: var(--ref-layer-panel);
+    padding: clamp(20px, 3vw, 32px);
+    display: grid;
+    gap: 16px;
+    max-width: 76ch;
+  }
+  .planned-head {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .planned-chip {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px dashed var(--ref-border-strong);
+    border-radius: 2px;
+    padding: 5px 8px;
+    color: var(--ref-ink-2);
+  }
+  .planned-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  .planned-list li {
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+  .planned-list code {
+    min-width: 26ch;
+  }
+  .planned-list span {
+    color: var(--ref-ink-3);
+    font-size: var(--site-text-small);
+  }
+  .planned-note {
+    color: var(--ref-ink-2);
+    font-size: var(--site-text-small);
+    max-width: 64ch;
+  }
+</style>

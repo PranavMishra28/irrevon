@@ -1,0 +1,130 @@
+---
+// Research index: the truthful publishing surface. Exactly the posts that can
+// be derived honestly today — no filler, and an explicit statement that no
+// preprint exists yet.
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Badge from "../../components/Badge.astro";
+import { SITE_NAME } from "../../config";
+import { href } from "../../lib/url";
+
+const posts = (await getCollection("research")).sort((a, b) => b.data.date.localeCompare(a.data.date));
+---
+
+<Base
+  title={`Research — ${SITE_NAME}`}
+  description="Research notes from the Irrevon project: the benchmark preregistration story and the prior-art record. No preprint exists yet; the venue path is a plan."
+>
+  <section class="section">
+    <div class="container">
+      <span class="kicker">Research</span>
+      <h1>Written before the results exist</h1>
+      <p class="lead" style="margin-top: 18px; max-width: 64ch;">
+        Notes on the project's research posture: how the benchmark is preregistered, and whose shoulders the
+        engine stands on. Everything here cites the claims registry and the canonical repository documents.
+      </p>
+      <p class="rss-line">
+        <a href={href("/research/rss.xml")}>RSS feed</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <ol class="post-list">
+        {
+          posts.map((p) => (
+            <li>
+              <article>
+                <div class="post-meta">
+                  <time datetime={p.data.date}>{p.data.date}</time>
+                  {p.data.badges.map((b) => (
+                    <Badge kind={b} />
+                  ))}
+                </div>
+                <h2>
+                  <a href={href(`/research/${p.id}/`)}>{p.data.title}</a>
+                </h2>
+                <p>{p.data.summary}</p>
+              </article>
+            </li>
+          ))
+        }
+      </ol>
+      <div class="panel-subtle no-preprint">
+        <h2>Preprints</h2>
+        <p>
+          No preprint exists yet. The publication path — arXiv preprint, an agents/reliability workshop, the
+          NeurIPS Datasets &amp; Benchmarks track — is a plan recorded in the master document, not an
+          achievement. When a preprint exists, it will be listed here with its identifier.
+        </p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .rss-line {
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: var(--site-text-small);
+  }
+  .post-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 24px;
+    max-width: 76ch;
+  }
+  .post-list li {
+    border: 1px solid var(--ref-border-subtle);
+    border-radius: 2px;
+    background: var(--ref-layer-panel);
+    padding: clamp(18px, 3vw, 28px);
+  }
+  .post-list article {
+    display: grid;
+    gap: 10px;
+  }
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .post-meta time {
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    color: var(--ref-ink-3);
+    letter-spacing: 0.04em;
+  }
+  .post-list h2 {
+    font-size: var(--site-text-h3);
+  }
+  .post-list h2 a {
+    color: var(--ref-ink-1);
+    text-decoration: none;
+  }
+  .post-list h2 a:hover {
+    color: var(--ref-accent);
+  }
+  .post-list p {
+    color: var(--ref-ink-2);
+    font-size: var(--site-text-small);
+    max-width: 64ch;
+  }
+  .no-preprint {
+    margin-top: 32px;
+    max-width: 76ch;
+    display: grid;
+    gap: 8px;
+  }
+  .no-preprint h2 {
+    font-size: var(--site-text-h3);
+  }
+  .no-preprint p {
+    color: var(--ref-ink-2);
+    font-size: var(--site-text-small);
+  }
+</style>
