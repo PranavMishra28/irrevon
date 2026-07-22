@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://irrevon.dev/schemas/bench-result.schema.json",
+  "$comment": "irrevonbench/result/v1 (preregistration §8) — proposed by ADR-0030. Written LAST, hash-referencing the write-ahead run manifest and the oracle read-back. Validity is computed mechanically by one validator common to all arms (§6: harness-invalid is the ONLY invalid class; arm-attributable outcomes are VALID and scored). Metric cells carry oracle-fixed numerator/denominator pairs; structurally-undefined cells are marked (N/A-by-arm, NOT-DETECTABLE), never zero-filled (§2.1/§4). INVALID results are retained and marked, never deleted. $id host is a placeholder (ADR-0023). Shape changes require an ADR.",
+  "title": "IrrevonBench per-run result",
+  "type": "object",
+  "$defs": {
+    "metric_cell": {
+      "type": "object",
+      "properties": {
+        "numerator": { "type": ["integer", "null"], "minimum": 0 },
+        "denominator": { "type": ["integer", "null"], "minimum": 0 },
+        "value": { "type": ["number", "null"], "minimum": 0 },
+        "mark": {
+          "description": "Pre-specified non-numeric marks: N/A (zero denominator, §4), N/A-by-arm (§2.1 L4/L5), NOT-DETECTABLE (§2.1 L1), expected-null (§2.1 L3), fixture-truth-only (§2.1 L1). Null when the value is numeric and unqualified.",
+          "enum": [null, "N/A", "N/A-by-arm", "NOT-DETECTABLE", "expected-null", "fixture-truth-only"]
+        }
+      },
+      "required": ["numerator", "denominator", "value", "mark"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$comment": "A numeric value requires a real denominator; N/A and N/A-by-arm require value null.",
+          "if": { "properties": { "value": { "type": "number" } } },
+          "then": {
+            "properties": {
+              "denominator": { "type": "integer", "minimum": 1 },
+              "numerator": { "type": "integer" }
+            }
+          },
+          "else": { "properties": { "mark": { "type": "string" } } }
+        }
+      ]
+    }
+  },
+  "properties": {
+    "format": { "const": "irrevonbench/result/v1" },
+    "run_id": { "type": "string", "pattern": "^run_[0-9a-z_.-]{4,80}$" },
+    "run_manifest_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "completed_at": { "type": "string", "format": "date-time" },
+    "confirmatory": { "type": "boolean" },
+    "labels": {
+      "description": "Mandatory honesty labels. Every pre-Stage-B result carries 'non-confirmatory'; refdest cells carry 'synthetic-destination'.",
+      "type": "array",
+      "items": {
+        "enum": ["non-confirmatory", "mechanism-test", "exploratory", "synthetic-destination", "smoke"]
+      },
+      "uniqueItems": true
+    },
+    "validity": {
+      "type": "object",
+      "properties": {
+        "status": { "enum": ["VALID", "INVALID"] },
+        "invalid_class": {
+          "description": "Harness-invalid causes only (§6): reset verification failure, seed mismatch, proven harness corruption.",
+          "enum": [null, "reset-verification-failed", "seed-mismatch", "harness-corruption"]
+        },
+        "evidence": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["status", "invalid_class", "evidence"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "INVALID" } } },
+          "then": { "properties": { "invalid_class": { "type": "string" } } },
+          "else": { "properties": { "invalid_class": { "const": null } } }
+        }
+      ]
+    },
+    "trials": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "trial_index": { "type": "integer", "minimum": 0 },
+          "arm_outcome": {
+            "description": "What the arm believes happened; 'unresolved' feeds the intention-to-test sensitivity analysis (§6).",
+            "enum": ["committed", "failed", "suppressed", "ambiguous-unresolved", "escalated", "arm-crashed", "unresolved-unknown"]
+          },
+          "dispatch_attempted": { "type": "boolean" },
+          "detail": { "type": "object" }
+        },
+        "required": ["trial_index", "arm_outcome", "dispatch_attempted", "detail"],
+        "additionalProperties": false
+      }
+    },
+    "oracle_readback": {
+      "description": "Authoritative destination read-back (digest-only evidence; raw payloads never enter results).",
+      "type": "object",
+      "properties": {
+        "performed": { "type": "boolean" },
+        "readback_digest": { "type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$" },
+        "destination_effect_count": { "type": ["integer", "null"], "minimum": 0 },
+        "per_intent_effect_counts": {
+          "type": ["object", "null"],
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "orphan_effect_count": { "type": ["integer", "null"], "minimum": 0 },
+        "ambiguous_attributions": {
+          "description": "Effects whose stable-id projection matched multiple intents: attribution is declined and counted, never guessed (ADR-0032 attribution hardening).",
+          "type": ["integer", "null"],
+          "minimum": 0
+        }
+      },
+      "required": [
+        "performed",
+        "readback_digest",
+        "destination_effect_count",
+        "per_intent_effect_counts",
+        "orphan_effect_count",
+        "ambiguous_attributions"
+      ],
+      "additionalProperties": false
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "duplicate_effect_rate": { "$ref": "#/$defs/metric_cell" },
+        "orphaned_effect_rate": { "$ref": "#/$defs/metric_cell" },
+        "lost_legitimate_effect_rate": { "$ref": "#/$defs/metric_cell" },
+        "false_suppression_rate": { "$ref": "#/$defs/metric_cell" },
+        "unresolved_ambiguous_rate": { "$ref": "#/$defs/metric_cell" },
+        "false_reconciliation_rate": { "$ref": "#/$defs/metric_cell" },
+        "human_review_rate": { "$ref": "#/$defs/metric_cell" },
+        "compensation_correctness": { "$ref": "#/$defs/metric_cell" }
+      },
+      "required": [
+        "duplicate_effect_rate",
+        "orphaned_effect_rate",
+        "lost_legitimate_effect_rate",
+        "false_suppression_rate",
+        "unresolved_ambiguous_rate",
+        "false_reconciliation_rate",
+        "human_review_rate",
+        "compensation_correctness"
+      ],
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "bundle_dir": { "type": "string", "minLength": 1 },
+        "artifact_digests": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+        }
+      },
+      "required": ["bundle_dir", "artifact_digests"],
+      "additionalProperties": false
+    },
+    "residual_effects_after_cleanup": {
+      "description": "Residual sandbox effects are RESULTS, not invalidity (§6) — recorded, scored, never censored.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "history": {
+      "description": "Causal-history checker summary (ADR-0032): the second, independent oracle pass. Behavioral-invariant violation counts are diagnostics reported per run — H4/H5/H8 are supplementary and NEVER pooled into §4 metrics or confirmatory analysis. cross_check must be 'consistent'; a divergent run is finalized harness-INVALID by the runner.",
+      "type": "object",
+      "properties": {
+        "history_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "violations_total": { "type": "integer", "minimum": 0 },
+        "violations_by_invariant": {
+          "type": "object",
+          "propertyNames": {
+            "enum": [
+              "H1-duplicate-effect",
+              "H2-orphan-effect",
+              "H3-lost-legitimate-effect",
+              "H4-effect-after-cancellation",
+              "H5-unauthorized-effect",
+              "H6-false-suppression",
+              "H7-claim-contradiction",
+              "H8-effect-despite-pre-persist-crash"
+            ]
+          },
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "diagnostics_total": { "type": "integer", "minimum": 0 },
+        "cross_check": { "enum": ["consistent", "DIVERGENT"] }
+      },
+      "required": [
+        "history_digest",
+        "violations_total",
+        "violations_by_invariant",
+        "diagnostics_total",
+        "cross_check"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "format",
+    "run_id",
+    "run_manifest_digest",
+    "completed_at",
+    "confirmatory",
+    "labels",
+    "validity",
+    "trials",
+    "oracle_readback",
+    "metrics",
+    "evidence",
+    "residual_effects_after_cleanup"
+  ],
+  "allOf": [
+    {
+      "$comment": "Pre-freeze honesty: a non-confirmatory result must say so in its labels.",
+      "if": { "properties": { "confirmatory": { "const": false } } },
+      "then": { "properties": { "labels": { "contains": { "const": "non-confirmatory" } } } }
+    }
+  ],
+  "additionalProperties": false
+}

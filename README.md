@@ -25,12 +25,17 @@ reconciliation + recovery + sweep + the flagship demo**, per
 Also in: the CI pipeline (required PR gate + nightly; [docs/ci.md](docs/ci.md)); the
 read-only workbench frontend ([web/](web/README.md)) with a loopback live mode over
 `irrevon serve` ([ADR-0024](docs/decisions/0024-serve-read-surface.md)); wheel/sdist
-packaging with `make dist` / `dist-smoke` (built, unpublished); and the expanded
-marketing/discovery site ([site/](site/README.md) — built, deploy gated).
-Real destination adapters (M4), the benchmark harness (M5+), and any packaged release
-remain gated by the execution plan. The roadmap, gates, and what blocks what are in
-[docs/execution-plan.md](docs/execution-plan.md). Items awaiting human decision are in
-[docs/review-queue.md](docs/review-queue.md).
+packaging with `make dist` / `dist-smoke` (built, unpublished); the expanded
+marketing/discovery site ([site/](site/README.md) — built, deploy gated); and the
+**IrrevonBench foundation layer** ([docs/benchmark.md](docs/benchmark.md), ADR-0030
+proposed): benchmark contracts, deterministic public dev fixtures, the baseline-ladder
+arm registry, fault orchestration, destination read-back oracle, metrics + a stdlib
+statistics pipeline, and `irrevon bench` — with confirmatory runs mechanically refused
+until the human preregistration freeze (exit 4).
+Real destination adapters (M4), confirmatory benchmark runs (M7, human-gated), and any
+packaged release remain gated by the execution plan. The roadmap, gates, and what blocks
+what are in [docs/execution-plan.md](docs/execution-plan.md). Items awaiting human
+decision are in [docs/review-queue.md](docs/review-queue.md).
 
 ## Quickstart — run the flagship demo
 

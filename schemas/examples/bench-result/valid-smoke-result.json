@@ -1,0 +1,59 @@
+{
+  "format": "irrevonbench/result/v1",
+  "run_id": "run_smoke.20260722.a",
+  "run_manifest_digest": "sha256:0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0",
+  "completed_at": "2026-07-22T00:02:00Z",
+  "confirmatory": false,
+  "labels": ["non-confirmatory", "mechanism-test", "synthetic-destination", "smoke"],
+  "validity": {
+    "status": "VALID",
+    "invalid_class": null,
+    "evidence": []
+  },
+  "trials": [
+    {
+      "trial_index": 0,
+      "arm_outcome": "committed",
+      "dispatch_attempted": true,
+      "detail": { "lifecycle": "SETTLED_COMMITTED", "classification": "CONFIRMED_UNIQUE" }
+    },
+    {
+      "trial_index": 1,
+      "arm_outcome": "committed",
+      "dispatch_attempted": true,
+      "detail": { "lifecycle": "SETTLED_COMMITTED", "classification": "CONFIRMED_UNIQUE" }
+    }
+  ],
+  "oracle_readback": {
+    "performed": true,
+    "readback_digest": "sha256:aa1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0",
+    "destination_effect_count": 2,
+    "per_intent_effect_counts": { "0": 1, "1": 1 },
+    "orphan_effect_count": 0,
+    "ambiguous_attributions": 0
+  },
+  "metrics": {
+    "duplicate_effect_rate": { "numerator": 0, "denominator": 2, "value": 0, "mark": null },
+    "orphaned_effect_rate": { "numerator": 0, "denominator": 2, "value": 0, "mark": null },
+    "lost_legitimate_effect_rate": { "numerator": 0, "denominator": 2, "value": 0, "mark": null },
+    "false_suppression_rate": { "numerator": 0, "denominator": 2, "value": 0, "mark": null },
+    "unresolved_ambiguous_rate": { "numerator": 0, "denominator": 2, "value": 0, "mark": null },
+    "false_reconciliation_rate": { "numerator": 0, "denominator": 2, "value": 0, "mark": null },
+    "human_review_rate": { "numerator": 0, "denominator": 2, "value": 0, "mark": null },
+    "compensation_correctness": { "numerator": null, "denominator": null, "value": null, "mark": "N/A" }
+  },
+  "evidence": {
+    "bundle_dir": "bench/runs/run_smoke.20260722.a",
+    "artifact_digests": {
+      "harness_log": "sha256:bb1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0"
+    }
+  },
+  "residual_effects_after_cleanup": 0,
+  "history": {
+    "history_digest": "sha256:cc1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0",
+    "violations_total": 0,
+    "violations_by_invariant": {},
+    "diagnostics_total": 0,
+    "cross_check": "consistent"
+  }
+}

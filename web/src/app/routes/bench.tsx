@@ -17,15 +17,16 @@ function BenchPage() {
     >
       <div className="grid grid-cols-1 gap-4 min-[1024px]:grid-cols-12">
         <div className="min-w-0 min-[1024px]:col-span-7">
-          <Panel title="No benchmark runs exist">
+          <Panel title="No benchmark results exist">
             <p className="max-w-[65ch] text-sm text-text-primary">
-              No run contract and no run artifact exist. This page carries no numbers at all —
-              synthetic figures presented as results would be a lie with good typography.
+              The harness, contracts, and integrity gates exist; no confirmatory run does, and
+              none can before the human preregistration freeze. This page carries no numbers at
+              all — synthetic figures presented as results would be a lie with good typography.
             </p>
             <p className="mt-2 max-w-[65ch] text-sm text-text-secondary">
-              A run appears only after the benchmark harness executes against real destination
-              sandboxes and produces sealed artifacts. Until then, this surface stays an honest
-              null: its most prominent statement is that there is nothing to show.
+              Results appear only after the frozen plan executes against real destination
+              sandboxes and produces sealed, append-only artifacts. Local mechanism runs are
+              labeled non-confirmatory at the schema level and never shown here as results.
             </p>
             <p className="mt-3 border-t border-border-subtle pt-2 text-sm text-text-secondary">
               The negative/null-result commitment is binding: if the runs falsify the design,
@@ -36,7 +37,10 @@ function BenchPage() {
         <div className="flex min-w-0 flex-col gap-4 min-[1024px]:col-span-5">
           <Panel title="Prerequisites, in order">
             <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-sm text-text-primary">
-              <li>Ratified run/cell/validity/metric schemas (statistical repair pending).</li>
+              <li>
+                Benchmark contracts + harness landed (ADR-0030/0032, proposed; ratification
+                pending).
+              </li>
               <li>A preregistration-stamped protocol with the holdout split sealed.</li>
               <li>
                 At least one full fault × effect-class matrix run with retained artifacts.

@@ -2,7 +2,7 @@
 title: "CI — how this repository builds"
 description: "The CI workflow map: tiers, required checks, owner settings checklist, and local parity via make targets."
 sourcePath: "docs/ci.md"
-sourceSha256: "9bee5c79191c67ce59278099aba3d4f6553719e188bfa40c8cc46eb3703f3663"
+sourceSha256: "0b233a904a8bfdbd22306a98777cf0d66377ea3e293e1ce95cec09e6937bdbb0"
 syncedAt: "2026-07-22"
 section: "Governance"
 renderTitle: false
@@ -31,7 +31,7 @@ that date.
 
 | Tier | Job (workflow) | Condition | Runs | Today |
 |---|---|---|---|---|
-| T0 docs/static | `docs` (ci) | always, every push/PR | `make check` (links, schemas, secrets, integrity, actionslint, frozen) | active |
+| T0 docs/static | `docs` (ci) | always, every push/PR | `make check` (links, schemas, secrets, integrity, actionslint, frozen, assets, third-party, bench-integrity) | active |
 | T0 backend static | `py-check` (ci) | backend paths changed AND `pyproject.toml` exists | `make py-check` | active (engine landed; skips cleanly on docs-only PRs) |
 | T1 backend unit+property | `py-test` (ci) | same | `make py-test` (≥1,000 Hypothesis cases/invariant — spec, never lowered) | active (same skip rule) |
 | F0 web static | `web-check` (ci) | `web/` paths changed AND `web/` exists | `make web-check` | active (workbench landed; skips cleanly on non-web PRs) |
@@ -45,7 +45,13 @@ that date.
 | T3 nightly | `validate` + `t3-backend` (nightly) | cron | `make check` + online audits; conformance-budget properties + full integration suite (fault-matrix subset vs the stub destination) | active |
 | wheel smoke | `wheel-smoke` (nightly) | cron | `make dist-smoke` (= `make dist` + the Node-less container smoke; ADR-0018 chain, wheel + sdist legs) | active — nightly, not PR: needs docker + a second full web build + wheel build; the PR-side integration truth is `web-e2e-live` |
 | T4 sandbox | `sandbox-contract` (sandbox) | human dispatch + env approval | M4: `make sandbox-contract` | skeleton |
-| benchmark | `bench` (benchmark) | human dispatch + env approval | M7: preregistered suites, cache-free, sanitized evidence | skeleton |
+| benchmark | `bench` (benchmark) | human dispatch + env approval | M7: preregistered suites, cache-free, sanitized evidence (`irrevon bench run` — integrity refusal until the human Stage-B freeze) | skeleton |
+
+The bench foundation (ADR-0030, proposed) additionally added: `bench-integrity`
+into `make check` (stdlib-only fixture/canary/holdout/freeze gate) and
+`bench-smoke` into `make check-all` (CLI end-to-end over two dev workloads,
+conventional arms, no database). The full harness suites run inside the
+existing `py-test` / `py-test-integration` tiers (`tests/bench/`).
 
 A docs-only PR runs `changes` + `docs` (+ `workflow-security` if workflows changed) and
 passes legitimately — conditional jobs skip and the aggregator verifies each skip against

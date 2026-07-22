@@ -238,6 +238,28 @@ assets:
 third-party:
 	python3 scripts/build-third-party-notices.py --check
 
+# ── Benchmark integrity gates (appended by the bench foundation; ADR-0030 ─────
+# proposed). bench-integrity is stdlib-python3-only over committed files
+# (manifest drift, canary, holdout leakage, freeze honesty, oracle isolation)
+# so `check` stays install-free; the encoder-exact fixture parity and the full
+# harness suites run under py-test / py-test-integration. bench-smoke is the
+# CLI-level end-to-end (conventional arms only — no DB) folded into check-all.
+.PHONY: bench-integrity bench-smoke
+check: bench-integrity
+
+bench-integrity:
+	python3 scripts/check-bench-integrity.py
+
+bench-smoke:
+	uv sync --locked --quiet
+	rm -rf .scratch/bench-smoke-ci
+	uv run irrevon bench smoke --fixtures bench/fixtures/dev \
+	  --out .scratch/bench-smoke-ci \
+	  --workloads wl_dev.c2.responselost.irre.r0,wl_dev.c2.semanticresynthesis.irre.r0 \
+	  --arms B0,B1,B3,B5,B6,B5+B3+B6 >/dev/null
+
+check-all: bench-smoke
+
 # Live E2E foundation for the consolidator's `web-e2e-live` (WEB's Playwright
 # suite consumes this). Invocation contract (tests/serve/live_server.py):
 #   - seeds the test Postgres (127.0.0.1:54329, override IRREVON_TEST_ADMIN_DSN)

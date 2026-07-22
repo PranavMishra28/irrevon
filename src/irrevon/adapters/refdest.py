@@ -70,11 +70,19 @@ class RefDest:
     """
 
     def __init__(self, seed: int = 42, profile: str = "C2",
-                 default_filter_quirk: bool = False) -> None:
+                 default_filter_quirk: bool = False,
+                 enrichment_quirk: bool = False) -> None:
         if profile not in ("C1", "C2", "C3"):
             raise ValueError(f"unknown refdest profile {profile!r}")
         self.profile = profile
         self.default_filter_quirk = default_filter_quirk
+        # Enrichment quirk: the destination normalizes/enriches the stored
+        # representation (server-assigned fields, canonicalized keys) the way
+        # real APIs do, so the STORED payload digest no longer equals the
+        # digest of the dispatched payload. Oracles that attribute effects by
+        # dispatched-payload digest alone break under this quirk by design —
+        # it exists to keep them honest (bench oracle hardening).
+        self.enrichment_quirk = enrichment_quirk
         self._seed = seed
         self._effects: list[dict[str, Any]] = []
         self._request_log: list[dict[str, Any]] = []
@@ -136,13 +144,31 @@ class RefDest:
         visible_by_default: bool = True,
         via: str = "api",
     ) -> dict[str, Any]:
+        stored_payload: dict[str, Any] = dict(payload)
+        if self.enrichment_quirk:
+            # Server-side normalization/enrichment: the stored object is NOT
+            # byte-identical to the dispatched one (real-API behavior).
+            stored_payload = {
+                "normalized": True,
+                "server_fields": {"region": "dev-1", "revision": self._effect_counter + 1},
+                "data": stored_payload,
+            }
         effect = {
             "destination_ref": self._mint_ref(),
             "effect_type": effect_type,
-            "payload_digest": canonical_digest(payload),
+            # Digest of the STORED representation — under the enrichment
+            # quirk this deliberately differs from the dispatched payload's
+            # digest (what a read-back-only observer could recompute).
+            "payload_digest": canonical_digest(stored_payload),
+            # Ground-truth stored payload: control-plane/truth-API only;
+            # never exposed through the public effect API (_public).
+            "payload": stored_payload,
             "client_ref": client_ref,
             "idempotency_key": idempotency_key,
             "created_at": self._now(),
+            # The destination's authoritative total order (request-log seq at
+            # creation time) — the history checker's cross-actor anchor.
+            "request_seq": self._request_count,
             "status": "created",
             "visible_by_default": visible_by_default,
             "via": via,
@@ -285,6 +311,7 @@ class RefDest:
         self.__init__(  # type: ignore[misc]
             seed=seed, profile=self.profile,
             default_filter_quirk=self.default_filter_quirk,
+            enrichment_quirk=self.enrichment_quirk,
         )
 
     def control_oob_create(
