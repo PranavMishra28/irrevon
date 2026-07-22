@@ -1,0 +1,55 @@
+---
+// Provenance banner for rendered repository documents: names the source
+// path, its content hash at sync time, and links the canonical copy. The
+// repository copy is always canonical; the rendered copy is a mechanical,
+// drift-gated transform (scripts/sync-docs.mjs).
+import { repoDoc } from "../config";
+
+interface Props {
+  sourcePath: string;
+  sourceSha256: string;
+  syncedAt: string;
+}
+const { sourcePath, sourceSha256, syncedAt } = Astro.props;
+---
+
+<aside class="rendered-from" aria-label="Document provenance">
+  <span class="rf-label">Rendered from</span>
+  <a href={repoDoc(sourcePath)}><code>{sourcePath}</code></a>
+  <span class="rf-hash">sha256 {sourceSha256.slice(0, 12)}… · synced {syncedAt}</span>
+  <span class="rf-note">The repository copy is canonical; this rendering is drift-gated.</span>
+</aside>
+
+<style>
+  .rendered-from {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+    font-family: var(--font-mono);
+    font-size: var(--site-text-2xs);
+    color: var(--ref-ink-3);
+    border: 1px solid var(--ref-border-subtle);
+    border-left: 3px solid var(--ref-border-strong);
+    border-radius: 2px;
+    background: var(--ref-layer-panel);
+    padding: 10px 14px;
+  }
+  .rf-label {
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .rendered-from code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+  }
+  .rf-hash {
+    white-space: nowrap;
+  }
+  .rf-note {
+    flex-basis: 100%;
+    color: var(--ref-ink-3);
+  }
+</style>

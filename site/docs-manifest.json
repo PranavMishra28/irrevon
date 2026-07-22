@@ -1,0 +1,157 @@
+{
+  "$comment": "Manifest for scripts/sync-docs.mjs — which repository documents render on the site (src/content/repo-docs/) and which are link-only. The repository copy is always canonical; rendered copies are mechanical, drift-gated transforms. Public-appropriateness rulings per the site-expansion design; master doc is LINK-ONLY this cycle (rendering it adds a drift surface while AM-22 re-pins its hash).",
+  "render": [
+    {
+      "source": "docs/rfc-001-first-slice.md",
+      "slug": "rfc-001",
+      "section": "Design",
+      "description": "The first vertical slice: scope, wire-in points, flagship demo contract, and the M3 acceptance ladder.",
+      "title": "RFC-001 — the first vertical slice"
+    },
+    {
+      "source": "docs/rfc-002-engine-design.md",
+      "slug": "rfc-002",
+      "section": "Design",
+      "description": "Implementation-ready engine mechanics: canonical state tables, append-only ledger, claim protocol, gate, recovery, sweep, and the conformance test plan.",
+      "title": "RFC-002 — engine design"
+    },
+    {
+      "source": "docs/benchmark-preregistration.md",
+      "slug": "benchmark-preregistration",
+      "section": "Benchmark",
+      "badge": "preregistered",
+      "description": "The IrrevonBench preregistration DRAFT: hypotheses, baseline ladder, metrics, analysis plan, sealed holdout, and the falsification criterion.",
+      "title": "IrrevonBench preregistration (DRAFT)"
+    },
+    {
+      "source": "docs/execution-plan.md",
+      "slug": "execution-plan",
+      "section": "Governance",
+      "description": "Phases P0–P8, their gates, and the public-release gate. Order is load-bearing; nothing here is a date.",
+      "title": "Execution plan — phases and gates"
+    },
+    {
+      "source": "docs/ci.md",
+      "slug": "ci",
+      "section": "Governance",
+      "description": "The CI workflow map: tiers, required checks, owner settings checklist, and local parity via make targets.",
+      "title": "CI — how this repository builds"
+    },
+    {
+      "source": "docs/security-policy.md",
+      "slug": "security-policy",
+      "section": "Governance",
+      "description": "The development threat model and agent execution policy: what agents may do, what is human-only, and the enforcement layers.",
+      "title": "Security policy — development process"
+    },
+    {
+      "source": "schemas/README.md",
+      "slug": "schemas",
+      "section": "Contracts",
+      "description": "The machine-readable contract map: five shipped JSON Schemas, their example suites, and what is deliberately deferred.",
+      "title": "Schemas — machine-readable contracts"
+    },
+    {
+      "source": "LICENSING.md",
+      "slug": "licensing",
+      "section": "Governance",
+      "description": "Why the repository currently carries no license and accepts no contributions, and what closes that decision.",
+      "title": "Licensing status"
+    },
+    {
+      "source": "docs/decisions/README.md",
+      "slug": "decisions",
+      "section": "Decisions",
+      "description": "The append-only ADR index and policy. If a decision is not in the index, it has not been made.",
+      "title": "Decision records — index and policy"
+    },
+    {
+      "source": "docs/decisions/0000-scope-freeze.md",
+      "slug": "adr-0000-scope-freeze",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0010-stripe-api-version.md",
+      "slug": "adr-0010-stripe-api-version",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0012-c2-sandbox.md",
+      "slug": "adr-0012-c2-sandbox",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0013-implementation-language.md",
+      "slug": "adr-0013-implementation-language",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0014-licensing.md",
+      "slug": "adr-0014-licensing",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0015-schema-validation-tooling.md",
+      "slug": "adr-0015-schema-validation-tooling",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0016-frontend-workbench-stack.md",
+      "slug": "adr-0016-frontend-workbench-stack",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0017-build-orchestration.md",
+      "slug": "adr-0017-build-orchestration",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0018-distribution-model.md",
+      "slug": "adr-0018-distribution-model",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0019-record-schemas-and-api-contracts.md",
+      "slug": "adr-0019-record-schemas-and-api-contracts",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0020-identity-procedure.md",
+      "slug": "adr-0020-identity-procedure",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0021-record-schemas-admission.md",
+      "slug": "adr-0021-record-schemas-admission",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0022-migration-runner.md",
+      "slug": "adr-0022-migration-runner",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0023-rename-to-irrevon.md",
+      "slug": "adr-0023-rename-to-irrevon",
+      "section": "Decisions"
+    }
+  ],
+  "linkOnly": [
+    {
+      "source": "docs/master-doc.md",
+      "reason": "Hash-pinned canonical document; link-only this cycle by explicit ruling — the docs landing links it and names the pinned hash."
+    },
+    {
+      "source": "docs/review-queue.md",
+      "reason": "Human action queue: public in the repository but an internal working process, not a discovery document."
+    },
+    {
+      "source": "web/README.md",
+      "reason": "Package README; linked from the docs landing."
+    },
+    {
+      "source": "site/README.md",
+      "reason": "Package README (this site)."
+    }
+  ]
+}

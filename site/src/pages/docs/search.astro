@@ -1,0 +1,58 @@
+---
+// Docs search page: the Pagefind UI, upgraded from a plain form on the first
+// gesture (or on arrival with ?q= from the no-JS form). The index covers docs
+// content pages only (data-pagefind-body); assets are self-hosted, fetched
+// same-origin, and never load on non-docs pages.
+import DocsShell from "../../layouts/DocsShell.astro";
+import SearchBox from "../../components/SearchBox.astro";
+import { SITE_NAME } from "../../config";
+import { href } from "../../lib/url";
+---
+
+<DocsShell
+  title={`Search the docs — ${SITE_NAME}`}
+  description="Full-text search over the guides and rendered repository documents. Self-hosted index, no external requests, loads only on interaction."
+>
+  <article class="search-page">
+    <header class="guide-head">
+      <span class="kicker">Docs</span>
+      <h1>Search the docs</h1>
+      <p class="lead">
+        Full-text search over the guides and every rendered repository document. The index is built from this
+        site at build time and served from the same origin — nothing leaves the page.
+      </p>
+    </header>
+    <SearchBox autoFromQuery />
+    <div class="search-fallback">
+      <h2>Prefer a list?</h2>
+      <p>
+        Every searchable document is plainly linked from the <a href={href("/docs/")}>docs landing page</a> —
+        search is a shortcut, never the only door.
+      </p>
+    </div>
+  </article>
+</DocsShell>
+
+<style>
+  .search-page {
+    display: grid;
+    gap: clamp(20px, 3vw, 32px);
+  }
+  .guide-head {
+    display: grid;
+    gap: 12px;
+  }
+  .search-fallback {
+    border-top: 1px solid var(--ref-border-subtle);
+    padding-top: 18px;
+    display: grid;
+    gap: 8px;
+  }
+  .search-fallback h2 {
+    font-size: var(--site-text-h3);
+  }
+  .search-fallback p {
+    color: var(--ref-ink-2);
+    max-width: var(--site-measure);
+  }
+</style>

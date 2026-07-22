@@ -1,0 +1,74 @@
+---
+// The six written guides (guides collection). Frontmatter claims are
+// validated against the registry at build; the source line renders them.
+import { getCollection, render } from "astro:content";
+import DocsShell from "../../layouts/DocsShell.astro";
+import Badge from "../../components/Badge.astro";
+import Source from "../../components/Source.astro";
+import type { ClaimId } from "../../data/claims";
+
+export async function getStaticPaths() {
+  const guides = await getCollection("guides");
+  return guides.map((guide) => ({ params: { guide: guide.id }, props: { guide } }));
+}
+
+const { guide } = Astro.props;
+const { Content, headings } = await render(guide);
+const toc = headings.filter((h) => h.depth === 2);
+const claimIds = guide.data.claims as ClaimId[];
+---
+
+<DocsShell title={`${guide.data.title} — Irrevon docs`} description={guide.data.description}>
+  <article class="doc-article" data-pagefind-body>
+    <header class="guide-head">
+      <span class="kicker">Guide</span>
+      <h1>{guide.data.title}</h1>
+      <p class="lead">{guide.data.description}</p>
+      {
+        (guide.data.badge || guide.data.generated) && (
+          <div class="badge-row">
+            {guide.data.badge && <Badge kind={guide.data.badge} />}
+            {guide.data.generated && <span class="mono-chip">generated · {guide.data.generated.command}</span>}
+          </div>
+        )
+      }
+    </header>
+    {
+      toc.length > 2 && (
+        <nav class="doc-toc" aria-label="On this page">
+          <h2>On this page</h2>
+          <ul>
+            {toc.map((h) => (
+              <li>
+                <a href={`#${h.slug}`}>{h.text}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+    <div class="doc-body">
+      <Content />
+    </div>
+    {
+      claimIds.length > 0 && (
+        <footer class="guide-sources">
+          <Source id={claimIds[0]} also={claimIds.slice(1)} />
+        </footer>
+      )
+    }
+  </article>
+</DocsShell>
+
+<style>
+  .guide-head {
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+  }
+  .guide-sources {
+    border-top: 1px solid var(--ref-border-subtle);
+    padding-top: 14px;
+    width: 100%;
+  }
+</style>
