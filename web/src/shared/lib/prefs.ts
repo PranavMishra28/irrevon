@@ -11,9 +11,25 @@ const THEME_KEY = "irrevon.theme";
 const DENSITY_KEY = "irrevon.density";
 const SINGLE_KEYS_KEY = "irrevon.single-key-shortcuts";
 
+/**
+ * Pre-rename key prefix (ADR-0023). Browsers that stored preferences under
+ * the old product name keep them: the first read migrates the value to the
+ * `irrevon.*` key and removes the legacy one. One-time, per key.
+ */
+const CURRENT_PREFIX = "irrevon.";
+const LEGACY_PREFIX = "detent.";
+
 function read(key: string): string | null {
   try {
-    return localStorage.getItem(key);
+    const stored = localStorage.getItem(key);
+    if (stored !== null) return stored;
+    const legacyKey = LEGACY_PREFIX + key.slice(CURRENT_PREFIX.length);
+    const legacy = localStorage.getItem(legacyKey);
+    if (legacy !== null) {
+      localStorage.setItem(key, legacy);
+      localStorage.removeItem(legacyKey);
+    }
+    return legacy;
   } catch {
     return null;
   }
