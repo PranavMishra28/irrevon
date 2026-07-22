@@ -130,9 +130,11 @@ def test_demo_exits_zero_with_the_contrast(
     destination effect + reconciled SETTLED_COMMITTED + evidenced dedup deny,
     and the B5 leg at 2 destination effects, proven by read-back."""
     _write_config(tmp_path, ADMIN_DSN)
+    artifact = tmp_path / "irrevon-demo-artifact.json"
     proc = subprocess.run(
         [sys.executable, "-m", "irrevon.cli", "demo", "--jsonl", "--no-keep",
-         "--seed", "4242", "--config", str(tmp_path / "irrevon.toml")],
+         "--seed", "4242", "--config", str(tmp_path / "irrevon.toml"),
+         "--artifact", str(artifact)],
         capture_output=True,
         text=True,
         cwd=REPO_ROOT,
@@ -147,6 +149,16 @@ def test_demo_exits_zero_with_the_contrast(
     assert summary["irrevon_leg"]["reconciled"] == "SETTLED_COMMITTED"
     assert summary["b5_leg"]["destination_effects"] == 2
     assert summary["b5_leg"]["duplicate_created"] is True
+    # Serve handoff (additive --jsonl fields) + the written demo artifact.
+    assert summary["artifact_path"] == str(artifact)
+    effect_id = summary["irrevon_leg"]["effect_id"]
+    assert summary["workbench_url"] == f"http://127.0.0.1:5180/effects/{effect_id}"
+    written = json.loads(artifact.read_text())
+    assert written["schema_version"] == "1"
+    assert written["summary"]["contrast_holds"] is True
+    assert [e["event"] for e in written["events"]] == [
+        line["event"] for line in lines[:-1]
+    ]
     events = [line.get("event") for line in lines[:-1]]
     for expected in (
         "registered",

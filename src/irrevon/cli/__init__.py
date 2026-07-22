@@ -7,8 +7,11 @@ failure · 2 usage · 3 declared outcome · 4 integrity refusal. Zero telemetry,
 no update checks, no network beyond the configured adapters and localhost
 Postgres (conformance-tested).
 
+``serve`` (the loopback read-only workbench server) completes the product
+journey ``install → init → doctor → demo → serve``.
+
 Deferred (RFC-002 §12): ``bench smoke``/``bench run`` (M5/M7), operator verbs
-(M4), ``serve`` (frontend workstream).
+(M4).
 """
 
 from __future__ import annotations
@@ -62,6 +65,30 @@ def _build_parser() -> argparse.ArgumentParser:
     p_demo.add_argument("--keep", action=argparse.BooleanOptionalAction, default=True,
                         help="retain the demo database for `irrevon inspect`")
     p_demo.add_argument("--jsonl", action="store_true")
+    p_demo.add_argument("--artifact", default="./irrevon-demo-artifact.json",
+                        help="write the demo events + summary here on completion "
+                             "(`irrevon serve` exposes it at /api/v1/demo/artifact)")
+    p_demo.add_argument("--no-artifact", action="store_true",
+                        help="skip writing the demo artifact file")
+
+    p_serve = sub.add_parser(
+        "serve",
+        help="loopback read-only workbench server (127.0.0.1 only; GET/HEAD only)",
+        parents=[common],
+    )
+    p_serve.add_argument(
+        "--port", type=int, default=5180,
+        help="port on 127.0.0.1 (default 5180; 0 binds an ephemeral port — "
+             "read the real one from the ready line)",
+    )
+    p_serve.add_argument("--dsn", default=None,
+                         help="override the ledger DSN (e.g. a kept demo database)")
+    p_serve.add_argument("--demo-artifact", default="./irrevon-demo-artifact.json",
+                         help="file backing /api/v1/demo/artifact")
+    p_serve.add_argument("--open", action="store_true",
+                         help="open the workbench in the default browser")
+    p_serve.add_argument("--json", action="store_true",
+                         help="print the ready line as one JSON document on stdout")
 
     p_inspect = sub.add_parser(
         "inspect", help="the ledger-only evidence view", parents=[common]
@@ -100,8 +127,30 @@ def main(argv: list[str] | None = None) -> int:
             from irrevon.cli.demo import run_demo
 
             seed = args.seed if args.seed is not None else config.demo_seed
+            artifact = None if args.no_artifact else Path(args.artifact)
             return run_demo(
-                config, seed=seed, leg=args.leg, keep=args.keep, jsonl=args.jsonl
+                config,
+                seed=seed,
+                leg=args.leg,
+                keep=args.keep,
+                jsonl=args.jsonl,
+                artifact=artifact,
+            )
+        if args.command == "serve":
+            import dataclasses
+
+            from irrevon.serve import run_serve
+
+            serve_config = (
+                dataclasses.replace(config, dsn=args.dsn) if args.dsn else config
+            )
+            return run_serve(
+                serve_config,
+                port=args.port,
+                demo_artifact=args.demo_artifact,
+                open_browser=args.open,
+                as_json=args.json,
+                quiet=args.quiet,
             )
         if args.command == "inspect":
             from irrevon.cli.inspect_cmd import run_inspect

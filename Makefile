@@ -185,3 +185,46 @@ site-test:
 	cd site && pnpm install --frozen-lockfile \
 	  && pnpm exec playwright install chromium --only-shell \
 	  && pnpm run build && pnpm test
+
+# ── Serve + distribution targets (appended by the BE serve task; ADR-0024 ─────
+# proposed). `make dist` is THE ordering ADR-0018 requires: web assets are
+# built FIRST (the only step that touches Node), staged into the package, and
+# the honesty hook (hatch_build.py, IRREVON_REQUIRE_WEB=1) fails the build if
+# they are missing or were never staged. dist-smoke proves the whole no-Node
+# chain inside python:3.13-slim (scripts/dist-smoke.sh).
+.PHONY: web-build dist-stage dist dist-smoke py-test-serve serve-live
+
+web-build:
+	cd web && pnpm install --frozen-lockfile && pnpm run build
+
+dist-stage:
+	rm -rf src/irrevon/_web && mkdir -p src/irrevon/_web && cp -R web/dist/. src/irrevon/_web/
+
+dist: web-build dist-stage
+	rm -rf dist && IRREVON_REQUIRE_WEB=1 uv build
+	@ls -l dist/
+
+dist-smoke: dist py-db-up
+	bash scripts/dist-smoke.sh
+
+# Serve-layer suite only (unit + integration; the full ladder already includes
+# it via py-test / py-test-integration).
+py-test-serve: py-db-up
+	uv sync --locked --quiet
+	uv run pytest tests/serve -p no:cacheprovider
+
+# Live E2E foundation for the consolidator's `web-e2e-live` (WEB's Playwright
+# suite consumes this). Invocation contract (tests/serve/live_server.py):
+#   - seeds the test Postgres (127.0.0.1:54329, override IRREVON_TEST_ADMIN_DSN)
+#     via `irrevon demo --keep --seed 42` — kept DB irrevon_demo_s42; flagship
+#     effect id 0bb7e8d64711e0cc5ec277fb9bb64d3d321fdd53dd92b8ebb1752fde822785f5;
+#     demo artifact at /tmp/irrevon-demo-artifact.json (IRREVON_LIVE_ARTIFACT)
+#   - then starts `irrevon serve --json` on IRREVON_LIVE_PORT (default 0 =
+#     ephemeral) and prints serve's single-line JSON ready document on stdout:
+#     {"schema_version":"1","url":"http://127.0.0.1:<port>/","port":<port>,...}
+#   - Playwright targets ready.url; stop with SIGINT/SIGTERM (exit 0).
+# The same contract is available in-process as the `live_serve` pytest fixture
+# (tests/serve/conftest.py) for Python-side E2E tests.
+serve-live: py-db-up
+	uv sync --locked --quiet
+	uv run python tests/serve/live_server.py

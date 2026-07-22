@@ -33,6 +33,7 @@ EVENT_NAMES = frozenset(
         "recovery_completed",
         "sweep_completed",
         "engine_refused",
+        "serve.request",
     }
 )
 

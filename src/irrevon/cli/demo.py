@@ -80,8 +80,12 @@ class _Emitter:
     def __init__(self, jsonl: bool, out: TextIO) -> None:
         self.jsonl = jsonl
         self.out = out
+        # Every event is recorded regardless of output mode — the demo
+        # artifact (--artifact) carries the full transcript for `serve`.
+        self.events: list[dict[str, Any]] = []
 
     def event(self, name: str, narrative: str, **fields: Any) -> None:
+        self.events.append({"event": name, **fields})
         if self.jsonl:
             print(json.dumps({"event": name, **fields}, default=str), file=self.out)
         else:
@@ -187,7 +191,13 @@ def _sql(dsn: str, query: str, params: tuple[Any, ...] = ()) -> list[dict[str, A
 
 
 def run_demo(
-    config: Config, *, seed: int, leg: str, keep: bool, jsonl: bool
+    config: Config,
+    *,
+    seed: int,
+    leg: str,
+    keep: bool,
+    jsonl: bool,
+    artifact: Path | None = None,
 ) -> int:
     emit = _Emitter(jsonl, sys.stdout)
     refdest_proc = subprocess.Popen(
@@ -238,13 +248,30 @@ def run_demo(
             and b5_leg.get("duplicate_created") is True
         )
 
+    effect_id = irrevon_leg.get("effect_id")
+    workbench_url = (
+        f"http://127.0.0.1:5180/effects/{effect_id}" if effect_id else None
+    )
     summary = {
         "schema_version": "1",
         "seed": seed,
         "irrevon_leg": irrevon_leg,
         "b5_leg": b5_leg,
         "contrast_holds": contrast_holds,
+        # Additive serve-handoff fields (dx-api §1.4 additive-only rule).
+        "artifact_path": str(artifact) if artifact else None,
+        "workbench_url": workbench_url,
     }
+    if artifact is not None:
+        artifact.write_text(
+            json.dumps(
+                {"schema_version": "1", "events": emit.events, "summary": summary},
+                default=str,
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
     if jsonl:
         print(json.dumps(summary, default=str))
     else:
@@ -258,10 +285,14 @@ def run_demo(
             f"  B5 (durable retry + keys)     {n_b5!s:>12}   CREATED\n"
             f"\n  contrast holds: {contrast_holds}"
         )
-        if irrevon_leg.get("effect_id") and keep:
+        if effect_id and keep:
+            artifact_flag = (
+                f" --demo-artifact '{artifact}'" if artifact is not None else ""
+            )
             print(
-                f"\n  inspect it: irrevon inspect {irrevon_leg['effect_id']} "
-                f"--dsn '{demo_dsn}'"
+                f"\n  inspect it: irrevon inspect {effect_id} --dsn '{demo_dsn}'\n"
+                f"  see it live: irrevon serve --dsn '{demo_dsn}'{artifact_flag} --open\n"
+                f"               → {workbench_url}"
             )
     return 0 if contrast_holds else 3
 

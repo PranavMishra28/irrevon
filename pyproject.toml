@@ -9,7 +9,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "irrevon"
-version = "0.1.0.dev0"
+# Single version source: src/irrevon/__init__.py __version__ (hatch dynamic).
+dynamic = ["version"]
 description = "Reference reconciliation engine for irreversible AI-agent actions (IrrevonBench companion). Not yet released; no license granted (see LICENSING.md)."
 readme = "README.md"
 requires-python = ">=3.13"
@@ -37,13 +38,40 @@ dev = [
 [project.scripts]
 irrevon = "irrevon.cli:entrypoint"
 
+[tool.hatch.version]
+path = "src/irrevon/__init__.py"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/irrevon"]
+# The prebuilt workbench (web/dist staged to src/irrevon/_web by `make
+# dist-stage`) is gitignored built output: hatchling `artifacts` is the
+# mechanism that re-includes it without breaking editable installs when it is
+# absent (ADR-0018; a plain force-include of a missing dir would fail).
+artifacts = ["src/irrevon/_web/**"]
 
-# Built wheels carry the canonical trust-boundary schemas; editable/dev installs
-# resolve the repo's schemas/ directory directly (see irrevon.contract.validation).
+# Built wheels carry the canonical trust-boundary schemas AND the plain-SQL
+# migrations; editable/dev installs resolve the repo directories directly
+# (see irrevon.contract.validation and irrevon.ledger.db.migrations_dir).
 [tool.hatch.build.targets.wheel.force-include]
 "schemas" = "irrevon/_schemas"
+"migrations" = "irrevon/_migrations"
+
+# The sdist is wheel-buildable with NO Node: it carries the prebuilt workbench
+# assets alongside the sources (ADR-0018: prebuilt assets in wheel AND sdist).
+[tool.hatch.build.targets.sdist]
+include = [
+    "src",
+    "schemas",
+    "migrations",
+    "README.md",
+    "LICENSING.md",
+    "hatch_build.py",
+]
+artifacts = ["src/irrevon/_web/**"]
+
+# Build honesty hook (hatch_build.py): IRREVON_REQUIRE_WEB=1 refuses to build
+# a distributable artifact when the staged workbench is missing.
+[tool.hatch.build.hooks.custom]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -100,5 +128,6 @@ source_modules = [
     "irrevon.adapters",
     "irrevon.api",
     "irrevon.cli",
+    "irrevon.serve",
 ]
 forbidden_modules = ["irrevon.advisory"]
