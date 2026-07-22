@@ -10,12 +10,16 @@ import { repoLinksPlugin, scrollableFocusPlugin } from "./scripts/satteri-repo-l
  * Repository URL is deployment-provided, never committed (DIST §1: nothing may
  * hard-code the working repo URL into a shipped artifact while the repo-identity
  * question is open). Resolution order:
- *   1. SITE_REPO_URL env (what the deploy workflow passes)
- *   2. the local git remote (developer builds in a clone)
+ *   1. SITE_REPO_URL env (what a deploy build passes)
+ *   2. Vercel git metadata (a git-connected Vercel build)
+ *   3. the local git remote (developer builds in a clone)
  * A build with neither fails loudly — no page ships an unresolved source link.
  */
 function resolveRepoUrl() {
   if (process.env.SITE_REPO_URL) return process.env.SITE_REPO_URL.replace(/\/$/, "");
+  if (process.env.VERCEL_GIT_REPO_OWNER && process.env.VERCEL_GIT_REPO_SLUG) {
+    return `https://github.com/${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}`;
+  }
   try {
     const raw = execSync("git remote get-url origin", { encoding: "utf8" }).trim();
     const m = raw.match(/^git@([^:]+):(.+?)(\.git)?$/);
@@ -29,14 +33,23 @@ function resolveRepoUrl() {
 }
 
 const repoUrl = resolveRepoUrl();
-const base = process.env.SITE_BASE ?? "/";
+// The site serves at the origin root (Vercel deploy, ADR-0027); no base path.
+const base = "/";
+
+/** Origin for canonical/sitemap/OG URLs: deploy-provided, with the Vercel
+ * production URL as fallback for platform builds; local builds use localhost. */
+function resolveOrigin() {
+  if (process.env.SITE_ORIGIN) return process.env.SITE_ORIGIN.replace(/\/$/, "");
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  return "http://localhost:4977";
+}
 
 // https://astro.build/config
 export default defineConfig({
   output: "static",
-  // Project-site base path for GitHub Pages: the deploy workflow passes
-  // --site/--base from actions/configure-pages outputs; local builds serve at /.
-  site: process.env.SITE_ORIGIN ?? "http://localhost:4977",
+  site: resolveOrigin(),
   base,
   trailingSlash: "ignore",
   image: { service: passthroughImageService() },

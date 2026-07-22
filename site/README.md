@@ -1,13 +1,13 @@
-# site/ — the public marketing + discovery site (built, undeployed)
+# site/ — the public marketing + discovery site
 
 The Irrevon public site: the original six pages plus the discovery surface added by
 the site-expansion cycle (docs section with drift-gated rendered repository documents,
 searchable via self-hosted Pagefind; the interactive recorded demo; research,
-changelog, roadmap, install; full SEO/metadata). **Deploy is gated and human-only** —
-see [../.github/workflows/site-deploy.yml](../.github/workflows/site-deploy.yml)
-(dispatch-only; the full gate list is recorded in
-[docs/review-queue.md](../docs/review-queue.md)). The site is a repo artifact only:
-it never ships in the Python wheel (ADR-0018) and shares no build with `web/`.
+changelog, roadmap, install; full SEO/metadata). **Deployed to Vercel at the origin
+root** by owner directive ([ADR-0027](../docs/decisions/0027-site-vercel-deploy.md));
+deploys remain human-gated acts, never CI-triggered (see [Deploy](#deploy) below; the
+gate-reconciliation record lives in [docs/review-queue.md](../docs/review-queue.md)).
+The site never ships in the Python wheel (ADR-0018) and shares no build with `web/`.
 
 ## Page inventory
 
@@ -27,7 +27,7 @@ it never ships in the Python wheel (ADR-0018) and shares no build with `web/`.
 | `/changelog` | Computed from `git tag --list` at build — honest empty state (zero tags) |
 | `/roadmap` | Phases parsed from the rendered execution plan; no-dates banner |
 | `/install` | Works-today from source; planned distribution future-tense in a PLANNED block |
-| `/404` | Not-found page (Pages serves `404.html`) |
+| `/404` | Not-found page (Vercel serves `404.html` for unmatched routes) |
 
 Use Cases, About/Company, Contact, and any demo-request page remain **omitted, not
 stubbed**. Navigation: Engine · How it works · Demo · Benchmark · Docs · Research ·
@@ -77,19 +77,20 @@ Install (7 slots); Security/Changelog/Roadmap live in the footer.
   `og/template.svg` by `scripts/build-og.mjs`, drift-gated via `og/manifest.json`),
   JSON-LD (`SoftwareSourceCode`/`WebSite`+SearchAction on Home, `Article` on
   research, `TechArticle`+`BreadcrumbList` on docs — never `SoftwareApplication`,
-  never offers/ratings). **robots.txt caveat:** on a project Pages site it is not at
-  the origin root and is therefore not authoritative (RFC 9309); it becomes real
-  with a custom domain.
-- **Security headers:** GitHub Pages cannot set response headers, so
-  `scripts/inject-csp.mjs` injects a per-page meta CSP with build-computed inline
-  script hashes (docs pages add `'self' 'wasm-unsafe-eval'` for Pagefind) plus a
-  strict referrer policy; the full future-edge header set is committed at
-  [`docs/headers-spec.md`](docs/headers-spec.md). Meta-CSP cannot carry
-  frame-ancestors/report-uri/sandbox — stated there.
-- **Base-path ready:** internal links via `src/lib/url.ts`; markdown site-absolute
-  links get the base at build; sitemap/RSS/OG URLs derive from the
-  deploy-provided origin. The repository URL is deployment-provided
-  (`SITE_REPO_URL` env or the local git remote — never committed).
+  never offers/ratings). The site serves at the origin root, so `robots.txt` is
+  authoritative (RFC 9309).
+- **Security headers:** real response headers ship from [`vercel.json`](vercel.json)
+  (frame-ancestors, HSTS, nosniff, permissions/referrer policy, COOP, cache rules) —
+  the applied form of [`docs/headers-spec.md`](docs/headers-spec.md), which keeps the
+  rationale. `scripts/inject-csp.mjs` additionally injects a per-page meta CSP with
+  build-computed inline script hashes (docs pages add `'self' 'wasm-unsafe-eval'` for
+  Pagefind) — a static header cannot carry per-page hashes; meta cannot carry
+  frame-ancestors; together they cover both.
+- **Base-path safe, served at `/`:** internal links via `src/lib/url.ts`; markdown
+  site-absolute links get the base at build; sitemap/RSS/OG URLs derive from the
+  deploy-provided origin (`SITE_ORIGIN`, or the Vercel production URL on platform
+  builds). The repository URL is deployment-provided (`SITE_REPO_URL` env, Vercel git
+  metadata, or the local git remote — never committed).
 - **Vendored identity, drift-checked:** tokens + fonts synced from `web/`
   (`--check` in `pnpm check`); domain icons + the One-Way Seat stage are original
   in-house geometry — provenance ledger in [`ASSETS.md`](ASSETS.md).
@@ -98,7 +99,7 @@ Install (7 slots); Security/Changelog/Roadmap live in the footer.
 
 | Package | Why |
 |---|---|
-| `astro` 7.0.9 | The static site framework (zero-JS-by-default; Pages `site`/`base` support) |
+| `astro` 7.0.9 | The static site framework (zero-JS-by-default; deploy-provided `site` origin) |
 | `@astrojs/sitemap` 3.7.3 | First-party sitemap; URLs from the deploy-provided origin |
 | `@astrojs/rss` 4.0.19 | First-party RSS for /research |
 | `@astrojs/markdown-satteri` 0.3.4 | Explicit pin of Astro 7's own markdown processor so the local mdast/hast plugins import a declared dependency |
@@ -108,8 +109,11 @@ Install (7 slots); Security/Changelog/Roadmap live in the footer.
 | `@axe-core/playwright` 4.12.1 | WCAG 2.2 AA scans as test failures |
 
 pnpm hardening unchanged: `allowBuilds` all-false, `minimumReleaseAge` 10080,
-`trustPolicy: no-downgrade`, `blockExoticSubdeps`, exact pins, frozen lockfile
-(one reviewed `trustPolicyExclude`: `chokidar@4.0.3`).
+`trustPolicy: no-downgrade`, `blockExoticSubdeps`, exact pins, frozen lockfile.
+Narrow reviewed exclusions only (rationale inline in
+[`pnpm-workspace.yaml`](pnpm-workspace.yaml)): `trustPolicyExclude`
+`chokidar@4.0.3`; `minimumReleaseAgeExclude` for the `fast-xml-parser` /
+`fast-uri` security patches (droppable once their 7-day windows pass).
 
 ## Commands
 
@@ -128,6 +132,25 @@ pnpm shots              # every page at 1440/768/375 × light/dark (+ /demo
                         # reduced-motion beats) -> shots/
 pnpm sync:docs | sync:cli | sync:demo | og:build   # regenerate synced artifacts
 ```
+
+## Deploy
+
+The site deploys to Vercel as a **static upload of the built `dist/` output** — the
+platform serves files and headers, nothing builds or runs server-side
+([ADR-0027](../docs/decisions/0027-site-vercel-deploy.md)). A deploy is an
+owner-directed act, never CI-triggered:
+
+```bash
+SITE_ORIGIN=https://<production-host> SITE_REPO_URL=<repo-url> pnpm build
+# then upload dist/ (plus vercel.json at the upload root) as a Vercel
+# production deployment — e.g. `vercel deploy --prod` from a directory
+# containing exactly that tree, or the Vercel MCP/API equivalent.
+```
+
+`vercel.json` carries the response headers and cache rules (the applied form of
+[`docs/headers-spec.md`](docs/headers-spec.md)) and `trailingSlash: true` (canonical
+URLs end in `/`, matching the sitemap). The origin and repository URL are
+deployment-provided at build time — committed files never carry either.
 
 ## Measured at last audit (2026-07-21)
 

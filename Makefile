@@ -178,8 +178,8 @@ web-vrt:
 	            IRREVON_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
 
 # ── Marketing site gates (appended by the site/ task; see site/README.md) ─────
-# Self-contained Node package, same corepack/pnpm pattern as web/. Deploy stays
-# gated and human-only: .github/workflows/site-deploy.yml (dispatch-only) documents it.
+# Self-contained Node package, same corepack/pnpm pattern as web/. Deploys are
+# owner-directed Vercel static uploads of site/dist (ADR-0027), never CI-triggered.
 .PHONY: site-check site-build site-test
 
 # Static gates: astro check + vendored token/font drift + claims-registry drift.

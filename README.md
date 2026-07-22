@@ -93,8 +93,9 @@ A zero-JS-by-default Astro package: the six original pages plus the discovery
 surface (drift-gated rendered repository docs with self-hosted search, the
 recorded interactive demo, research/changelog/roadmap/install, full SEO
 metadata), a drift-gated claims registry, and identity vendored from the
-workbench tokens — built and tested, **deploy gated and human-only** (the
-`site-deploy` workflow is `workflow_dispatch`-only; the gate list lives in
+workbench tokens. Deployed to Vercel at the origin root by owner directive
+([ADR-0027](docs/decisions/0027-site-vercel-deploy.md)); deploys remain
+human-gated acts (the reconciliation record lives in
 [docs/review-queue.md](docs/review-queue.md)). See [site/README.md](site/README.md).
 
 ## Repository status and licensing

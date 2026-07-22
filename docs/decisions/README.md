@@ -9,7 +9,7 @@ drift (split-brain). Files exist only for decisions that are **OPEN** (still bei
 **NEW** (not in §11). When a §11 decision is superseded or reopened, a full ADR file is
 created *then*, per §12.5/§17 — which is when append-only file history becomes necessary.
 
-## Index (complete: 0000–0026)
+## Index (complete: 0000–0027)
 
 | ADR | Title | Status | Canonical text |
 |---|---|---|---|
@@ -38,8 +38,9 @@ created *then*, per §12.5/§17 — which is when append-only file history becom
 | 0022 | Migration runner (in-package plain-SQL, hash journal) | **proposed** | [0022-migration-runner.md](0022-migration-runner.md) |
 | 0023 | Rename: Detent → Irrevon; DetentBench → IrrevonBench | accepted (owner written directive 2026-07-21; supersedes ADR-011) | [0023-rename-to-irrevon.md](0023-rename-to-irrevon.md) |
 | 0024 | `irrevon serve` — loopback read-only workbench surface | accepted (owner serve directive 2026-07-21) | [0024-serve-read-surface.md](0024-serve-read-surface.md) |
-| 0025 | Marketing site + discovery surface (`site/`), deploy gated | accepted (owner rebuild directive 2026-07-21) | [0025-site-discovery-surface.md](0025-site-discovery-surface.md) |
+| 0025 | Marketing site + discovery surface (`site/`), deploy gated | accepted (owner rebuild directive 2026-07-21); deploy mechanics (items 4–5) superseded by ADR-0027 | [0025-site-discovery-surface.md](0025-site-discovery-surface.md) |
 | 0026 | Sanitization supersession of ADR-0000's non-goals wording | **proposed** (owner countersign required) | [0026-scope-freeze-wording-sanitization.md](0026-scope-freeze-wording-sanitization.md) |
+| 0027 | Site hosting — Vercel at the origin root (retires the Pages plan) | accepted (owner deploy directive 2026-07-21; supersedes ADR-0025 items 4–5) | [0027-site-vercel-deploy.md](0027-site-vercel-deploy.md) |
 
 ## Policy
 
