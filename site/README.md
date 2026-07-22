@@ -132,7 +132,7 @@ pnpm sync:docs | sync:cli | sync:demo | og:build   # regenerate synced artifacts
 ## Measured at last audit (2026-07-21)
 
 - Build: 44 pages green; `astro check` 0 errors / 0 warnings.
-- Playwright: 246 checks green.
+- Playwright: 248 checks green.
 - JS weight: non-docs pages ~1 KB inline, zero fetched; `/demo` 4.4 KB inline
   total (island 3,396 B source vs ≤8 KB budget); docs pages zero-fetch until a
   search gesture, then same-origin `/pagefind/` only. Global gate: ≤10 KB inline,
