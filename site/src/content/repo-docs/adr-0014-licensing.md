@@ -1,7 +1,7 @@
 ---
 title: "Outbound license and contributor-governance posture"
 sourcePath: "docs/decisions/0014-licensing.md"
-sourceSha256: "0e909201ebc32a3b77618beb3204bbd48a0afaa4980a0161e8242fed13476351"
+sourceSha256: "573a2ef22dba3ed1e87ce5f1ad01849a80157155171f0cbb8409441a647e72ca"
 syncedAt: "2026-07-22"
 section: "Decisions"
 renderTitle: true
@@ -234,6 +234,18 @@ Before accepting any outside contribution (and mostly before first release):
 
 Open-core remains fully available without CLAs under either candidate (the G0-gated
 product would be new, separate code).
+
+**Structural flag appended 2026-07-21 (legal-readiness review; this ADR is OPEN, so the
+analysis may grow):** ADR-0018 ships **one** wheel containing engine and SDK/CLI, whose
+modules import each other freely. A single PyPI artifact mixing AGPL and Apache code is
+expressible (`License-Expression: AGPL-3.0-only AND Apache-2.0` + per-file SPDX) but
+weakens the hybrid's point — Candidate B's arm's-length invariant ("no library-import
+coupling; SDK talks to the engine across a process boundary") is **not satisfied** by the
+current single-package layout. **Choosing B therefore forces either a package split
+(contradicts ADR-0018 — needs a superseding ADR) or an in-package module firewall with
+import-linter contracts + counsel sign-off.** Candidate A has no such cost. Recorded as
+review-queue §3 item 24; decide together with items 7/18. No speculative packaging change
+is made meanwhile — ADR-0018's single wheel ships as-is.
 
 ## Risks
 

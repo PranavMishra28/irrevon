@@ -1,13 +1,13 @@
 ---
 title: "Freeze project scope — benchmark-first, C2-scoped, with binding non-goals"
 sourcePath: "docs/decisions/0000-scope-freeze.md"
-sourceSha256: "b9f3159eaa8476a5f84ac2ffaccb739e5991fffb4f2ddedc6a749bd6615a84ad"
+sourceSha256: "203555449a8de28f3589aeff699c2169fc26e8d2c54cd551b47501da87cf7ca6"
 syncedAt: "2026-07-22"
 section: "Decisions"
 renderTitle: true
 adr:
   id: "ADR-0000"
-  status: "accepted"
+  status: "accepted — superseded by ADR-0026 (sanitization supersession, decision content unchanged; ADR-0026 countersign pending)"
   date: "2026-07-20"
   supersedes: "—"
 ---
