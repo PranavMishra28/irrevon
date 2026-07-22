@@ -152,6 +152,16 @@ import { beats, b5Lane, contrast, effectShort, seed, engineCommit, adapterId } f
       hint.hidden = false;
       const fromHash = /^#beat-(\d{2})$/.exec(location.hash);
       set(fromHash ? Number(fromHash[1]) : 1, false);
+      // Deep links land on the stage — the browser's native anchor scroll
+      // (which can fire after this script) would put the collapsed beat
+      // section at the top with the stage out of view.
+      if (fromHash) {
+        const jump = () => app.scrollIntoView({ behavior: "instant", block: "start" });
+        requestAnimationFrame(jump);
+        // Chromium performs the fragment scroll asynchronously after load;
+        // re-anchor once after it has had its turn.
+        addEventListener("load", () => setTimeout(jump, 150), { once: true });
+      }
 
       prevBtn.addEventListener("click", () => set(beat - 1, true));
       nextBtn.addEventListener("click", () => set(beat + 1, true));
