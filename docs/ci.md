@@ -52,9 +52,13 @@ the change detection.
 **Every CI job body runs exactly one `make` target** after the pinned tool bootstrap
 ([`scripts/bootstrap-tools.sh`](../scripts/bootstrap-tools.sh) — the single
 checksum-verified pin table shared by `make tools-pinned`, CI, and cloud agents). What CI
-checks is what `make check` checks. `[DD]` Two documented exceptions, both *online variants*
-of offline make gates: `workflow-security` runs zizmor with network advisories, and nightly
-runs lychee/zizmor online — the local gate stays deterministic (`--offline`) on purpose.
+checks is what `make check` checks. `[DD]` Three documented exceptions: `workflow-security`
+runs zizmor with network advisories and nightly runs lychee/zizmor online (*online variants*
+of offline make gates — the local gate stays deterministic `--offline` on purpose), and
+`dependency-review` (GitHub-owned action, SHA-pinned, `contents: read`) has no local
+equivalent because it consumes GitHub's advisory database against the PR diff; it is
+deliberately OUTSIDE the `ci-required` aggregator (it exists only on pull_request events —
+the pending-forever trap).
 
 ## Owner settings checklist (HUMAN-only; agents are hook-blocked from all of it)
 

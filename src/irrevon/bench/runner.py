@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -271,6 +272,7 @@ def run_unit(
                 )
         elif (attempt / "run-manifest.json").is_file():
             _finalize_incomplete(attempt, labels)
+    unit_started = time.monotonic()
     attempts = _slot_attempts(out_dir, base_run_id)
     completed_invalid = [
         a for a in attempts if (a / "result.json").is_file()
@@ -494,6 +496,7 @@ def run_unit(
             "artifact_digests": artifact_digests,
         },
         "residual_effects_after_cleanup": 0,
+        "wall_time_s": round(time.monotonic() - unit_started, 3),
     }
     if history_block is not None:
         result["history"] = history_block

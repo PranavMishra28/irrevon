@@ -358,9 +358,14 @@ SaaS surface:
    benchmark use of real sandboxes. Protocol context for declaration
    authoring: [effect-semantics-mappings.md](effect-semantics-mappings.md).
 2. **Private workloads**: generate them with your own master seed via the
-   same generator and schemas (`irrevon bench fixtures --write --dir <private>`
-   derives everything mechanically); private fixtures never need to leave
-   your infrastructure — the harness runs wherever the fixtures are.
+   same generator and schemas
+   (`irrevon bench fixtures --write --dir <private> --master-seed <64-hex>`);
+   the split self-verifies from its own manifest
+   (`irrevon bench fixtures --verify --dir <private>`), shares every
+   contract and gate with the public split, and never needs to leave your
+   infrastructure — committing a private-seed split to THIS repository is
+   itself an integrity failure (`make bench-integrity` pins the public
+   seed).
 3. **Fast CI regression**: `make bench-smoke` (conventional arms, no DB,
    seconds) or a pinned `bench smoke --workloads … --arms <yours>,B5,B5+B3+B6`
    — comparing your existing retry strategy against the ladder is the point.

@@ -153,6 +153,11 @@
       "type": "integer",
       "minimum": 0
     },
+    "wall_time_s": {
+      "description": "Unit execution wall time (resource-expenditure capture; latency/cost live in the run manifest's arm.budget for model-embedded subjects).",
+      "type": "number",
+      "minimum": 0
+    },
     "history": {
       "description": "Causal-history checker summary (ADR-0032): the second, independent oracle pass. Behavioral-invariant violation counts are diagnostics reported per run — H4/H5/H8 are supplementary and NEVER pooled into §4 metrics or confirmatory analysis. cross_check must be 'consistent'; a divergent run is finalized harness-INVALID by the runner.",
       "type": "object",

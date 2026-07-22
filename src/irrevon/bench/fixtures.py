@@ -37,6 +37,7 @@ from irrevon.bench.canonical import (
     sha256_hex,
 )
 from irrevon.bench.formats import CANARY, load_document, verify_manifest
+from irrevon.bench.seeds import MASTER_SEED_RE as _MASTER_SEED_RE
 from irrevon.bench.seeds import derive_seed
 
 __all__ = [
@@ -267,8 +268,19 @@ def _generate_unit(
     return workload, schedule, variant_set
 
 
-def build_dev_split() -> dict[str, dict[str, Any]]:
-    """path → document for the whole committed dev split (manifest included)."""
+def build_dev_split(
+    master_seed: str | None = None, *, manifest_id: str = "mf_dev.v1"
+) -> dict[str, dict[str, Any]]:
+    """path → document for a full dev-level split (manifest included).
+
+    ``master_seed=None`` builds THE committed public dev split. Any other
+    64-hex seed builds a PRIVATE workload set with identical structure and
+    schemas — the company adoption path: private fixtures derive mechanically
+    from a private seed, share every contract and gate with the public split,
+    and never need to leave the owner's infrastructure."""
+    seed = master_seed or DEV_MASTER_SEED
+    if not _MASTER_SEED_RE.match(seed):
+        raise ValueError("master_seed must be a 64-char lowercase-hex string")
     files: dict[str, dict[str, Any]] = {}
     artifacts: list[dict[str, Any]] = []
 
@@ -284,9 +296,7 @@ def build_dev_split() -> dict[str, dict[str, Any]]:
 
     for cell in _DEV_CELLS:
         for replicate in range(_DEV_REPLICATES):
-            workload, schedule, variant_set = _generate_unit(
-                cell, replicate, DEV_MASTER_SEED, "dev"
-            )
+            workload, schedule, variant_set = _generate_unit(cell, replicate, seed, "dev")
             add(f"workloads/{workload['workload_id']}.json", workload)
             add(f"fault-schedules/{schedule['schedule_id']}.json", schedule)
             if variant_set is not None:
@@ -295,10 +305,10 @@ def build_dev_split() -> dict[str, dict[str, Any]]:
     manifest = {
         "format": "irrevonbench/manifest/v1",
         "canary": CANARY,
-        "manifest_id": "mf_dev.v1",
+        "manifest_id": manifest_id if seed == DEV_MASTER_SEED else "mf_dev.private",
         "split": "dev",
         "freeze_status": "unfrozen-dev",
-        "master_seed": DEV_MASTER_SEED,
+        "master_seed": seed,
         "generator": {
             "code_ref": "irrevon.bench.fixtures:build_dev_split",
             # Deterministic timestamp: regeneration must be byte-identical.
@@ -312,9 +322,9 @@ def build_dev_split() -> dict[str, dict[str, Any]]:
     return files
 
 
-def write_dev_split(root: Path) -> list[str]:
-    """Write (or rewrite) the committed dev split; returns the paths written."""
-    files = build_dev_split()
+def write_dev_split(root: Path, master_seed: str | None = None) -> list[str]:
+    """Write (or rewrite) a dev-level split; returns the paths written."""
+    files = build_dev_split(master_seed)
     written = []
     for rel, document in sorted(files.items()):
         path = root / rel
@@ -325,10 +335,15 @@ def write_dev_split(root: Path) -> list[str]:
 
 
 def verify_dev_split(root: Path) -> list[str]:
-    """Drift gate: committed dev fixtures must byte-match regeneration AND
-    self-verify against their manifest. Returns findings (empty = clean)."""
+    """Drift gate: fixtures on disk must byte-match regeneration from the
+    manifest's OWN master seed AND self-verify against the manifest. Works
+    identically for the committed public split and private-seed splits."""
     problems: list[str] = []
-    expected = build_dev_split()
+    manifest_path = root / "manifest.json"
+    if not manifest_path.is_file():
+        return ["missing: manifest.json"]
+    on_disk_manifest = load_document(manifest_path)
+    expected = build_dev_split(on_disk_manifest["master_seed"])
     for rel, document in sorted(expected.items()):
         path = root / rel
         if not path.is_file():
@@ -340,8 +355,7 @@ def verify_dev_split(root: Path) -> list[str]:
     for extra in sorted(on_disk - set(expected)):
         problems.append(f"unexpected file in dev split: {extra}")
     if not problems:
-        manifest = load_document(root / "manifest.json")
-        problems.extend(verify_manifest(root, manifest))
+        problems.extend(verify_manifest(root, on_disk_manifest))
     return problems
 
 

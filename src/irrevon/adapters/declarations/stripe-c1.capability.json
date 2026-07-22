@@ -1,0 +1,36 @@
+{
+  "adapter": "stripe-c1",
+  "destination": "Stripe PaymentIntents (v1 payments namespace) — SANDBOX ONLY; DRAFT pending ADR-0010",
+  "api_version": "2026-06-24.dahlia",
+  "tier": "C1",
+  "idempotency": {
+    "supported": true,
+    "window": "24h",
+    "replay_semantics": "First outcome (including errors) cached and replayed for the key; replays carry Idempotent-Replayed: true; same key with different parameters returns 409 idempotency_error (no new side effect). v1 semantics per AM-5; the exact version pin is ADR-0010's human ratification."
+  },
+  "queryable": {
+    "supported": true,
+    "by": ["destination_ref", "client_ref"]
+  },
+  "client_ref_field": "metadata[irrevon_ref]",
+  "list_queryable": true,
+  "consistency": {
+    "status_settlement_lag": "PT1H",
+    "listing_lag": "PT0S"
+  },
+  "compensation_hook": "refund.create (a new intent, never rollback — ADR-007)",
+  "citations": [
+    "https://docs.stripe.com/api/idempotent_requests",
+    "https://docs.stripe.com/api/versioning",
+    "https://docs.stripe.com/sdks/versioning",
+    "https://docs.stripe.com/search",
+    "https://docs.stripe.com/rate-limits",
+    "https://docs.stripe.com/test-mode-sandboxes-comparison"
+  ],
+  "evidence_quality": "EI",
+  "attribution": {
+    "modes": ["stable-id-projection", "metadata"],
+    "fields": ["metadata[irrevon_ref]", "id"],
+    "notes": "DRAFT (2026-07-22 research pass; no live call has ever been made): Retrieve/List are documented strongly consistent; Search over metadata is explicitly NOT read-after-write safe (<1 min normally, up to 1 h during outages) — hence status_settlement_lag PT1H and search-as-secondary. evidence_quality EI until the ADR-0010 spike contract-tests every claim. Traffic must respect the sandbox 25 rps global / 20 rps search budgets and the SSA reasonable-load clause (review-queue item)."
+  }
+}

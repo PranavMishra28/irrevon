@@ -43,6 +43,12 @@ def add_bench_parser(
         "fixtures", help="regenerate or verify the committed public dev split"
     )
     p_fixtures.add_argument("--dir", default="bench/fixtures/dev")
+    p_fixtures.add_argument(
+        "--master-seed", default=None,
+        help="64-hex master seed for a PRIVATE workload set (company adoption "
+             "path: same structure, schemas, and gates as the public split; "
+             "never committed here). Default: the public dev seed.",
+    )
     mode = p_fixtures.add_mutually_exclusive_group(required=True)
     mode.add_argument("--write", action="store_true")
     mode.add_argument("--verify", action="store_true")
@@ -147,8 +153,9 @@ def run_bench(args: argparse.Namespace, config: Config) -> int:
 
         root = Path(args.dir)
         if args.write:
-            written = write_dev_split(root)
-            print(f"bench fixtures: wrote {len(written)} artifacts under {root}",
+            written = write_dev_split(root, args.master_seed)
+            kind = "PRIVATE" if args.master_seed else "public dev"
+            print(f"bench fixtures: wrote {len(written)} {kind} artifacts under {root}",
                   file=sys.stderr)
             return 0
         problems = verify_dev_split(root)

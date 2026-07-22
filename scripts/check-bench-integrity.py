@@ -101,6 +101,23 @@ def check_manifests() -> None:
     print("bench-integrity: manifest digests + root hashes OK")
 
 
+def check_committed_dev_seed() -> None:
+    """The COMMITTED dev split must use the public provisional seed (private
+    splits are legitimate but never live in this repository)."""
+    manifest_path = FIXTURES / "dev" / "manifest.json"
+    if not manifest_path.is_file():
+        return
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    expected = hashlib.sha256(b"irrevonbench master_seed_dev provisional v1").hexdigest()
+    if manifest.get("master_seed") != expected:
+        fail(
+            "bench/fixtures/dev uses a master seed other than the public "
+            "provisional dev seed — private-seed splits must not be committed"
+        )
+    else:
+        print("bench-integrity: committed dev split uses the public dev seed")
+
+
 def check_canary_and_splits() -> None:
     if not FIXTURES.is_dir():
         return
@@ -143,6 +160,7 @@ def main() -> int:
         print("bench-integrity: no bench/fixtures yet - skipped")
         return 0
     check_manifests()
+    check_committed_dev_seed()
     check_canary_and_splits()
     check_arm_oracle_isolation()
     if FAILED:

@@ -113,4 +113,7 @@ def arm_manifest_entry(spec: ArmSpec, declaration_digest: str | None) -> dict[st
         "prompt_scaffold_digest": None,
         "capability_declaration_digest": declaration_digest,
         "known_deviations": list(spec.known_deviations),
+        # Deterministic driver arms have no model budget; Extended-track
+        # LLM-embedded subjects must fill the full budget block at Stage-B.
+        "budget": None,
     }
