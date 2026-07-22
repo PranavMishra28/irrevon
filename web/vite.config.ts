@@ -54,7 +54,16 @@ export default defineConfig(({ command, mode }) => {
     define: {
       __IRREVON_DATA_MODE__: JSON.stringify(dataMode),
     },
-    server: { port: 5199, strictPort: true },
+    server: {
+      port: 5199,
+      strictPort: true,
+      // `pnpm dev:live` only: proxy API reads to a local `irrevon serve`.
+      // MSW dev (`pnpm dev`) is untouched — the proxy exists only when the
+      // live env var is set, so mock mode never grows a network path.
+      ...(command === "serve" && dataMode === "live"
+        ? { proxy: { "/api": "http://127.0.0.1:5180" } }
+        : {}),
+    },
     preview: { port: 5199, strictPort: true },
     build: { sourcemap: false },
   };
