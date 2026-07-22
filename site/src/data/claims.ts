@@ -1,4 +1,4 @@
-// The claims registry (RD5 §3.0): every key claim on the site lives here —
+// The claims registry: every key claim on the site lives here —
 // claim text, source (doc + section), epistemic label, badge. Pages reference
 // claims by id via <Source id="…"/>; scripts/build-claims-md.mjs renders the
 // committed site/CLAIMS.md table from this file so "cite sources per claim"

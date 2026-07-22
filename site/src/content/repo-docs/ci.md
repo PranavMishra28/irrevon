@@ -2,7 +2,7 @@
 title: "CI — how this repository builds"
 description: "The CI workflow map: tiers, required checks, owner settings checklist, and local parity via make targets."
 sourcePath: "docs/ci.md"
-sourceSha256: "ddb3b1f0c773976b55818917573051413429a35290cc7e8d4cb7a0ec48fe99bf"
+sourceSha256: "9f76b1505f04ca0147ba777496015f5dd46188b338f0771821353cad4b73a44b"
 syncedAt: "2026-07-22"
 section: "Governance"
 renderTitle: false
@@ -97,9 +97,17 @@ After `ci-required` has reported on at least one PR (order matters — see traps
 8. Retention stays 90 days (public max). **Private vulnerability reporting**: verified
    enabled (API read, 2026-07-21) — see [SECURITY.md](../SECURITY.md).
 
+Before the first `site-deploy` dispatch:
+
+9. **Repo rename must precede the first Pages deploy** — the site build embeds the
+   repository URL (and Pages base path) at deploy time (`astro.config.mjs` reads
+   `SITE_REPO_URL` / `github.repository`), so a deploy from the pre-rename repo would
+   ship the old URL on every page until the next deploy. Rename first; GitHub's
+   automatic redirects cover stragglers.
+
 Before the first M4/M7 dispatch:
 
-9. **Environments** — Settings → Environments → create `sandbox` and `benchmark`, each
+10. **Environments** — Settings → Environments → create `sandbox` and `benchmark`, each
    with *Required reviewers* = owner, *Prevent self-review* UNCHECKED (checking it
    deadlocks a solo owner), deployment branches = `main` only; put sandbox-only secrets
    there — **no repo-level secrets, ever** `[DD]`. Create the environments BEFORE any

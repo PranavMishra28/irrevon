@@ -1,5 +1,5 @@
-// One configurable project name (Irrevon per ADR-0023; kept configurable per
-// RD5 §3.9) and the deployment-provided repository URL (resolved in
+// One configurable project name (Irrevon per ADR-0023; kept configurable so a
+// future rename is one edit) and the deployment-provided repository URL (resolved in
 // astro.config.mjs, never committed).
 
 export const SITE_NAME = "Irrevon";

@@ -1,6 +1,6 @@
 /* Irrevon marketing site — Instrument Steel adapted for marketing scale.
    Tokens are the vendored workbench reference tokens (tokens/reference.css);
-   this file adds a site-local display layer only (RD5 §5.2): larger type,
+   this file adds a site-local display layer only: larger type,
    more air, same hues, hairlines over shadows, no gradients or glow. */
 
 @import "./tokens/reference.css";

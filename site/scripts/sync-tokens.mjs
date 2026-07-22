@@ -1,6 +1,6 @@
 // Vendors the workbench reference tokens into site/src/styles/tokens/ and
-// drift-checks the copy against the originals (RD5 §5.1 pattern — no import or
-// build coupling across package boundaries; one reviewable diff when tokens move).
+// drift-checks the copy against the originals (no import or build coupling
+// across package boundaries; one reviewable diff when tokens move).
 //
 // It also GENERATES a `@media (prefers-color-scheme: dark)` block from the
 // `[data-theme="dark"]` rules so no-JS readers get a complete dark theme without
