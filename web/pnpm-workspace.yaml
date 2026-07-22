@@ -22,5 +22,13 @@ blockExoticSubdeps: true
 # minimumReleaseAge). These are years-old transitive pins that predate npm
 # provenance; the "downgrade" signal is an artifact of newer lines having
 # attestation, not an incident. Each entry names the exact version.
+# Narrow, reviewed exclusion from minimumReleaseAge only — a security patch for
+# a published advisory, pulled inside the 7-day window after review (same
+# discipline as site/pnpm-workspace.yaml; redundant once the window passes).
+# fast-uri: advisory fixes in 3.1.4 (published 2026-07-19, canonical fastify
+#   org); transitive via ajv.
+minimumReleaseAgeExclude:
+  - fast-uri
+
 trustPolicyExclude:
   - semver@6.3.1

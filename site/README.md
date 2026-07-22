@@ -60,7 +60,7 @@ Install (7 slots); Security/Changelog/Roadmap live in the footer.
 
 ## Architecture
 
-- Astro `7.0.9` (exact pin), static output, `passthroughImageService`. Markdown via
+- Astro `7.1.0` (exact pin), static output, `passthroughImageService`. Markdown via
   the native Sätteri processor with two local plugins
   (`scripts/satteri-repo-links.mjs`): repo-relative link rewriting (rendered docs
   never embed a repo URL — the build resolves links to rendered siblings or GitHub)
@@ -99,7 +99,7 @@ Install (7 slots); Security/Changelog/Roadmap live in the footer.
 
 | Package | Why |
 |---|---|
-| `astro` 7.0.9 | The static site framework (zero-JS-by-default; deploy-provided `site` origin) |
+| `astro` 7.1.0 | The static site framework (zero-JS-by-default; deploy-provided `site` origin) |
 | `@astrojs/sitemap` 3.7.3 | First-party sitemap; URLs from the deploy-provided origin |
 | `@astrojs/rss` 4.0.19 | First-party RSS for /research |
 | `@astrojs/markdown-satteri` 0.3.4 | Explicit pin of Astro 7's own markdown processor so the local mdast/hast plugins import a declared dependency |

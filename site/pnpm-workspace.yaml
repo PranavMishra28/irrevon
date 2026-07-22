@@ -33,6 +33,10 @@ trustPolicyExclude:
 #   1473370423 could not resolve past 5.10.0 because of the age gate.
 # fast-uri: advisory fixes in 3.1.4 (published 2026-07-19, canonical fastify org);
 #   transitive via ajv ^3.0.1. Dependabot security job 1473370375, same cause.
+# astro: advisory affects <= 7.0.9, first patched 7.1.0 (published 2026-07-16,
+#   canonical withastro org — the oldest patched release, deliberately not the
+#   newest); direct dependency, exact-pinned in package.json.
 minimumReleaseAgeExclude:
   - fast-xml-parser
   - fast-uri
+  - astro
