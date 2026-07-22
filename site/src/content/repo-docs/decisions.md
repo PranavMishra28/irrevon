@@ -2,7 +2,7 @@
 title: "Decision records — index and policy"
 description: "The append-only ADR index and policy. If a decision is not in the index, it has not been made."
 sourcePath: "docs/decisions/README.md"
-sourceSha256: "28ad5cff92b2b28e760e5cfd50746e700426b95007565226fcc235d862f2015f"
+sourceSha256: "d03e42a3e6477e0961d5167d2e768d439946928da6f0f373aa2199f39bb40df3"
 syncedAt: "2026-07-22"
 section: "Decisions"
 renderTitle: false
@@ -19,7 +19,7 @@ drift (split-brain). Files exist only for decisions that are **OPEN** (still bei
 **NEW** (not in §11). When a §11 decision is superseded or reopened, a full ADR file is
 created *then*, per §12.5/§17 — which is when append-only file history becomes necessary.
 
-## Index (complete: 0000–0031)
+## Index (complete: 0000–0032)
 
 | ADR | Title | Status | Canonical text |
 |---|---|---|---|
@@ -55,6 +55,7 @@ created *then*, per §12.5/§17 — which is when append-only file history becom
 | 0029 | Site telemetry — first-party Vercel Web Analytics + Speed Insights | accepted (owner platform directive 2026-07-21; amends ADR-0025's site posture) | [0029-site-vercel-analytics.md](0029-site-vercel-analytics.md) |
 | 0030 | IrrevonBench foundation — bench contracts, harness architecture, integrity gates | **proposed** (owner bench directive 2026-07-22) | [0030-bench-harness-contracts.md](0030-bench-harness-contracts.md) |
 | 0031 | Benchmark ecosystem posture — native core; Inspect optional later; NeMo patterns-only; no Toxiproxy; HF prepared-not-published | **proposed** (owner bench directive 2026-07-22) | [0031-bench-ecosystem-interop.md](0031-bench-ecosystem-interop.md) |
+| 0032 | Causal effect histories + checker, capability conformance verification, oracle attribution hardening | **proposed** (owner follow-on directive 2026-07-22) | [0032-causal-histories-and-conformance.md](0032-causal-histories-and-conformance.md) |
 
 ## Policy
 

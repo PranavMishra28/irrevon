@@ -34,6 +34,7 @@ from irrevon.bench.arms.reference import REFERENCE_SPEC, ReferenceArm
 from irrevon.bench.canonical import canonical_json_text
 from irrevon.bench.environment import capture_environment
 from irrevon.bench.formats import FixtureSet, validate_document
+from irrevon.bench.history import check_history, compile_history, cross_check_metrics
 from irrevon.bench.metrics import METRIC_NAMES, compute_metrics, na_cell
 from irrevon.bench.oracle import read_back
 from irrevon.bench.seeds import derive_seed
@@ -212,6 +213,7 @@ def _finalize_incomplete(run_dir: Path, labels: list[str]) -> None:
             "destination_effect_count": None,
             "per_intent_effect_counts": None,
             "orphan_effect_count": None,
+            "ambiguous_attributions": None,
         },
         "metrics": {name: na_cell("N/A") for name in METRIC_NAMES},
         "evidence": {"bundle_dir": run_dir.as_posix(), "artifact_digests": {}},
@@ -230,6 +232,7 @@ def run_unit(
     admin_dsn: str | None = None,
     confirmatory: bool = False,
     extra_labels: tuple[str, ...] = (),
+    enrichment_quirk: bool = False,
 ) -> UnitOutcome:
     """Execute one (workload=cell×replicate, arm) unit with full §6/§8 discipline."""
     if confirmatory:
@@ -296,7 +299,10 @@ def run_unit(
     _write_json(run_dir / "environment.json", environment)
 
     tier = workload["cell"]["tier"]
-    refdest = RefDest(seed=unit_seed % 2**31, profile=tier)
+    # enrichment_quirk: the destination stores a normalized/enriched
+    # representation (real-API behavior); attribution must survive it via the
+    # stable-id projection fallback (ADR-0032). Same fixtures, same episodes.
+    refdest = RefDest(seed=unit_seed % 2**31, profile=tier, enrichment_quirk=enrichment_quirk)
     pre_state = refdest.control_state()
     reset_verified = pre_state == []
 
@@ -354,6 +360,7 @@ def run_unit(
         invalid_evidence.append("destination state non-empty before the run")
 
     trial_reports: list[dict[str, Any]] = []
+    full_reports: list[dict[str, Any]] = []  # detail incl. logs, for the history
     journal_path = run_dir / "journal.jsonl"
     if invalid_class is None:
         injections = {i["trial_index"]: i for i in schedule["injections"]}
@@ -374,6 +381,7 @@ def run_unit(
                             "dispatch_attempted": False,
                             "detail": {"fault": "crash-before-persist"},
                         }
+                        full_report = report_dict
                     else:
                         episode = _episode(workload, trial, injection, variants_by_id)
                         report = driver.run_episode(episode)
@@ -386,21 +394,15 @@ def run_unit(
                             "dispatch_attempted": report.dispatch_attempted,
                             "detail": detail,
                         }
-                        journal.write(
-                            json.dumps(
-                                {
-                                    **report_dict,
-                                    "detail": report.detail,  # full log in evidence
-                                },
-                                default=str,
-                            )
-                            + "\n"
-                        )
+                        full_report = {**report_dict, "detail": dict(report.detail)}
+                        journal.write(json.dumps(full_report, default=str) + "\n")
                     trial_reports.append(report_dict)
+                    full_reports.append(full_report)
         finally:
             driver.end_unit()
 
-    # ── oracle read-back + metrics (arm-independent) ──────────────────────────
+    # ── oracle read-back + metrics + history cross-check (arm-independent) ────
+    history_block: dict[str, Any] | None = None
     if invalid_class is None:
         readback = read_back(refdest, workload, variants_by_id)
         metrics = compute_metrics(
@@ -416,7 +418,42 @@ def run_unit(
             "destination_effect_count": readback.total_effects,
             "per_intent_effect_counts": dict(readback.per_intent_effect_counts),
             "orphan_effect_count": readback.orphan_effect_count,
+            "ambiguous_attributions": readback.ambiguous_attributions,
         }
+        # Second, independent oracle pass: compile the causal history and
+        # check the named invariants; the §4 metric numerators MUST agree
+        # with the invariant-violation counts (differential guard, ADR-0032).
+        history = compile_history(workload, schedule, full_reports, readback)
+        verdict = check_history(history)
+        _write_json(run_dir / "history.json", history)
+        discrepancies = cross_check_metrics(metrics, verdict, workload)
+        by_invariant: dict[str, int] = {}
+        for violation in verdict.violations:
+            by_invariant[violation["invariant"]] = (
+                by_invariant.get(violation["invariant"], 0) + 1
+            )
+        history_block = {
+            "history_digest": history["history_digest"],
+            "violations_total": len(verdict.violations),
+            "violations_by_invariant": by_invariant,
+            "diagnostics_total": len(verdict.diagnostics),
+            "cross_check": "consistent" if not discrepancies else "DIVERGENT",
+        }
+        _write_json(
+            run_dir / "history-verdict.json",
+            {
+                "violations": verdict.violations,
+                "diagnostics": verdict.diagnostics,
+                "cross_check_discrepancies": discrepancies,
+            },
+        )
+        if discrepancies:
+            # Two independent oracles disagreeing is independently proven
+            # harness corruption (§6) — never silently preferred one way.
+            invalid_class = "harness-corruption"
+            invalid_evidence.extend(
+                ["metric/history-checker divergence:", *discrepancies]
+            )
     else:
         metrics = {name: na_cell("N/A") for name in METRIC_NAMES}
         oracle_block = {
@@ -425,6 +462,7 @@ def run_unit(
             "destination_effect_count": None,
             "per_intent_effect_counts": None,
             "orphan_effect_count": None,
+            "ambiguous_attributions": None,
         }
 
     artifact_digests = {"run_manifest": canonical_digest(run_manifest)}
@@ -454,6 +492,8 @@ def run_unit(
         },
         "residual_effects_after_cleanup": 0,
     }
+    if history_block is not None:
+        result["history"] = history_block
     validate_document(result)
     _write_json(run_dir / "result.json", result)
     return UnitOutcome(

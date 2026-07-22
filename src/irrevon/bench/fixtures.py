@@ -143,6 +143,13 @@ def _trial(cell: dict[str, str], seed: int, trial_index: int, fault: str | None)
         "effect_type": "order.create",
         "scope": "irrevonbench-dev/refdest",
         "parameters": {
+            # Realistic payloads carry the business identifiers (an order
+            # create names its order). This is also what makes oracle
+            # attribution robust under destination-side normalization or
+            # enrichment: the stable-id projection fallback keys on these
+            # values in the STORED ground truth, never on byte-identity.
+            "order_id": str(order_no),
+            "customer_ref": f"C-{trial_index:04d}",
             "line_items": [{"sku": sku, "quantity": quantity}],
             "shipping_method": "standard",
             "note": f"benchmark trial {trial_index} (synthetic)",
@@ -155,7 +162,10 @@ def _trial(cell: dict[str, str], seed: int, trial_index: int, fault: str | None)
 
 def _same_intent_variant(trial: dict[str, Any], variant_id: str) -> dict[str, Any]:
     """Deterministic template re-synthesis: same identity tuple, restructured
-    non-identity parameters — the ACRFence failure shape without a model."""
+    non-identity parameters — the ACRFence failure shape without a model. The
+    business identifiers reappear under DIFFERENT keys (as a model re-stating
+    "the same order" would), so identity-by-key-path can never shortcut the
+    stable-id projection."""
     item = trial["parameters"]["line_items"][0]
     return {
         "variant_id": variant_id,
@@ -164,6 +174,8 @@ def _same_intent_variant(trial: dict[str, Any], variant_id: str) -> dict[str, An
         "label": "same-intent",
         "stable_ids": dict(trial["stable_ids"]),
         "parameters": {
+            "purchase_order": trial["parameters"]["order_id"],
+            "customer": trial["parameters"]["customer_ref"],
             "items": [{"sku": item["sku"], "qty": item["quantity"], "gift_wrap": False}],
             "shipping": {"method": "standard", "priority": "normal"},
             "customer_note": f"Benchmark trial {trial['trial_index']} — synthetic retry.",

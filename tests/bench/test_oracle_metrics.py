@@ -67,6 +67,50 @@ def test_oracle_attributes_by_payload_digest_not_client_ref() -> None:
     assert readback.orphan_effect_count == 0
 
 
+def test_attribution_survives_destination_enrichment() -> None:
+    """The hardening differential (ADR-0032): under the enrichment quirk the
+    stored payload digest no longer equals the dispatched payload digest —
+    digest-only attribution would orphan EVERY effect; the stable-id
+    projection fallback must attribute all of them, without guessing."""
+    trial = _trial(0)
+    trial["parameters"]["order_id"] = trial["stable_ids"]["order_id"]
+    workload = _workload([trial])
+    plain = RefDest(seed=7, profile="C2")
+    enriched = RefDest(seed=7, profile="C2", enrichment_quirk=True)
+    for dest in (plain, enriched):
+        dest.api_create("order.create", trial["parameters"], "ref-a")
+    from irrevon.bench.oracle import attribute_effects
+
+    plain_attr = attribute_effects(plain, workload, {})
+    enriched_attr = attribute_effects(enriched, workload, {})
+    assert plain_attr[0].attributed_by == "digest"
+    assert enriched_attr[0].attributed_by == "stable-id-projection"
+    assert plain_attr[0].intent_key == enriched_attr[0].intent_key == "0"
+    # Rates computed from both attributions are identical (measurement
+    # invariance under destination normalization).
+    assert read_back(plain, workload, {}).per_intent_effect_counts == read_back(
+        enriched, workload, {}
+    ).per_intent_effect_counts
+
+
+def test_ambiguous_projection_is_declined_never_guessed() -> None:
+    """Two intents sharing every projected value: an enriched effect that
+    matches both is counted ambiguous + orphan, not silently assigned."""
+    t0, t1 = _trial(0), _trial(1)
+    shared = {"order_id": "5555"}
+    t0["stable_ids"] = dict(shared)
+    t1["stable_ids"] = dict(shared)  # deliberate pathological overlap
+    t0["parameters"] = {"order_id": "5555", "n": 1}
+    t1["parameters"] = {"order_id": "5555", "n": 2}
+    workload = _workload([t0, t1])
+    dest = RefDest(seed=7, profile="C2", enrichment_quirk=True)
+    dest.api_create("order.create", t0["parameters"], "r0")
+    readback = read_back(dest, workload, {})
+    assert readback.ambiguous_attributions == 1
+    assert readback.orphan_effect_count == 1
+    assert readback.per_intent_effect_counts == {"0": 0, "1": 0}
+
+
 def test_oracle_counts_oob_effects_as_orphans() -> None:
     workload = _workload([_trial(0)])
     refdest = RefDest(seed=7, profile="C2")

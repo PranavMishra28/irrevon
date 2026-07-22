@@ -22,8 +22,16 @@ Quick start:
 uv run irrevon bench fixtures --verify      # drift gate
 uv run irrevon bench validate --dir bench/fixtures/dev
 uv run irrevon bench smoke --out /tmp/runs --arms B0,B1,B3,B5,B6,B5+B3+B6
+uv run irrevon bench smoke --out /tmp/runs-e --arms B0 --enrichment-quirk  # attribution hardening demo
+uv run irrevon bench conform --tier C2                       # declared-vs-observed probes
+uv run irrevon bench conform --tier C2 --declared-tier C1    # drift demonstration (exit 3)
 uv run irrevon bench analyze --runs /tmp/runs --json
 ```
+
+Every run bundle now carries its compiled causal history (`history.json`) and
+checker verdict (`history-verdict.json`); the §4 metrics and the history
+checker must agree per run or the run is finalized harness-INVALID
+(ADR-0032's differential guard).
 
 `irrevon bench run` (confirmatory, M7) refuses with exit 4 until the human
 Stage-B freeze exists. That refusal is load-bearing; never weaken it.

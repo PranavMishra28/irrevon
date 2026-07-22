@@ -197,6 +197,29 @@ def test_confirmatory_refused_pre_freeze(dev_split: Path, tmp_path: Path) -> Non
         run_unit(fixture_set, RL_WORKLOAD, "B0", tmp_path, confirmatory=True)
 
 
+def test_history_artifacts_written_and_cross_checked(
+    dev_split: Path, tmp_path: Path
+) -> None:
+    """Every valid run carries the compiled history + checker verdict, and
+    the §4 metrics agree with the invariant-violation counts (the two-oracle
+    differential guard, ADR-0032)."""
+    fixture_set = load_fixture_set(dev_split)
+    outcome = run_unit(fixture_set, RESYN_WORKLOAD, "B3", tmp_path)
+    result = json.loads((outcome.run_dir / "result.json").read_text(encoding="utf-8"))
+    assert result["history"]["cross_check"] == "consistent"
+    history = json.loads((outcome.run_dir / "history.json").read_text(encoding="utf-8"))
+    assert history["format"] == "irrevonbench/history/v1"
+    verdict = json.loads(
+        (outcome.run_dir / "history-verdict.json").read_text(encoding="utf-8")
+    )
+    # B3 duplicates under re-synthesis: the H1 violations must equal the
+    # metric numerator — two independent oracles, one answer.
+    h1 = [v for v in verdict["violations"] if v["invariant"] == "H1-duplicate-effect"]
+    assert len(h1) == result["metrics"]["duplicate_effect_rate"]["numerator"] >= 1
+    assert result["history"]["violations_by_invariant"]["H1-duplicate-effect"] == len(h1)
+    assert verdict["cross_check_discrepancies"] == []
+
+
 def test_journal_detail_carries_no_fixture_oracle_labels(
     dev_split: Path, tmp_path: Path
 ) -> None:

@@ -4,7 +4,10 @@
   "run_manifest_digest": "sha256:0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0",
   "completed_at": "2026-07-22T00:02:00Z",
   "confirmatory": false,
-  "labels": ["non-confirmatory", "smoke"],
+  "labels": [
+    "non-confirmatory",
+    "smoke"
+  ],
   "validity": {
     "status": "VALID",
     "invalid_class": null,
@@ -16,17 +19,58 @@
     "readback_digest": "sha256:aa1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0",
     "destination_effect_count": 0,
     "per_intent_effect_counts": {},
-    "orphan_effect_count": 0
+    "orphan_effect_count": 0,
+    "ambiguous_attributions": 0
   },
   "metrics": {
-    "duplicate_effect_rate": { "numerator": 0, "denominator": 0, "value": 0, "mark": null },
-    "orphaned_effect_rate": { "numerator": null, "denominator": null, "value": null, "mark": "N/A" },
-    "lost_legitimate_effect_rate": { "numerator": null, "denominator": null, "value": null, "mark": "N/A" },
-    "false_suppression_rate": { "numerator": null, "denominator": null, "value": null, "mark": "N/A" },
-    "unresolved_ambiguous_rate": { "numerator": null, "denominator": null, "value": null, "mark": "N/A" },
-    "false_reconciliation_rate": { "numerator": null, "denominator": null, "value": null, "mark": "N/A" },
-    "human_review_rate": { "numerator": null, "denominator": null, "value": null, "mark": "N/A" },
-    "compensation_correctness": { "numerator": null, "denominator": null, "value": null, "mark": "N/A" }
+    "duplicate_effect_rate": {
+      "numerator": 0,
+      "denominator": 0,
+      "value": 0,
+      "mark": null
+    },
+    "orphaned_effect_rate": {
+      "numerator": null,
+      "denominator": null,
+      "value": null,
+      "mark": "N/A"
+    },
+    "lost_legitimate_effect_rate": {
+      "numerator": null,
+      "denominator": null,
+      "value": null,
+      "mark": "N/A"
+    },
+    "false_suppression_rate": {
+      "numerator": null,
+      "denominator": null,
+      "value": null,
+      "mark": "N/A"
+    },
+    "unresolved_ambiguous_rate": {
+      "numerator": null,
+      "denominator": null,
+      "value": null,
+      "mark": "N/A"
+    },
+    "false_reconciliation_rate": {
+      "numerator": null,
+      "denominator": null,
+      "value": null,
+      "mark": "N/A"
+    },
+    "human_review_rate": {
+      "numerator": null,
+      "denominator": null,
+      "value": null,
+      "mark": "N/A"
+    },
+    "compensation_correctness": {
+      "numerator": null,
+      "denominator": null,
+      "value": null,
+      "mark": "N/A"
+    }
   },
   "evidence": {
     "bundle_dir": "bench/runs/run_smoke.20260722.d",

@@ -95,14 +95,20 @@
           "type": ["object", "null"],
           "additionalProperties": { "type": "integer", "minimum": 0 }
         },
-        "orphan_effect_count": { "type": ["integer", "null"], "minimum": 0 }
+        "orphan_effect_count": { "type": ["integer", "null"], "minimum": 0 },
+        "ambiguous_attributions": {
+          "description": "Effects whose stable-id projection matched multiple intents: attribution is declined and counted, never guessed (ADR-0032 attribution hardening).",
+          "type": ["integer", "null"],
+          "minimum": 0
+        }
       },
       "required": [
         "performed",
         "readback_digest",
         "destination_effect_count",
         "per_intent_effect_counts",
-        "orphan_effect_count"
+        "orphan_effect_count",
+        "ambiguous_attributions"
       ],
       "additionalProperties": false
     },
@@ -146,6 +152,40 @@
       "description": "Residual sandbox effects are RESULTS, not invalidity (§6) — recorded, scored, never censored.",
       "type": "integer",
       "minimum": 0
+    },
+    "history": {
+      "description": "Causal-history checker summary (ADR-0032): the second, independent oracle pass. Behavioral-invariant violation counts are diagnostics reported per run — H4/H5/H8 are supplementary and NEVER pooled into §4 metrics or confirmatory analysis. cross_check must be 'consistent'; a divergent run is finalized harness-INVALID by the runner.",
+      "type": "object",
+      "properties": {
+        "history_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "violations_total": { "type": "integer", "minimum": 0 },
+        "violations_by_invariant": {
+          "type": "object",
+          "propertyNames": {
+            "enum": [
+              "H1-duplicate-effect",
+              "H2-orphan-effect",
+              "H3-lost-legitimate-effect",
+              "H4-effect-after-cancellation",
+              "H5-unauthorized-effect",
+              "H6-false-suppression",
+              "H7-claim-contradiction",
+              "H8-effect-despite-pre-persist-crash"
+            ]
+          },
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "diagnostics_total": { "type": "integer", "minimum": 0 },
+        "cross_check": { "enum": ["consistent", "DIVERGENT"] }
+      },
+      "required": [
+        "history_digest",
+        "violations_total",
+        "violations_by_invariant",
+        "diagnostics_total",
+        "cross_check"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [

@@ -66,7 +66,25 @@ def add_bench_parser(
                          help="comma-separated workload ids (default: all)")
     p_smoke.add_argument("--dsn", default=None,
                          help="Postgres admin DSN (required for arm R)")
+    p_smoke.add_argument("--enrichment-quirk", action="store_true",
+                         help="destination stores normalized/enriched payloads "
+                              "(attribution-hardening exercise; ADR-0032)")
     p_smoke.add_argument("--json", action="store_true")
+
+    p_conform = bench_sub.add_parser(
+        "conform",
+        help="declared-vs-observed capability conformance probes (public "
+             "adapter surface only)",
+    )
+    p_conform.add_argument("--tier", choices=("C1", "C2", "C3"), default="C2",
+                           help="reference-destination profile to probe")
+    p_conform.add_argument("--declaration", default=None,
+                           help="capability declaration JSON (default: the "
+                                "packaged refdest declaration for --tier)")
+    p_conform.add_argument("--declared-tier", default=None,
+                           help="probe with the declaration of a DIFFERENT tier "
+                                "(drift demonstration)")
+    p_conform.add_argument("--json", action="store_true")
 
     p_analyze = bench_sub.add_parser(
         "analyze", help="descriptive comparison over completed runs"
@@ -97,7 +115,7 @@ def add_bench_parser(
 
 def run_bench(args: argparse.Namespace, config: Config) -> int:
     if args.bench_command is None:
-        print("usage: irrevon bench {fixtures,validate,smoke,analyze,run} …",
+        print("usage: irrevon bench {fixtures,validate,smoke,conform,analyze,run} …",
               file=sys.stderr)
         return 2
 
@@ -150,6 +168,9 @@ def run_bench(args: argparse.Namespace, config: Config) -> int:
 
     if args.bench_command == "smoke":
         return _run_smoke(args)
+
+    if args.bench_command == "conform":
+        return _run_conform(args)
 
     if args.bench_command == "analyze":
         return _run_analyze(args)
@@ -214,6 +235,7 @@ def _run_smoke(args: argparse.Namespace) -> int:
                 outcome = run_unit(
                     fixture_set, workload_id, arm_id, out_dir,
                     admin_dsn=args.dsn, extra_labels=("smoke",),
+                    enrichment_quirk=bool(getattr(args, "enrichment_quirk", False)),
                 )
             except IntegrityRefusal as err:
                 print(f"bench smoke: INTEGRITY REFUSAL - {err}", file=sys.stderr)
@@ -233,6 +255,38 @@ def _run_smoke(args: argparse.Namespace) -> int:
     else:
         print(render_markdown(comparison))
     return 3 if failures else 0
+
+
+def _run_conform(args: argparse.Namespace) -> int:
+    from pathlib import Path as _Path
+
+    from irrevon.adapters.base import declarations_dir, load_declaration
+    from irrevon.adapters.refdest import RefDest, RefdestAdapter
+    from irrevon.bench.conformance import verify_declaration
+
+    declared_tier = args.declared_tier or args.tier
+    if args.declaration is not None:
+        declaration = load_declaration(_Path(args.declaration))
+    else:
+        declaration = load_declaration(
+            declarations_dir() / f"refdest-{declared_tier.lower()}.capability.json"
+        )
+    refdest = RefDest(seed=7, profile=args.tier)
+    adapter = RefdestAdapter(f"refdest-{declared_tier.lower()}", declaration, instance=refdest)
+    report = verify_declaration(adapter)
+    if args.json:
+        print(json.dumps(report, indent=2, sort_keys=True))
+    else:
+        print(f"conformance: {report['adapter_id']} against a {args.tier} destination "
+              f"→ {report['verdict']} ({report['mismatch_count']} mismatches)",
+              file=sys.stderr)
+        for probe in report["probes"]:
+            print(
+                f"  {probe['verdict']:>12}  {probe['capability']}"
+                f"  declared={probe['declared']!r} observed={probe['observed']!r}",
+                file=sys.stderr,
+            )
+    return 0 if report["verdict"] == "conformant" else 3
 
 
 def _run_analyze(args: argparse.Namespace) -> int:
