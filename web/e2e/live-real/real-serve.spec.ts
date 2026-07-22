@@ -52,9 +52,12 @@ let origin = "";
 
 function startEngine(): Promise<string> {
   return new Promise((resolve, reject) => {
-    // live_server execv's into `irrevon serve`, so this pid IS the engine —
-    // SIGKILLing it later is the real crash, not a wrapper kill.
-    const proc = spawn("uv", ["run", "python", "tests/serve/live_server.py"], {
+    // Spawn the venv python DIRECTLY (never `uv run`, whose wrapper child
+    // would absorb the kill and orphan the engine): live_server execv's into
+    // `irrevon serve`, so this pid IS the engine — SIGKILLing it later is the
+    // real crash, not a wrapper kill. The make target's `uv sync` guarantees
+    // the venv exists.
+    const proc = spawn(join(REPO_ROOT, ".venv/bin/python"), ["tests/serve/live_server.py"], {
       cwd: REPO_ROOT,
       env: { ...process.env },
       stdio: ["ignore", "pipe", "inherit"],
