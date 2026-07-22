@@ -2,6 +2,7 @@
 // 404 — GitHub Pages serves 404.html automatically. Zero JS beyond the
 // shared theme toggle; base-path-safe links back into the site.
 import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
 import { SITE_NAME } from "../config";
 import { href } from "../lib/url";
 ---
@@ -13,7 +14,7 @@ import { href } from "../lib/url";
   <section class="section">
     <div class="container nf-wrap">
       <p class="nf-code" aria-hidden="true">404</p>
-      <h1>No record of this page</h1>
+      <h1><Icon name="orphan-absence" size={26} /> No record of this page</h1>
       <p class="lead nf-lead">
         Whatever linked you here promised something this site never recorded. Unlike an irreversible dispatch,
         this one is easy to recover from.
@@ -43,6 +44,11 @@ import { href } from "../lib/url";
   }
   .nf-lead {
     max-width: 48ch;
+  }
+  .nf-wrap h1 {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
   }
   .nf-links {
     display: flex;

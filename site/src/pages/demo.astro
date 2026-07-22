@@ -12,6 +12,7 @@
 import Base from "../layouts/Base.astro";
 import Badge from "../components/Badge.astro";
 import Source from "../components/Source.astro";
+import Icon from "../components/Icon.astro";
 import OneWayStage from "../components/OneWayStage.astro";
 import { SITE_NAME, REPO_URL } from "../config";
 import { href } from "../lib/url";
@@ -185,9 +186,12 @@ import { beats, b5Lane, contrast, effectShort, seed, engineCommit, adapterId } f
       </div>
       <ol class="b5-lane">
         {
+          // Micro-glyph mapping per the N4 identity spec (event → icon).
           b5Lane.map((e, i) => (
             <li>
-              <span class="b5-n">{i + 1}</span>
+              <span class="b5-n">
+                {i + 1} <Icon name={["ambiguous", "recovery", "intent", "duplicate-reject"][i]} size={18} />
+              </span>
               <div>
                 <p class="b5-event">{e.event}</p>
                 <p class="b5-detail">{e.detail}</p>
@@ -409,6 +413,10 @@ import { beats, b5Lane, contrast, effectShort, seed, engineCommit, adapterId } f
     font-size: var(--site-text-2xs);
     color: var(--ref-ink-3);
     padding-top: 3px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
   }
   .b5-event {
     font-family: var(--font-mono);

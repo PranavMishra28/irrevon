@@ -1,0 +1,9 @@
+<!-- Irrevon icon: intent - hand-written original, N4, 2026-07-21.
+     24px grid, 2px stroke, round caps/joins (Lucide grid conventions studied
+     for direction only; no geometry traced). A registered card whose arrow is
+     poised short of the wall: declared, not yet externalized. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <rect x="3" y="5" width="18" height="14" rx="2"/>
+  <path d="M7 12h8"/>
+  <path d="M12 8.5 15.5 12 12 15.5"/>
+</svg>

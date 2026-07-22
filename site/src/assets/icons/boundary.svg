@@ -1,0 +1,10 @@
+<!-- Irrevon icon: boundary - hand-written original, N4, 2026-07-21.
+     The irreversible dispatch boundary: dashed track before, solid track
+     after, and the armed pawl wedge (E2's wedge miniaturized) angled against
+     the reverse direction. Matches the graph notch annotation. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M12 3v18"/>
+  <path d="M3 12h5" stroke-dasharray="2.5 2.5"/>
+  <path d="M16 12h5"/>
+  <path d="M13 4.5h4.5L15 8.3z" fill="currentColor" stroke="none"/>
+</svg>

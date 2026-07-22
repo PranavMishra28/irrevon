@@ -1,0 +1,7 @@
+<!-- Irrevon icon: gate-allow - hand-written original, N4, 2026-07-21.
+     The gate diamond (decision, two exits) carrying a check: an evidenced
+     ALLOW, matching the graph's N4 gate-node silhouette. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M12 2.5 21.5 12 12 21.5 2.5 12z"/>
+  <path d="m8.7 12.3 2.3 2.3 4.3-4.9"/>
+</svg>
