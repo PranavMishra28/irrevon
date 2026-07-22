@@ -29,13 +29,17 @@ packaging with `make dist` / `dist-smoke` (built, unpublished); the expanded
 marketing/discovery site ([site/](site/README.md) — built, deploy gated); and the
 **IrrevonBench foundation layer** ([docs/benchmark.md](docs/benchmark.md), ADR-0030
 proposed): benchmark contracts, deterministic public dev fixtures, the baseline-ladder
-arm registry, fault orchestration, destination read-back oracle, metrics + a stdlib
-statistics pipeline, and `irrevon bench` — with confirmatory runs mechanically refused
-until the human preregistration freeze (exit 4).
-Real destination adapters (M4), confirmatory benchmark runs (M7, human-gated), and any
-packaged release remain gated by the execution plan. The roadmap, gates, and what blocks
-what are in [docs/execution-plan.md](docs/execution-plan.md). Items awaiting human
-decision are in [docs/review-queue.md](docs/review-queue.md).
+arm registry, fault orchestration, a two-oracle scoring pipeline (destination read-back
++ causal-history checker, cross-checked per run), metrics + a stdlib statistics
+pipeline, and `irrevon bench` — with confirmatory runs mechanically refused until the
+human freeze registrations pass verification (ADR-0033). Also in: the continuous
+single-writer service (`irrevon worker` — [docs/operations.md](docs/operations.md)) and
+credential-gated DRAFT provider adapters (Stripe C1 / EasyPost C2 — never live-called;
+ADR-0010/0012 remain the human spikes).
+Live sandbox runs, confirmatory benchmark evidence (M7, human-gated), and any packaged
+release remain gated by the execution plan. The roadmap, gates, and what blocks what are
+in [docs/execution-plan.md](docs/execution-plan.md). Items awaiting human decision are
+in [docs/review-queue.md](docs/review-queue.md).
 
 ## Quickstart — run the flagship demo
 

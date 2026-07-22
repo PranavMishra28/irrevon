@@ -34,6 +34,14 @@ Schema admission requires an ADR (contracts rule; ADR-0019/0021 precedent).
    requires one of the three §6 harness-invalid classes; structurally
    undefined metric cells carry marks (`N/A`, `N/A-by-arm`,
    `NOT-DETECTABLE`, `expected-null`, `fixture-truth-only`), never zeros.
+   The Extended track's LLM-embedded subjects additionally get a per-trial
+   `refused` arm outcome (subject declined ≠ system suppressed: a refusal on
+   a legitimate eligible trial reads back as a lost legitimate effect and is
+   NEVER counted as false suppression) and an optional per-run
+   `subject_accounting` block (refusals, verbalized eval-awareness,
+   suspected sandbagging — descriptive diagnostics reported alongside
+   results, never pooled into §4 metrics; evaluation-awareness posture in
+   docs/benchmark.md §10).
 2. **Byte-level pinnings** left open by the preregistration are fixed here:
    (a) §3.4 seed derivation concatenation uses UTF-8 fields joined by the
    ASCII unit separator 0x1F (removes cross-field ambiguity; pinned vectors

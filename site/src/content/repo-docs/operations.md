@@ -2,7 +2,7 @@
 title: "Operations — running Irrevon as a service"
 description: "Operator documentation: deployment shape, probes, shutdown and upgrades, the ten operator questions, SLO guidance, backup/restore, incident containment."
 sourcePath: "docs/operations.md"
-sourceSha256: "2698aa6652f0ded60103e1cf8fe18ee8b9945f0b0aa535015a90fb8bdaf2cce3"
+sourceSha256: "8f074815bef9e87ddc9c1e3f6e90e83a62247536a3cd4ade5de218cd681f9a40"
 syncedAt: "2026-07-22"
 section: "Governance"
 renderTitle: false
@@ -115,3 +115,24 @@ digest-only until the redaction pipeline lands (Q2). Retention/deletion of
 ledger history is the operator's policy — rows are append-only by role
 design; deletion is a DBA act on a copy-and-truncate basis, never in-place
 mutation of live history.
+
+## Compatibility, versioning, and deprecation
+
+- **Package/API**: pre-release (`0.x`); no compatibility guarantee is claimed
+  before the first tagged release (release mechanics are human-gated,
+  ADR-0018). From the first release: semantic versioning; any
+  guarantee-affecting change is MINOR+ with an ADR (master doc §12.3).
+- **Wire/JSON surfaces**: the serve envelope and CLI `--json` documents are
+  additive-only under a `schema_version` member; benchmark artifacts version
+  by format string (`irrevonbench/<kind>/v1`) — a shape change is a new
+  format version plus an ADR, and old readers must reject unknown formats
+  rather than guess (enforced in `irrevon.bench.formats`).
+- **Database**: migrations are append-only plain SQL with a content-hash
+  journal that refuses edited history (ADR-0022); downgrade is
+  restore-from-backup, never reverse migration.
+- **Deprecation policy**: a deprecated surface keeps working for at least one
+  MINOR release with a WARN-severity structured event naming the
+  replacement; removal requires a changelog entry and, when
+  guarantee-affecting, an ADR. Benchmark formats are never deprecated
+  in-place post-freeze — frozen artifacts stay readable forever
+  (append-only result store, preregistration §8).

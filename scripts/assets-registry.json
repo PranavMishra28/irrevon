@@ -3,7 +3,10 @@
   "preamble": "Design references (screenshots of third-party marketing/product sites, studied during the redesign) were used for layout/interaction conventions only and are not committed, not shipped, and not copied from; no shipped asset is derived from them. Icon design adopts Lucide's published grid conventions (24 grid, 2 px stroke, round caps) for visual compatibility; no Lucide path is reused, traced, or modified.",
   "rows": [
     {
-      "paths": ["web/public/brand/e1-convergence-seat.svg", "site/public/favicon.svg"],
+      "paths": [
+        "web/public/brand/e1-convergence-seat.svg",
+        "site/public/favicon.svg"
+      ],
       "asset": "E1 \"Convergence Seat\" mark (+ favicon copy)",
       "type": "mark",
       "origin": "original",
@@ -13,7 +16,9 @@
       "date": "2026-07-21"
     },
     {
-      "paths": ["web/public/brand/d1-seat.svg"],
+      "paths": [
+        "web/public/brand/d1-seat.svg"
+      ],
       "asset": "D1 seat mark (core geometry)",
       "type": "mark",
       "origin": "original",
@@ -74,7 +79,9 @@
       "date": "2026-07-21"
     },
     {
-      "paths": ["site/og/template.svg"],
+      "paths": [
+        "site/og/template.svg"
+      ],
       "asset": "OG social card template (1200x630)",
       "type": "illustration",
       "origin": "original",
@@ -118,7 +125,9 @@
       "date": "2026-07-21"
     },
     {
-      "paths": ["web/public/mockServiceWorker.js"],
+      "paths": [
+        "web/public/mockServiceWorker.js"
+      ],
       "asset": "MSW service worker (generated vendor file)",
       "type": "icon-source",
       "origin": "third-party-verbatim",
@@ -126,6 +135,18 @@
       "license": "MIT",
       "provenance": "Generated verbatim by the msw CLI; never part of a live/production bundle (mock mode is refused in production builds). Recorded here because it is a committed third-party file under web/public/.",
       "date": "2026-07-21"
+    },
+    {
+      "paths": [
+        "site/public/llms.txt"
+      ],
+      "asset": "llms.txt machine-readable docs index",
+      "type": "text",
+      "origin": "first-party-generated",
+      "source": "site/scripts/sync-docs.mjs (generated from site/docs-manifest.json + guides frontmatter)",
+      "license": "Apache-2.0 (repository license, ADR-0028)",
+      "provenance": "Generated and drift-gated by sync-docs.mjs (--check fails on divergence); root-relative links only, no embedded origin; regenerated whenever the docs manifest or guides change.",
+      "date": "2026-07-22"
     }
   ]
 }
