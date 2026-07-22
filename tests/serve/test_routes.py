@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import psycopg
 import pytest
@@ -291,6 +292,74 @@ def test_health_is_green_with_a_real_db(
     by_name = {c["name"]: c for c in payload["checks"]}
     assert by_name["ledger_db"]["status"] == "ok"
     assert by_name["serve_ready"]["status"] in ("ok", "warn")  # warn = no assets
+    # The write probe is a CLI-doctor affordance; the served payload reports
+    # the read-only serve context honestly instead of running it.
+    assert by_name["ledger_write"]["status"] == "skipped"
+    assert by_name["ledger_write"]["message"] == "not probed (read-only serve context)"
+    assert payload["ok"] is True
+
+
+def test_health_path_opens_no_write_capable_connection(
+    seeded_server: tuple[RunningServer, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """B1 regression (adversarial review 2026-07-21): GET /api/v1/health must
+    never open a write-capable connection. Every DB session the health path
+    opens is interrogated live: the session user must be irrevon_read, the
+    session must default to read-only, and — the grants-based proof — the
+    catalog must show zero non-SELECT table grants for that session's user."""
+    import psycopg.rows
+
+    from irrevon.serve import READ_ROLE
+
+    server, _ = seeded_server
+    server.app._health_cache = None  # force a fresh doctor pass through the DB
+
+    observed: list[dict[str, Any]] = []
+    real_connect = psycopg.connect
+
+    def recording_connect(conninfo: str = "", **kwargs: Any) -> Any:
+        conn = real_connect(conninfo, **kwargs)
+        with conn.cursor(row_factory=psycopg.rows.tuple_row) as cur:
+            cur.execute(
+                """
+                SELECT current_user,
+                       current_setting('default_transaction_read_only'),
+                       (SELECT count(*)
+                        FROM information_schema.role_table_grants
+                        WHERE grantee = current_user
+                          AND privilege_type <> 'SELECT')
+                """
+            )
+            row = cur.fetchone()
+        conn.rollback()  # leave the connection exactly as the caller expects
+        assert row is not None
+        observed.append(
+            {
+                "conninfo": str(conninfo),
+                "user": row[0],
+                "default_read_only": row[1],
+                "non_select_grants": int(row[2]),
+            }
+        )
+        return conn
+
+    monkeypatch.setattr(psycopg, "connect", recording_connect)
+    status, _, payload = server.get_json("/api/v1/health")
+    assert status == 200
+    assert observed, "the health path must actually open DB connections"
+    for session in observed:
+        assert session["user"] == READ_ROLE, (
+            f"health opened a connection as {session['user']!r} — "
+            f"only {READ_ROLE} is allowed on the serve surface"
+        )
+        assert f"user={READ_ROLE}" in session["conninfo"]
+        assert session["default_read_only"] == "on"
+        assert session["non_select_grants"] == 0, (
+            "the health path executed under a role holding write grants"
+        )
+    by_name = {c["name"]: c for c in payload["checks"]}
+    assert by_name["ledger_write"]["status"] == "skipped"
     assert payload["ok"] is True
 
 

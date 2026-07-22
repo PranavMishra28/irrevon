@@ -148,15 +148,19 @@ class ServeApp:
     )
 
     def health_payload(self) -> dict[str, Any]:
-        """Verbatim ``irrevon doctor --json`` + ``serve_ready``, cached 5 s
-        (doctor hits the DB; the workbench polls this for the LIVE chip)."""
+        """The doctor document in read-only serve mode, cached 5 s (the
+        workbench polls this for the LIVE chip). Read-only mode means every
+        connection the health path opens runs as ``irrevon_read`` and the
+        ``ledger_write`` probe is skipped — reported honestly as
+        ``not probed (read-only serve context)``. The full write probe stays
+        a CLI ``irrevon doctor`` affordance (it runs as the operator)."""
         from irrevon.cli.doctor import doctor_payload
 
         with self._health_lock:
             now = time.monotonic()
             if self._health_cache and now - self._health_cache[0] < _HEALTH_CACHE_S:
                 return self._health_cache[1]
-            payload = doctor_payload(self.config)
+            payload = doctor_payload(self.config, read_only=True)
             self._health_cache = (now, payload)
             return payload
 

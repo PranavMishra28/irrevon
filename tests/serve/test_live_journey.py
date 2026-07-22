@@ -120,6 +120,9 @@ def test_health_reports_green_over_the_live_db(live_serve: dict[str, Any]) -> No
     assert health["ok"] is True
     by_name = {c["name"]: c for c in health["checks"]}
     assert by_name["serve_ready"]["status"] in ("ok", "warn")
+    # B1: served health never runs the write probe — read-only serve context.
+    assert by_name["ledger_write"]["status"] == "skipped"
+    assert by_name["ledger_write"]["message"] == "not probed (read-only serve context)"
 
 
 def test_root_serves_workbench_or_honest_degrade(

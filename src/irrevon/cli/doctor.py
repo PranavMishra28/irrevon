@@ -87,14 +87,22 @@ def _check_identity() -> CheckResult:
     )
 
 
-def _check_ledger(config: Config) -> list[CheckResult]:
+def _check_ledger(config: Config, *, read_only: bool = False) -> list[CheckResult]:
     import psycopg
 
     from irrevon.ledger.db import migrations_dir
 
     results: list[CheckResult] = []
     try:
-        conn = psycopg.connect(config.resolved_dsn(), connect_timeout=5)
+        if read_only:
+            # Serve context: connect as the SELECT-only irrevon_read role with
+            # the session forced read-only — the health path must never open a
+            # write-capable connection (read_dsn sets connect_timeout=5).
+            from irrevon.serve import read_dsn
+
+            conn = psycopg.connect(read_dsn(config.resolved_dsn()))
+        else:
+            conn = psycopg.connect(config.resolved_dsn(), connect_timeout=5)
     except psycopg.OperationalError as err:
         # A missing role/database on a reachable server is the signature of a
         # database created before the Irrevon rename (ADR-0023).
@@ -172,20 +180,34 @@ def _check_ledger(config: Config) -> list[CheckResult]:
                     )
                 )
         # ledger_write: round-trip inside a transaction that is ROLLED BACK —
-        # doctor never mutates (RFC-002 §12).
-        try:
-            with conn.transaction() as _txn:
-                conn.execute("CREATE TEMPORARY TABLE irrevon_doctor_probe (x int)")
-                conn.execute("INSERT INTO irrevon_doctor_probe VALUES (1)")
-                row = conn.execute("SELECT x FROM irrevon_doctor_probe").fetchone()
-                assert row is not None and row[0] == 1
-                raise _Rollback()
-        except _Rollback:
-            results.append(CheckResult("ledger_write", "ok", "write round-trip OK (rolled back)"))
-        except psycopg.Error as err:
+        # doctor never mutates (RFC-002 §12). In the read-only serve context
+        # the probe is skipped, honestly: the health surface runs as
+        # irrevon_read and must not exercise a write path at all.
+        if read_only:
             results.append(
-                CheckResult("ledger_write", "fail", f"write probe failed: {err}", None)
+                CheckResult(
+                    "ledger_write",
+                    "skipped",
+                    "not probed (read-only serve context)",
+                    "run `irrevon doctor` as the operator for the write probe",
+                )
             )
+        else:
+            try:
+                with conn.transaction() as _txn:
+                    conn.execute("CREATE TEMPORARY TABLE irrevon_doctor_probe (x int)")
+                    conn.execute("INSERT INTO irrevon_doctor_probe VALUES (1)")
+                    row = conn.execute("SELECT x FROM irrevon_doctor_probe").fetchone()
+                    assert row is not None and row[0] == 1
+                    raise _Rollback()
+            except _Rollback:
+                results.append(
+                    CheckResult("ledger_write", "ok", "write round-trip OK (rolled back)")
+                )
+            except psycopg.Error as err:
+                results.append(
+                    CheckResult("ledger_write", "fail", f"write probe failed: {err}", None)
+                )
         # clock sanity: authority freshness depends on DB-vs-local skew.
         row = conn.execute(
             "SELECT abs(EXTRACT(EPOCH FROM (now() - %s::timestamptz))) AS skew",
@@ -298,11 +320,18 @@ def _check_serve_ready(config: Config) -> CheckResult:
     return CheckResult("serve_ready", "ok", f"read role OK; {assets_note}")
 
 
-def collect_checks(config: Config, *, probe: bool = False) -> list[CheckResult]:
-    """The full doctor check list — shared verbatim by ``irrevon doctor`` and
-    serve's ``GET /api/v1/health`` (single-producer rule, N2 §2.9)."""
+def collect_checks(
+    config: Config, *, probe: bool = False, read_only: bool = False
+) -> list[CheckResult]:
+    """The full doctor check list — one producer shared by ``irrevon doctor``
+    and serve's ``GET /api/v1/health`` (single-producer rule, N2 §2.9).
+
+    ``read_only=True`` is the serve mode: the ledger checks connect as the
+    SELECT-only ``irrevon_read`` role and the ``ledger_write`` round-trip is
+    skipped (reported as not probed). The CLI runs the full write probe — it
+    executes as the operator, not the read surface."""
     checks: list[CheckResult] = [_check_config(config), _check_identity()]
-    checks.extend(_check_ledger(config))
+    checks.extend(_check_ledger(config, read_only=read_only))
     checks.append(_check_declarations(config))
     checks.append(_check_credentials(config))
     checks.append(_check_serve_ready(config))
@@ -327,9 +356,12 @@ def _payload_from(checks: list[CheckResult]) -> dict[str, Any]:
     }
 
 
-def doctor_payload(config: Config, *, probe: bool = False) -> dict[str, Any]:
-    """The verbatim ``irrevon doctor --json`` document."""
-    return _payload_from(collect_checks(config, probe=probe))
+def doctor_payload(
+    config: Config, *, probe: bool = False, read_only: bool = False
+) -> dict[str, Any]:
+    """The ``irrevon doctor --json`` document (``read_only=True`` = the serve
+    health mode: irrevon_read connections, write probe skipped)."""
+    return _payload_from(collect_checks(config, probe=probe, read_only=read_only))
 
 
 def run_doctor(config: Config, *, probe: bool, as_json: bool) -> int:
