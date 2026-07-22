@@ -5,18 +5,23 @@ default, ``--reveal`` local), receipts across all attempts and executions,
 findings with full resolution history, gate history, a merged timeline, and an
 integrity section that recomputes ``intent_id`` from the stored canonical
 contract bytes and compares — a mismatch is a ledger-integrity incident signal.
-Exit codes: 0 found · 3 not found · 1 crash · 2 usage.
+
+The JSON document is produced by :func:`irrevon.api.readviews.inspect_payload`
+— the SAME producer ``irrevon serve`` uses for
+``GET /api/v1/effects/{id}/inspect`` (single-producer rule; byte-parity is
+test-locked in ``tests/serve/``).
+Exit codes: 0 found · 3 not found · 1 crash · 2 usage · 4 integrity mismatch.
 """
 
 from __future__ import annotations
 
-import hashlib
 import json
 from typing import Any
 
 import psycopg
 from psycopg.rows import dict_row
 
+from irrevon.api.readviews import inspect_payload
 from irrevon.identity import INTENT_ID_RE
 
 __all__ = ["run_inspect"]
@@ -44,124 +49,30 @@ def _inspect_effect(
     reveal: bool,
     as_json: bool,
 ) -> int:
-    record_rows = _rows(
-        conn, "SELECT * FROM effect_records WHERE effect_id = %s", (effect_id,)
-    )
-    if not record_rows:
+    payload = inspect_payload(conn, effect_id, reveal=reveal)
+    if payload is None:
         print(f"not found: {effect_id}")
         return 3
-    record = record_rows[0]
-
-    transitions = _rows(
-        conn,
-        """
-        SELECT t.transition_seq, e.step, e.operation_id, t.from_state, t.to_state,
-               t.cause, t.actor, t.evidence, t.created_at
-        FROM effect_transitions t JOIN effect_executions e USING (execution_id)
-        WHERE e.effect_id = %s ORDER BY t.transition_seq
-        """,
-        (effect_id,),
-    )
-    receipts = _rows(
-        conn,
-        """
-        SELECT r.receipt_id, e.operation_id, a.attempt_no, a.kind,
-               a.idempotency_key, r.transport_outcome, r.failure_kind,
-               r.destination_ref, r.recorded_by, r.recorded_at
-        FROM dispatch_receipts r
-        JOIN dispatch_attempts a USING (attempt_id)
-        JOIN effect_executions e USING (execution_id)
-        WHERE e.effect_id = %s ORDER BY r.receipt_id
-        """,
-        (effect_id,),
-    )
-    findings = _rows(
-        conn,
-        "SELECT * FROM findings WHERE effect_id = %s ORDER BY finding_id",
-        (effect_id,),
-    )
-    resolutions = _rows(
-        conn,
-        """
-        SELECT r.* FROM finding_resolutions r JOIN findings f USING (finding_id)
-        WHERE f.effect_id = %s ORDER BY r.resolution_seq
-        """,
-        (effect_id,),
-    )
-    decisions = _rows(
-        conn,
-        """
-        SELECT decision_id, variant, outcome, deny_check, checks, evidence, created_at
-        FROM gate_decisions WHERE effect_id = %s ORDER BY decision_id
-        """,
-        (effect_id,),
-    )
-    probes = _rows(
-        conn,
-        """
-        SELECT p.probe_id, p.probe_kind, p.result, p.n_found, p.queried_at
-        FROM status_probes p JOIN effect_executions e USING (execution_id)
-        WHERE e.effect_id = %s ORDER BY p.probe_id
-        """,
-        (effect_id,),
-    )
-
-    # Integrity: recompute intent_id from the stored canonical contract bytes.
-    canonical: bytes = bytes(record["contract_canonical"])
-    recomputed = hashlib.sha256(canonical).hexdigest()
-    integrity_ok = recomputed == effect_id
-
-    stable_ids = dict(record["stable_ids"])
-    shown_ids: dict[str, str] = (
-        stable_ids
-        if reveal
-        else dict.fromkeys(stable_ids, "<redacted; --reveal to show>")
-    )
-    classification = findings[-1]["classification"] if findings else "UNRECONCILED"
-    frontier_rows = _rows(
-        conn,
-        "SELECT frontier FROM effect_frontiers WHERE effect_id = %s",
-        (effect_id,),
-    )
-    lifecycle = frontier_rows[0]["frontier"] if frontier_rows else "INTENDED"
+    integrity_ok = bool(payload["integrity"]["matches"])
 
     if as_json:
-        print(
-            json.dumps(
-                {
-                    "schema_version": "1",
-                    "kind": "effect",
-                    "record": {
-                        "effect_id": effect_id,
-                        "effect_type": record["effect_type"],
-                        "effect_class": record["effect_class"],
-                        "scope": record["scope"],
-                        "stable_ids": shown_ids,
-                        "adapter_id": record["adapter_id"],
-                        "lifecycle": lifecycle,
-                    },
-                    "timeline": transitions,
-                    "receipts": receipts,
-                    "findings": findings,
-                    "resolutions": resolutions,
-                    "gate_decisions": decisions,
-                    "probes": probes,
-                    "classification": classification,
-                    "integrity": {
-                        "recomputed_intent_id": recomputed,
-                        "matches": integrity_ok,
-                    },
-                },
-                default=str,
-            )
-        )
+        print(json.dumps(payload, default=str))
         return 0 if integrity_ok else 4
+
+    record = payload["record"]
+    transitions = payload["timeline"]
+    receipts = payload["receipts"]
+    findings = payload["findings"]
+    resolutions = payload["resolutions"]
+    decisions = payload["gate_decisions"]
+    probes = payload["probes"]
+    recomputed = payload["integrity"]["recomputed_intent_id"]
 
     print(f"effect {effect_id}")
     print(f"  type={record['effect_type']} class={record['effect_class']} "
           f"scope={record['scope']} adapter={record['adapter_id']}")
-    print(f"  stable ids: {shown_ids}")
-    print(f"  classification: {classification}")
+    print(f"  stable ids: {record['stable_ids']}")
+    print(f"  classification: {payload['classification']}")
     print("\n  lifecycle timeline:")
     for t in transitions:
         frm = t["from_state"] or "∅"

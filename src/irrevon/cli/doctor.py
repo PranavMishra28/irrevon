@@ -252,32 +252,91 @@ def _check_credentials(config: Config) -> CheckResult:
     return CheckResult("credentials", "ok", "all named env vars present")
 
 
-def run_doctor(config: Config, *, probe: bool, as_json: bool) -> int:
+def _check_serve_ready(config: Config) -> CheckResult:
+    """Serve-readiness (after ``credentials``): (a) workbench assets present in
+    the installed package — ``warn`` if absent, API-only serve still works;
+    (b) the ``irrevon_read`` role exists and a ``SELECT 1`` under
+    ``default_transaction_read_only=on`` succeeds — ``fail`` with the
+    migrations hint (0005 ships the role). Port availability is deliberately
+    NOT checked (races; serve's preflight owns it). Read-only, as all checks.
+    """
+    import psycopg
+
+    from irrevon.serve import read_dsn, workbench_assets_root
+
+    assets_present = workbench_assets_root() is not None
+    assets_note = (
+        "workbench assets packaged"
+        if assets_present
+        else "workbench assets not built (API-only serve still works)"
+    )
+    try:
+        with psycopg.connect(read_dsn(config.resolved_dsn())) as conn:
+            row = conn.execute("SELECT 1 AS one").fetchone()
+            ro = conn.execute("SHOW default_transaction_read_only").fetchone()
+            if row is None or ro is None or ro[0] != "on":
+                return CheckResult(
+                    "serve_ready",
+                    "fail",
+                    "irrevon_read session is not read-only",
+                    None,
+                )
+    except psycopg.OperationalError as err:
+        return CheckResult(
+            "serve_ready",
+            "fail",
+            f"irrevon_read role unavailable: {err}",
+            "migrations out of date — run `irrevon init` (0005 creates the role)",
+        )
+    if not assets_present:
+        return CheckResult(
+            "serve_ready",
+            "warn",
+            f"read role OK; {assets_note}",
+            "run `make web-build dist-stage`, or install from a wheel",
+        )
+    return CheckResult("serve_ready", "ok", f"read role OK; {assets_note}")
+
+
+def collect_checks(config: Config, *, probe: bool = False) -> list[CheckResult]:
+    """The full doctor check list — shared verbatim by ``irrevon doctor`` and
+    serve's ``GET /api/v1/health`` (single-producer rule, N2 §2.9)."""
     checks: list[CheckResult] = [_check_config(config), _check_identity()]
     checks.extend(_check_ledger(config))
     checks.append(_check_declarations(config))
     checks.append(_check_credentials(config))
+    checks.append(_check_serve_ready(config))
     # --probe (declared read-only liveness) has nothing to reach for the
     # in-process refdest; real adapters add their cheapest read-only call (M4).
+    return checks
+
+
+def _payload_from(checks: list[CheckResult]) -> dict[str, Any]:
+    return {
+        "schema_version": "1",
+        "checks": [
+            {
+                "name": c.name,
+                "status": c.status,
+                "message": c.message,
+                "hint": c.hint,
+            }
+            for c in checks
+        ],
+        "ok": all(c.status != "fail" for c in checks),
+    }
+
+
+def doctor_payload(config: Config, *, probe: bool = False) -> dict[str, Any]:
+    """The verbatim ``irrevon doctor --json`` document."""
+    return _payload_from(collect_checks(config, probe=probe))
+
+
+def run_doctor(config: Config, *, probe: bool, as_json: bool) -> int:
+    checks = collect_checks(config, probe=probe)
     ok = all(c.status != "fail" for c in checks)
     if as_json:
-        print(
-            json.dumps(
-                {
-                    "schema_version": "1",
-                    "checks": [
-                        {
-                            "name": c.name,
-                            "status": c.status,
-                            "message": c.message,
-                            "hint": c.hint,
-                        }
-                        for c in checks
-                    ],
-                    "ok": ok,
-                }
-            )
-        )
+        print(json.dumps(_payload_from(checks)))
     else:
         for c in checks:
             print(f"[{c.status:>4}] {c.name}: {c.message}")
