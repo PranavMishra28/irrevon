@@ -1,0 +1,131 @@
+{
+  "_comment": "Asset provenance registry (legal-readiness review §2). Source of truth for the root ASSETS.md — edit THIS file, then run scripts/build-assets-registry.py. The --check mode enforces byte-parity of ASSETS.md, per-file sha256 match, and coverage: every binary/vector asset under web/public/, site/public/, site/src/assets/, and site/og/ must belong to a row. sha256 values are maintained by the generator (run without --check to refresh after a deliberate asset change).",
+  "preamble": "Design references (screenshots of third-party marketing/product sites, studied during the redesign) were used for layout/interaction conventions only and are not committed, not shipped, and not copied from; no shipped asset is derived from them. Icon design adopts Lucide's published grid conventions (24 grid, 2 px stroke, round caps) for visual compatibility; no Lucide path is reused, traced, or modified.",
+  "rows": [
+    {
+      "paths": ["web/public/brand/e1-convergence-seat.svg", "site/public/favicon.svg"],
+      "asset": "E1 \"Convergence Seat\" mark (+ favicon copy)",
+      "type": "mark",
+      "origin": "original",
+      "source": "in-repository vector work, 2026-07-21 redesign cycle",
+      "license": "project license (pending ADR-0014)",
+      "provenance": "Original vector work created in-repository; drawn from geometric primitives (original 45-degree stroke construction); no third-party vector source, no font-outline tracing (lockup text set in IBM Plex per its OFL terms). Ball-detent engineering conventions (90-degree V, seat depth, apex daylight) studied as facts, not artwork. Working history retained privately; the committed files are canonical.",
+      "date": "2026-07-21"
+    },
+    {
+      "paths": ["web/public/brand/d1-seat.svg"],
+      "asset": "D1 seat mark (core geometry)",
+      "type": "mark",
+      "origin": "original",
+      "source": "in-repository vector work, 2026-07-21 redesign cycle",
+      "license": "project license (pending ADR-0014)",
+      "provenance": "Original vector work; the D1 core geometry the E1 mark builds on. Same construction posture as the E1 row.",
+      "date": "2026-07-21"
+    },
+    {
+      "paths": [
+        "web/public/fonts/ibm-plex-sans-400.woff2",
+        "web/public/fonts/ibm-plex-sans-500.woff2",
+        "web/public/fonts/ibm-plex-sans-600.woff2",
+        "web/public/fonts/ibm-plex-mono-400.woff2",
+        "web/public/fonts/ibm-plex-mono-500.woff2",
+        "web/public/fonts/ibm-plex-mono-600.woff2",
+        "web/public/fonts/OFL.txt",
+        "site/src/assets/fonts/ibm-plex-sans-400.woff2",
+        "site/src/assets/fonts/ibm-plex-sans-500.woff2",
+        "site/src/assets/fonts/ibm-plex-sans-600.woff2",
+        "site/src/assets/fonts/ibm-plex-mono-400.woff2",
+        "site/src/assets/fonts/ibm-plex-mono-500.woff2",
+        "site/src/assets/fonts/OFL.txt"
+      ],
+      "asset": "IBM Plex Sans / Mono woff2 subsets + OFL license text",
+      "type": "font",
+      "origin": "third-party-verbatim",
+      "source": "@ibm/plex-sans@1.1.0 / @ibm/plex-mono@2.5.0 (npm)",
+      "license": "OFL-1.1",
+      "provenance": "Upstream-built Latin1 subsets copied byte-identically by fonts:sync (drift-checked in web-check/site-check); NOT locally modified or re-subsetted, so the 'Plex' Reserved Font Name clause for Modified Versions is not triggered. OFL.txt must always travel adjacent to the font files. Local re-subsetting is prohibited without a registry + counsel revisit.",
+      "date": "2026-07-21"
+    },
+    {
+      "paths": [
+        "site/src/assets/icons/intent.svg",
+        "site/src/assets/icons/stable-id.svg",
+        "site/src/assets/icons/persist.svg",
+        "site/src/assets/icons/gate-allow.svg",
+        "site/src/assets/icons/gate-deny.svg",
+        "site/src/assets/icons/boundary.svg",
+        "site/src/assets/icons/seat-settle.svg",
+        "site/src/assets/icons/ambiguous.svg",
+        "site/src/assets/icons/probe.svg",
+        "site/src/assets/icons/evidence.svg",
+        "site/src/assets/icons/duplicate-reject.svg",
+        "site/src/assets/icons/orphan-absence.svg",
+        "site/src/assets/icons/crash-seam.svg",
+        "site/src/assets/icons/recovery.svg",
+        "site/src/assets/icons/ledger.svg",
+        "site/src/assets/icons/adapter-tier.svg"
+      ],
+      "asset": "Domain icon set (16 glyphs)",
+      "type": "icon-source",
+      "origin": "original",
+      "source": "identity cycle (N4 design), 2026-07-21",
+      "license": "project license (pending ADR-0014)",
+      "provenance": "Original hand-written paths. Lucide's published grid conventions (24 grid, 2 px stroke, round caps) adopted for compatibility; no Lucide path reused, traced, or modified. seat-settle derives from the in-house D1 geometry. Per-file provenance comment embedded in each SVG; call sites always pair an icon with a visible text label.",
+      "date": "2026-07-21"
+    },
+    {
+      "paths": ["site/og/template.svg"],
+      "asset": "OG social card template (1200x630)",
+      "type": "illustration",
+      "origin": "original",
+      "source": "identity cycle (N4 design), 2026-07-21",
+      "license": "project license (pending ADR-0014)",
+      "provenance": "Original composition of the E1 mark + the One-Way Seat sequence strip; text slots are template variables; colors from the ratified token set.",
+      "date": "2026-07-21"
+    },
+    {
+      "paths": [
+        "site/public/og/og-default.png",
+        "site/public/og/og-platform.png",
+        "site/public/og/og-how-it-works.png",
+        "site/public/og/og-benchmark.png",
+        "site/public/og/og-demo.png",
+        "site/public/og/og-docs.png",
+        "site/public/og/og-research.png",
+        "site/public/og/og-install.png"
+      ],
+      "asset": "OG rendered cards (8 files)",
+      "type": "illustration",
+      "origin": "self-generated",
+      "source": "rendered from site/og/template.svg by site/scripts/build-og.mjs",
+      "license": "project license (pending ADR-0014)",
+      "provenance": "Mechanical render of the template via pinned Playwright Chromium with the repo's IBM Plex subsets; hashes additionally pinned in site/og/manifest.json and drift-gated by build-og.mjs --check.",
+      "date": "2026-07-21"
+    },
+    {
+      "paths": [
+        "site/public/images/workbench-effects-dark.png",
+        "site/public/images/workbench-effects-light.png",
+        "site/public/images/workbench-inspect-dark.png",
+        "site/public/images/workbench-inspect-light.png"
+      ],
+      "asset": "Workbench screenshots (4 files)",
+      "type": "screenshot",
+      "origin": "self-generated",
+      "source": "site/scripts/capture-workbench.mjs (Playwright shots project)",
+      "license": "project license (pending ADR-0014)",
+      "provenance": "Captured from the running fixture-backed web/ app at 1440x900 (2x DPR), both themes, SYNTHETIC FIXTURE banner deliberately in frame (synthetic data, engine capture seed 777); no third-party content. Re-capture after any workbench visual change.",
+      "date": "2026-07-21"
+    },
+    {
+      "paths": ["web/public/mockServiceWorker.js"],
+      "asset": "MSW service worker (generated vendor file)",
+      "type": "icon-source",
+      "origin": "third-party-verbatim",
+      "source": "msw@2.15.0 (generated by `msw init`; dev/test/review builds only)",
+      "license": "MIT",
+      "provenance": "Generated verbatim by the msw CLI; never part of a live/production bundle (mock mode is refused in production builds). Recorded here because it is a committed third-party file under web/public/.",
+      "date": "2026-07-21"
+    }
+  ]
+}

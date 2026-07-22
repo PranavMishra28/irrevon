@@ -1,7 +1,7 @@
 ---
 id: ADR-0000
 title: Freeze project scope — benchmark-first, C2-scoped, with binding non-goals
-status: accepted
+status: accepted — superseded by ADR-0026 (sanitization supersession, decision content unchanged; ADR-0026 countersign pending)
 date: 2026-07-20
 supersedes: —
 ---

@@ -223,6 +223,21 @@ py-test-serve: py-db-up
 	uv sync --locked --quiet
 	uv run pytest tests/serve -p no:cacheprovider
 
+# ── Governance registries (appended at rebuild consolidation; N5 design) ──────
+# Two committed, generated, drift-gated registries (the site/CLAIMS.md pattern):
+#   ASSETS.md                — asset provenance (sha256 + coverage sweep)
+#   THIRD-PARTY-NOTICES.md   — third-party inventory (direct-dep coverage)
+# Both checks are stdlib-python3-only and read committed files exclusively, so
+# `check` stays node-free and install-free. Regeneration is a normal commit.
+.PHONY: assets third-party
+check: assets third-party
+
+assets:
+	python3 scripts/build-assets-registry.py --check
+
+third-party:
+	python3 scripts/build-third-party-notices.py --check
+
 # Live E2E foundation for the consolidator's `web-e2e-live` (WEB's Playwright
 # suite consumes this). Invocation contract (tests/serve/live_server.py):
 #   - seeds the test Postgres (127.0.0.1:54329, override IRREVON_TEST_ADMIN_DSN)
