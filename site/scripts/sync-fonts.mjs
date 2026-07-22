@@ -11,8 +11,9 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const siteRoot = join(here, "..");
 const src = join(siteRoot, "..", "web", "public", "fonts");
-// Fonts live under src/assets so Vite rewrites CSS urls with the deploy base
-// path (public/ absolute urls would break on a GitHub Pages project site).
+// Fonts live under src/assets so Vite fingerprints them into /_astro/ and
+// rewrites the CSS urls — base-safe by construction, and they ride the
+// immutable cache rule for hashed assets (site/vercel.json).
 const dst = join(siteRoot, "src", "assets", "fonts");
 const check = process.argv.includes("--check");
 

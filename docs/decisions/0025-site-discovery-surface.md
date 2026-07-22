@@ -1,7 +1,7 @@
 ---
 id: ADR-0025
 title: Marketing site + discovery surface (`site/`) — public pages, gated deploy
-status: accepted (owner rebuild directive, 2026-07-21; number reserved by review-queue §3 item 21)
+status: accepted (owner rebuild directive, 2026-07-21; number reserved by review-queue §3 item 21); decision items 4–5 (gated Pages deploy + Pages slot layout) superseded by ADR-0027
 date: 2026-07-21
 supersedes: — (amends the scope of ADR-0018 §4.1 row 12's "no brand site" ruling; its $0 / no-domain / no-SaaS rulings stand)
 ---

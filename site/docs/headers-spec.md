@@ -1,26 +1,27 @@
-# headers-spec.md — response headers for a future edge
+# headers-spec.md — response headers, applied at the Vercel edge
 
 Site operational material (not `docs/` — this is the site package's artifact).
 
-**Why this file exists.** GitHub Pages serves static files and cannot set custom
-response headers — no real CSP, no HSTS, no frame-ancestors, no nosniff. What ships
-today is the subset a `<meta>` tag can carry (a per-page CSP with build-computed
-script hashes — `scripts/inject-csp.mjs` — and a referrer policy), plus this spec: the
-full header set to apply **verbatim** at whatever edge or host exists later, so
-applying them is transcription, not design. Meta-CSP cannot carry `frame-ancestors`,
-`report-uri`, or `sandbox` (CSP spec) — those wait here.
+**Why this file exists.** The site deploys to Vercel (ADR-0027), which serves real
+response headers from [`../vercel.json`](../vercel.json) — that file is the applied form
+of this spec; keep the two in sync (this file carries the rationale JSON cannot). The
+per-page CSP still ships as a `<meta>` tag with build-computed script hashes
+(`scripts/inject-csp.mjs`) because a static header cannot carry per-page hashes; the
+response-header CSP adds `frame-ancestors` — the one directive meta-CSP cannot carry
+(CSP spec; likewise `report-uri` and `sandbox`, both unused).
 
 ## The set
 
 | Header | Value | Rationale |
 |---|---|---|
-| `Content-Security-Policy` | the built pages' meta policy + `; frame-ancestors 'none'` | Same computed-hash policy, plus the one directive meta cannot carry. Add `report-to` only when a collector is sanctioned (zero-telemetry posture is binding today). |
+| `Content-Security-Policy` | `frame-ancestors 'none'` (header) + the per-page meta policy with computed hashes | Both policies enforce: the header carries the directive meta cannot; the meta carries the per-page script hashes a static header cannot. Add `report-to` only when a collector is sanctioned (zero-telemetry posture is binding today). |
 | `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` | TLS always. **`preload` deliberately omitted** — preload is near-irreversible (removal takes months and browser-list round-trips); adding it is a separate, flagged decision. |
 | `X-Content-Type-Options` | `nosniff` | No MIME sniffing; the site serves exact types. |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | Matches the shipped meta tag; full URL never leaks cross-origin. |
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), interest-cohort=()` | The site uses none of these; deny by default. |
 | `Cross-Origin-Opener-Policy` | `same-origin` | Severs window references from cross-origin openers. |
 | `X-Frame-Options` | `DENY` | Legacy agent belt-and-braces for `frame-ancestors 'none'`. |
+| `Cache-Control` | `public, max-age=600, stale-while-revalidate=86400` everywhere; `public, max-age=31536000, immutable` for `/_astro/*` | Only `/_astro/*` assets are content-hashed; everything else (HTML, fonts, OG images, Pagefind bundle) keeps a short TTL so a deploy propagates within minutes. |
 
 ## Accepted risks / notes
 
@@ -29,9 +30,6 @@ applying them is transcription, not design. Meta-CSP cannot carry `frame-ancesto
   Recorded as accepted, revisit if the site ever takes user input.
 - Docs pages carry `script-src 'self' 'wasm-unsafe-eval'` for the self-hosted
   Pagefind bundle (WASM instantiation); every other page's script-src is hashes only.
-- No `Cache-Control` prescription here: Pages controls caching today; set
-  `max-age=600, stale-while-revalidate` for HTML and immutable for `/_astro/*` when
-  an edge exists.
-- These headers apply only when a fronting CDN or different host exists — both are
-  currently rejected surfaces ($0 / no-accounts posture, ADR-0018). Until then, this
-  file plus the meta subset is the honest maximum.
+- The deployed origin is the Vercel-provided production URL until a custom domain is
+  purchased (an owner spend decision on the launch checklist, review-queue §3 item 21);
+  `robots.txt` sits at the origin root and is authoritative (RFC 9309).

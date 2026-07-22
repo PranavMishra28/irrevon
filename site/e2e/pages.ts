@@ -21,7 +21,7 @@ function walk(dir: string, prefix: string): string[] {
 }
 
 export const PAGES = walk(dist, "/").sort() as readonly string[];
-// The 404 page is served as a plain file by GitHub Pages.
+// The 404 page is served for unmatched routes by the static host (Vercel).
 export const ERROR_PAGES = ["/404.html"] as const;
 export const ALL_PAGES = [...PAGES, ...ERROR_PAGES];
 

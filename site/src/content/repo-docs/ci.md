@@ -2,7 +2,7 @@
 title: "CI — how this repository builds"
 description: "The CI workflow map: tiers, required checks, owner settings checklist, and local parity via make targets."
 sourcePath: "docs/ci.md"
-sourceSha256: "9f76b1505f04ca0147ba777496015f5dd46188b338f0771821353cad4b73a44b"
+sourceSha256: "9bee5c79191c67ce59278099aba3d4f6553719e188bfa40c8cc46eb3703f3663"
 syncedAt: "2026-07-22"
 section: "Governance"
 renderTitle: false
@@ -25,7 +25,6 @@ that date.
 | [`sandbox.yml`](../.github/workflows/sandbox.yml) | `workflow_dispatch` only | T4 credentialed sandbox contract tests — skeleton, activates at M4; gated by the `sandbox` environment | skeleton |
 | [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | IrrevonBench preregistered runs — skeleton, activates at M7; gated by the `benchmark` environment | skeleton |
 | [`release.yml`](../.github/workflows/release.yml) | disabled (`if: false` guard) | Prepared release pipeline (version check, deterministic build, checksums, SBOM, attestation, human approval, OIDC publish) — enabled only at the public-release gate | disabled |
-| [`site-deploy.yml`](../.github/workflows/site-deploy.yml) | `workflow_dispatch` only | Marketing-site Pages deploy (build with deploy-provided origin/base → upload → deploy) — deploys nothing until a human enables Pages and the review-queue gates close (marketing-site ADR, publication clearance, counsel name clearance (ADR-0023), licensing, AM-21) | gated |
 | [`dependabot.yml`](../.github/dependabot.yml) | monthly | Noise-contained policy (tuned at consolidation, 2026-07-21): one grouped catch-all PR per ecosystem (actions / uv / npm), `open-pull-requests-limit: 1`, 7-day cooldowns (30-day uv majors; npm majors ignored — deliberate human migrations per ADR-0016), owner auto-assigned; security PRs bypass schedule and cooldown | active |
 
 ## Tier table — what runs when
@@ -97,13 +96,17 @@ After `ci-required` has reported on at least one PR (order matters — see traps
 8. Retention stays 90 days (public max). **Private vulnerability reporting**: verified
    enabled (API read, 2026-07-21) — see [SECURITY.md](../SECURITY.md).
 
-Before the first `site-deploy` dispatch:
+Site deploys (not a workflow):
 
-9. **Repo rename must precede the first Pages deploy** — the site build embeds the
-   repository URL (and Pages base path) at deploy time (`astro.config.mjs` reads
-   `SITE_REPO_URL` / `github.repository`), so a deploy from the pre-rename repo would
-   ship the old URL on every page until the next deploy. Rename first; GitHub's
-   automatic redirects cover stragglers.
+9. **The site deploys to Vercel, not from CI** ([ADR-0027](decisions/0027-site-vercel-deploy.md);
+   the former dispatch-only `site-deploy.yml` Pages workflow is deleted). A deploy is an
+   owner-directed act: build `site/dist` with the deploy-provided `SITE_ORIGIN` /
+   `SITE_REPO_URL` (`astro.config.mjs` embeds both at build time) and upload the static
+   output; response headers come from `site/vercel.json`. Details in
+   [site/README.md](../site/README.md). The repo-root `vercel.json` sets
+   `git.deploymentEnabled: false` so the Vercel GitHub integration never deploys on push
+   (push-triggered deploys are policy-forbidden, and the git-connected project's
+   auto-deploys were failing on every push as a red `Vercel` commit status).
 
 Before the first M4/M7 dispatch:
 
