@@ -10,7 +10,7 @@
   "packageManager": "pnpm@11.15.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && pagefind --site dist",
     "preview": "astro preview",
     "sync:tokens": "node scripts/sync-tokens.mjs",
     "sync:fonts": "node scripts/sync-fonts.mjs",
