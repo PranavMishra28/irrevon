@@ -4,7 +4,7 @@ description: "Every irrevon subcommand, captured verbatim from the CLI's own --h
 order: 2
 generated:
   command: "uv run irrevon --help (+ per-subcommand --help)"
-  capturedSha256: "dbe86362f6b7dce634cf7b898aabd3c4ab00dd5f16ef1c339d2eaf0228bfacc6"
+  capturedSha256: "3cf90be67ebaa1ed4492d9d67ac48d841327431e226c57036fa52a2cc5551bec"
 claims:
   - quickstart-real
 ---
@@ -15,19 +15,21 @@ Regenerate with `pnpm sync:cli` where the engine toolchain (uv) runs.
 ## `irrevon`
 
 ```text
-usage: irrevon [-h] [--version] {init,doctor,demo,serve,inspect} ...
+usage: irrevon [-h] [--version] {init,doctor,demo,serve,bench,inspect} ...
 
 Irrevon — reference reconciliation engine for irreversible AI-agent actions. Irrevon
 makes no network connections except to the destinations you configure and your own
 Postgres; there is no telemetry, no crash reporting, no update checking.
 
 positional arguments:
-  {init,doctor,demo,serve,inspect}
+  {init,doctor,demo,serve,bench,inspect}
     init                scaffold irrevon.toml, compose.yaml, .env.example
     doctor              read-only environment validation
     demo                the flagship demo incl. the B5 contrast leg
     serve               loopback read-only workbench server (127.0.0.1 only; GET/HEAD
                         only)
+    bench               IrrevonBench harness (fixtures, validation, non-confirmatory
+                        smoke)
     inspect             the ledger-only evidence view
 
 options:

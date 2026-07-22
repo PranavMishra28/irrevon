@@ -2,7 +2,7 @@
 title: "Schemas — machine-readable contracts"
 description: "The machine-readable contract map: five shipped JSON Schemas, their example suites, and what is deliberately deferred."
 sourcePath: "schemas/README.md"
-sourceSha256: "11530ff6a51e1b044c34b0a8147a45701d05e1d934e0c8f43309f4cecbbeb961"
+sourceSha256: "b9bca933463bbc8cc21530c7935a24b6e6c7e44ee37470baabc19a0911484cbc"
 syncedAt: "2026-07-22"
 section: "Contracts"
 renderTitle: false
@@ -21,7 +21,7 @@ require an ADR (`.cursor/rules/contracts.mdc`); the current shapes were set by
 **placeholder**: the name is decided (ADR-0023) but the domain is not yet purchased
 (owner spend decision, launch checklist). URIs become locators only after that purchase.
 
-## Shipped now (5)
+## Shipped now (12)
 
 | Schema | Why now |
 |---|---|
@@ -30,6 +30,8 @@ require an ADR (`.cursor/rules/contracts.mdc`); the current shapes were set by
 | [effect-record.schema.json](effect-record.schema.json) | Admitted at M3 (T-102) by [ADR-0021](../docs/decisions/0021-record-schemas-admission.md) (proposed) per the ADR-0019 item-4 criteria — the ledger now produces this view (Q1 item core, RFC-002 §9). |
 | [dispatch-receipt.schema.json](dispatch-receipt.schema.json) | Same admission; carries execution identity (`operation_id`) and mirrors the ledger's transport-outcome/failure-kind coupling as `if/then`. |
 | [reconciliation-finding.schema.json](reconciliation-finding.schema.json) | Same admission; strict `oneOf` subject (destination-keyed ORPHANED per master doc §7.1), AM-18 classification enum (DUPLICATE n>1 + CONTRADICTED), digest-only evidence until the redaction pipeline exists. |
+| [bench-workload.schema.json](bench-workload.schema.json) · [bench-variants.schema.json](bench-variants.schema.json) · [bench-fault-schedule.schema.json](bench-fault-schedule.schema.json) · [bench-manifest.schema.json](bench-manifest.schema.json) | The IrrevonBench fixture contracts (`irrevonbench/{workload,variants,fault-schedule,manifest}/v1`, preregistration §3.1) — admitted by [ADR-0030](../docs/decisions/0030-bench-harness-contracts.md) (proposed). Freeze honesty, the §3.2 spot-check gate, holdout sealing commitments, and the contamination canary are encoded as schema constraints, not conventions. DRAFT shapes until the human Stage-B freeze pins them. |
+| [bench-run-manifest.schema.json](bench-run-manifest.schema.json) · [bench-result.schema.json](bench-result.schema.json) · [bench-environment.schema.json](bench-environment.schema.json) | The IrrevonBench execution contracts (`irrevonbench/{run-manifest,result,environment}/v1`, preregistration §8): write-ahead registration, §6 invalid-run classes, oracle-fixed metric cells with pre-specified marks, mandatory `non-confirmatory` labeling pre-freeze, per-run environment capture. Same ADR-0030 admission. |
 
 Record-schema enums are **generated from the ratified state table** (RFC-002 §3 via
 `src/irrevon/statetable.py`) and mechanically checked by `tests/schemas/test_enum_sync.py`
@@ -37,7 +39,8 @@ plus the integration seed-table cross-checks — never hand-copied (ADR-0019 ite
 
 ## Deferred, and why
 
-Adapter interface and per-effect-type parameter schemas (M4, ADR-0019),
-benchmark run-manifest/result records, fault-schedule and re-synthesis-variant formats (all
-Stage-B preregistration artifacts), evidence-bundle format (depends on the redaction
-pipeline, §9).
+Adapter interface and per-effect-type parameter schemas (M4, ADR-0019);
+evidence-bundle format `irrevonbench/evidence/v1` beyond the digest-only run
+directory (depends on the redaction pipeline, RFC-002 §9 Q2); a formal schema
+for the derived `irrevonbench/comparison/v1` analysis output (derived data,
+not a trust boundary — revisit if CI consumers need it pinned).

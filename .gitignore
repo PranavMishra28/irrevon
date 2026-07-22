@@ -26,6 +26,9 @@ gitleaks-report*.json
 # ── Local-only working material — never commit ───────────────
 .scratch/
 .tripwords
+# Local bench smoke output (registered runs live in bench/runs/, committed
+# deliberately; smoke output is disposable)
+.bench-smoke-runs/
 
 # ── OS / editor junk ──────────────────────────────────────────
 .DS_Store

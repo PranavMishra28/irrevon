@@ -1,0 +1,277 @@
+"""``irrevon bench`` — the benchmark harness CLI (RFC-002 §12 deferred slot).
+
+Subcommands:
+
+- ``fixtures``: regenerate or drift-verify the committed public dev split.
+- ``validate``: schema + digest verification of a fixture set or document.
+- ``smoke``:    non-confirmatory mechanism run of the dev split against the
+  operationalized arms (CI regression mode uses a subset; see docs/benchmark.md).
+- ``analyze``:  descriptive comparison (+ optional verdict machinery with
+  EXPLICIT margins — §0.1 parameters are never defaulted).
+- ``run``:      the M7 confirmatory entry point. Pre-freeze it is an
+  INTEGRITY REFUSAL (exit 4): no Stage-B freeze record ⇒ no confirmatory run.
+
+Exit codes follow the CLI table: 0 success · 1 unexpected failure · 2 usage ·
+3 declared outcome (drift found, smoke contrast failure) · 4 integrity refusal.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+from pathlib import Path
+
+from irrevon.cli.config import Config
+
+__all__ = ["add_bench_parser", "run_bench"]
+
+
+def add_bench_parser(
+    sub: argparse._SubParsersAction,  # type: ignore[type-arg]
+    common: argparse.ArgumentParser,
+) -> None:
+    p_bench = sub.add_parser(
+        "bench",
+        help="IrrevonBench harness (fixtures, validation, non-confirmatory smoke)",
+        parents=[common],
+    )
+    bench_sub = p_bench.add_subparsers(dest="bench_command")
+
+    p_fixtures = bench_sub.add_parser(
+        "fixtures", help="regenerate or verify the committed public dev split"
+    )
+    p_fixtures.add_argument("--dir", default="bench/fixtures/dev")
+    mode = p_fixtures.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--write", action="store_true")
+    mode.add_argument("--verify", action="store_true")
+
+    p_validate = bench_sub.add_parser(
+        "validate", help="schema + digest verification of a fixture set"
+    )
+    p_validate.add_argument("--dir", default="bench/fixtures/dev")
+
+    p_smoke = bench_sub.add_parser(
+        "smoke", help="non-confirmatory mechanism run against the dev split"
+    )
+    p_smoke.add_argument("--fixtures", default="bench/fixtures/dev")
+    p_smoke.add_argument("--out", default=".bench-smoke-runs")
+    p_smoke.add_argument(
+        "--arms",
+        default="B0,B1,B2,B3,B5,B6,B5+B3+B6",
+        help="comma-separated arm ids (R requires --dsn / a reachable ledger)",
+    )
+    p_smoke.add_argument("--workloads", default=None,
+                         help="comma-separated workload ids (default: all)")
+    p_smoke.add_argument("--dsn", default=None,
+                         help="Postgres admin DSN (required for arm R)")
+    p_smoke.add_argument("--json", action="store_true")
+
+    p_analyze = bench_sub.add_parser(
+        "analyze", help="descriptive comparison over completed runs"
+    )
+    p_analyze.add_argument("--runs", required=True)
+    p_analyze.add_argument("--json", action="store_true")
+    p_analyze.add_argument(
+        "--verdict", action="store_true",
+        help="additionally run the §5 verdict machinery (synthetic/mechanism "
+             "data only pre-freeze; requires explicit --margin and --worst-cell-gate)",
+    )
+    p_analyze.add_argument("--margin", type=float, default=None,
+                           help="TOST equivalence margin δ (§0.1 human parameter — no default)")
+    p_analyze.add_argument("--worst-cell-gate", type=float, default=None,
+                           help="worst-cell gate in absolute rate points (§0.1 — no default)")
+    p_analyze.add_argument("--reference-arm", default="R")
+    p_analyze.add_argument("--composite-arm", default="B5+B3+B6")
+    p_analyze.add_argument("--b5-arm", default="B5")
+
+    p_run = bench_sub.add_parser(
+        "run", help="confirmatory benchmark run (M7; refused pre-freeze)"
+    )
+    p_run.add_argument("--fixtures", required=True)
+    p_run.add_argument("--out", default="bench/runs")
+    p_run.add_argument("--arms", default=None)
+    p_run.add_argument("--dsn", default=None)
+
+
+def run_bench(args: argparse.Namespace, config: Config) -> int:
+    if args.bench_command is None:
+        print("usage: irrevon bench {fixtures,validate,smoke,analyze,run} …",
+              file=sys.stderr)
+        return 2
+
+    # Benchmark mode marker: with this set, armed test hooks are a startup
+    # error (irrevon.testhooks arming rule) — a benchmark process with fault
+    # hooks armed is INVALID by construction.
+    if args.bench_command in ("smoke", "run"):
+        os.environ["IRREVON_BENCH"] = "1"
+        from irrevon.testhooks import assert_arming_sane
+
+        assert_arming_sane()
+
+    if args.bench_command == "fixtures":
+        from irrevon.bench.fixtures import verify_dev_split, write_dev_split
+
+        root = Path(args.dir)
+        if args.write:
+            written = write_dev_split(root)
+            print(f"bench fixtures: wrote {len(written)} artifacts under {root}",
+                  file=sys.stderr)
+            return 0
+        problems = verify_dev_split(root)
+        if problems:
+            for p in problems:
+                print(f"bench fixtures: DRIFT - {p}", file=sys.stderr)
+            print("bench fixtures: regenerate with `irrevon bench fixtures --write` "
+                  "and commit the result together with the generator change",
+                  file=sys.stderr)
+            return 3
+        print("bench fixtures: dev split matches regeneration byte-for-byte",
+              file=sys.stderr)
+        return 0
+
+    if args.bench_command == "validate":
+        from irrevon.bench.formats import FormatError, load_fixture_set
+
+        try:
+            fixture_set = load_fixture_set(Path(args.dir))
+        except FormatError as err:
+            print(f"bench validate: FAIL - {err}", file=sys.stderr)
+            return 3
+        print(
+            f"bench validate: OK - {len(fixture_set.workloads)} workloads, "
+            f"{len(fixture_set.schedules)} schedules, "
+            f"{len(fixture_set.variant_sets)} variant sets; root hash "
+            f"{fixture_set.manifest['root_hash'][:16]}…",
+            file=sys.stderr,
+        )
+        return 0
+
+    if args.bench_command == "smoke":
+        return _run_smoke(args)
+
+    if args.bench_command == "analyze":
+        return _run_analyze(args)
+
+    if args.bench_command == "run":
+        from irrevon.bench.formats import load_fixture_set
+        from irrevon.bench.runner import (
+            IntegrityRefusal,
+            refuse_unless_confirmatory_allowed,
+        )
+
+        try:
+            fixture_set = load_fixture_set(Path(args.fixtures))
+            refuse_unless_confirmatory_allowed(fixture_set)
+        except IntegrityRefusal as err:
+            print(f"bench run: INTEGRITY REFUSAL - {err}", file=sys.stderr)
+            return 4
+        # Reaching here requires the human Stage-B freeze record; the
+        # confirmatory execution path then reuses run_unit(confirmatory=True)
+        # under the frozen plan. Deliberately not implemented further until
+        # Stage-B exists (arm-order protocol and trial counts are Stage-B
+        # artifacts this code must consume, not invent).
+        print(
+            "bench run: Stage-B freeze record found, but the confirmatory "
+            "execution plan (arm order, trial counts) is a Stage-B artifact "
+            "this build does not carry — update the harness against the "
+            "frozen plan first (preregistration §0).",
+            file=sys.stderr,
+        )
+        return 4
+
+    raise AssertionError("unreachable")
+
+
+def _run_smoke(args: argparse.Namespace) -> int:
+    from irrevon.bench.analysis import build_comparison, load_runs, render_markdown
+    from irrevon.bench.formats import load_fixture_set
+    from irrevon.bench.runner import ALL_ARM_IDS, IntegrityRefusal, run_unit
+
+    fixture_set = load_fixture_set(Path(args.fixtures))
+    arms = [a.strip() for a in args.arms.split(",") if a.strip()]
+    unknown = [a for a in arms if a not in ALL_ARM_IDS]
+    if unknown:
+        print(f"bench smoke: unknown arms {unknown}; known: {list(ALL_ARM_IDS)}",
+              file=sys.stderr)
+        return 2
+    workload_ids = (
+        [w.strip() for w in args.workloads.split(",") if w.strip()]
+        if args.workloads
+        else sorted(fixture_set.workloads)
+    )
+    out_dir = Path(args.out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    failures = 0
+    for workload_id in workload_ids:
+        if workload_id not in fixture_set.workloads:
+            print(f"bench smoke: no workload {workload_id}", file=sys.stderr)
+            return 2
+        for arm_id in arms:
+            try:
+                outcome = run_unit(
+                    fixture_set, workload_id, arm_id, out_dir,
+                    admin_dsn=args.dsn, extra_labels=("smoke",),
+                )
+            except IntegrityRefusal as err:
+                print(f"bench smoke: INTEGRITY REFUSAL - {err}", file=sys.stderr)
+                return 4
+            if outcome.validity == "INVALID":
+                failures += 1
+            print(
+                f"bench smoke: {workload_id} × {arm_id}: {outcome.status} "
+                f"({outcome.validity or '-'})",
+                file=sys.stderr,
+            )
+
+    records = load_runs(out_dir)
+    comparison = build_comparison(records)
+    if args.json:
+        print(json.dumps(comparison, indent=2, sort_keys=True))
+    else:
+        print(render_markdown(comparison))
+    return 3 if failures else 0
+
+
+def _run_analyze(args: argparse.Namespace) -> int:
+    from irrevon.bench.analysis import (
+        build_comparison,
+        confirmatory_machinery,
+        load_runs,
+        render_markdown,
+    )
+
+    records = load_runs(Path(args.runs))
+    if not records:
+        print(f"bench analyze: no completed runs under {args.runs}", file=sys.stderr)
+        return 3
+    comparison = build_comparison(records)
+    output: dict[str, object] = dict(comparison)
+    if args.verdict:
+        if args.margin is None or args.worst_cell_gate is None:
+            print(
+                "bench analyze: --verdict requires EXPLICIT --margin and "
+                "--worst-cell-gate — equivalence margins and the worst-cell "
+                "gate are §0.1 human freeze parameters; this tool never "
+                "defaults them",
+                file=sys.stderr,
+            )
+            return 2
+        output["verdict"] = confirmatory_machinery(
+            records,
+            cells=comparison["cells"],
+            reference_arm=args.reference_arm,
+            composite_arm=args.composite_arm,
+            b5_arm=args.b5_arm,
+            margin=args.margin,
+            worst_cell_gate_pp=args.worst_cell_gate,
+        )
+    if args.json:
+        print(json.dumps(output, indent=2, sort_keys=True))
+    else:
+        print(render_markdown(comparison))
+        if args.verdict:
+            print(json.dumps(output["verdict"], indent=2, sort_keys=True))
+    return 0

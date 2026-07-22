@@ -1,0 +1,17 @@
+{
+  "format": "irrevonbench/environment/v1",
+  "captured_at": "2026-07-22T00:00:30Z",
+  "python": {
+    "version": "3.13.5",
+    "implementation": "CPython"
+  },
+  "platform": {
+    "system": "Darwin",
+    "release": "25.5.0",
+    "machine": "arm64"
+  },
+  "packages": [],
+  "lockfile_sha256": null,
+  "git": null,
+  "container": null
+}

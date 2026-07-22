@@ -96,8 +96,9 @@ src = ["src", "tests"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "C4", "RUF"]
 # The design docs write lifecycle×classification matrices and n−1 arithmetic
-# with the typographic glyphs; docstrings quote them verbatim.
-allowed-confusables = ["×", "−", "–"]
+# with the typographic glyphs; docstrings quote them verbatim. The benchmark
+# statistics modules additionally quote the preregistration's α/δ/Δ notation.
+allowed-confusables = ["×", "−", "–", "α", "δ", "Δ"]
 
 # Architectural import boundaries (RFC-002 §14; master doc §12.1 row 4 static leg).
 # Contracts are part of the frozen conformance surface — weakening one is an
@@ -131,5 +132,45 @@ source_modules = [
     "irrevon.api",
     "irrevon.cli",
     "irrevon.serve",
+    "irrevon.bench",
 ]
 forbidden_modules = ["irrevon.advisory"]
+
+# Benchmark anti-cheating boundary (ADR-0030; preregistration §8.2 + MLPerf-
+# style closed-division discipline): arms (systems under test) can never see
+# oracle truth data, fixture labels, metric computation, or the runner's
+# orchestration state. A violation here is a benchmark-integrity incident,
+# never a refactoring convenience.
+[[tool.importlinter.contracts]]
+name = "bench arms never see the oracle, fixtures, metrics, or runner"
+type = "forbidden"
+source_modules = ["irrevon.bench.arms"]
+forbidden_modules = [
+    "irrevon.bench.oracle",
+    "irrevon.bench.fixtures",
+    "irrevon.bench.metrics",
+    "irrevon.bench.analysis",
+    "irrevon.bench.runner",
+]
+
+# The engine under test never imports its own benchmark (no benchmark
+# detection; master doc §8.1 contamination posture applied to code).
+[[tool.importlinter.contracts]]
+name = "the engine never imports the benchmark harness"
+type = "forbidden"
+source_modules = [
+    "irrevon.identity",
+    "irrevon.contract",
+    "irrevon.ledger",
+    "irrevon.gate",
+    "irrevon.dispatcher",
+    "irrevon.reconciler",
+    "irrevon.recovery",
+    "irrevon.resolution",
+    "irrevon.sweep",
+    "irrevon.adapters",
+    "irrevon.api",
+    "irrevon.advisory",
+    "irrevon.serve",
+]
+forbidden_modules = ["irrevon.bench"]

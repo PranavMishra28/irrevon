@@ -10,8 +10,10 @@ Postgres (conformance-tested).
 ``serve`` (the loopback read-only workbench server) completes the product
 journey ``install → init → doctor → demo → serve``.
 
-Deferred (RFC-002 §12): ``bench smoke``/``bench run`` (M5/M7), operator verbs
-(M4).
+``bench`` (fixtures/validate/smoke/analyze/run) landed with the benchmark
+foundation (ADR-0030, proposed); ``bench run`` remains an integrity refusal
+(exit 4) until the human Stage-B freeze exists. Deferred (RFC-002 §12):
+operator verbs (M4).
 """
 
 from __future__ import annotations
@@ -90,6 +92,10 @@ def _build_parser() -> argparse.ArgumentParser:
     p_serve.add_argument("--json", action="store_true",
                          help="print the ready line as one JSON document on stdout")
 
+    from irrevon.cli.bench_cmd import add_bench_parser
+
+    add_bench_parser(sub, common)
+
     p_inspect = sub.add_parser(
         "inspect", help="the ledger-only evidence view", parents=[common]
     )
@@ -152,6 +158,10 @@ def main(argv: list[str] | None = None) -> int:
                 as_json=args.json,
                 quiet=args.quiet,
             )
+        if args.command == "bench":
+            from irrevon.cli.bench_cmd import run_bench
+
+            return run_bench(args, config)
         if args.command == "inspect":
             from irrevon.cli.inspect_cmd import run_inspect
 

@@ -23,6 +23,7 @@ instead of restating it.
 | First-slice technical design | [docs/rfc-001-first-slice.md](docs/rfc-001-first-slice.md) |
 | Engine design: state tables, ledger, reconciliation mechanics | [docs/rfc-002-engine-design.md](docs/rfc-002-engine-design.md) |
 | Benchmark plan (DRAFT), holdout + artifact policy | [docs/benchmark-preregistration.md](docs/benchmark-preregistration.md) |
+| Benchmark guide: measurement boundary, governance, tracks, adoption, BetterBench self-score | [docs/benchmark.md](docs/benchmark.md); harness in `src/irrevon/bench/` (ADR-0030 proposed), data policy in [bench/README.md](bench/README.md), integrity gate `make bench-integrity`, CLI `irrevon bench` (confirmatory mode = integrity refusal pre-freeze) |
 | CI: workflow map, tiers, owner settings checklist | [docs/ci.md](docs/ci.md) (workflows in `.github/workflows/`; every job body is one `make` target) |
 | Workbench frontend (read-only; fixture + live data modes; v0.2 redesign: Overview at `/`, causal graph, responsive shell) | `web/` — see [web/README.md](web/README.md); stack per [ADR-0016](docs/decisions/0016-frontend-workbench-stack.md), serve surface per [ADR-0024](docs/decisions/0024-serve-read-surface.md), gates `make web-check` / `web-test` (pixel gate `make web-vrt`, container-only) |
 | Marketing site (built + gated; deploy human-only, dispatch-only workflow) | `site/` — see [site/README.md](site/README.md); ADR proposed (review-queue §3 item 20), gates `make site-check` / `site-build` / `site-test` |
