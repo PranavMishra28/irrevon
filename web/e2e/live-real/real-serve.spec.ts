@@ -178,7 +178,10 @@ test("SIGKILL-disconnect: banner flips, data stays, no fixture fallback", async 
     await expect(page.getByTestId("live-chip")).toHaveAttribute("data-state", "connected", {
       timeout: 30_000,
     });
+    // Table data arrives via a separate /api/v1/effects request after the
+    // chip connects — wait for a data row before taking the count snapshot.
     const rows = page.getByRole("row");
+    await expect(rows.nth(1)).toBeVisible({ timeout: 15_000 });
     const rowCount = await rows.count();
     expect(rowCount).toBeGreaterThan(1); // header + at least one data row
 
