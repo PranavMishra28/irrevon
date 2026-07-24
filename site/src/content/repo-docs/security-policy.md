@@ -2,7 +2,7 @@
 title: "Security policy — development process"
 description: "The development threat model and agent execution policy: what agents may do, what is human-only, and the enforcement layers."
 sourcePath: "docs/security-policy.md"
-sourceSha256: "6efa8f5b15c14b7464d6280d853c51edc2c4742cbc1d49c9818e791a43680d21"
+sourceSha256: "83fc68d1a26910f2d06c9e38f445e8893cb0adc3ffaa5154b5a34c218428740e"
 syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
@@ -37,7 +37,7 @@ project's benchmark-integrity reputation.
 
 ## Containment layers, honestly labeled
 
-1. **Hard layer — `.cursor/hooks.json` + `hooks/deny.sh` (fail-closed).** The only Cursor
+1. **Hard layer — `.cursor/hooks.json` + `hooks/deny.sh` (fail-closed)** `[VF]`. The only Cursor
    mechanism that reliably blocks a command (`deny` responses are enforced; `ask`/`allow`
    hook responses are not enforced on all paths). It always denies force push, history
    rewrite, repository deletion/transfer/rename/archive, secrets, direct publication,
@@ -52,19 +52,19 @@ project's benchmark-integrity reputation.
    `tests/scripts/test_agent_policy_hook.py`. Being public, the deny list is readable by
    adversaries; it was never security-by-obscurity — the controls that hold are listed
    under residual risk below.
-2. **CLI-side layer — `.cursor/cli.json`.** Deny-only redundancy mirroring the hook.
+2. **CLI-side layer — `.cursor/cli.json`** `[VF]`. Deny-only redundancy mirroring the hook.
    Caveat: multi-word argument-pattern matching is unverified upstream (review-queue §2) —
    treat this layer as redundancy, not the control. It continues to block direct
    `gh release` and package-publishing commands because the protected release workflow,
    not a local CLI, owns publication.
-3. **Connector rule.** MCP/connector calls do not pass through the shell hook. Outside the
+3. **Connector rule** `[DD]`. MCP/connector calls do not pass through the shell hook. Outside the
    active launch mode, read access therefore requires a read-only credential whose scope
    is enforced by the provider, not a client-side flag. During the exact v0.1.0 launch,
    the committed owner authorization permits only its enumerated GitHub and configured
    Vercel mutations after activation checks and requires authoritative API read-back.
    Treat `.cursor/mcp.json` as a guarded surface: any diff to it gets the same scrutiny as
    a hook change.
-4. **Advisory layer — AGENTS.md prohibitions.** Loaded into every agent's context; steers
+4. **Advisory layer — AGENTS.md prohibitions** `[VF]`. Loaded into every agent's context; steers
    but does not enforce.
 
 **Residual risk:** a repo-writable agent can edit the hook script, hooks.json, or cli.json
@@ -77,7 +77,7 @@ the user-level `~/.cursor/hooks.json` (repo files cannot remove user-level hooks
 
 ## Scoped v0.1.0 launch authorization
 
-`AGENTS.md` is the canonical authorization. Its committed launch section permits only
+`AGENTS.md` is the canonical authorization `[DD]`. Its committed launch section permits only
 `irrevon==0.1.0`, tag `v0.1.0`, repository `PranavMishra28/irrevon`, and the configured
 Irrevon Vercel project after the listed activation checks pass. It does not authorize a
 future version, another package or repository, direct local package upload, force push,
@@ -90,7 +90,7 @@ it does not replace authentication, endpoint checks, the protected PR path, envi
 review, workflow guards, or post-mutation read-back. Package publication and the GitHub
 Release remain owned by the protected tag-triggered workflow. The authorization expires
 on the completion conditions in `AGENTS.md`, after which these operations return to
-human-only status.
+human-only status `[VF]`.
 
 Repository-setting read-back on 2026-07-24 found secret scanning, push
 protection, CodeQL for Python and JavaScript/TypeScript, and the `ci-required`
@@ -100,7 +100,15 @@ allowlisting/SHA-pin enforcement, and the `release`, `sandbox`, and `benchmark`
 environments remain disabled or absent. The bypass, applicable security/Actions
 settings, Discussions, immutable releases, and the `release` environment are inside the
 active v0.1.0 authorization after this policy-enablement PR merges; `sandbox` and
-`benchmark` environment activation remain outside it.
+`benchmark` environment activation remain outside it `[VF]`. The read-back uses the
+documented GitHub REST surfaces for [repository rulesets], [Actions permissions],
+[repository security settings], [immutable releases], and [deployment environments].
+
+[repository rulesets]: https://docs.github.com/en/rest/repos/rules
+[Actions permissions]: https://docs.github.com/en/rest/actions/permissions
+[repository security settings]: https://docs.github.com/en/rest/repos/repos#update-a-repository
+[immutable releases]: https://docs.github.com/en/rest/repos/repos#enable-immutable-releases
+[deployment environments]: https://docs.github.com/en/rest/deployments/environments
 
 ## Fork pull requests and CI (public repo)
 

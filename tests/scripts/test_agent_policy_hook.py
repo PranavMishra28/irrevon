@@ -24,25 +24,35 @@ def decision(command: str) -> str:
 
 def test_exact_launch_api_surfaces_are_allowed() -> None:
     allowed = (
-        f"IRREVON_V010_LAUNCH=1 gh api -X PUT repos/{REPO}/rulesets/123 --input /tmp/ruleset.json",
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X PUT repos/{REPO}/rulesets/19426315 "
+            "--input /tmp/irrevon-v010-ruleset.json"
+        ),
         (
             f"IRREVON_V010_LAUNCH=1 gh api --method=PUT "
-            f"repos/{REPO}/actions/permissions -f enabled_repositories=selected"
+            f"repos/{REPO}/actions/permissions "
+            "--input /tmp/irrevon-v010-actions-permissions.json"
         ),
-        f"IRREVON_V010_LAUNCH=1 gh api -XPUT repos/{REPO}/private-vulnerability-reporting",
         (
             f"IRREVON_V010_LAUNCH=1 gh api -X PUT "
-            f"repos/{REPO}/environments/release --input /tmp/environment.json"
+            f"repos/{REPO}/actions/permissions/selected-actions "
+            "--input /tmp/irrevon-v010-selected-actions.json"
         ),
         (
-            f"IRREVON_V010_LAUNCH=1 gh api -X POST "
-            f"repos/{REPO}/actions/runs/456/pending_deployments --input /tmp/review.json"
+            f"IRREVON_V010_LAUNCH=1 gh api -X PUT "
+            f"repos/{REPO}/environments/release "
+            "--input /tmp/irrevon-v010-release-environment.json"
+        ),
+        (
+            f"IRREVON_V010_LAUNCH=1 IRREVON_RELEASE_RUN_ID=456 gh api -X POST "
+            f"repos/{REPO}/actions/runs/456/pending_deployments "
+            "--input /tmp/irrevon-v010-deployment-review.json"
         ),
         f"IRREVON_V010_LAUNCH=1 gh api -X POST repos/{REPO}/discussions -f title=Welcome",
         f"IRREVON_V010_LAUNCH=1 gh api -X PATCH repos/{REPO} -f has_discussions=true",
         (
             f"IRREVON_V010_LAUNCH=1 gh api -X PATCH repos/{REPO} "
-            "-f 'security_and_analysis[secret_scanning][status]=enabled'"
+            "-f security_and_analysis[secret_scanning_non_provider_patterns][status]=enabled"
         ),
     )
     for command in allowed:
@@ -65,10 +75,39 @@ def test_neighboring_api_mutations_remain_denied() -> None:
             "-f has_discussions=true -f visibility=private"
         ),
         (
-            f"IRREVON_V010_LAUNCH=1 gh api -X PUT repos/{REPO}/rulesets/123 "
-            f"--input /tmp/ruleset.json; gh repo delete {REPO}"
+            f"IRREVON_V010_LAUNCH=1 gh api -X PUT repos/{REPO}/rulesets/19426315 "
+            f"--input /tmp/irrevon-v010-ruleset.json; gh repo delete {REPO}"
         ),
         "gh api graphql -f 'query=mutation { deleteRepository(input: {}) { clientMutationId } }'",
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X PUT repos/{REPO}/rulesets/999 "
+            "--input /tmp/irrevon-v010-ruleset.json"
+        ),
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X PUT repos/{REPO}/rulesets/19426315 "
+            "--input /tmp/another-payload.json"
+        ),
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X PUT repos/{REPO}/rulesets/19426315 "
+            "--input /tmp/irrevon-v010-ruleset.json -F body=@.env"
+        ),
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X PUT repos/{REPO}/rulesets/19426315 "
+            "--input /tmp/irrevon-v010-ruleset.json "
+            "--input /tmp/irrevon-v010-ruleset.json"
+        ),
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X POST "
+            f"repos/{REPO}/actions/runs/456/pending_deployments "
+            "--input /tmp/irrevon-v010-deployment-review.json"
+        ),
+        (
+            f"IRREVON_V010_LAUNCH=1 IRREVON_RELEASE_RUN_ID=789 gh api -X POST "
+            f"repos/{REPO}/actions/runs/456/pending_deployments "
+            "--input /tmp/irrevon-v010-deployment-review.json"
+        ),
+        f"IRREVON_V010_LAUNCH=1 gh api -X PATCH repos/{REPO} -f has_issues=false",
+        f"IRREVON_V010_LAUNCH=1 gh api -X TRACE repos/{REPO}",
     )
     for command in denied:
         assert decision(command) == "deny", command
@@ -88,14 +127,27 @@ def test_direct_release_commands_remain_workflow_only() -> None:
 
 
 def test_tags_and_direct_publication_remain_fail_closed() -> None:
-    assert decision("IRREVON_V010_LAUNCH=1 git tag -a v0.1.0 deadbeef -m release") == "allow"
+    assert decision("IRREVON_V010_LAUNCH=1 git tag -a v0.1.0 origin/main -m release") == "allow"
     assert decision("git tag --verify v0.1.0") == "allow"
     assert decision("git tag -a v0.1.0 deadbeef -m release") == "deny"
+    assert decision("IRREVON_V010_LAUNCH=1 git tag -a v0.1.0 HEAD -m release") == "deny"
+    assert decision("IRREVON_V010_LAUNCH=1 git tag -a v0.1.0 deadbeef -m release") == "deny"
     assert decision("git tag -a v0.2.0 deadbeef -m release") == "deny"
     assert decision("git push origin v0.1.0") == "deny"
     assert decision("IRREVON_V010_LAUNCH=1 git push origin v0.1.0") == "deny"
     assert decision("IRREVON_V010_LAUNCH=1 git push origin refs/tags/v0.1.0") == "allow"
+    destination_override = (
+        "IRREVON_V010_LAUNCH=1 git push origin "
+        "refs/tags/v0.1.0:refs/tags/latest"
+    )
+    assert decision(destination_override) == "deny"
     assert decision("git push origin refs/tags/v0.2.0") == "deny"
+    assert decision("git push origin main") == "deny"
+    assert decision("git push origin HEAD:main") == "deny"
+    assert decision("git push origin feature:refs/heads/main") == "deny"
+    assert decision("git push origin +HEAD:refs/heads/main") == "deny"
+    assert decision("git push --delete origin old-branch") == "deny"
+    assert decision("git push origin :old-branch") == "deny"
     assert decision("twine upload dist/*") == "deny"
     assert decision("uv publish") == "deny"
     assert decision("git push --force origin main") == "deny"
@@ -104,7 +156,13 @@ def test_tags_and_direct_publication_remain_fail_closed() -> None:
 
 def test_local_vercel_mutations_and_credentials_remain_denied() -> None:
     assert decision("vercel deploy --prod") == "deny"
+    assert decision("vercel --prod") == "deny"
+    assert decision("vercel") == "deny"
     assert decision("vc promote deployment.example") == "deny"
+    assert decision("vc --prod") == "deny"
+    assert decision("/usr/local/bin/vercel --prod") == "deny"
+    assert decision(f"gh pr merge 23 --repo {REPO} --admin") == "deny"
+    assert decision(f"gh pr merge 23 --repo {REPO} --admin=true") == "deny"
 
     completed = subprocess.run(
         ["bash", str(HOOK)],
@@ -114,3 +172,13 @@ def test_local_vercel_mutations_and_credentials_remain_denied() -> None:
         text=True,
     )
     assert json.loads(completed.stdout)["permission"] == "deny"
+
+
+def test_multiline_commands_are_denied_before_allowlist_matching() -> None:
+    command = (
+        f"IRREVON_V010_LAUNCH=1 gh api -X PATCH repos/{REPO} "
+        "-f has_discussions=true\n"
+        f"gh repo delete {REPO}"
+    )
+    assert decision(command) == "deny"
+    assert decision(command.replace("\n", "\r\n")) == "deny"
