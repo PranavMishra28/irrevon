@@ -3,7 +3,7 @@
 // offers/ratings this site must not fabricate — revisit at first release).
 // Nothing anywhere gets aggregateRating, offers, review, or an organization
 // entity (none exists).
-import { SITE_NAME, REPO_URL } from "../config";
+import { SITE_NAME, REPO_URL, repoDoc } from "../config";
 
 type JsonLd = Record<string, unknown>;
 
@@ -12,8 +12,9 @@ export const softwareSourceCode = (siteUrl: URL): JsonLd => ({
   "@type": "SoftwareSourceCode",
   name: SITE_NAME,
   description:
-    "A preregistered benchmark and reference reconciliation engine for irreversible AI-agent actions. Pre-release, open research; no license granted yet.",
+    "A planned benchmark and reference reconciliation engine for irreversible AI-agent actions. Pre-release, Apache-2.0-licensed open research.",
   codeRepository: REPO_URL,
+  license: repoDoc("LICENSE"),
   programmingLanguage: "Python",
   url: siteUrl.toString(),
 });
