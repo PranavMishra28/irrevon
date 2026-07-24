@@ -48,7 +48,7 @@ fi
 cmd=$(json_field command)
 [ -z "$cmd" ] && allow
 
-matches() { printf '%s\n' "$cmd" | grep -qE "$1"; }
+matches() { printf '%s\n' "$cmd" | grep -qiE "$1"; }
 api_method() {
   matches "(-X[[:space:]]*$1|-X$1|--method(=|[[:space:]])$1)([[:space:]]|$)"
 }
@@ -131,7 +131,7 @@ if matches '(^|[[:space:]])git[[:space:]]+tag[[:space:]]'; then
     deny "Only the marked, annotated v0.1.0 launch tag is authorized."
   fi
 fi
-if matches 'git[[:space:]]+push[^|;&]*refs/tags/'; then
+if matches 'git[[:space:]]+push[^|;&]*((refs/tags/)?v[0-9]+[.][0-9]+[.][0-9]+)'; then
   if launch_marker &&
     matches 'refs/tags/v0[.]1[.]0([:[:space:]]|$)' &&
     ! matches '[;&|`]|[$][(]|(^|[[:space:]])(>|<)'; then
@@ -141,8 +141,8 @@ if matches 'git[[:space:]]+push[^|;&]*refs/tags/'; then
   fi
 fi
 
-# Repo settings / visibility / secrets / releases. Read-only API and release
-# inspection commands remain allowed.
+# Repo settings / visibility / secrets / releases. Read-only API commands remain
+# allowed; direct release commands stay workflow-only.
 matches 'gh[[:space:]]+repo[[:space:]]+(edit|delete|transfer|archive|rename)' \
   && deny "Repository settings/visibility changes are blocked. Human-only operation."
 matches 'gh[[:space:]]+secret' \
