@@ -256,7 +256,7 @@ dev = [
     { name = "pytest", specifier = ">=8.4" },
     { name = "pytest-xdist", specifier = ">=3.8" },
     { name = "ruff", specifier = ">=0.14" },
-    { name = "spdx-tools", specifier = "==0.8.3" },
+    { name = "spdx-tools", specifier = "==0.8.5" },
     { name = "types-jsonschema", specifier = ">=4.25" },
 ]
 
@@ -754,7 +754,7 @@ wheels = [
 
 [[package]]
 name = "spdx-tools"
-version = "0.8.3"
+version = "0.8.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
@@ -767,9 +767,9 @@ dependencies = [
     { name = "uritools" },
     { name = "xmltodict" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f1/99/3470b28dc4b64fd29db3b1dcf5e84c743ec88e25ea7b214794f5930f0319/spdx-tools-0.8.3.tar.gz", hash = "sha256:68b8f9ce2893b5216bd90b2e63f1c821c2884e4ebc4fd295ebbf1fa8b8a94b93", size = 681626, upload-time = "2024-09-30T09:32:46.848Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2f/99/33383f587b59cbd191cc1c0fd5408e550b9275e0090d32561cbddc973fdc/spdx_tools-0.8.5.tar.gz", hash = "sha256:be600beb2f762f0116025e05490d399e724f668bef84025a7c421bb266688bdb", size = 696323, upload-time = "2026-03-13T09:29:23.155Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5a/bc/09994d78b66da8535ab339047c2381409f028581c0bbde53287745d3cab1/spdx_tools-0.8.3-py3-none-any.whl", hash = "sha256:638fd9bd8be61901316eb6d063574e16d5403a1870073ec4d9241426a997501a", size = 285435, upload-time = "2024-09-30T09:32:44.971Z" },
+    { url = "https://files.pythonhosted.org/packages/88/f5/1ac402e1f8d253fa60ac167c4a1fb7eeb0f29a04942788e2d43c984cd749/spdx_tools-0.8.5-py3-none-any.whl", hash = "sha256:7c2d5865941be9d2e898f5b084e8d5422dd298dc5a29320ddb198fec304f59c4", size = 286573, upload-time = "2026-03-13T09:29:20.907Z" },
 ]
 
 [[package]]

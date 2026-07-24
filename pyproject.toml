@@ -62,7 +62,7 @@ dev = [
     "ruff>=0.14",
     "import-linter>=2.5",
     # Official SPDX parser/validator used by the release dry run.
-    "spdx-tools==0.8.3",
+    "spdx-tools==0.8.5",
 ]
 
 [project.scripts]
