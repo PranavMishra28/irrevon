@@ -2,7 +2,7 @@
 title: "CI — how this repository builds"
 description: "The CI workflow map: tiers, required checks, owner settings checklist, and local parity via make targets."
 sourcePath: "docs/ci.md"
-sourceSha256: "89a76a1a55287dd62a0e54d58f887401005e2b3c9eb394bf277ccb80e3a835f2"
+sourceSha256: "d94d99e6110be5a52e4acc8a20dd27e547ddf3700cfe3568fb705ffc71f6d4fb"
 syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
@@ -25,7 +25,7 @@ that date.
 | [`sandbox.yml`](../.github/workflows/sandbox.yml) | `workflow_dispatch` only | T4 sandbox contracts — fail-closed skeleton, gated by the `sandbox` environment; every dispatch is deliberately red until human M4 activation | skeleton (always refuses) |
 | [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | IrrevonBench preregistered runs — fail-closed skeleton, gated by the `benchmark` environment; every dispatch is deliberately red until human Stage-B activation | skeleton (always refuses) |
 | [`release.yml`](../.github/workflows/release.yml) | `workflow_dispatch` only | Package-release fail-closed skeleton; every dispatch runs an unconditional refusal and is deliberately red until a separate human activation after every public-release gate item | skeleton (always refuses) |
-| [`dependabot.yml`](../.github/dependabot.yml) | monthly | Noise-contained policy (tuned at consolidation, 2026-07-21): one grouped catch-all PR per ecosystem (actions / uv / npm), `open-pull-requests-limit: 1`, 7-day cooldowns (30-day uv majors; npm majors ignored — deliberate human migrations per ADR-0016), owner auto-assigned; security PRs bypass schedule and cooldown | active |
+| [`dependabot.yml`](../.github/dependabot.yml) | monthly | Four noise-contained update lanes (actions / uv / web npm / site npm): at most one grouped version-update PR per lane (≤4/month), 7-day cooldowns (30-day uv majors; npm majors ignored for deliberate human migrations), current owner auto-assigned; uv/npm security updates are separately grouped and all security updates bypass schedule and cooldown | active |
 
 ## Tier table — what runs when
 
