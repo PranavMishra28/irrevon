@@ -13,7 +13,7 @@ const siteRoot = join(here, "..");
 const src = join(siteRoot, "..", "web", "public", "fonts");
 // Fonts live under src/assets so Vite fingerprints them into /_astro/ and
 // rewrites the CSS urls — base-safe by construction, and they ride the
-// immutable cache rule for hashed assets (site/vercel.json).
+// immutable cache rule for hashed assets (repository-root vercel.json).
 const dst = join(siteRoot, "src", "assets", "fonts");
 const check = process.argv.includes("--check");
 

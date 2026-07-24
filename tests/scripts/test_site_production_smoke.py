@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
+from collections.abc import Callable
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -45,6 +47,8 @@ def _html(relative: str, *, origin: str = ORIGIN, commit: str = COMMIT) -> str:
 
 def _vercel_config() -> dict[str, object]:
     return {
+        **MODULE.VERCEL_BUILD_CONTRACT,
+        "git": {"deploymentEnabled": MODULE.VERCEL_GIT_CONTRACT},
         "trailingSlash": True,
         "headers": [
             {
@@ -155,8 +159,17 @@ def _artifact(tmp_path: Path, **manifest_overrides: str) -> tuple[Path, Path]:
     return dist, vercel
 
 
-def _validate(dist: Path, vercel: Path, *, commit: str = COMMIT, origin: str = ORIGIN):
-    return MODULE.validate_dist(dist, "production", commit, origin, vercel)
+def _validate(
+    dist: Path,
+    vercel: Path,
+    *,
+    commit: str = COMMIT,
+    origin: str = ORIGIN,
+) -> dict[str, str]:
+    return cast(
+        dict[str, str],
+        MODULE.validate_dist(dist, "production", commit, origin, vercel),
+    )
 
 
 def test_accepts_complete_intended_production_artifact(tmp_path: Path) -> None:
@@ -326,6 +339,56 @@ def test_rejects_weakened_vercel_security_or_cache_policy(
     config = json.loads(vercel.read_text(encoding="utf-8"))
     rule = next(entry for entry in config["headers"] if entry["source"] == source)
     rule["headers"] = [header for header in rule["headers"] if header["key"] != key]
+    vercel.write_text(json.dumps(config), encoding="utf-8")
+    with pytest.raises(MODULE.SmokeFailure, match=message):
+        _validate(dist, vercel)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (
+            lambda config: config.update({"framework": "python"}),
+            "framework does not match",
+        ),
+        (
+            lambda config: config.update({"outputDirectory": "dist"}),
+            "outputDirectory does not match",
+        ),
+        (
+            lambda config: config.update({"ignoreCommand": "exit 1"}),
+            "ignoreCommand does not match",
+        ),
+        (
+            lambda config: config.update(
+                {"installCommand": "pnpm --dir site install --frozen-lockfile"}
+            ),
+            "installCommand does not match",
+        ),
+        (
+            lambda config: config["git"].update({"deploymentEnabled": True}),
+            "main only",
+        ),
+        (
+            lambda config: config["git"]["deploymentEnabled"].update(
+                {"preview-*": True}
+            ),
+            "main only",
+        ),
+        (
+            lambda config: config["git"]["deploymentEnabled"].pop("main"),
+            "main only",
+        ),
+    ],
+)
+def test_rejects_weakened_vercel_build_or_branch_policy(
+    tmp_path: Path,
+    mutation: Callable[[dict[str, object]], object],
+    message: str,
+) -> None:
+    dist, vercel = _artifact(tmp_path)
+    config = json.loads(vercel.read_text(encoding="utf-8"))
+    mutation(config)
     vercel.write_text(json.dumps(config), encoding="utf-8")
     with pytest.raises(MODULE.SmokeFailure, match=message):
         _validate(dist, vercel)

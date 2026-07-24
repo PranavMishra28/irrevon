@@ -1,13 +1,13 @@
 ---
 title: "Site hosting — deploy `site/` to Vercel at the origin root, retiring the GitHub Pages plan"
 sourcePath: "docs/decisions/0027-site-vercel-deploy.md"
-sourceSha256: "4c9bf0087e0202ee7a85199605ad24d8fe61ab2f90af37ce4dbec7fe3b02011a"
-syncedAt: "2026-07-22"
+sourceSha256: "3f11426362cc4a84296211187ee20639cc826014d862c2981ffc603b06280029"
+syncedAt: "2026-07-24"
 section: "Decisions"
 renderTitle: true
 adr:
   id: "ADR-0027"
-  status: "accepted (owner deploy directive, 2026-07-21)"
+  status: "accepted; human-upload deployment mechanic superseded by ADR-0038"
   date: "2026-07-21"
   supersedes: "ADR-0025 decision items 4–5 (gated Pages deploy mechanics + Pages slot layout); amends ADR-0018's GitHub-Pages-only hosting ruling for the site surface (its $0-recurring-cost and no-SaaS rulings stand)"
 ---

@@ -66,5 +66,6 @@
 - [External contributions use Apache-2.0 inbound=outbound with mandatory DCO](/docs/reference/adr-0035-external-contributions/): source docs/decisions/0035-external-contributions.md
 - [Loopback evidence privacy digests stable identifier values by default](/docs/reference/adr-0036-loopback-evidence-privacy/): source docs/decisions/0036-loopback-evidence-privacy.md
 - [Intent validation refuses inputs outside bounded JSON and JCS domains](/docs/reference/adr-0037-intent-resource-bounds/): source docs/decisions/0037-intent-resource-bounds.md
+- [Vercel Git integration permits main-only static-site deployments](/docs/reference/adr-0038-main-vercel-auto-deploy/): source docs/decisions/0038-main-vercel-auto-deploy.md
 - [Operations — running Irrevon as a service](/docs/reference/operations/): source docs/operations.md
 - [Worked example — incident replay to permanent regression](/docs/reference/incident-replay-example/): source docs/incident-replay-example.md

@@ -70,6 +70,15 @@ ROUTE_HEADERS = {
         "cache-control": "public, max-age=0, must-revalidate",
     },
 }
+
+VERCEL_BUILD_CONTRACT = {
+    "framework": "astro",
+    "ignoreCommand": 'test "${VERCEL_GIT_COMMIT_REF:-}" != main',
+    "installCommand": "corepack enable && cd site && corepack pnpm install --frozen-lockfile",
+    "buildCommand": "bash scripts/vercel-build.sh",
+    "outputDirectory": "site/dist",
+}
+VERCEL_GIT_CONTRACT = {"*": False, "main": True}
 LEGACY_HOME_MARKERS = (
     "benchmark draft, S-REF pilots disclosed",
     "B5 baseline leg",
@@ -301,6 +310,14 @@ def _validate_vercel_config(path: Path) -> None:
         raise SmokeFailure(f"invalid Vercel configuration: {exc}") from exc
     if not isinstance(config, dict) or config.get("trailingSlash") is not True:
         raise SmokeFailure("vercel.json must preserve canonical trailing slashes")
+    for key, value in VERCEL_BUILD_CONTRACT.items():
+        if config.get(key) != value:
+            raise SmokeFailure(f"vercel.json {key} does not match the production build contract")
+    git = config.get("git")
+    if not isinstance(git, dict) or git.get("deploymentEnabled") != VERCEL_GIT_CONTRACT:
+        raise SmokeFailure(
+            "vercel.json must enable automatic deployment for main only"
+        )
     for key, value in GLOBAL_HEADERS.items():
         if _headers_for(config, "/(.*)").get(key) != value:
             raise SmokeFailure(f"vercel.json global {key} policy does not match the contract")
@@ -373,7 +390,7 @@ def validate_dist(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dist", type=Path, default=Path("site/dist"))
-    parser.add_argument("--vercel-config", type=Path, default=Path("site/vercel.json"))
+    parser.add_argument("--vercel-config", type=Path, default=Path("vercel.json"))
     parser.add_argument(
         "--expect-environment",
         choices=("production", "preview", "development"),

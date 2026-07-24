@@ -2,7 +2,7 @@
 title: "Decision records — index and policy"
 description: "The append-only ADR index and policy. If a decision is not in the index, it has not been made."
 sourcePath: "docs/decisions/README.md"
-sourceSha256: "7b441944253f7a1ab173c004ae437cc57ed4a8f0749d5e35fd879371a17809af"
+sourceSha256: "1d79f9713d9afb89be0b97fcf132f9d9db3ae1eb695eecddb3579e5fdfe4b751"
 syncedAt: "2026-07-24"
 section: "Decisions"
 renderTitle: false
@@ -19,7 +19,7 @@ drift (split-brain). Files exist only for decisions that are **OPEN** (still bei
 **NEW** (not in §11). When a §11 decision is superseded or reopened, a full ADR file is
 created *then*, per §12.5/§17 — which is when append-only file history becomes necessary.
 
-## Index (complete: 0000–0037)
+## Index (complete: 0000–0038)
 
 | ADR | Title | Status | Canonical text |
 |---|---|---|---|
@@ -50,7 +50,7 @@ created *then*, per §12.5/§17 — which is when append-only file history becom
 | 0024 | `irrevon serve` — loopback read-only workbench surface | accepted; stable-identifier exposure item superseded by ADR-0036 | [0024-serve-read-surface.md](0024-serve-read-surface.md) |
 | 0025 | Marketing site + discovery surface (`site/`), deploy gated | accepted (owner rebuild directive 2026-07-21); deploy mechanics (items 4–5) superseded by ADR-0027 | [0025-site-discovery-surface.md](0025-site-discovery-surface.md) |
 | 0026 | Sanitization supersession of ADR-0000's non-goals wording | **proposed** (owner countersign required) | [0026-scope-freeze-wording-sanitization.md](0026-scope-freeze-wording-sanitization.md) |
-| 0027 | Site hosting — Vercel at the origin root (retires the Pages plan) | accepted (owner deploy directive 2026-07-21; supersedes ADR-0025 items 4–5) | [0027-site-vercel-deploy.md](0027-site-vercel-deploy.md) |
+| 0027 | Site hosting — Vercel at the origin root (retires the Pages plan) | accepted; human-upload mechanic superseded by ADR-0038 | [0027-site-vercel-deploy.md](0027-site-vercel-deploy.md) |
 | 0028 | Outbound license — Apache-2.0 for the whole repository | accepted (owner ratification 2026-07-21; resolves ADR-0014's license half) | [0028-apache-2-license.md](0028-apache-2-license.md) |
 | 0029 | Site telemetry — first-party Vercel Web Analytics + Speed Insights | accepted (owner platform directive 2026-07-21; amends ADR-0025's site posture) | [0029-site-vercel-analytics.md](0029-site-vercel-analytics.md) |
 | 0030 | IrrevonBench foundation — bench contracts, harness architecture, integrity gates | **proposed** (owner bench directive 2026-07-22) | [0030-bench-harness-contracts.md](0030-bench-harness-contracts.md) |
@@ -61,6 +61,7 @@ created *then*, per §12.5/§17 — which is when append-only file history becom
 | 0035 | External contributions — Apache-2.0 inbound=outbound, mandatory DCO, no CLA | accepted (owner launch directive 2026-07-23; resolves ADR-0014's contributor-governance half) | [0035-external-contributions.md](0035-external-contributions.md) |
 | 0036 | Loopback evidence privacy — digest stable identifier values by default | accepted (owner launch directive 2026-07-23; supersedes ADR-0024 decision item 5) | [0036-loopback-evidence-privacy.md](0036-loopback-evidence-privacy.md) |
 | 0037 | Intent input resource bounds and JCS-domain refusal | accepted (owner launch security directive 2026-07-23) | [0037-intent-resource-bounds.md](0037-intent-resource-bounds.md) |
+| 0038 | Vercel Git integration permits main-only static-site deployments | accepted (owner automatic-deployment directive 2026-07-24; activation remains owner-gated; supersedes ADR-0027's human-upload mechanic) | [0038-main-vercel-auto-deploy.md](0038-main-vercel-auto-deploy.md) |
 
 ## Policy
 

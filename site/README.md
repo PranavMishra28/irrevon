@@ -4,12 +4,14 @@ The Irrevon public site: the original six pages plus the discovery surface added
 the site-expansion cycle (docs section with drift-gated rendered repository documents,
 searchable via self-hosted Pagefind; the interactive recorded demo; research,
 changelog, roadmap, install; full SEO/metadata). **Configured for Vercel at the origin
-root** by owner directive ([ADR-0027](../docs/decisions/0027-site-vercel-deploy.md));
-deploys remain human-gated acts, never CI-triggered (see [Deploy](#deploy) below; the
-gate-reconciliation record lives in [docs/review-queue.md](../docs/review-queue.md)).
-The configured production deployment was paused when checked on 2026-07-24 and
-must not be described as live until the owner restores it and verifies the
-launch checklist in `docs/discoverability.md`.
+root** by owner directive ([ADR-0027](../docs/decisions/0027-site-vercel-deploy.md)).
+Repository policy permits production Git builds only from `main`
+([ADR-0038](../docs/decisions/0038-main-vercel-auto-deploy.md); see
+[Deploy](#deploy) below). The linked project was paused when checked on
+2026-07-24, and its Production Branch was not exposed by the available
+authenticated read-back. Automatic deployment therefore starts only after the
+owner confirms Production Branch = `main`, reactivates the project, and verifies
+the launch checklist in `docs/discoverability.md`.
 The site never ships in the Python wheel (ADR-0018) and shares no build with `web/`.
 
 ## Page inventory
@@ -96,7 +98,7 @@ surfaces.
   Search crawlers are allowed while named training crawlers follow the reviewed
   separate policy. Vercel previews are `noindex,nofollow` with a disallow-all
   `robots.txt`; production verification values are environment-provided.
-- **Security headers:** real response headers ship from [`vercel.json`](vercel.json)
+- **Security headers:** real response headers ship from [`vercel.json`](../vercel.json)
   (frame-ancestors, HSTS, nosniff, permissions/referrer policy, COOP, cache rules) —
   the applied form of [`docs/headers-spec.md`](docs/headers-spec.md), which keeps the
   rationale. `scripts/inject-csp.mjs` additionally injects a per-page meta CSP with
@@ -158,10 +160,24 @@ optional navigation aid only; it is not a ranking, crawler, or licensing control
 
 ## Deploy
 
-The site deploys to Vercel as a **static upload of the built `dist/` output** — the
-platform serves files and headers, nothing builds or runs server-side
-([ADR-0027](../docs/decisions/0027-site-vercel-deploy.md)). A deploy is an
-owner-directed act, never CI-triggered:
+The repository is ready for main-only Vercel Git deployment. Once the owner
+confirms Production Branch = `main` and reactivates the currently paused
+project, Vercel automatically builds each eligible `main` commit. Every other
+branch is disabled by the branch map in the repository-root
+[`vercel.json`](../vercel.json), and
+the fail-closed ignore command stops those refs before dependency installation.
+[`scripts/vercel-build.sh`](../scripts/vercel-build.sh) independently refuses
+non-production, non-`main`, or malformed-provenance Git builds. Vercel serves
+only the resulting static `site/dist` files; Irrevon has no site runtime or
+server function.
+
+Vercel does not wait for the GitHub `ci-required` check. The normal branch
+ruleset routes pull requests through that check, but its 2026-07-24 read-back
+still showed an always-allowed repository-role bypass. The owner must remove
+that bypass before describing every deployable `main` commit as reviewed or
+CI-validated.
+
+The equivalent local production rehearsal is:
 
 ```bash
 EXPECTED_COMMIT=<full-40-character-deployment-SHA>
@@ -169,22 +185,26 @@ SITE_ORIGIN=https://<production-host> \
   SITE_REPO_URL=<repo-url> \
   VERCEL_ENV=production \
   VERCEL_GIT_COMMIT_SHA="$EXPECTED_COMMIT" \
-  pnpm build
+  bash ../scripts/vercel-build.sh
 SITE_EXPECT_COMMIT="$EXPECTED_COMMIT" \
   SITE_EXPECT_ORIGIN=https://<production-host> \
   make -C .. site-production-smoke
-# then upload dist/ (plus vercel.json at the upload root) as a Vercel
-# production deployment — e.g. `vercel deploy --prod` from a directory
-# containing exactly that tree, or the Vercel MCP/API equivalent.
 ```
 
-`vercel.json` carries the response headers and cache rules (the applied form of
+The root `vercel.json` pins the Astro build command, locked install, static
+output directory, deployment branches, pre-install ignore rule, response
+headers, and cache rules (the applied form of
 [`docs/headers-spec.md`](docs/headers-spec.md)) and `trailingSlash: true` (canonical
 URLs end in `/`, matching the sitemap). The origin and repository URL are
-deployment-provided at build time — committed files never carry either. (The current
-Vercel project equivalently builds on the platform via a small deployment-side script
-that clones the repository with owner-provided access and runs the same `pnpm build`; that script lives
-in the deployment, not the repo, because it must carry the deploy-provided values.)
+deployment-provided at build time—committed files never carry either. Vercel
+read-back on 2026-07-24 confirmed the existing project and Node 24 runtime; the
+committed configuration overrides its stale root-level Python framework
+autodetection. The same read-back reported the project paused and did not expose
+its Production Branch; both remain explicit owner checks rather than inferred
+repository facts.
+Both install and build enter `site/` before invoking Corepack so
+`site/package.json`'s pinned pnpm version is authoritative on Vercel as well as
+locally.
 Google/Bing verification values and the optional IndexNow key belong in protected
 production build variables, never a committed file or pasted command history.
 
@@ -192,7 +212,8 @@ production build variables, never a committed file or pasted command history.
 Enterprise. `SITE_ENABLE_UTM_ANALYTICS=1` is separate and only appropriate with
 Web Analytics Plus or Enterprise. Omitting either value is the safe functional
 fallback. A deploy should be followed by the dry-run-first IndexNow procedure in
-the discoverability runbook; submission is never part of CI.
+the discoverability runbook; submission is never part of CI or the automatic
+deployment.
 
 ## Release gates
 

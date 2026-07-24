@@ -1,7 +1,7 @@
 ---
 id: ADR-0027
 title: Site hosting — deploy `site/` to Vercel at the origin root, retiring the GitHub Pages plan
-status: accepted (owner deploy directive, 2026-07-21)
+status: accepted; human-upload deployment mechanic superseded by ADR-0038
 date: 2026-07-21
 supersedes: ADR-0025 decision items 4–5 (gated Pages deploy mechanics + Pages slot layout); amends ADR-0018's GitHub-Pages-only hosting ruling for the site surface (its $0-recurring-cost and no-SaaS rulings stand)
 ---

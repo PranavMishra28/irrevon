@@ -2,7 +2,7 @@
 title: "CI — how this repository builds"
 description: "The CI workflow map: tiers, required checks, owner settings checklist, and local parity via make targets."
 sourcePath: "docs/ci.md"
-sourceSha256: "07d122aefa2ed78abc3a835f1879b1a58e55e45a4c2bd1670fdb83db837c492d"
+sourceSha256: "62a4f67cbf4c438a563c3fe408b7568386121686e854dcaa62409c69d2fdd3ac"
 syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
@@ -229,22 +229,37 @@ After `ci-required` has reported on at least one PR (order matters — see traps
    each workflow environment before its first use; never rely on GitHub's
    silent auto-creation behavior.
 
-Site deploys (not a workflow):
+Site deploys (not a GitHub Actions workflow):
 
-8. **The site deploys to Vercel, not from CI** ([ADR-0027](decisions/0027-site-vercel-deploy.md);
-   the former dispatch-only `site-deploy.yml` Pages workflow is deleted). A deploy is an
-   owner-directed act: build `site/dist` with the deploy-provided `SITE_ORIGIN` /
-   `SITE_REPO_URL` (`astro.config.mjs` embeds both at build time) and upload the static
-   output; response headers come from `site/vercel.json`. Details in
-   [site/README.md](../site/README.md). The repo-root `vercel.json` sets
-   `git.deploymentEnabled: false` so the Vercel GitHub integration never deploys on push
-   (push-triggered deploys are policy-forbidden, and the git-connected project's
-   auto-deploys were failing on every push as a red `Vercel` commit status).
+8. **Repository policy permits Vercel auto-deployment from `main` only**
+   ([ADR-0038](decisions/0038-main-vercel-auto-deploy.md), superseding
+   ADR-0027's manual-upload mechanic). The root
+   [`vercel.json`](../vercel.json) overrides the
+   project's stale Python autodetection, installs the locked `site/` pnpm
+   graph, invokes `scripts/vercel-build.sh`, serves `site/dist`, and carries
+   the response-header contract. Its branch map disables every automatic
+   deployment except `main`; its ignore command stops other refs before
+   dependency installation, and the wrapper independently refuses a
+   non-production environment, non-`main` ref, or non-full commit SHA. The
+   install and build commands enter `site/` before invoking Corepack, so the
+   checked-in `packageManager` pin selects pnpm rather than a platform default.
+   Root `vercel.json`
+   changes select the complete site CI slice. This path deploys only the
+   marketing/docs site—it cannot merge code or publish Python packages,
+   GitHub Releases, benchmarks, or provider activity. Details in
+   [site/README.md](../site/README.md).
+   Vercel does not wait for `ci-required`; the normal pull-request path supplies
+   that review boundary, while the repository-role bypass reported in item 4
+   must be removed before launch. The linked Vercel project was paused on
+   2026-07-24, and the authenticated read-back did not expose its Production
+   Branch. After merging, the owner must confirm Production Branch = `main`,
+   reactivate the project, and then compare live `/version.json` with the
+   intended commit.
    **Production read-back 2026-07-24:** the public alias serves content matching
    the July 22 pre-main build and `/version.json` is absent. This content
    comparison is not cryptographic proof of a deployed commit. Treat the alias
-   as stale until the owner deploys the reviewed artifact and verifies its
-   version document and intended commit.
+   as stale until the reviewed auto-deployment reaches `main` and the owner
+   verifies its version document and intended commit.
 
 Before the first M4/M7 dispatch:
 

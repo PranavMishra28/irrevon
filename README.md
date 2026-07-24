@@ -165,7 +165,7 @@ compensation into rollback, or make an incapable destination knowable.
 | IrrevonBench | Development fixtures, fault schedules, baselines, causal-history oracle, metrics, statistics, integrity refusals | No freeze, confirmatory run, result, or independent reproduction |
 | Adapters | Reference C1/C2/C3 plus draft Stripe C1 and EasyPost C2 code under synthetic transports | Provider drafts are not qualified and reject production credentials |
 | Distribution | Wheel/sdist build, exact-content check, clean-install smoke test | `irrevon` is not published on a package index |
-| Site | Static Astro product/docs build with claims registry and accessibility/link tests | Deployment state is owner-controlled |
+| Site | Static Astro product/docs build with claims registry and accessibility/link tests | Repository policy permits Vercel production builds only from `main`; the paused linked project still needs owner reactivation and production-branch verification after merge |
 
 The machine-readable source of current release truth is
 [`docs/project-status.json`](docs/project-status.json), checked by
