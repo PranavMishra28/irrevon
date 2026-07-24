@@ -5,14 +5,27 @@
 > statistics, integrity gates — [ADR-0030](decisions/0030-bench-harness-contracts.md),
 > proposed). The scientific design authority is
 > [benchmark-preregistration.md](benchmark-preregistration.md) (DRAFT; Stage-A
-> freeze is a human act). **No confirmatory run has occurred and none can occur
-> pre-freeze** — `irrevon bench run` is an integrity refusal (exit 4) until
+> freeze is a human act). **Developmental S-REF smoke pilots have occurred; no
+> live-sandbox or confirmatory run has occurred.** The synthetic pilots are
+> permanently engineering evidence, not scientific results (preregistration
+> §0.2). Confirmatory execution cannot occur pre-freeze — `irrevon bench run`
+> is an integrity refusal (exit 4) until
 > BOTH human freeze registrations pass machine verification
 > (`irrevonbench/freeze-registration/v1`, ADR-0033: hash-bound to the exact
 > preregistration bytes, analysis sources, §0.1 parameters, fixture root, and
 > holdout commitment; drafts carry `REQUIRED-HUMAN` sentinels and can never
 > verify). Every result the harness can currently produce is labeled
 > `non-confirmatory` at the schema level.
+
+**Developmental-observation record** `[VF]`: harness/CLI smoke pilots have
+exercised public dev fixtures and injected fault schedules against the
+synthetic refdest. ADR-0032 additionally records a full-matrix
+attribution-hardening pilot: 488 synthetic destination effects under the
+enrichment quirk and 144 pre/post metric units with no rate shift. These
+observations can establish only that the mechanism behaved as tested; they
+cannot establish efficacy, a live-provider property, a hypothesis result, or
+the publish threshold. The DRAFT preregistration §0.2 is the inventory and
+explicitly does **not** claim pristine pre-observation registration.
 
 This page answers, in order, the ten questions a benchmark must be able to
 answer about itself. Epistemic labels per master doc §0.
@@ -193,7 +206,7 @@ published decision log.
 
 ## 5. What claims the results support — and cannot support
 
-**Supported (after the human freezes and M7 runs; nothing today):**
+**Supported (after the human freezes and M7 runs; no scientific support today):**
 capability-stratified, fault-conditional comparisons of client-side
 reconciliation strategies against declared destination contracts, with paired
 seed-level inference per the preregistered §5 analysis (superiority /
@@ -206,7 +219,7 @@ rates without the fault-incidence qualifier; any confirmatory claim from
 S-REF (synthetic destination) cells; any claim from a result document whose
 labels include `non-confirmatory` — which is every result the current
 harness can produce. Pre-freeze mechanism runs are engineering evidence that
-the harness works, **not** evidence about the hypotheses.
+the harness behaved as tested, **not** evidence about the hypotheses.
 
 ## 6. How another person reproduces a run
 
