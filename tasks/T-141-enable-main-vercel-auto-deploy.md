@@ -55,7 +55,7 @@ Anything else is out of scope.
 - [x] The Vercel build wrapper refuses non-production/non-`main` Git builds and
       a malformed or absent Git commit before running the site build.
 - [x] Production smoke rejects a configuration that enables another branch,
-      omits the protected-main rule, or changes the build/output contract.
+      omits the main-only rule, or changes the build/output contract.
 - [x] Root `vercel.json` changes select the site CI slice.
 - [x] Documentation and ADR history explain the main-only repository policy,
       the owner activation/read-back steps, and the independent human gates for

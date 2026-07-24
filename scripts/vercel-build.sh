@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Vercel Git build contract: production website builds come only from protected main.
+# Vercel Git build contract: production website builds come only from main.
 set -euo pipefail
 
 repository_root=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
