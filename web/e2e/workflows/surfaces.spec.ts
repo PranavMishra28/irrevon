@@ -107,7 +107,7 @@ test.describe("health", () => {
 test.describe("bench readiness", () => {
   test("evidence null: no metric, progress, or synthetic comparison", async ({ page }) => {
     await page.goto("/bench");
-    await expect(page.getByText("No benchmark runs exist")).toBeVisible();
+    await expect(page.getByText("No benchmark results exist")).toBeVisible();
     await expect(page.getByText("Prerequisites, in order")).toBeVisible();
     await expect(page.getByText("docs/benchmark-preregistration.md")).toBeVisible();
     const body = ((await page.locator("main").textContent()) ?? "").toLowerCase();

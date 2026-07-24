@@ -1,5 +1,5 @@
 # Irrevon — Dependabot: noise-contained configuration (rationale: docs/ci.md workflow map, dependabot row).
-# Target steady state: at most one grouped version PR per ecosystem per month (≤3/month),
+# Target steady state: at most one grouped version PR per configured lane per month (≤4/month),
 # plus rare security PRs (which bypass schedule and cooldown by design).
 # github-actions cooldown is the tag-hijack shield: action compromises have historically
 # been detected within days, and security updates bypass cooldown by design.
@@ -63,6 +63,32 @@ updates:
         patterns: ["*"]
         update-types: ["minor", "patch"]
       web-security:
+        applies-to: security-updates
+        patterns: ["*"]
+    commit-message:
+      prefix: "deps"
+    open-pull-requests-limit: 1
+    assignees:
+      - "PranavMishra28"
+
+  # Marketing/docs site (pnpm via the npm ecosystem). This is an independent
+  # package.json + pnpm-lock.yaml tree, so it needs its own update lane. Match
+  # the exact-pinned frontend posture: human-reviewed majors, grouped minor/
+  # patch versions, grouped security updates, and the 7-day release-age gate.
+  - package-ecosystem: "npm"
+    directory: "/site"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      site-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      site-security:
         applies-to: security-updates
         patterns: ["*"]
     commit-message:

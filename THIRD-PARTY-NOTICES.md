@@ -10,11 +10,13 @@ This inventory covers the third-party components of the Irrevon artifacts: the
 Python wheel/sdist (which embeds the built workbench, ADR-0018), the workbench
 build (`web/`), the marketing site build (`site/`), and the vendored fonts.
 **Status: staged, pre-release.** No Irrevon artifact has been published and the
-project's own license is undecided (ADR-0014 OPEN; see LICENSING.md) — the
-redistribution obligations recorded here attach when artifacts first ship. At
-first release this file gains the full license texts required by the MIT/ISC/BSD
-notice clauses; until then it is the committed, drift-gated inventory (the
-reviewable registry the release-time SBOM is checked against).
+project's own code and content are licensed under Apache-2.0 (ADR-0028; see
+LICENSE, NOTICE, and LICENSING.md). Third-party redistribution obligations remain
+separate from that project license and attach when covered artifacts are
+redistributed. At first project release this file gains the full license texts
+required by the MIT/ISC/BSD notice clauses; until then it is the committed,
+drift-gated inventory (the reviewable registry the release-time SBOM is checked
+against).
 
 Dev/test dependencies (sections 5a/5b) are never distributed and appear for
 SBOM completeness only. MPL-2.0 items (hypothesis, pathspec, @axe-core/playwright)

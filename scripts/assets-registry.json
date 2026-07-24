@@ -11,7 +11,7 @@
       "type": "mark",
       "origin": "original",
       "source": "in-repository vector work, 2026-07-21 redesign cycle",
-      "license": "project license (pending ADR-0014)",
+      "license": "Apache-2.0",
       "provenance": "Original vector work created in-repository; drawn from geometric primitives (original 45-degree stroke construction); no third-party vector source, no font-outline tracing (lockup text set in IBM Plex per its OFL terms). Ball-detent engineering conventions (90-degree V, seat depth, apex daylight) studied as facts, not artwork. Working history retained privately; the committed files are canonical.",
       "date": "2026-07-21"
     },
@@ -23,7 +23,7 @@
       "type": "mark",
       "origin": "original",
       "source": "in-repository vector work, 2026-07-21 redesign cycle",
-      "license": "project license (pending ADR-0014)",
+      "license": "Apache-2.0",
       "provenance": "Original vector work; the D1 core geometry the E1 mark builds on. Same construction posture as the E1 row.",
       "date": "2026-07-21"
     },
@@ -74,7 +74,7 @@
       "type": "icon-source",
       "origin": "original",
       "source": "identity cycle (N4 design), 2026-07-21",
-      "license": "project license (pending ADR-0014)",
+      "license": "Apache-2.0",
       "provenance": "Original hand-written paths. Lucide's published grid conventions (24 grid, 2 px stroke, round caps) adopted for compatibility; no Lucide path reused, traced, or modified. seat-settle derives from the in-house D1 geometry. Per-file provenance comment embedded in each SVG; call sites always pair an icon with a visible text label.",
       "date": "2026-07-21"
     },
@@ -86,7 +86,7 @@
       "type": "illustration",
       "origin": "original",
       "source": "identity cycle (N4 design), 2026-07-21",
-      "license": "project license (pending ADR-0014)",
+      "license": "Apache-2.0",
       "provenance": "Original composition of the E1 mark + the One-Way Seat sequence strip; text slots are template variables; colors from the ratified token set.",
       "date": "2026-07-21"
     },
@@ -105,7 +105,7 @@
       "type": "illustration",
       "origin": "self-generated",
       "source": "rendered from site/og/template.svg by site/scripts/build-og.mjs",
-      "license": "project license (pending ADR-0014)",
+      "license": "Apache-2.0",
       "provenance": "Mechanical render of the template via pinned Playwright Chromium with the repo's IBM Plex subsets; hashes additionally pinned in site/og/manifest.json and drift-gated by build-og.mjs --check.",
       "date": "2026-07-21"
     },
@@ -120,7 +120,7 @@
       "type": "screenshot",
       "origin": "self-generated",
       "source": "site/scripts/capture-workbench.mjs (Playwright shots project)",
-      "license": "project license (pending ADR-0014)",
+      "license": "Apache-2.0",
       "provenance": "Captured from the running fixture-backed web/ app at 1440x900 (2x DPR), both themes, SYNTHETIC FIXTURE banner deliberately in frame (synthetic data, engine capture seed 777); no third-party content. Re-capture after any workbench visual change.",
       "date": "2026-07-21"
     },

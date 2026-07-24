@@ -198,7 +198,7 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
       </div>
     </header>
 
-    <main id="main">
+    <main id="main" tabindex="-1">
       <slot />
     </main>
 
@@ -208,7 +208,8 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
           <div class="footer-brand">
             <span class="footer-lockup"><Mark size={18} /><span>{SITE_NAME.toLowerCase()}</span></span>
             <p class="footer-tag">
-              A preregistered benchmark and reference reconciliation engine for irreversible AI-agent actions.
+              A reference reconciliation engine and benchmark drafted for preregistration for irreversible
+              AI-agent actions.
               Benchmark-first, C2-scoped, pre-release.
             </p>
           </div>

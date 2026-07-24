@@ -57,7 +57,7 @@ guarantee each destination class supports.
 ## The narrow novelty claim
 
 What is defensibly new is a combination and its measurement, not a mechanism: a
-preregistered fault-injection benchmark for irreversible agent effects against real API
+fault-injection benchmark drafted for preregistration for irreversible agent effects against real API
 contracts with a destination read-back oracle — and reconciliation keyed on the
 destination's authoritative-status query for C2 destinations. Even that claim is
 deliberately narrowed in the master document's amendment log, because MAS-FIRE and

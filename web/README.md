@@ -47,6 +47,11 @@ Notes:
   absent from live bundles (DCE + sentinel-scanned by `e2e/workflows/live-boundary.spec.ts`).
 - **Strangers never need Node.** This directory is contributor-tooling only; packaged
   builds ship as static assets served by the CLI.
+- **Browser response boundary.** `irrevon serve` applies a deny-by-default CSP plus
+  clickjacking, MIME-sniffing, referrer, and browser-capability headers to the packaged
+  workbench `[VF]`. The Vite module is same-origin; the inline pre-paint preference script
+  is authorized only by the SHA-256 of its exact built bytes (never `unsafe-inline`), so
+  formatting drift cannot silently break persisted theme/density behavior.
 - **Zero telemetry.** No network requests leave loopback (E2E-enforced), fonts are
   self-hosted, Storybook telemetry is disabled.
 - **Supply chain.** pnpm blocks all lifecycle scripts (`allowBuilds` all-false),

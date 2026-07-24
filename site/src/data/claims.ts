@@ -160,14 +160,22 @@ export const claims = {
   // ── Benchmark ───────────────────────────────────────────────────────────
   "prereg-draft-status": {
     claim:
-      "The IrrevonBench preregistration is a DRAFT — nothing is frozen, no section carries integrity weight yet, and no benchmark run, sandbox spike, or fault trial may occur before the Stage-A freeze. Freezing is a human act.",
-    source: "docs/benchmark-preregistration.md §0",
+      "The IrrevonBench preregistration is a DRAFT — nothing is frozen and no section carries integrity weight. Synthetic S-REF engineering pilots have occurred and are disclosed; no live-sandbox observation or confirmatory run has occurred. Stage A must precede live-sandbox work and Stage B must precede confirmatory execution; freezing is a human act.",
+    source: "docs/benchmark-preregistration.md §0–§0.2",
     label: "VF",
     badge: "preregistered",
   },
   "no-results-exist": {
-    claim: "No benchmark has been run. There are no results on this site, by design.",
-    source: "docs/benchmark-preregistration.md §0 + execution plan",
+    claim:
+      "No scientific or confirmatory benchmark result exists. Developmental refdest smoke pilots—including ADR-0032's 488-effect attribution-hardening pilot—are engineering evidence only and cannot support efficacy, live-provider, hypothesis, or publish-threshold claims.",
+    source: "docs/benchmark-preregistration.md §0.2 + ADR-0032",
+    label: "VF",
+    badge: "preregistered",
+  },
+  "developmental-pilot-disclosure": {
+    claim:
+      "Pre-freeze harness and CLI smoke pilots exercised public dev fixtures and injected faults against the synthetic reference destination. The full inventory is disclosed; outputs are permanently non-confirmatory S-REF mechanism evidence and the eventual Stage-A registration may not be called pristine or pre-observation.",
+    source: "docs/benchmark-preregistration.md §0.2 + docs/benchmark.md status",
     label: "VF",
     badge: "preregistered",
   },
@@ -179,14 +187,14 @@ export const claims = {
   },
   "credibility-controls": {
     claim:
-      "IrrevonBench self-scores against BetterBench (46 lifecycle criteria), ships Datasheets for Datasets documentation and Croissant metadata, preregisters hypotheses/metrics/analysis before any run, and seals a private held-out fault-seed split that never enters the repository.",
-    source: "master doc §8.1 + preregistration §0, §7",
+      "IrrevonBench self-scores against BetterBench (46 lifecycle criteria), ships Datasheets for Datasets documentation and Croissant metadata, freezes hypotheses/metrics/analysis before live-sandbox and confirmatory evidence, and seals a private held-out fault-seed split that never enters the repository. Disclosed S-REF development pilots are excluded from scientific claims.",
+    source: "master doc §8.1 + preregistration §0, §0.2, §7 (AM-25 proposed)",
     label: "DD",
     badge: "preregistered",
   },
   "baseline-ladder": {
     claim:
-      "The baseline ladder B0–B7 plus R is preregistered and never weakened so the proposed system wins; the preselected primary comparator is the composite B5+B3+B6, with B5 reported alongside — superiority must reject against both.",
+      "The draft preregistration pre-specifies the baseline ladder B0–B7 plus R and forbids weakening it so the proposed system wins; the preselected primary comparator is the composite B5+B3+B6, with B5 reported alongside — superiority must reject against both.",
     source: "master doc §8.3 + preregistration §1 (AM-7 as ratified)",
     label: "DD",
     badge: "preregistered",
@@ -249,7 +257,7 @@ export const claims = {
   },
   "novelty-boundary": {
     claim:
-      "What is defensibly novel is the combination and its measurement: a preregistered fault-injection benchmark for irreversible agent effects against real API contracts with a destination read-back oracle, and reconciliation keyed on the destination's authoritative-status query for C2 (narrowed per AM-1: MAS-FIRE and Atomix's eval exist).",
+      "What is defensibly novel is the planned combination and its measurement: a fault-injection benchmark drafted for preregistration for irreversible agent effects against real API contracts with a destination read-back oracle, and reconciliation keyed on the destination's authoritative-status query for C2 (narrowed per AM-1: MAS-FIRE and Atomix's eval exist).",
     source: "master doc §4.1 + review queue AM-1",
     label: "EI",
   },
@@ -281,7 +289,7 @@ export const claims = {
   },
   "supply-chain": {
     claim:
-      "Supply-chain posture as practiced: pnpm with lifecycle scripts blocked, a 7-day publish-to-installable delay, provenance no-downgrade, exotic-subdep blocking, exact pins and frozen lockfiles; CI actions SHA-pinned; secret scanning on every commit. Verifiable in the public repository.",
+      "Supply-chain posture as practiced: pnpm with lifecycle scripts blocked, a 7-day publish-to-installable delay, provenance no-downgrade, exotic-subdep blocking, exact pins and frozen lockfiles; CI actions SHA-pinned; secret scanning on every commit. Verifiable in the repository source.",
     source: "web/pnpm-workspace.yaml + docs/ci.md + Makefile",
     label: "VF",
   },
@@ -319,7 +327,7 @@ export const claims = {
   },
   "roadmap-no-dates": {
     claim:
-      "The roadmap is phases and gates, never dates: order is load-bearing (the Stage-A preregistration freeze precedes any sandbox observation), and nothing in the execution plan is a schedule or a commitment.",
+      "The roadmap is phases and gates, never dates: order is load-bearing (the Stage-A preregistration freeze precedes every live-sandbox observation, while disclosed synthetic S-REF development pilots remain non-confirmatory), and nothing in the execution plan is a schedule or a commitment.",
     source: "docs/execution-plan.md (ordering rationale + gate notes)",
     label: "VF",
   },

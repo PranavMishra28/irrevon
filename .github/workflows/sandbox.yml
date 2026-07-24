@@ -1,22 +1,20 @@
-# Irrevon sandbox suite (T4) — SKELETON. ACTIVATES AT M4 (adapters vs live C2
-# sandboxes; master doc section 15). Human-dispatched only; never add implicit
-# triggers. Map: docs/ci.md.
+# Irrevon sandbox suite (T4) — FAIL-CLOSED SKELETON. Every manual dispatch
+# reaches one unconditional refusal and therefore finishes red. M4 activation
+# is a separate human-reviewed task after Stage A, ADR-0010 and ADR-0012,
+# applicable terms review, and a real credentialed contract recipe are complete.
 #
-# Boundary design (public-repo model): this job runs inside the `sandbox`
-# environment. Environments are OWNER-CREATED (Settings -> Environments) with a
-# required reviewer BEFORE the first dispatch — a run that references a
-# nonexistent environment would silently auto-create it UNPROTECTED. All
-# sandbox-only credentials (master doc section 9) live as environment secrets
-# here and only here; this repo carries NO repo-level secrets, ever.
-# Dispatch (logged human act) + environment approval (second logged human act)
-# is the boundary — not discipline alone.
+# Boundary design (public-repo model): this job references the `sandbox`
+# environment so a future active suite remains approval-gated. The owner must
+# create and protect that environment before any dispatch; referencing a
+# nonexistent environment can auto-create it without protection. This dormant
+# skeleton deliberately reads no credential and names no future secret.
 name: sandbox
 
 on:
   workflow_dispatch:
     inputs:
       reason:
-        description: "Why this run is happening (recorded in the run log)"
+        description: "Why this refusal was dispatched (recorded in the run log)"
         type: string
         required: true
 
@@ -24,54 +22,33 @@ permissions:
   contents: read
 
 concurrency:
-  group: sandbox # runs queue; never cancel a sandbox run mid-flight
+  group: sandbox
   cancel-in-progress: false
 
 jobs:
   sandbox-contract:
-    name: Sandbox contract suite (M4 skeleton)
+    name: Sandbox contract suite (M4 fail-closed skeleton)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
     environment: sandbox
     permissions:
       contents: read
-    env:
-      DISPATCH_REASON: ${{ inputs.reason }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      # Hard stop keyed on the REAL M4 activation artifact: the `sandbox-contract`
-      # make target lands with the adapter harness (docs/ci.md tier table). Keying
-      # on pyproject.toml went stale the moment M3 landed; this guard cannot.
-      - name: Not yet implemented (activates at M4)
-        run: |
-          set -euo pipefail
-          echo "reason: ${DISPATCH_REASON}"
-          if ! grep -q '^sandbox-contract:' Makefile; then
-            echo "::error::sandbox suite activates at M4 — make sandbox-contract does not exist yet."
-            exit 1
-          fi
+      # This is the entire executable body today. An input, configured
+      # credential, or checked-in file cannot bypass the unconditional Make
+      # refusal. Activation must replace the recipe and the static contract in
+      # one human-reviewed change.
+      - name: Refuse until human M4 activation
+        run: make sandbox-stage-m4
 
-      # Missing-secret guard: an absent Actions secret evaluates to an EMPTY
-      # STRING and does not fail the job by itself — every credentialed step
-      # must sit behind this guard so a misconfigured run stops before any
-      # sandbox call. Secret name is a placeholder until ADR-0012 settles it.
-      - name: Guard - required environment secrets present
-        env:
-          C2_SANDBOX_API_KEY: ${{ secrets.C2_SANDBOX_API_KEY }}
-        run: |
-          set -euo pipefail
-          if [ -z "$C2_SANDBOX_API_KEY" ]; then
-            echo "::error::C2_SANDBOX_API_KEY is empty — configure it as a secret on the 'sandbox' environment (never repo-level)."
-            exit 1
-          fi
-          echo "guard: required secrets present"
-
-      # M4 body (design; runs `make` targets only, per the CI parity rule):
-      #   - make sandbox-contract   # credentialed contract tests vs C2 sandbox
-      #   - upload sanitized failure evidence (logs are PUBLIC on this repo:
-      #     no account identifiers, no key fragments, no raw API bodies)
-      - name: Placeholder
-        run: echo "sandbox suite skeleton - nothing to run yet"
+      # Future M4 body (design context only; not executable):
+      #   - bootstrap pinned tools without caching
+      #   - guard the human-selected environment credentials
+      #   - run the reviewed contract recipe against the ratified sandboxes
+      #   - sanitize evidence and verify cleanup/residual effects
+      # The activation task must preserve manual dispatch, environment approval,
+      # least privilege, queued runs, and fail-closed error classification.

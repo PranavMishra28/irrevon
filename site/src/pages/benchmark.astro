@@ -31,28 +31,31 @@ const metrics = [
 ---
 
 <Base
-  title={`${BENCH_NAME} — preregistered, no results yet`}
-  description="IrrevonBench: a preregistered fault-injection benchmark for irreversible AI-agent effects. Draft methodology, the full baseline ladder, and a pre-committed kill criterion. No results exist yet, by design."
+  title={`${BENCH_NAME} — draft, no scientific results yet`}
+  description="IrrevonBench: a draft fault-injection benchmark for irreversible AI-agent effects. Developmental S-REF pilots are disclosed; no live-sandbox or confirmatory result exists."
   ogImage="/og/og-benchmark.png"
 >
   <section class="section">
     <div class="container">
       <span class="kicker">{BENCH_NAME}</span>
-      <h1>The methodology is the product. The results don’t exist yet.</h1>
+      <h1>The methodology is the product. Scientific results don’t exist yet.</h1>
 
       <div class="status-banner" role="note" style="margin-top: 28px;">
-        <span class="status-title">No results yet — by design</span>
+        <span class="status-title">Developmental pilots disclosed · no scientific results</span>
         <p>
-          The preregistration is a <strong>DRAFT</strong> — nothing is frozen, and no benchmark run, sandbox
-          spike, or fault trial may occur before the design freeze (a human act: signed tag, external
-          timestamp, OSF registration). There are no numbers on this page and there will be none until the
-          plan is frozen, executed, and independently recomputed. Results, when they exist, will be
-          reproducible from a tagged commit and pinned containers.
+          The preregistration is a <strong>DRAFT</strong> — nothing is frozen. Synthetic S-REF harness and
+          fault-smoke pilots have occurred, including ADR-0032’s 488-effect attribution-hardening pilot;
+          they are permanently non-confirmatory engineering evidence. No live-sandbox observation or
+          confirmatory run has occurred. Stage A must precede live-sandbox work and Stage B must precede
+          confirmatory execution; both freezes are human acts. There are no scientific numbers on this page.
         </p>
-        <Source id="prereg-draft-status" also={["no-results-exist", "stamping-planned"]} />
+        <Source
+          id="prereg-draft-status"
+          also={["developmental-pilot-disclosure", "no-results-exist", "stamping-planned"]}
+        />
       </div>
       <p style="margin-top: 20px;">
-        The reproduction contract is published before the first run:{" "}
+        The reproduction contract is published before the first live-sandbox or confirmatory run:{" "}
         <a href={href("/docs/benchmark-reproduction/")}>benchmark reproduction guide →</a>
       </p>
     </div>
@@ -77,11 +80,12 @@ const metrics = [
 
       <div class="grid-3" style="margin-top: 32px;">
         <article class="panel-subtle discipline">
-          <h3>Preregistered, two-stage</h3>
+          <h3>Designed for two-stage preregistration</h3>
           <p>
-            Hypotheses, matrix, metrics, and analysis rules freeze before any sandbox observation; adapter and
-            baseline operationalizations, artifact hashes, and environment pins freeze before any confirmatory
-            run. Frozen content is append-only; amendments are numbered and stamped.
+            Disclosed S-REF development pilots predate the freeze and cannot support scientific claims.
+            Hypotheses, matrix, metrics, and analysis rules freeze before any live-sandbox observation;
+            adapter and baseline operationalizations, artifact hashes, and environment pins freeze before
+            confirmatory execution. Frozen content is append-only; amendments are numbered and stamped.
           </p>
           <div class="badge-row"><Badge kind="preregistered" /></div>
         </article>
@@ -117,7 +121,7 @@ const metrics = [
         <span class="kicker">The baseline ladder</span>
         <h2>“Never weakened so the proposed system wins” is a design rule, not a slogan</h2>
         <p class="lead">
-          Every rung is preregistered. The preselected primary comparator is the <strong>composite
+          Every rung is pre-specified in the current draft. The preselected primary comparator is the <strong>composite
           B5+B3+B6</strong> — the strongest realistic conventional stack — with B5 reported alongside;
           superiority must reject against both. The ladder is rendered whole, residual failure modes included.
         </p>

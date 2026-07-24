@@ -2,8 +2,8 @@
 title: "Operations — running Irrevon as a service"
 description: "Operator documentation: deployment shape, probes, shutdown and upgrades, the ten operator questions, SLO guidance, backup/restore, incident containment."
 sourcePath: "docs/operations.md"
-sourceSha256: "8f074815bef9e87ddc9c1e3f6e90e83a62247536a3cd4ade5de218cd681f9a40"
-syncedAt: "2026-07-22"
+sourceSha256: "4d703afecfe4b8556fd4e905a9bd0336515512c43cdd9a44464452d515534616"
+syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
 ---
@@ -115,7 +115,6 @@ digest-only until the redaction pipeline lands (Q2). Retention/deletion of
 ledger history is the operator's policy — rows are append-only by role
 design; deletion is a DBA act on a copy-and-truncate basis, never in-place
 mutation of live history.
-
 ## Compatibility, versioning, and deprecation
 
 - **Package/API**: pre-release (`0.x`); no compatibility guarantee is claimed

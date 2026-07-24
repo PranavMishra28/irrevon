@@ -105,7 +105,6 @@ digest-only until the redaction pipeline lands (Q2). Retention/deletion of
 ledger history is the operator's policy — rows are append-only by role
 design; deletion is a DBA act on a copy-and-truncate basis, never in-place
 mutation of live history.
-
 ## Compatibility, versioning, and deprecation
 
 - **Package/API**: pre-release (`0.x`); no compatibility guarantee is claimed

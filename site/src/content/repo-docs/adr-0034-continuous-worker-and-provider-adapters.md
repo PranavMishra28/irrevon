@@ -1,8 +1,8 @@
 ---
 title: "Continuous worker service, provider-adapter framework (Stripe C1 / EasyPost C2 drafts), and the multi-worker + independent-baseline designs"
 sourcePath: "docs/decisions/0034-continuous-worker-and-provider-adapters.md"
-sourceSha256: "2b5949c715f52c1a5ad9a671aee2cbeccd55ccb89738bb7d6283e46f27d0304e"
-syncedAt: "2026-07-22"
+sourceSha256: "683a23d69e4f15d8d87285f57414af71f7f2766f9e1394e385b1249a48d5bd7b"
+syncedAt: "2026-07-24"
 section: "Decisions"
 renderTitle: true
 adr:
@@ -65,7 +65,9 @@ queue).
    NAME from config, value from environment only; sandbox/test key prefixes
    enforced — a live-mode key is refused at construction), version-pinned
    headers, declaration drafts with citations and `evidence_quality: EI`,
-   synthetic-transport test suites (28 tests), and explicit DRAFT wording:
+   synthetic-transport test suites, fail-closed effect-type and payload validation,
+   allowlisted response evidence, conservative header-aware rate-limit handling,
+   explicit unpurchased-shipment enumeration for EasyPost, and explicit DRAFT wording:
    **no live call has ever been made**. Live use waits on ADR-0010
    (Stripe pin — research recommends a full dated version), ADR-0012 (C2
    selection — EasyPost implemented as the recorded fallback; Shopify's

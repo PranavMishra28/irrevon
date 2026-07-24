@@ -33,6 +33,8 @@ from irrevon.identity import canonical_digest
 __all__ = ["EasyPostC2Adapter"]
 
 _BASE = "https://api.easypost.com"
+_EFFECT_TYPE = "shipment.create"
+_REQUIRED_SHIPMENT_FIELDS = ("to_address", "from_address", "parcel")
 
 
 class EasyPostC2Adapter(Adapter):
@@ -85,6 +87,21 @@ class EasyPostC2Adapter(Adapter):
     # ── protocol operations ────────────────────────────────────────────────────
 
     def dispatch(self, order: DispatchOrder, deadline_s: float) -> DispatchResult:
+        if order.effect_type != _EFFECT_TYPE:
+            raise CapabilityUnsupported(
+                f"adapter {self.adapter_id} supports {_EFFECT_TYPE!r}, not "
+                f"{order.effect_type!r}"
+            )
+        missing = [key for key in _REQUIRED_SHIPMENT_FIELDS if key not in order.payload]
+        if missing:
+            raise CapabilityUnsupported(
+                "EasyPost shipment payload is missing required fields: "
+                + ", ".join(missing)
+            )
+        if "reference" in order.payload:
+            raise CapabilityUnsupported(
+                "EasyPost reference is identity-reserved and derived from operation_id"
+            )
         body = {"shipment": {**order.payload, "reference": order.client_ref}}
         evidence: dict[str, Any] = {
             "adapter_id": self.adapter_id,
@@ -94,7 +111,7 @@ class EasyPostC2Adapter(Adapter):
             ),
         }
         try:
-            status, response = self._transport(
+            http_response = self._transport(
                 "POST", f"{self._base}/v2/shipments", body, self._headers(), deadline_s
             )
         except WireDropped:
@@ -105,26 +122,48 @@ class EasyPostC2Adapter(Adapter):
             return DispatchResult(
                 "TIMEOUT", evidence={**evidence, "deadline_s": deadline_s}
             )
+        status, response = http_response.status, http_response.body
+        response_headers = http_response.selected_headers(
+            "Retry-After", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-Request-Id"
+        )
+        header_evidence = (
+            {"response_headers": response_headers} if response_headers else {}
+        )
         digest = canonical_digest(response)
         if status in (200, 201) and isinstance(response.get("id"), str):
             return DispatchResult(
                 "OK", destination_ref=response["id"], response_digest=digest,
-                evidence={**evidence, "status": status},
+                evidence={**evidence, "status": status, **header_evidence},
             )
         if status == 429:
             return DispatchResult(
                 "FAILED", failure_kind="RETRYABLE", response_digest=digest,
-                evidence={**evidence, "status": status, "throttled": True},
+                evidence={
+                    **evidence,
+                    "status": status,
+                    "throttled": True,
+                    **header_evidence,
+                },
             )
         if status == 422:
             # Documented validation rejection: nothing was created.
             return DispatchResult(
                 "FAILED", failure_kind="TERMINAL", response_digest=digest,
-                evidence={**evidence, "status": status, "error": "validation"},
+                evidence={
+                    **evidence,
+                    "status": status,
+                    "error": "validation",
+                    **header_evidence,
+                },
             )
         return DispatchResult(
             "LOST", response_digest=digest,
-            evidence={**evidence, "status": status, "unrecognized": True},
+            evidence={
+                **evidence,
+                "status": status,
+                "unrecognized": True,
+                **header_evidence,
+            },
         )
 
     def status_query(
@@ -142,7 +181,7 @@ class EasyPostC2Adapter(Adapter):
                 "queries only (EasyPost reference is not a query filter)"
             )
         try:
-            status, body = self._transport(
+            response = self._transport(
                 "GET", f"{self._base}/v2/shipments/{destination_ref}",
                 None, self._headers(), deadline_s,
             )
@@ -150,6 +189,7 @@ class EasyPostC2Adapter(Adapter):
             return StatusAnswer(
                 "INDETERMINATE", None, (), {"transport_error": type(err).__name__}
             )
+        status, body = response.status, response.body
         if status == 200 and isinstance(body.get("id"), str):
             return StatusAnswer(
                 "PRESENT", 1, (body["id"],),
@@ -168,12 +208,13 @@ class EasyPostC2Adapter(Adapter):
         before_id: str | None = None
         for _ in range(100):  # pagination hard stop
             url = (
-                f"{self._base}/v2/shipments?page_size=100"
+                f"{self._base}/v2/shipments?page_size=100&purchased=false"
                 f"&start_datetime={window_from}&end_datetime={window_to}"
             )
             if before_id:
                 url += f"&before_id={before_id}"
-            status, body = self._transport("GET", url, None, self._headers(), deadline_s)
+            response = self._transport("GET", url, None, self._headers(), deadline_s)
+            status, body = response.status, response.body
             shipments = body.get("shipments")
             if status != 200 or not isinstance(shipments, list):
                 raise CapabilityUnsupported(f"list failed with status {status}")
@@ -190,4 +231,8 @@ class EasyPostC2Adapter(Adapter):
             if not body.get("has_more") or not shipments:
                 return out
             before_id = shipments[-1].get("id")
+            if not isinstance(before_id, str) or not before_id:
+                raise CapabilityUnsupported(
+                    "list pagination returned has_more=true without a terminal shipment id"
+                )
         raise CapabilityUnsupported("pagination exceeded the hard stop")

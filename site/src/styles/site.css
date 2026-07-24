@@ -560,8 +560,40 @@ figcaption {
   transform: translateY(-200%);
   transition: none;
 }
-.skip-link:focus {
+.skip-link:focus-visible {
   transform: none;
+  outline-width: 3px;
+  outline-offset: 3px;
+}
+
+/* Preserve control boundaries and state in Windows High Contrast and other
+   forced-color modes. System colors follow the user's chosen contrast theme. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 3px;
+  }
+
+  .btn,
+  button,
+  input,
+  summary {
+    background: ButtonFace;
+    border: 1px solid ButtonText;
+    color: ButtonText;
+  }
+
+  .btn-primary,
+  button[aria-current="step"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+  }
+
+  a {
+    text-decoration-color: LinkText;
+  }
 }
 
 /* ── Motion discipline ─────────────────────────────────────────────────── */

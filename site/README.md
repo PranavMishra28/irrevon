@@ -156,7 +156,7 @@ SITE_ORIGIN=https://<production-host> SITE_REPO_URL=<repo-url> pnpm build
 URLs end in `/`, matching the sitemap). The origin and repository URL are
 deployment-provided at build time — committed files never carry either. (The current
 Vercel project equivalently builds on the platform via a small deployment-side script
-that clones this public repository and runs the same `pnpm build`; that script lives
+that clones the repository with owner-provided access and runs the same `pnpm build`; that script lives
 in the deployment, not the repo, because it must carry the deploy-provided values.)
 
 ## Measured at last audit (2026-07-21)

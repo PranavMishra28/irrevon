@@ -15,7 +15,7 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
 
 <Base
   title={`${SITE_NAME} — honest handling of irreversible AI-agent actions`}
-  description="A preregistered benchmark and reference reconciliation engine for irreversible AI-agent actions. Identity from stable business identifiers, persist-before-dispatch, reconcile-by-query. Pre-release, open research."
+  description="A reference reconciliation engine and draft preregistration for benchmarking irreversible AI-agent actions. Identity from stable business identifiers, persist-before-dispatch, reconcile-by-query. Pre-release, open research."
   jsonLd={[softwareSourceCode(siteUrl), webSite(siteUrl, searchUrl)]}
 >
   <!-- ── Hero ─────────────────────────────────────────────────────────── -->
@@ -27,7 +27,7 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
         <p class="lead hero-lead">
           An agent that crashes mid-call, retries a timeout, or re-synthesizes its arguments can charge a card
           twice, book the wrong slot, or leave an orphaned order no process reconciles. {SITE_NAME} is an
-          open-source reference engine — and a preregistered benchmark — for exactly that failure.
+          open-source reference engine — and a benchmark drafted for preregistration — for exactly that failure.
         </p>
         <Source id="problem-ambiguous-outcome" also={["resynthesis-defeats-keys"]} />
         <div class="hero-ctas">
@@ -35,7 +35,7 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
           <a class="btn btn-secondary" href={href("/how-it-works/")}>How it works</a>
         </div>
         <p class="hero-note">
-          Pre-release · not on any package index · benchmark preregistration is a draft, no runs yet
+          Pre-release · not on any package index · benchmark draft, S-REF pilots disclosed
         </p>
       </div>
       <aside class="hero-proof" aria-label="Recorded demo outcome">
@@ -71,7 +71,7 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
             <dd class="hero-proof-note">idempotency key sent — and ignored</dd>
           </div>
         </dl>
-        <p class="hero-proof-src"><Source id="demo-contrast" /></p>
+        <div class="hero-proof-src"><Source id="demo-contrast" /></div>
         <a class="hero-proof-link" href="#recorded">See the full transcript ↓</a>
       </aside>
     </div>
@@ -228,16 +228,17 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
     <div class="container">
       <div class="section-head">
         <span class="kicker">{BENCH_NAME}</span>
-        <h2>The benchmark is preregistered before a single run — including the result that would kill the project</h2>
+        <h2>The benchmark design is public before live evidence — including the result that would kill the project</h2>
       </div>
       <div class="status-banner" role="note">
-        <span class="status-title">Preregistered methodology — no results yet</span>
+        <span class="status-title">Draft methodology — no scientific results yet</span>
         <p>
-          The preregistration is a <strong>draft</strong>; nothing is frozen and no benchmark run has occurred.
-          If the strongest conventional baseline matches {SITE_NAME} on C2 destinations, the pre-committed
-          falsification criterion fires: {SITE_NAME} is unnecessary, and the project says so.
+          The preregistration is a <strong>draft</strong>; nothing is frozen. Synthetic S-REF development
+          pilots have occurred and are disclosed, but no live-sandbox observation or confirmatory run has
+          occurred. If the strongest conventional baseline matches {SITE_NAME} on C2 destinations, the
+          pre-committed falsification criterion fires: {SITE_NAME} is unnecessary, and the project says so.
         </p>
-        <Source id="prereg-draft-status" also={["kill-criterion"]} />
+        <Source id="prereg-draft-status" also={["developmental-pilot-disclosure", "kill-criterion"]} />
       </div>
       <p style="margin-top: 20px;">
         <a href={href("/benchmark/")}>Read the benchmark design and the kill criterion →</a>

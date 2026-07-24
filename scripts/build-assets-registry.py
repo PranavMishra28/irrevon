@@ -47,10 +47,10 @@ geometry only; references may be studied for direction and must be named; no
 traced, copied, or auto-generated third-party geometry; no stock, no clip-art, no
 AI-image imports. Fonts are the repository's licensed set only.
 
-The repository currently carries no license (LICENSING.md; ADR-0014 open):
-project-original assets are recorded for future licensing decisions; nothing here
-grants or implies external reuse rights. `site/ASSETS.md` is a pointer to this
-registry.
+Project-original assets are licensed Apache-2.0 as part of the repository; see
+LICENSE, NOTICE, LICENSING.md, and ADR-0028. Third-party assets retain the separate
+upstream licenses recorded in their rows; this registry does not alter those terms.
+`site/ASSETS.md` is a pointer to this registry.
 """
 
 

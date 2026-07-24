@@ -53,8 +53,20 @@ def test_packaging_excludes_benchmark_data() -> None:
     systems installing the package can never receive benchmark data or oracle
     fixtures as a side effect (search-time / packaging contamination)."""
     pyproject = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))
-    sdist_include = pyproject["tool"]["hatch"]["build"]["targets"]["sdist"]["include"]
-    assert "bench" not in sdist_include
+    sdist = pyproject["tool"]["hatch"]["build"]["targets"]["sdist"]
+    assert "include" not in sdist
+    assert set(sdist["only-include"]) == {
+        "src",
+        "schemas",
+        "migrations",
+        "README.md",
+        "LICENSING.md",
+        "LICENSE",
+        "NOTICE",
+        "pyproject.toml",
+        "hatch_build.py",
+    }
+    assert "bench" not in sdist["only-include"]
     wheel = pyproject["tool"]["hatch"]["build"]["targets"]["wheel"]
     assert "bench" not in json.dumps(wheel.get("force-include", {}))
     # And nothing bench-data-shaped is hiding inside the package tree itself.

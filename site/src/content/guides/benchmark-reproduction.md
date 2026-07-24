@@ -1,27 +1,30 @@
 ---
 title: "Benchmark reproduction"
-description: "The intended reproduction contract for IrrevonBench — published before any run exists, so the promise is inspectable in advance. No results yet, by design."
+description: "The intended IrrevonBench reproduction contract, with synthetic development pilots disclosed and no live-sandbox or confirmatory result yet."
 order: 6
 badge: "preregistered"
 claims:
   - no-results-exist
   - prereg-draft-status
+  - developmental-pilot-disclosure
   - stamping-planned
   - stats-discipline
   - credibility-controls
 ---
 
-> **PREREGISTERED METHODOLOGY — NO RESULTS YET.** No benchmark run has occurred. There
-> is nothing to reproduce today. This page documents the reproduction contract the
-> project has committed to *before* the first run, so that when results exist, the
-> promise they arrive with was inspectable in advance.
+> **DRAFT METHODOLOGY — NO SCIENTIFIC RESULTS YET.** Synthetic S-REF harness and
+> fault-smoke pilots have occurred and are disclosed as non-confirmatory engineering
+> evidence. No live-sandbox observation or confirmatory run has occurred, so there is no
+> scientific result to reproduce today. This page publishes that future reproduction
+> contract before either evidence class begins.
 
 ## Why this page exists now
 
 A reproduction story bolted on after results exist is marketing. IrrevonBench's
-preregistration is currently a **DRAFT** — nothing is frozen, and no run, sandbox
-spike, or fault trial may occur before the Stage-A freeze, which is a human act. The
-full design lives in the rendered
+preregistration is currently a **DRAFT** — nothing is frozen. It discloses the prior
+synthetic S-REF development pilots rather than claiming a pristine pre-observation design.
+Stage A must precede every live-sandbox observation, and Stage B every confirmatory run;
+both freezes are human acts. The full design lives in the rendered
 [benchmark preregistration](/docs/reference/benchmark-preregistration/); the
 [benchmark page](/benchmark/) carries the narrative version, including the
 pre-committed falsification criterion.
