@@ -130,11 +130,11 @@ jobs:
           tagged_commit=$(git rev-parse "$TAG_NAME^{}")
           reviewed_main=$(git rev-parse origin/main)
           checked_out_commit=$(git rev-parse HEAD)
-          test "$checked_out_commit" = "$tagged_commit" &&
-            test "$checked_out_commit" = "$reviewed_main" || {
+          if ! test "$checked_out_commit" = "$tagged_commit" ||
+            ! test "$checked_out_commit" = "$reviewed_main"; then
             echo "::error::HEAD, annotated tag, and current origin/main must be identical"
             exit 1
-          }
+          fi
           package_version=$(uv run --locked python -c 'import irrevon; print(irrevon.__version__)')
           test "v$package_version" = "$TAG_NAME" || {
             echo "::error::tag $TAG_NAME does not match package $package_version"
