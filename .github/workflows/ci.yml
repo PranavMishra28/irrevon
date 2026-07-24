@@ -216,8 +216,8 @@ jobs:
           HYPOTHESIS_PROFILE: ci
 
   # F0 frontend static gate — skips when the web slice is untouched; the
-  # aggregator verifies each skip. Node is preinstalled on ubuntu runners;
-  # pnpm comes via corepack (web/ pins its own toolchain).
+  # aggregator verifies each skip. Node comes from the repository's version
+  # file via SHA-pinned setup-node; pnpm comes via the package-manager pin.
   web-check:
     name: Frontend static (make web-check)
     needs: changes
@@ -230,6 +230,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: web/.nvmrc
       - run: corepack enable
       - run: make web-check
 
@@ -246,6 +249,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: web/.nvmrc
       - run: corepack enable
       - run: make web-test
 
@@ -265,6 +271,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: web/.nvmrc
       - run: corepack enable
       - run: make web-e2e
 
@@ -283,6 +292,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: site/.nvmrc
       - run: corepack enable
       - run: make site-check
 
@@ -300,6 +312,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: site/.nvmrc
       - run: corepack enable
       - run: make site-test
 
@@ -328,6 +343,9 @@ jobs:
       - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
           enable-cache: true
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: web/.nvmrc
       - run: corepack enable
       - run: make web-e2e-live
 

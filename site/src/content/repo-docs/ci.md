@@ -2,7 +2,7 @@
 title: "CI — how this repository builds"
 description: "The CI workflow map: tiers, required checks, owner settings checklist, and local parity via make targets."
 sourcePath: "docs/ci.md"
-sourceSha256: "d94d99e6110be5a52e4acc8a20dd27e547ddf3700cfe3568fb705ffc71f6d4fb"
+sourceSha256: "d7ff6b3dc5d3758a197e05278c2697504974a30ed9a4246eacab3c226bf01551"
 syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
@@ -60,6 +60,16 @@ existing `py-test` / `py-test-integration` tiers (`tests/bench/`).
 A docs-only PR runs `changes` + `docs` (+ `workflow-security` if workflows changed) and
 passes legitimately — conditional jobs skip and the aggregator verifies each skip against
 the change detection.
+
+### Node runtime contract
+
+`[DD]` Active jobs never inherit the mutable Node version preinstalled on
+`ubuntu-latest`. Every job that invokes Corepack first runs the full-SHA-pinned
+`actions/setup-node` v7.0.0 action and resolves Node from the package it operates:
+`web/.nvmrc` for workbench/build jobs and `site/.nvmrc` for marketing-site jobs. Package
+manager versions remain locked by each package's `packageManager` field and lockfile.
+A stdlib-only workflow contract test fails if any active Corepack job loses, reorders, or
+changes that runtime setup.
 
 ### Fail-closed sandbox skeleton
 

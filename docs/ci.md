@@ -51,6 +51,16 @@ A docs-only PR runs `changes` + `docs` (+ `workflow-security` if workflows chang
 passes legitimately — conditional jobs skip and the aggregator verifies each skip against
 the change detection.
 
+### Node runtime contract
+
+`[DD]` Active jobs never inherit the mutable Node version preinstalled on
+`ubuntu-latest`. Every job that invokes Corepack first runs the full-SHA-pinned
+`actions/setup-node` v7.0.0 action and resolves Node from the package it operates:
+`web/.nvmrc` for workbench/build jobs and `site/.nvmrc` for marketing-site jobs. Package
+manager versions remain locked by each package's `packageManager` field and lockfile.
+A stdlib-only workflow contract test fails if any active Corepack job loses, reorders, or
+changes that runtime setup.
+
 ### Fail-closed sandbox skeleton
 
 `[DD]` The `sandbox` workflow cannot be used as live-provider evidence today. Its sole
