@@ -1,11 +1,14 @@
-# Irrevon benchmark (IrrevonBench, L4b) — SKELETON. ACTIVATES AT M7 (preregistered
-# runs; master doc section 15). Human-dispatched only; never add implicit
-# triggers. Map: docs/ci.md.
+# Irrevon benchmark (IrrevonBench, L4b) — FAIL-CLOSED SKELETON. ACTIVATES AT
+# M7 only after the human Stage-B freeze and a separate activation task
+# replace the reserved Make target's unconditional refusal with a real,
+# registered run recipe (master doc section 15). Human-dispatched only; never
+# add implicit triggers. Map: docs/ci.md.
 #
 # Boundary design (public-repo model): runs inside the `benchmark` environment —
 # OWNER-CREATED with a required reviewer BEFORE the first dispatch (a run that
 # references a nonexistent environment silently auto-creates it UNPROTECTED).
-# Sandbox-only credentials live as environment secrets here, never repo-level.
+# Sandbox-only credentials eventually live as environment secrets here, never
+# repo-level. This skeleton deliberately reads NO secret.
 #
 # Integrity rules carried from the preregistration + CI design:
 #   - NO CACHING anywhere in this workflow: benchmark runs resolve everything
@@ -15,8 +18,10 @@
 #     so evidence is sanitized by construction before upload.
 #   - Runs happen from tagged commits per the preregistration run protocol;
 #     seeds come from the frozen plan, never from inputs.
-#   - cancel-in-progress stays false: killing a run mid-flight leaves sandbox
-#     residue; runs queue instead.
+#   - cancel-in-progress stays false: killing a future run mid-flight leaves
+#     sandbox residue; runs queue instead.
+#   - No path/secret/registration existence check may make the skeleton green.
+#     `make benchmark-stage-b` unconditionally refuses until human activation.
 name: benchmark
 
 on:
@@ -41,44 +46,27 @@ concurrency:
 
 jobs:
   bench:
-    name: IrrevonBench run (M7 skeleton)
+    name: IrrevonBench run (M7 fail-closed skeleton)
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: benchmark
     permissions:
       contents: read
-    env:
-      BENCH_SUITE: ${{ inputs.suite }}
-      BENCH_REASON: ${{ inputs.reason }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Not yet implemented (activates at M7)
-        run: |
-          set -euo pipefail
-          echo "suite: ${BENCH_SUITE} / reason: ${BENCH_REASON}"
-          if [ ! -f pyproject.toml ]; then
-            echo "::error::benchmark suite activates at M7 — no harness exists yet."
-            exit 1
-          fi
+      # This is the entire executable body today. The reserved target is an
+      # unconditional refusal: no configured secret, checked-in file, or
+      # registration-shaped placeholder can bypass it. A future human-approved
+      # activation task must replace that target's recipe with the complete M7
+      # contract and update its static regression test in the same change.
+      - name: Refuse until the human Stage-B activation
+        run: make benchmark-stage-b
 
-      # Missing-secret guard: absent secrets evaluate to EMPTY STRINGS and do not
-      # fail the job by themselves; guard before any credentialed step.
-      # Secret name is a placeholder until ADR-0012 settles it.
-      - name: Guard - required environment secrets present
-        env:
-          C2_SANDBOX_API_KEY: ${{ secrets.C2_SANDBOX_API_KEY }}
-        run: |
-          set -euo pipefail
-          if [ -z "$C2_SANDBOX_API_KEY" ]; then
-            echo "::error::C2_SANDBOX_API_KEY is empty — configure it as a secret on the 'benchmark' environment (never repo-level)."
-            exit 1
-          fi
-          echo "guard: required secrets present"
-
-      # M7 body (design; digest-pinned Postgres service container added then):
+      # Future M7 body (design; NOT executable today; digest-pinned Postgres
+      # service container and pinned tool bootstrap added at activation):
       #   - write run manifest (ref, suite, reason, environment) into bench-out/
       #   - run the preregistered suite: make bench-<suite>
       #   - verify no residual sandbox effects (if: always() — cleanup
@@ -86,5 +74,3 @@ jobs:
       #   - sanitize bench-out/, hash it, commit to the append-only evidence
       #     home per the preregistration, and upload a 90-day transport artifact
       #     (actions/upload-artifact pinned in nightly.yml's style)
-      - name: Placeholder
-        run: echo "benchmark skeleton - nothing to run yet"

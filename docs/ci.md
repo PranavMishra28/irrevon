@@ -12,9 +12,9 @@ that date.
 |---|---|---|---|
 | [`ci.yml`](../.github/workflows/ci.yml) | every push + PR | The required PR gate: change detection → conditional jobs → the `ci-required` aggregator | active |
 | [`nightly.yml`](../.github/workflows/nightly.yml) | cron 09:17 UTC + dispatch | Full local gate on a clean machine + online audits (external links, networked zizmor); grows the T3 suites at M3+; files/updates one title-deduplicated nightly-failure issue on red | active |
-| [`sandbox.yml`](../.github/workflows/sandbox.yml) | `workflow_dispatch` only | T4 credentialed sandbox contract tests — skeleton, activates at M4; gated by the `sandbox` environment | skeleton |
-| [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | IrrevonBench preregistered runs — skeleton, activates at M7; gated by the `benchmark` environment | skeleton |
-| [`release.yml`](../.github/workflows/release.yml) | disabled (`if: false` guard) | Prepared release pipeline (version check, deterministic build, checksums, SBOM, attestation, human approval, OIDC publish) — enabled only at the public-release gate | disabled |
+| [`sandbox.yml`](../.github/workflows/sandbox.yml) | `workflow_dispatch` only | T4 sandbox contracts — fail-closed skeleton, gated by the `sandbox` environment; every dispatch is deliberately red until human M4 activation | skeleton (always refuses) |
+| [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | IrrevonBench preregistered runs — fail-closed skeleton, gated by the `benchmark` environment; every dispatch is deliberately red until human Stage-B activation | skeleton (always refuses) |
+| [`release.yml`](../.github/workflows/release.yml) | `workflow_dispatch` only | Package-release fail-closed skeleton; every dispatch runs an unconditional refusal and is deliberately red until a separate human activation after every public-release gate item | skeleton (always refuses) |
 | [`dependabot.yml`](../.github/dependabot.yml) | monthly | Noise-contained policy (tuned at consolidation, 2026-07-21): one grouped catch-all PR per ecosystem (actions / uv / npm), `open-pull-requests-limit: 1`, 7-day cooldowns (30-day uv majors; npm majors ignored — deliberate human migrations per ADR-0016), owner auto-assigned; security PRs bypass schedule and cooldown | active |
 
 ## Tier table — what runs when
@@ -35,8 +35,9 @@ that date.
 | — | `ci-required` (ci) | `if: always()` | aggregates all of the above; the ONLY required check | active |
 | T3 nightly | `validate` + `t3-backend` (nightly) | cron | `make check` + online audits; conformance-budget properties + full integration suite (fault-matrix subset vs the stub destination) | active |
 | wheel smoke | `wheel-smoke` (nightly) | cron | `make dist-smoke` (= `make dist` + the Node-less container smoke; ADR-0018 chain, wheel + sdist legs) | active — nightly, not PR: needs docker + a second full web build + wheel build; the PR-side integration truth is `web-e2e-live` |
-| T4 sandbox | `sandbox-contract` (sandbox) | human dispatch + env approval | M4: `make sandbox-contract` | skeleton |
-| benchmark | `bench` (benchmark) | human dispatch + env approval | M7: preregistered suites, cache-free, sanitized evidence (`irrevon bench run` — integrity refusal until the human Stage-B freeze) | skeleton |
+| T4 sandbox | `sandbox-contract` (sandbox) | human dispatch + env approval | Today: exactly `make sandbox-stage-m4`, whose reserved recipe unconditionally refuses. M4 activation must replace it with the reviewed credentialed contract recipe | skeleton (always refuses) |
+| benchmark | `bench` (benchmark) | human dispatch + env approval | Today: exactly `make benchmark-stage-b`, whose reserved recipe unconditionally refuses. M7 activation must replace it with the complete preregistered, cache-free, sanitized-evidence recipe | skeleton (always refuses) |
+| package release | `release-gate` (release) | human dispatch | Today: exactly `make release-gate`, whose reserved recipe unconditionally refuses. A separate human activation may replace it only after every public-release gate item closes | skeleton (always refuses) |
 
 The local `make check-all` ladder includes `web-check`, `web-test`, and `web-e2e`; F4
 pixel baselines remain the explicit container-only `make web-vrt` gate. The bench
@@ -49,6 +50,54 @@ existing `py-test` / `py-test-integration` tiers (`tests/bench/`).
 A docs-only PR runs `changes` + `docs` (+ `workflow-security` if workflows changed) and
 passes legitimately — conditional jobs skip and the aggregator verifies each skip against
 the change detection.
+
+### Fail-closed sandbox skeleton
+
+`[DD]` The `sandbox` workflow cannot be used as live-provider evidence today. Its sole
+executable body after checkout is the reserved `make sandbox-stage-m4` entrypoint, and that
+target unconditionally exits nonzero without reading an input or credential, testing for a
+file, invoking a harness, creating an artifact, or contacting a provider. Consequently,
+configuring repository state cannot turn the dormant skeleton green.
+
+Activation is a separate human-reviewed M4 task after Stage A, the human ADR-0010 and
+ADR-0012 decisions, applicable terms review, and a real credentialed contract recipe. In one
+reviewed change it must replace the refusal with that recipe, add guards for the
+human-selected environment credentials, preserve manual dispatch and environment approval,
+and replace the static refusal contract with tests of the active target. A green
+pre-activation dispatch is a workflow-integrity failure, not a successful sandbox contract.
+
+### Fail-closed benchmark skeleton
+
+`[DD]` The `benchmark` workflow cannot be used as evidence today. Its sole executable body
+after checkout is the reserved `make benchmark-stage-b` entrypoint, and that target
+unconditionally exits nonzero without reading a secret, testing for a file, invoking the
+harness, or contacting a provider. Consequently, creating the `benchmark` environment,
+configuring any secret, or committing a registration-shaped file cannot turn the skeleton
+green.
+
+Activation is a separate human-approved Stage-B task after the preregistration's P7 gate. In
+one reviewed change it must replace the refusal with the complete registered run procedure,
+pin its environment/tooling, add credential guards before any credentialed step, preserve
+the manual trigger and environment approval, and replace the static refusal contract with
+tests of the real target. A green pre-activation dispatch is a workflow integrity failure,
+not a successful benchmark.
+
+### Fail-closed package-release skeleton
+
+`[DD]` The `release` workflow cannot be used as release-readiness evidence today. Manual
+dispatch has no inputs and cannot be skipped by a condition: after credential-free checkout,
+its sole executable body is `make release-gate`. That reserved target unconditionally exits
+nonzero without reading a secret, checking for a file, building a distribution, creating an
+artifact, requesting OIDC, or publishing anything. Every pre-activation dispatch must
+therefore finish red; a skipped or green result is a workflow integrity failure.
+
+Activation is a separate human-reviewed change only after **every** item in
+[`docs/execution-plan.md`'s public-release gate](execution-plan.md#public-release-gate-last-listed-once)
+is complete. That change must replace the refusal with the complete release procedure,
+establish the approved trigger and environment, grant only the permissions each reviewed
+step needs, and replace the static refusal contract with tests of the activated workflow.
+The commented outline in `release.yml` is non-executable design context, not an activation
+checklist or a claim that the release mechanics are ready.
 
 ## Local parity
 
@@ -132,8 +181,9 @@ Before the first M4/M7 dispatch:
   the aggregator then sees "legit" skips. The aggregator defends against accidental skips;
   human review of any workflow diff is the control against adversarial ones `[EI]`.
 - **Missing secret = empty string.** An absent Actions secret does not fail a job; it
-  evaluates to `""`. Sandbox/benchmark jobs carry explicit non-empty guards before any
-  credentialed step — keep that pattern for every future secret.
+  evaluates to `""`. The fail-closed sandbox/benchmark skeletons deliberately read no
+  secret today. Their activation changes must add an explicit non-empty guard before each
+  credentialed step; keep that pattern for every future secret.
 - **Nightly silently auto-disables** after 60 days without repo activity (public repos)
   `[VF]`. Quarterly sweep: confirm the nightly workflow is still enabled, re-verify the
   action pin table and (at M3+) the Postgres digest, which Dependabot does not bump.

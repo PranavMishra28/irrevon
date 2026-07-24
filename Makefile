@@ -261,7 +261,7 @@ third-party:
 # so `check` stays install-free; the encoder-exact fixture parity and the full
 # harness suites run under py-test / py-test-integration. bench-smoke is the
 # CLI-level end-to-end (conventional arms only — no DB) folded into check-all.
-.PHONY: bench-integrity bench-smoke
+.PHONY: bench-integrity bench-smoke benchmark-stage-b sandbox-stage-m4 release-gate
 check: bench-integrity
 
 bench-integrity:
@@ -276,6 +276,34 @@ bench-smoke:
 	  --arms B0,B1,B3,B5,B6,B5+B3+B6 >/dev/null
 
 check-all: bench-smoke
+
+# Reserved M7 workflow entrypoint. This recipe is intentionally unconditional:
+# neither a credential nor the existence of a registration-shaped file can
+# turn a no-op into a green benchmark run. A later human-approved Stage-B
+# activation task must replace this refusal with the complete registered run
+# procedure and update the fail-closed workflow contract in the same change.
+benchmark-stage-b:
+	@echo "benchmark-stage-b: REFUSED - the M7 workflow is a fail-closed skeleton." >&2
+	@echo "A human Stage-B freeze and a real registered benchmark recipe are required." >&2
+	@exit 1
+
+# Reserved M4 sandbox-workflow entrypoint. This recipe is intentionally
+# unconditional: no input, credential, or checked-in file can turn a dormant
+# dispatch green. A separate human-reviewed activation task may replace it only
+# after Stage A, ADR-0010/ADR-0012, terms review, and the contract recipe close.
+sandbox-stage-m4:
+	@echo "sandbox-stage-m4: REFUSED - the M4 workflow is a fail-closed skeleton." >&2
+	@echo "Stage A and every human sandbox-activation gate must close first." >&2
+	@exit 1
+
+# Reserved public-release workflow entrypoint. This recipe is intentionally
+# unconditional: neither an input, credential, nor checked-in file can turn a
+# dormant dispatch green. A separate human-approved activation task may replace
+# it only after every item in docs/execution-plan.md's public-release gate closes.
+release-gate:
+	@echo "release-gate: REFUSED - distribution is a fail-closed skeleton." >&2
+	@echo "Every public-release gate item and a separate human activation are required." >&2
+	@exit 1
 
 # Live E2E foundation for the consolidator's `web-e2e-live` (WEB's Playwright
 # suite consumes this). Invocation contract (tests/serve/live_server.py):
