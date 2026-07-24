@@ -3,9 +3,17 @@
   "as_of": "2026-07-24",
   "license": "Apache-2.0",
   "repository_visibility": "public",
-  "release_posture": "research-preview-unpublished",
-  "prepared_version": "0.1.0",
-  "prepared_label": "v0.1.0-alpha-candidate",
+  "software_release": {
+    "state": "candidate",
+    "package": "irrevon",
+    "version": "0.1.0",
+    "tag": "v0.1.0",
+    "channel": "alpha",
+    "pypi_url": "https://pypi.org/project/irrevon/0.1.0/",
+    "github_release_url": "https://github.com/PranavMishra28/irrevon/releases/tag/v0.1.0",
+    "published_at": null,
+    "commit_sha": null
+  },
   "contributions": {
     "open": true,
     "license": "Apache-2.0",
@@ -42,10 +50,11 @@
     "workbench_network": "loopback-only",
     "public_site": {
       "alias": "https://irrevon.vercel.app/",
-      "state": "stale-pre-main-build",
-      "observed_content": "matches-2026-07-22-pre-main-build",
-      "version_json": "absent",
-      "deployed_commit_proof": false
+      "state": "ready-current",
+      "deployment_mode": "main-auto-deploy",
+      "observed_content": "matches-current-main",
+      "version_json": "present",
+      "deployed_commit_proof": true
     }
   },
   "community": {
@@ -57,19 +66,35 @@
     ],
     "private_vulnerability_reporting": true,
     "discussions": {
-      "enabled": false,
-      "public_links_exposed": false,
-      "intended_categories": [
-        "Announcements",
-        "Q&A",
-        "Ideas and feedback",
-        "Show and tell"
-      ],
-      "owner_gate": [
-        "enable-discussions",
-        "create-or-verify-categories",
-        "publish-and-pin-welcome-post",
-        "read-back-every-category-url"
+      "enabled": true,
+      "url": "https://github.com/PranavMishra28/irrevon/discussions",
+      "public_links_exposed": true,
+      "welcome_url": null,
+      "categories": [
+        {
+          "name": "Announcements",
+          "url": "https://github.com/PranavMishra28/irrevon/discussions/categories/announcements"
+        },
+        {
+          "name": "General",
+          "url": "https://github.com/PranavMishra28/irrevon/discussions/categories/general"
+        },
+        {
+          "name": "Ideas",
+          "url": "https://github.com/PranavMishra28/irrevon/discussions/categories/ideas"
+        },
+        {
+          "name": "Polls",
+          "url": "https://github.com/PranavMishra28/irrevon/discussions/categories/polls"
+        },
+        {
+          "name": "Q&A",
+          "url": "https://github.com/PranavMishra28/irrevon/discussions/categories/q-a"
+        },
+        {
+          "name": "Show and tell",
+          "url": "https://github.com/PranavMishra28/irrevon/discussions/categories/show-and-tell"
+        }
       ]
     }
   },
@@ -80,13 +105,13 @@
   },
   "owner_settings_readback": {
     "as_of": "2026-07-24",
-    "ruleset": "active-with-repository-role-bypass",
-    "discussions": false,
+    "ruleset": "active-no-bypass-actors",
+    "discussions": true,
     "non_provider_secret_scanning": false,
-    "immutable_releases": false,
-    "actions_allowlist": false,
-    "actions_sha_pinning_enforcement": false,
-    "release_environment": false,
+    "immutable_releases": true,
+    "actions_allowlist": true,
+    "actions_sha_pinning_enforcement": true,
+    "release_environment": true,
     "sandbox_environment": false,
     "benchmark_environment": false
   },

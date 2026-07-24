@@ -7,6 +7,7 @@ test("version manifest exposes complete, non-placeholder build provenance", asyn
   const manifest = await response.json();
   expect(manifest).toEqual({
     release_version: expect.stringMatching(/^\d+\.\d+\.\d+(?:[.+-][0-9A-Za-z.-]+)?$/),
+    release_status: expect.stringMatching(/^(candidate|published)$/),
     commit_sha: expect.stringMatching(/^[0-9a-f]{40}$/),
     built_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/),
     benchmark_harness_version: expect.stringMatching(/^\d+\.\d+\.\d+$/),

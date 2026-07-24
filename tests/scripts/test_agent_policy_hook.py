@@ -9,6 +9,22 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 HOOK = ROOT / ".cursor" / "hooks" / "deny.sh"
 REPO = "PranavMishra28/irrevon"
+WELCOME_PAYLOAD = Path("/tmp/irrevon-v010-welcome-discussion.json")
+WELCOME_QUERY = (
+    "mutation CreateDiscussion($repositoryId: ID!, $categoryId: ID!, "
+    "$title: String!, $body: String!) { createDiscussion(input: "
+    "{repositoryId: $repositoryId, categoryId: $categoryId, title: $title, "
+    "body: $body}) { discussion { url } } }"
+)
+WELCOME_BODY = (
+    "Use Discussions for questions, ideas, design feedback, integrations, "
+    "experiments, and advice. Use Issues for reproducible bugs, documentation "
+    "defects, benchmark-integrity concerns, and scoped work. Pull requests are "
+    "for implementations. Report security vulnerabilities privately through "
+    "GitHub Private Vulnerability Reporting. This community has no support SLA; "
+    "participation is governed by the Code of Conduct. Never post credentials, "
+    "private payloads, benchmark holdouts, or personal data."
+)
 
 
 def decision(command: str) -> str:
@@ -20,6 +36,61 @@ def decision(command: str) -> str:
         text=True,
     )
     return json.loads(completed.stdout)["permission"]
+
+
+def welcome_payload(**overrides: object) -> dict[str, object]:
+    variables: dict[str, object] = {
+        "repositoryId": "R_kgDOTeu25A",
+        "categoryId": "DIC_kwDOTeu25M4DB51i",
+        "title": "Welcome to the Irrevon community",
+        "body": WELCOME_BODY,
+    }
+    variables.update(overrides.pop("variables", {}))  # type: ignore[arg-type]
+    payload: dict[str, object] = {"query": WELCOME_QUERY, "variables": variables}
+    payload.update(overrides)
+    return payload
+
+
+def welcome_decision(payload: dict[str, object]) -> str:
+    previous = WELCOME_PAYLOAD.read_bytes() if WELCOME_PAYLOAD.exists() else None
+    try:
+        WELCOME_PAYLOAD.write_text(json.dumps(payload), encoding="utf-8")
+        command = (
+            "IRREVON_V010_LAUNCH=1 gh api graphql --input /tmp/irrevon-v010-welcome-discussion.json"
+        )
+        return decision(command)
+    finally:
+        if previous is None:
+            WELCOME_PAYLOAD.unlink(missing_ok=True)
+        else:
+            WELCOME_PAYLOAD.write_bytes(previous)
+
+
+def test_only_exact_welcome_discussion_graphql_payload_is_allowed() -> None:
+    assert welcome_decision(welcome_payload()) == "allow"
+
+    invalid_payloads = (
+        welcome_payload(variables={"repositoryId": "R_wrong"}),
+        welcome_payload(variables={"categoryId": "DIC_wrong"}),
+        welcome_payload(variables={"title": "Different title"}),
+        welcome_payload(query="mutation { deleteRepository(input: {}) { clientMutationId } }"),
+        welcome_payload(unexpected=True),
+        welcome_payload(variables={"unexpected": True}),
+    )
+    for payload in invalid_payloads:
+        assert welcome_decision(payload) == "deny", payload
+
+    assert (
+        decision(
+            "gh api graphql -f "
+            "'query=mutation { deleteRepository(input: {}) { clientMutationId } }'"
+        )
+        == "deny"
+    )
+    assert (
+        decision("IRREVON_V010_LAUNCH=1 gh api graphql --input /tmp/different-discussion.json")
+        == "deny"
+    )
 
 
 def test_exact_launch_api_surfaces_are_allowed() -> None:
@@ -136,10 +207,7 @@ def test_tags_and_direct_publication_remain_fail_closed() -> None:
     assert decision("git push origin v0.1.0") == "deny"
     assert decision("IRREVON_V010_LAUNCH=1 git push origin v0.1.0") == "deny"
     assert decision("IRREVON_V010_LAUNCH=1 git push origin refs/tags/v0.1.0") == "allow"
-    destination_override = (
-        "IRREVON_V010_LAUNCH=1 git push origin "
-        "refs/tags/v0.1.0:refs/tags/latest"
-    )
+    destination_override = "IRREVON_V010_LAUNCH=1 git push origin refs/tags/v0.1.0:refs/tags/latest"
     assert decision(destination_override) == "deny"
     assert decision("git push origin refs/tags/v0.2.0") == "deny"
     assert decision("git push origin main") == "deny"

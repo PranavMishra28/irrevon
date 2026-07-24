@@ -2,7 +2,7 @@
 title: "Security policy — development process"
 description: "The development threat model and agent execution policy: what agents may do, what is human-only, and the enforcement layers."
 sourcePath: "docs/security-policy.md"
-sourceSha256: "83fc68d1a26910f2d06c9e38f445e8893cb0adc3ffaa5154b5a34c218428740e"
+sourceSha256: "c350be50a80aaa576e529580bb7152235697b886db5e0e8aa30df0864775be36"
 syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
@@ -48,7 +48,9 @@ project's benchmark-integrity reputation.
    `PranavMishra28/irrevon` and the enumerated ruleset, security, Actions, Discussions,
    `release`-environment, and pending-deployment endpoint families. Every neighboring
    repository, environment, version, endpoint, unmarked command, chained command, and
-   GraphQL mutation remains denied. The deny/allow matrix is executable in
+   GraphQL mutations remain denied except for one immutable, `jq`-validated
+   payload that creates the launch welcome Discussion in the canonical
+   repository's existing Announcements category. The deny/allow matrix is executable in
    `tests/scripts/test_agent_policy_hook.py`. Being public, the deny list is readable by
    adversaries; it was never security-by-obscurity — the controls that hold are listed
    under residual risk below.
@@ -93,14 +95,18 @@ on the completion conditions in `AGENTS.md`, after which these operations return
 human-only status `[VF]`.
 
 Repository-setting read-back on 2026-07-24 found secret scanning, push
-protection, CodeQL for Python and JavaScript/TypeScript, and the `ci-required`
-ruleset active. The ruleset still has a repository-role bypass. Discussions,
-non-provider-pattern scanning, immutable releases, platform Actions
-allowlisting/SHA-pin enforcement, and the `release`, `sandbox`, and `benchmark`
-environments remain disabled or absent. The bypass, applicable security/Actions
-settings, Discussions, immutable releases, and the `release` environment are inside the
-active v0.1.0 authorization after this policy-enablement PR merges; `sandbox` and
-`benchmark` environment activation remain outside it `[VF]`. The read-back uses the
+protection, CodeQL for Python and JavaScript/TypeScript, private vulnerability
+reporting, Dependabot security updates, immutable releases, selected Actions
+allowlisting, platform SHA-pin enforcement, and the `ci-required` ruleset
+active. The ruleset has no bypass actors. Discussions and its six default
+categories are enabled. The protected `release` environment requires the owner
+reviewer, permits self-review for the sole maintainer, contains no PyPI secret,
+and is used only by the exact OIDC publication workflow. GitHub's API still
+reports non-provider-pattern and validity scanning disabled after enablement
+attempts; the unrelated `sandbox` and `benchmark` environments remain absent
+and outside this launch `[VF]`. The environment API reports administrator
+bypass capability, but the scoped policy forbids using it; the supported REST
+update surface does not expose that UI-only toggle. The read-back uses the
 documented GitHub REST surfaces for [repository rulesets], [Actions permissions],
 [repository security settings], [immutable releases], and [deployment environments].
 

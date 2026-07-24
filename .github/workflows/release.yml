@@ -1,7 +1,9 @@
 # Release preparation is executable but publishing is human-gated. Pull
 # requests and manual dispatches run only `dry-run`; only an owner-pushed
 # version tag in the canonical repository can reach the protected `release`
-# environment and its PyPI/GitHub publication steps.
+# environment. A tagged run stages a reviewed draft GitHub Release first,
+# publishes the immutable Python artifacts through PyPI Trusted Publishing,
+# and makes the GitHub Release public only after PyPI reports success.
 name: release
 
 on:
@@ -189,9 +191,103 @@ jobs:
             dist/SHA256SUMS
             dist/irrevon.spdx.json
 
+  stage-github-release:
+    name: Stage reviewed GitHub draft release
+    needs: build-attest
+    if: >-
+      github.ref_type == 'tag' &&
+      github.event_name == 'push' &&
+      github.repository == 'PranavMishra28/irrevon' &&
+      github.actor == github.repository_owner
+    environment: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # create a private draft and upload the reviewed artifacts
+    steps:
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: irrevon-release-${{ github.ref_name }}
+          path: dist
+      - name: Verify artifacts and stage the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          (
+            cd dist
+            sha256sum --check SHA256SUMS
+            test "$(find . -maxdepth 1 -name '*.whl' | wc -l)" -eq 1
+            test "$(find . -maxdepth 1 -name '*.tar.gz' | wc -l)" -eq 1
+            python -m json.tool irrevon.spdx.json >/dev/null
+          )
+
+          notes_file="$RUNNER_TEMP/release-notes.md"
+          cat >"$notes_file" <<'EOF'
+          Irrevon 0.1.0 is the initial Alpha release of the reference
+          reconciliation engine and IrrevonBench development harness for
+          irreversible AI-agent actions.
+
+          ## What ships
+
+          - the continuous single-writer reconciliation engine;
+          - the loopback-only, read-only Workbench;
+          - deterministic synthetic demonstrations and public development fixtures;
+          - the IrrevonBench development harness and conformance checks;
+          - draft Stripe C1 and EasyPost C2 adapters that reject production credentials;
+          - the `irrevon` CLI, Python wheel, source distribution, checksums, and SPDX SBOM.
+
+          ## Evidence boundary
+
+          This is Alpha software. Development evidence is synthetic, the scientific
+          preregistration remains an unfrozen draft, and no confirmatory benchmark
+          result or independent reproduction exists. The provider adapters have not
+          been live-called or qualified. This release does not claim production
+          adoption, production readiness, or universal exactly-once behavior.
+
+          ## Install
+
+          Requires Python 3.13 or newer:
+
+          ```console
+          python -m pip install irrevon==0.1.0
+          ```
+
+          Verify downloaded release assets against `SHA256SUMS`; GitHub artifact
+          attestations provide build provenance for the wheel, source distribution,
+          checksum manifest, and SBOM.
+          EOF
+
+          title="Irrevon $TAG_NAME — Alpha"
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            test "$(gh release view "$TAG_NAME" --json isDraft --jq .isDraft)" = "true" || {
+              echo "::error::refusing to replace an already-published release"
+              exit 1
+            }
+            gh release edit "$TAG_NAME" --draft --title "$title" --notes-file "$notes_file"
+            gh release upload "$TAG_NAME" \
+              dist/*.whl dist/*.tar.gz dist/SHA256SUMS dist/irrevon.spdx.json \
+              --clobber
+          else
+            gh release create "$TAG_NAME" \
+              dist/*.whl dist/*.tar.gz dist/SHA256SUMS dist/irrevon.spdx.json \
+              --draft --verify-tag --title "$title" --notes-file "$notes_file"
+          fi
+
+          test "$(gh release view "$TAG_NAME" --json isDraft --jq .isDraft)" = "true"
+          expected_assets=$(
+            cd dist
+            printf '%s\n' ./*.whl ./*.tar.gz ./SHA256SUMS ./irrevon.spdx.json |
+              sed 's#^\./##' |
+              sort
+          )
+          actual_assets=$(gh release view "$TAG_NAME" --json assets --jq '.assets[].name' | sort)
+          test "$actual_assets" = "$expected_assets"
+
   publish-pypi:
     name: Protected PyPI publication
-    needs: build-attest
+    needs: stage-github-release
     if: >-
       github.ref_type == 'tag' &&
       github.event_name == 'push' &&
@@ -217,14 +313,54 @@ jobs:
           python -m json.tool irrevon.spdx.json >/dev/null
           mkdir ../packages
           cp ./*.whl ./*.tar.gz ../packages/
+      - name: Refuse a conflicting immutable PyPI version
+        id: pypi-state
+        env:
+          PACKAGE_VERSION: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+
+          version = os.environ["PACKAGE_VERSION"].removeprefix("v")
+          expected = {
+              path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+              for path in Path("packages").iterdir()
+          }
+          url = f"https://pypi.org/pypi/irrevon/{version}/json"
+          try:
+              with urllib.request.urlopen(url, timeout=15) as response:
+                  payload = json.load(response)
+          except urllib.error.HTTPError as error:
+              if error.code != 404:
+                  raise
+              publish = True
+          else:
+              published = {
+                  item["filename"]: item["digests"]["sha256"]
+                  for item in payload["urls"]
+              }
+              if published != expected:
+                  raise SystemExit("PyPI already has conflicting files for this version")
+              publish = False
+
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
+              output.write(f"publish={str(publish).lower()}\n")
+          PY
       - name: Publish to PyPI with Trusted Publishing
+        if: steps.pypi-state.outputs.publish == 'true'
         uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # v1.14.1
         with:
           packages-dir: packages
 
   publish-github:
-    name: Protected GitHub release
-    needs: [build-attest, publish-pypi]
+    name: Publish verified GitHub release
+    needs: [stage-github-release, publish-pypi]
     if: >-
       github.ref_type == 'tag' &&
       github.event_name == 'push' &&
@@ -234,21 +370,72 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: write # create the GitHub release and upload its artifacts
+      contents: write # publish the already-staged draft after PyPI succeeds
     steps:
       - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: irrevon-release-${{ github.ref_name }}
           path: dist
-      - name: Verify and create the GitHub release
+      - name: Verify PyPI and publish the staged GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          cd dist
-          sha256sum --check SHA256SUMS
-          cd ..
-          gh release create "$TAG_NAME" \
-            dist/*.whl dist/*.tar.gz dist/SHA256SUMS dist/irrevon.spdx.json \
-            --verify-tag --generate-notes --title "Irrevon $TAG_NAME"
+          (
+            cd dist
+            sha256sum --check SHA256SUMS
+          )
+
+          export PACKAGE_VERSION="${TAG_NAME#v}"
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import time
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+
+          version = os.environ["PACKAGE_VERSION"]
+          expected = {
+              path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+              for pattern in ("*.whl", "*.tar.gz")
+              for path in Path("dist").glob(pattern)
+          }
+          if len(expected) != 2:
+              raise SystemExit("expected exactly one wheel and one source distribution")
+
+          url = f"https://pypi.org/pypi/irrevon/{version}/json"
+          for attempt in range(12):
+              try:
+                  with urllib.request.urlopen(url, timeout=15) as response:
+                      payload = json.load(response)
+                  published = {
+                      item["filename"]: item["digests"]["sha256"]
+                      for item in payload["urls"]
+                  }
+                  if published == expected:
+                      break
+              except (OSError, KeyError, ValueError, urllib.error.HTTPError):
+                  pass
+              if attempt == 11:
+                  raise SystemExit("PyPI files did not match the reviewed artifacts")
+              time.sleep(5)
+          PY
+
+          test "$(gh release view "$TAG_NAME" --json isDraft --jq .isDraft)" = "true" || {
+            echo "::error::the staged release is missing or is no longer a draft"
+            exit 1
+          }
+          expected_assets=$(
+            cd dist
+            printf '%s\n' ./*.whl ./*.tar.gz ./SHA256SUMS ./irrevon.spdx.json |
+              sed 's#^\./##' |
+              sort
+          )
+          actual_assets=$(gh release view "$TAG_NAME" --json assets --jq '.assets[].name' | sort)
+          test "$actual_assets" = "$expected_assets"
+
+          gh release edit "$TAG_NAME" --draft=false --latest
+          test "$(gh release view "$TAG_NAME" --json isDraft --jq .isDraft)" = "false"

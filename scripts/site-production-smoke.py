@@ -37,10 +37,22 @@ EXPECTED_NAVIGATION = (
     "Docs",
     "Install",
     "Contribute",
+    "Community",
     "GitHub",
+)
+REQUIRED_FOOTER_LINKS = (
+    "Product",
+    "Documentation",
+    "Demo",
+    "Community",
+    "GitHub",
+    "Security",
+    "Privacy",
+    "License",
 )
 VERSION_FIELDS = {
     "release_version",
+    "release_status",
     "commit_sha",
     "built_at",
     "benchmark_harness_version",
@@ -86,6 +98,14 @@ LEGACY_HOME_MARKERS = (
     "No advantage on C1 —",
     "C3 is an impossibility boundary",
     "Synthetic S-REF development",
+    "Pre-release",
+    "not on any package index",
+    "Discussions is currently disabled",
+    "counsel trademark screen",
+    "Scientific results are not claimed",
+    "Research-preview status",
+    "Apache-2.0 source",
+    "Read the master document",
 )
 
 
@@ -104,9 +124,7 @@ class _PageContractParser(HTMLParser):
         self._in_primary_link = False
         self._primary_link_text: list[str] = []
 
-    def handle_starttag(
-        self, tag: str, attrs_list: list[tuple[str, str | None]]
-    ) -> None:
+    def handle_starttag(self, tag: str, attrs_list: list[tuple[str, str | None]]) -> None:
         attrs = {key.lower(): value or "" for key, value in attrs_list}
         if tag == "link" and "canonical" in attrs.get("rel", "").lower().split():
             self.canonicals.append(attrs.get("href", ""))
@@ -116,9 +134,7 @@ class _PageContractParser(HTMLParser):
             for kind in ("property", "name", "http-equiv"):
                 value = attrs.get(kind)
                 if value:
-                    self.meta.setdefault((kind, value.lower()), []).append(
-                        attrs.get("content", "")
-                    )
+                    self.meta.setdefault((kind, value.lower()), []).append(attrs.get("content", ""))
         if tag == "nav" and attrs.get("aria-label") == "Primary":
             self._in_primary = True
         elif tag == "a" and self._in_primary:
@@ -181,9 +197,7 @@ def _parse_page(path: Path) -> tuple[str, _PageContractParser]:
     return html, parser
 
 
-def _one_meta(
-    parser: _PageContractParser, kind: str, name: str, page: str
-) -> str:
+def _one_meta(parser: _PageContractParser, kind: str, name: str, page: str) -> str:
     values = parser.meta.get((kind, name), [])
     if len(values) != 1:
         raise SmokeFailure(f"{page} must contain exactly one {kind}={name}")
@@ -232,8 +246,26 @@ def _validate_pages(dist: Path, origin: str, expected_commit: str) -> None:
                     "home primary navigation does not match the launch contract: "
                     + ", ".join(parser.primary_links)
                 )
-            if not any(href.endswith(f"/commit/{expected_commit}") for href in parser.hrefs):
-                raise SmokeFailure("home footer does not identify the expected commit")
+            footer_match = re.search(
+                r'<footer class="site-footer">(?P<footer>.*?)</footer>',
+                html,
+                flags=re.DOTALL,
+            )
+            if footer_match is None:
+                raise SmokeFailure("home page is missing the global product footer")
+            footer = footer_match.group("footer")
+            for label in REQUIRED_FOOTER_LINKS:
+                if not re.search(rf">\s*{re.escape(label)}\s*</a>", footer):
+                    raise SmokeFailure(f"home footer is missing {label!r}")
+            for forbidden in (
+                "Scientific results are not claimed",
+                "Research-preview status",
+                "Apache-2.0 source",
+                "version.json",
+                "Status and provenance",
+            ):
+                if forbidden in footer:
+                    raise SmokeFailure(f"home footer retains launch clutter: {forbidden}")
             for marker in LEGACY_HOME_MARKERS:
                 if marker in html:
                     raise SmokeFailure(f"home page retains legacy launch wording: {marker}")
@@ -315,9 +347,7 @@ def _validate_vercel_config(path: Path) -> None:
             raise SmokeFailure(f"vercel.json {key} does not match the production build contract")
     git = config.get("git")
     if not isinstance(git, dict) or git.get("deploymentEnabled") != VERCEL_GIT_CONTRACT:
-        raise SmokeFailure(
-            "vercel.json must enable automatic deployment for main only"
-        )
+        raise SmokeFailure("vercel.json must enable automatic deployment for main only")
     for key, value in GLOBAL_HEADERS.items():
         if _headers_for(config, "/(.*)").get(key) != value:
             raise SmokeFailure(f"vercel.json global {key} policy does not match the contract")
@@ -362,6 +392,7 @@ def validate_dist(
 
     checks = {
         "release_version": r"\d+\.\d+\.\d+(?:[.+-][0-9A-Za-z.-]+)?",
+        "release_status": r"(?:candidate|published)",
         "commit_sha": r"[0-9a-f]{40}",
         "built_at": r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z",
         "benchmark_harness_version": r"\d+\.\d+\.\d+",

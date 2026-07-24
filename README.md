@@ -9,7 +9,7 @@
 [![CI](https://github.com/PranavMishra28/irrevon/actions/workflows/ci.yml/badge.svg)](https://github.com/PranavMishra28/irrevon/actions/workflows/ci.yml)
 [![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-3776AB)](pyproject.toml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
-[![Release: unpublished](https://img.shields.io/badge/release-unpublished-orange)](docs/execution-plan.md)
+[![Release: v0.1.0 alpha](https://img.shields.io/badge/release-v0.1.0_alpha-5B5BD6)](https://irrevon.vercel.app/status/)
 
 An agent asks an API to create a payment, shipment, order, or booking. The
 destination commits, the response disappears, and the agent cannot know whether
@@ -17,24 +17,21 @@ retrying will duplicate the real-world effect. Irrevon persists intent before
 dispatch, makes ambiguity explicit, and reconciles against destination evidence
 instead of guessing.
 
-> **Current status:** public Apache-2.0 `v0.1.0` alpha candidate, not a
-> published release. The engine,
-> continuous single-writer worker, local read-only Workbench, deterministic
-> demo, benchmark development harness, and package build are implemented.
-> Development evidence is synthetic. The preregistration is an unfrozen draft,
-> there are no confirmatory results, and the Stripe/EasyPost adapters are drafts
-> that have never been live-called. Nothing has been published to PyPI.
->
-> The configured [public site](https://irrevon.vercel.app/) is not the current
-> source of truth: its observed content matches the July 22 pre-main build and
-> `/version.json` is absent. That observation does not cryptographically identify
-> its deployed commit. Use this repository until the owner redeploys and verifies
-> the production alias.
+> **Current status:** Apache-2.0 `v0.1.0` Alpha. The engine, continuous
+> single-writer worker, local read-only Workbench, deterministic demo,
+> benchmark development harness, and distribution pipeline are implemented.
+> Development evidence is synthetic. The scientific preregistration remains a
+> draft: nothing is frozen, no confirmatory result exists, and no live
+> destination is qualified. Verify the deployed version and commit on the
+> [Status page](https://irrevon.vercel.app/status/) or in
+> [`/version.json`](https://irrevon.vercel.app/version.json).
 
 ## Quickstart
 
-You do **not** need a hosted Postgres account. The demo uses the digest-pinned
-PostgreSQL 17 container in this repository and binds it only to loopback.
+You do **not** need a hosted Postgres account. The source quickstart uses the
+digest-pinned PostgreSQL 17 container in this repository and binds it only to
+loopback. See the [Status page](https://irrevon.vercel.app/status/) for
+versioned package availability and provenance.
 
 Prerequisites: [uv](https://docs.astral.sh/uv/), Docker with Compose, and Git.
 Viewing the source-built Workbench additionally requires Node 24 and Corepack.
@@ -163,9 +160,9 @@ compensation into rollback, or make an incapable destination knowable.
 | Worker | Continuous recovery/reconciliation/sweep loop, writer exclusion, graceful termination, health artifact | Multi-writer leasing and horizontal HA are not implemented |
 | Workbench | Read-only fixture/live evidence UI, causal history, findings, adapter and health views | Loopback-only; no mutations or remote auth |
 | IrrevonBench | Development fixtures, fault schedules, baselines, causal-history oracle, metrics, statistics, integrity refusals | No freeze, confirmatory run, result, or independent reproduction |
-| Adapters | Reference C1/C2/C3 plus draft Stripe C1 and EasyPost C2 code under synthetic transports | Provider drafts are not qualified and reject production credentials |
-| Distribution | Wheel/sdist build, exact-content check, clean-install smoke test | `irrevon` is not published on a package index |
-| Site | Static Astro product/docs build with claims registry and accessibility/link tests | Repository policy permits Vercel production builds only from `main`; the paused linked project still needs owner reactivation and production-branch verification after merge |
+| Adapters | Reference C1/C2/C3 capability declarations plus destination-specific integration drafts under synthetic transports | No live-destination qualification |
+| Distribution | Wheel/sdist build, exact-content checks, clean-install smoke tests, checksums, SBOM, attestations, and OIDC release path | Availability is reported by the Status page and release registry, not inferred from source |
+| Site | Static Astro product/docs build with claims, accessibility, link, privacy, and provenance gates | Vercel production builds only from protected `main`; `/version.json` identifies the served commit |
 
 The machine-readable source of current release truth is
 [`docs/project-status.json`](docs/project-status.json), checked by
@@ -188,12 +185,11 @@ Start with the [integration guide](site/src/content/guides/integration.md) and
 [adapter-development guide](site/src/content/guides/adapter-development.md).
 Machine-readable contracts live in [`schemas/`](schemas/README.md).
 
-Provider behavior is never inferred from a mock. Declarations distinguish
-cited assumptions, synthetic contract coverage, and future observed evidence.
-Real provider use remains blocked on owner-approved terms review and bounded
-sandbox spikes.
+Destination behavior is never inferred from a mock. Capability declarations
+separate cited semantics, synthetic contract coverage, and observed evidence.
+The Alpha makes no live-destination qualification claim.
 
-## Evaluated deployment boundary
+## Self-hosted deployment boundary
 
 The implemented components fit a deliberately small self-hosted topology:
 
@@ -210,12 +206,12 @@ local read-only Workbench. Operators own PostgreSQL backups/PITR, secrets,
 process supervision, capacity, retention, and provider configuration. See
 [operations](docs/operations.md).
 
-This is an evaluated component boundary, not yet a supported production
-deployment profile. The standalone worker has no registration/dispatch ingress;
-an embedded host engine and the worker cannot both own the single-writer lock.
-That topology decision, a fresh-cluster restore proof, durable sweep catch-up,
-and production supervisor/container artifacts must close before production
-support is claimed.
+This Alpha boundary is self-hosted rather than a managed service. The
+standalone worker has no registration/dispatch ingress; an embedded host engine
+and the worker cannot both own the single-writer lock. Production readiness is
+an operator decision that must account for restore testing, supervision,
+capacity, retention, destination configuration, and the documented
+[operations boundary](docs/operations.md).
 
 ## Benchmark and scientific limits
 
@@ -251,17 +247,13 @@ issues or fixtures. Report vulnerabilities privately as described in
 
 ## Community and support
 
-GitHub Discussions is currently disabled, so no Discussion or category link is
-exposed. Public [issues](https://github.com/PranavMishra28/irrevon/issues)
-remain the intake for bugs, documentation problems, benchmark-integrity
-reports, and scoped proposals—not general support or open-ended conversation.
+Use [GitHub Discussions](https://github.com/PranavMishra28/irrevon/discussions)
+for questions, ideas, and project conversation. Use
+[issue forms](https://github.com/PranavMishra28/irrevon/issues/new/choose) for
+reproducible defects, documentation problems, scoped proposals, and
+benchmark-integrity reports.
 
-> **Owner-only Discussions gate:** before exposing any Discussion link, enable
-> Discussions; create or verify `Announcements`, `Q&A`, `Ideas and feedback`,
-> and `Show and tell`; publish and pin a welcome post; and read back every
-> category URL.
-
-Never file a vulnerability publicly. Use
+Never disclose a vulnerability publicly. Use
 [GitHub private vulnerability reporting](https://github.com/PranavMishra28/irrevon/security/advisories/new).
 Support is best-effort with no response SLA; see [SUPPORT.md](SUPPORT.md).
 
@@ -310,11 +302,11 @@ make dist-smoke        # wheel + sdist exact-content and clean-install proof
 make launch-audit      # non-publishing launch, package, privacy, release audit
 ```
 
-CI maps every job to a named `make` target. Ordinary merges publish and deploy
-nothing. The future release flow requires a human-pushed version tag, protected
-environment approval, tag/version match, full validation, clean builds,
-checksums, SBOM, GitHub attestations, and PyPI Trusted Publishing without a
-long-lived token. See [CI](docs/ci.md) and
+CI maps every job to a named `make` target. Ordinary pull requests do not
+publish. Tagged releases require a protected-environment approval,
+tag/version/commit agreement, full validation, clean builds, checksums, an
+SBOM, GitHub attestations, and PyPI Trusted Publishing without a long-lived
+token. See [CI](docs/ci.md) and
 [release process](docs/release-process.md).
 
 ## License

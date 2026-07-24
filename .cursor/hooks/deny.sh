@@ -9,6 +9,12 @@ input=$(cat)
 
 CANONICAL_REPO="PranavMishra28/irrevon"
 MAIN_RULESET_ID="19426315"
+WELCOME_REPOSITORY_ID="R_kgDOTeu25A"
+WELCOME_CATEGORY_ID="DIC_kwDOTeu25M4DB51i"
+WELCOME_PAYLOAD="/tmp/irrevon-v010-welcome-discussion.json"
+WELCOME_TITLE="Welcome to the Irrevon community"
+WELCOME_BODY="Use Discussions for questions, ideas, design feedback, integrations, experiments, and advice. Use Issues for reproducible bugs, documentation defects, benchmark-integrity concerns, and scoped work. Pull requests are for implementations. Report security vulnerabilities privately through GitHub Private Vulnerability Reporting. This community has no support SLA; participation is governed by the Code of Conduct. Never post credentials, private payloads, benchmark holdouts, or personal data."
+WELCOME_QUERY='mutation CreateDiscussion($repositoryId: ID!, $categoryId: ID!, $title: String!, $body: String!) { createDiscussion(input: {repositoryId: $repositoryId, categoryId: $categoryId, title: $title, body: $body}) { discussion { url } } }'
 
 # jq may not be on the hook's PATH; fall back to common locations, then to sed.
 JQ=""
@@ -134,6 +140,35 @@ scoped_launch_api_mutation() {
   esac
 }
 
+# GitHub exposes Discussion creation only through GraphQL. Permit one immutable
+# launch payload after proving its repository, category, copy, operation, and
+# complete key set with jq. Any missing tool, unreadable file, or extra field
+# fails closed.
+scoped_welcome_discussion_mutation() {
+  launch_marker || return 1
+  [ -n "$JQ" ] || return 1
+  [ -r "$WELCOME_PAYLOAD" ] || return 1
+  matches "^IRREVON_V010_LAUNCH=1 gh api graphql --input ${WELCOME_PAYLOAD}[[:space:]]*$" ||
+    return 1
+  "$JQ" -e \
+    --arg query "$WELCOME_QUERY" \
+    --arg repository_id "$WELCOME_REPOSITORY_ID" \
+    --arg category_id "$WELCOME_CATEGORY_ID" \
+    --arg title "$WELCOME_TITLE" \
+    --arg body "$WELCOME_BODY" \
+    '
+      type == "object" and
+      keys == ["query", "variables"] and
+      .query == $query and
+      (.variables | type == "object") and
+      (.variables | keys == ["body", "categoryId", "repositoryId", "title"]) and
+      .variables.repositoryId == $repository_id and
+      .variables.categoryId == $category_id and
+      .variables.title == $title and
+      .variables.body == $body
+    ' "$WELCOME_PAYLOAD" >/dev/null 2>&1
+}
+
 # Git history / force push
 matches 'push[^|;&]*(--force([[:space:]=]|$)|-f([[:space:]]|$)|--force-with-lease([[:space:]=]|$))' \
   && deny "Force push is blocked. Human-only operation."
@@ -184,12 +219,13 @@ matches 'gh[[:space:]]+pr[[:space:]]+merge[^|;&]*--admin(=|[[:space:]]|$)' \
 
 # gh api uses POST implicitly when fields or --input are supplied. Treat every
 # non-GET method and every implicit-data invocation as a mutation; allow only
-# the exact launch endpoints above. GraphQL mutations remain denied because
-# their target cannot be proved from the command line alone.
+# the exact launch endpoints above. GraphQL mutations remain denied except for
+# the jq-validated, immutable welcome-Discussion payload.
 if matches 'gh[[:space:]]+api([[:space:]]|$)'; then
   if matches 'gh[[:space:]]+api[[:space:]]+graphql([[:space:]]|$)'; then
     if matches '(^|[^[:alnum:]_])mutation([^[:alnum:]_]|$)|(^|[[:space:]])--input(=|[[:space:]])'; then
-      deny "GraphQL mutations and file-sourced GraphQL requests are outside the launch allowlist."
+      scoped_welcome_discussion_mutation ||
+        deny "GraphQL mutation is outside the exact welcome-Discussion launch allowlist."
     fi
     allow
   elif api_method GET; then

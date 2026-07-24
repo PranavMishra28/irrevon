@@ -34,6 +34,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Distributed Computing",
+    "Typing :: Typed",
 ]
 dependencies = [
     # RFC 8785 (JCS) encoder — version-pinned per ADR-0013; guarded by the committed
@@ -51,6 +52,7 @@ Documentation = "https://irrevon.vercel.app/docs/"
 Repository = "https://github.com/PranavMishra28/irrevon"
 Issues = "https://github.com/PranavMishra28/irrevon/issues"
 Changelog = "https://github.com/PranavMishra28/irrevon/blob/main/CHANGELOG.md"
+Release-notes = "https://github.com/PranavMishra28/irrevon/releases/tag/v0.1.0"
 
 [dependency-groups]
 # Release-path Python validators are isolated here, exact-constrained, and

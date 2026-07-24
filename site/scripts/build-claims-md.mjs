@@ -18,7 +18,7 @@ const { claims } = await import("../src/data/claims.ts");
 const badgeText = {
   recorded: "RECORDED ARTIFACT",
   conceptual: "CONCEPTUAL",
-  preregistered: "PREREGISTERED METHODOLOGY — NO RESULTS YET",
+  preregistered: "DRAFT METHODOLOGY — NO SCIENTIFIC RESULTS",
 };
 
 const esc = (s) => s.replaceAll("|", "\\|").replaceAll("\n", " ");

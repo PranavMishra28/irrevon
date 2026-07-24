@@ -7,8 +7,9 @@ abstract: >-
   An Apache-2.0 research-preview reconciliation engine and draft benchmark for
   ambiguous outcomes at irreversible AI-agent action boundaries. The software
   persists intent before dispatch, preserves uncertainty after lost responses,
-  and uses capability-bounded destination evidence during recovery. No
-  confirmatory benchmark result or package-index release exists yet.
+  and uses capability-bounded destination evidence during recovery. Development
+  evidence is synthetic; no confirmatory benchmark result, independent
+  reproduction, provider qualification, or production adoption is claimed.
 authors:
   - family-names: "Mishra"
     given-names: "Pranav"

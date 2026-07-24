@@ -8,7 +8,7 @@ All notable changes are recorded here. The format follows
 
 No changes yet.
 
-## [0.1.0] - pending publication
+## [0.1.0] - 2026-07-24
 
 ### Added
 
@@ -25,8 +25,9 @@ No changes yet.
 
 - Public documentation now distinguishes implemented behavior, synthetic
   evidence, unobserved provider assumptions, and owner-gated release steps.
-- Package and community metadata prepare the human-approved `0.1.0` Alpha
-  release candidate without asserting that publication has occurred.
+- Package and community metadata identify `0.1.0` as Alpha software and preserve
+  the boundaries around synthetic evidence, draft provider adapters, and the
+  unfrozen scientific preregistration.
 
 ### Security
 

@@ -83,10 +83,9 @@ for expected in (
     "Apache-2.0",
     "DCO",
     "synthetic",
-    "never been live-called",
     "single-writer",
-    "not yet a supported production",
-    "v0.1.0` alpha candidate",
+    "v0.1.0",
+    "Alpha",
     "make web-build dist-stage",
     "--dsn postgresql://irrevon_app@localhost:5432/irrevon_demo_s42",
     "--demo-artifact ./irrevon-demo-artifact.json",
@@ -96,10 +95,47 @@ for expected in (
 
 if STATUS["license"] != "Apache-2.0":
     fail("project-status.json license must remain Apache-2.0")
-if STATUS["release_posture"] != "research-preview-unpublished":
-    fail("project-status.json must preserve unpublished research-preview posture")
-if STATUS.get("prepared_label") != "v0.1.0-alpha-candidate":
-    fail("project-status.json must label the prepared version as an alpha candidate")
+release = STATUS.get("software_release")
+if not isinstance(release, dict):
+    fail("project-status.json software_release must be an object")
+    release = {}
+release_state = release.get("state")
+release_version = release.get("version")
+expected_release = {
+    "package": "irrevon",
+    "version": "0.1.0",
+    "tag": "v0.1.0",
+    "channel": "alpha",
+    "pypi_url": "https://pypi.org/project/irrevon/0.1.0/",
+    "github_release_url": "https://github.com/PranavMishra28/irrevon/releases/tag/v0.1.0",
+}
+for key, expected in expected_release.items():
+    if release.get(key) != expected:
+        fail(f"project-status.json software_release.{key} must be {expected!r}")
+if release_state not in {"candidate", "published"}:
+    fail("project-status.json software_release.state must be candidate or published")
+published_at = release.get("published_at")
+release_commit = release.get("commit_sha")
+if release_state == "candidate":
+    if published_at is not None or release_commit is not None:
+        fail("candidate release cannot carry publication timestamp or commit evidence")
+elif release_state == "published":
+    if not isinstance(published_at, str) or not re.fullmatch(
+        r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", published_at
+    ):
+        fail("published release requires an RFC 3339 UTC publication timestamp")
+    if not isinstance(release_commit, str) or not re.fullmatch(r"[0-9a-f]{40}", release_commit):
+        fail("published release requires the exact 40-character release commit")
+    for marker in (
+        f"irrevon=={release_version}",
+        str(release["pypi_url"]),
+        str(release["github_release_url"]),
+    ):
+        if marker not in readme:
+            fail(f"README.md is missing published release marker {marker!r}")
+    for obsolete in ("release-unpublished", "not published", "alpha candidate"):
+        if obsolete in readme.lower():
+            fail(f"README.md retains obsolete published-state marker {obsolete!r}")
 if STATUS["contributions"] != {
     "open": True,
     "license": "Apache-2.0",
@@ -115,13 +151,14 @@ if STATUS["deployment"]["supported_production_topology"] is not False:
     fail("a supported production topology cannot be claimed before its open gates close")
 expected_site = {
     "alias": "https://irrevon.vercel.app/",
-    "state": "stale-pre-main-build",
-    "observed_content": "matches-2026-07-22-pre-main-build",
-    "version_json": "absent",
-    "deployed_commit_proof": False,
+    "state": "ready-current",
+    "deployment_mode": "main-auto-deploy",
+    "observed_content": "matches-current-main",
+    "version_json": "present",
+    "deployed_commit_proof": True,
 }
 if STATUS["deployment"].get("public_site") != expected_site:
-    fail("project-status.json must preserve the exact stale public-site read-back")
+    fail("project-status.json must preserve the verified current public-site read-back")
 if any(
     value != "draft-never-live-called"
     for value in STATUS["provider_adapters"].values()
@@ -137,76 +174,86 @@ if STATUS.get("public_history_privacy") != {
 
 settings = STATUS.get("owner_settings_readback", {})
 for key in (
-    "discussions",
-    "non_provider_secret_scanning",
     "immutable_releases",
     "actions_allowlist",
     "actions_sha_pinning_enforcement",
     "release_environment",
+):
+    if settings.get(key) is not True:
+        fail(f"project-status.json owner read-back must keep {key!r} true")
+for key in (
+    "non_provider_secret_scanning",
     "sandbox_environment",
     "benchmark_environment",
 ):
     if settings.get(key) is not False:
         fail(f"project-status.json owner read-back must keep {key!r} false")
-if settings.get("ruleset") != "active-with-repository-role-bypass":
-    fail("project-status.json must preserve the active ruleset bypass blocker")
+discussions = STATUS.get("community", {}).get("discussions", {})
+if settings.get("discussions") is not discussions.get("enabled"):
+    fail("project-status.json Discussions setting and community read-back disagree")
+if settings.get("ruleset") != "active-no-bypass-actors":
+    fail("project-status.json must preserve the active ruleset with no bypass actors")
 
 discussion_surfaces = (
     "README.md",
     "SUPPORT.md",
     "CONTRIBUTING.md",
-    "CODE_OF_CONDUCT.md",
     ".github/ISSUE_TEMPLATE/config.yml",
-    "docs/project-status.md",
-    "docs/security-policy.md",
-    "docs/ci.md",
-    "docs/discoverability.md",
 )
-for relative in discussion_surfaces:
-    body = (ROOT / relative).read_text(encoding="utf-8")
-    if "github.com/PranavMishra28/irrevon/discussions" in body:
-        fail(f"{relative} exposes a Discussion URL while Discussions is disabled")
-
-expected_discussions = {
-    "enabled": False,
-    "public_links_exposed": False,
-    "intended_categories": [
-        "Announcements",
-        "Q&A",
-        "Ideas and feedback",
-        "Show and tell",
-    ],
-    "owner_gate": [
-        "enable-discussions",
-        "create-or-verify-categories",
-        "publish-and-pin-welcome-post",
-        "read-back-every-category-url",
-    ],
-}
-if STATUS.get("community", {}).get("discussions") != expected_discussions:
-    fail("project-status.json must preserve the disabled Discussions owner gate")
-
-for relative in (
-    "README.md",
-    "SUPPORT.md",
-    "CONTRIBUTING.md",
-    "docs/project-status.md",
-    "docs/security-policy.md",
-    "docs/ci.md",
-    "docs/discoverability.md",
-):
-    body = (ROOT / relative).read_text(encoding="utf-8")
-    normalized = " ".join(line.removeprefix("> ").strip() for line in body.splitlines())
-    for marker in (
-        "Announcements",
-        "Q&A",
-        "Ideas and feedback",
-        "Show and tell",
-        "pin a welcome post",
-        "read back every category URL",
+discussion_url = "https://github.com/PranavMishra28/irrevon/discussions"
+if discussions.get("enabled") is True:
+    if discussions.get("url") != discussion_url:
+        fail("project-status.json must record the canonical Discussions URL")
+    if discussions.get("public_links_exposed") is not True:
+        fail("enabled Discussions must be exposed on public community surfaces")
+    expected_categories = {
+        name: f"{discussion_url}/categories/{slug}"
+        for name, slug in (
+            ("Announcements", "announcements"),
+            ("General", "general"),
+            ("Ideas", "ideas"),
+            ("Polls", "polls"),
+            ("Q&A", "q-a"),
+            ("Show and tell", "show-and-tell"),
+        )
+    }
+    categories = discussions.get("categories")
+    if (
+        not isinstance(categories, list)
+        or {item.get("name"): item.get("url") for item in categories if isinstance(item, dict)}
+        != expected_categories
     ):
-        if marker not in normalized:
-            fail(f"{relative} is missing Discussions owner-gate marker {marker!r}")
+        fail("project-status.json Discussion categories differ from the verified defaults")
+    welcome_url = discussions.get("welcome_url")
+    if welcome_url is not None and (
+        not isinstance(welcome_url, str) or not welcome_url.startswith(f"{discussion_url}/")
+    ):
+        fail("project-status.json welcome Discussion URL is not canonical")
+    expected_category_urls = set(expected_categories.values())
+    for relative in discussion_surfaces:
+        body = (ROOT / relative).read_text(encoding="utf-8")
+        if discussion_url not in body:
+            fail(f"{relative} must expose the verified Discussions URL")
+        exposed_categories = set(
+            re.findall(
+                rf"{re.escape(discussion_url)}/categories/[a-z0-9-]+",
+                body,
+            )
+        )
+        unexpected_categories = exposed_categories - expected_category_urls
+        if unexpected_categories:
+            fail(
+                f"{relative} exposes unverified Discussion categories "
+                f"{sorted(unexpected_categories)!r}"
+            )
+elif discussions.get("enabled") is False:
+    if discussions.get("public_links_exposed") is not False:
+        fail("disabled Discussions cannot be marked as publicly exposed")
+    for relative in discussion_surfaces:
+        if discussion_url in (ROOT / relative).read_text(encoding="utf-8"):
+            fail(f"{relative} exposes a Discussion URL while Discussions is disabled")
+else:
+    fail("project-status.json community.discussions.enabled must be boolean")
 
 advisory_url = "https://github.com/PranavMishra28/irrevon/security/advisories/new"
 for relative in ("README.md", "SUPPORT.md", "CONTRIBUTING.md", ".github/ISSUE_TEMPLATE/config.yml"):
@@ -239,20 +286,25 @@ citation = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
 for expected in (
     'repository-code: "https://github.com/PranavMishra28/irrevon"',
     'license: "Apache-2.0"',
-    f'version: "{STATUS["prepared_version"]}"',
-    "confirmatory benchmark result or package-index release exists yet.",
+    f'version: "{release_version}"',
+    "confirmatory benchmark result",
     "exact version or commit",
 ):
     if expected not in citation:
         fail(f"CITATION.cff is missing truthful citation marker {expected!r}")
-if STATUS["release_posture"] == "research-preview-unpublished":
+if release_state == "candidate":
     if "\ndate-released:" in citation:
         fail("CITATION.cff must not assign a release date before publication")
+elif release_state == "published":
+    if f"\ndate-released: {str(published_at)[:10]}" not in citation:
+        fail("CITATION.cff release date must match verified publication evidence")
+    if "package-index release exists yet" in citation:
+        fail("CITATION.cff retains an obsolete unpublished-package claim")
 
 package_init = (ROOT / "src/irrevon/__init__.py").read_text(encoding="utf-8")
 version_match = re.search(r'^__version__ = "([^"]+)"$', package_init, flags=re.MULTILINE)
-if not version_match or version_match.group(1) != STATUS["prepared_version"]:
-    fail("package version must exactly match project-status.json prepared_version")
+if not version_match or version_match.group(1) != release_version:
+    fail("package version must exactly match project-status.json software_release.version")
 
 codeowners_lines = [
     line.split()

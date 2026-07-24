@@ -97,9 +97,9 @@ if (phases.length === 0) throw new Error("roadmap: could not parse roadmap items
         }
       </ol>
       <p class="muted" style="margin-top: 20px; max-width: 70ch; font-size: var(--site-text-small);">
-        Status chips appear only where the plan records them. Beyond these phases: live-provider
-        qualification and frozen or confirmatory benchmark execution remain gated per the master document's
-        stages; any packaged release waits behind the public-release gate below.
+        Status chips appear only where the plan records them. Scientific freezes, live-destination
+        qualification, and confirmatory benchmark execution remain separately human-gated. A software Alpha
+        release does not imply any of them.
       </p>
     </div>
   </section>
@@ -107,14 +107,12 @@ if (phases.length === 0) throw new Error("roadmap: could not parse roadmap items
   <section class="section">
     <div class="container">
       <div class="section-head">
-        <span class="kicker">The last gate</span>
-        <h2>Nothing publishes until the public-release gate holds</h2>
+        <span class="kicker">Two independent tracks</span>
+        <h2>Software availability is not scientific validation</h2>
         <p class="lead">
-          Releasing anything beyond the readable repository — a package, a tag with artifacts, a preprint —
-          requires all of: external clearances granted in writing, the counsel trademark screen of
-          “{SITE_NAME}”, a sanitization review, verified distribution mechanics, and human sign-off
-          (the licensing decision is already closed — Apache-2.0). No automated process ever performs a
-          publication step.
+          The `v0.1.0` Alpha can distribute implemented software while the preregistration remains an unfrozen
+          draft. No package, tag, demo, or website claim substitutes for a Stage A or Stage B freeze,
+          confirmatory execution, independent reproduction, or destination qualification.
         </p>
       </div>
       <p>

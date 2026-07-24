@@ -236,7 +236,7 @@ export const claims = {
   },
   "stamping-planned": {
     claim:
-      "Freeze stamping (planned, not yet executed): canonical tree hash → signed git tag → OpenTimestamps stamp → OSF registration of the same document and hash. Two-stage: design freeze before any sandbox observation; execution freeze before any confirmatory run.",
+      "Freeze stamping has not been executed: the draft specifies canonical tree hash → signed git tag → OpenTimestamps stamp → OSF registration of the same document and hash. Design freeze must precede sandbox observation; execution freeze must precede any confirmatory run.",
     source: "preregistration §0",
     label: "DD",
     badge: "preregistered",
@@ -315,14 +315,14 @@ export const claims = {
   // ── Status, licensing, availability ─────────────────────────────────────
   "install-gated": {
     claim:
-      "Planned distribution (uvx / uv tool install / pipx / pip, one PyPI package with the embedded workbench) is decided but gated: publication requires the public-release gate — clearances granted in writing, the counsel trademark screen, and the licensing decision. Every install command for it renders as PLANNED, never as available today.",
-    source: "docs/decisions/0018-distribution-model.md + docs/review-queue.md §3 item 4 + execution plan (public-release gate)",
+      "Release distribution is one PyPI package with the Workbench embedded. The install page conditions package-index commands on authoritative Status and registry records; tagged artifacts are built with checksums, an SBOM, attestations, and OIDC Trusted Publishing.",
+    source: "docs/decisions/0018-distribution-model.md + docs/release-process.md + .github/workflows/release.yml",
     label: "VF",
   },
   "no-releases": {
     claim:
-      "No release exists: zero git tags, no package, no release artifact. The changelog is computed from version-shaped annotated git tags at build time, so its empty state is derived, not asserted — the first entry appears when the first validated release tag exists, which is owner-gated.",
-    source: "repository state (git tag --list) + execution plan (public-release gate)",
+      "Release history is derived from version-shaped annotated git tags rather than hard-coded marketing copy. The changelog renders only validated release tags, while the Status page and version manifest identify current availability and provenance.",
+    source: "site/src/pages/changelog.astro + docs/project-status.json + site/src/pages/version.json.ts",
     label: "VF",
   },
   "roadmap-no-dates": {
@@ -339,14 +339,14 @@ export const claims = {
   },
   "quickstart-real": {
     claim:
-      "The working quickstart is clone + uv + Docker: uv sync --locked, irrevon init, docker compose up, irrevon doctor, irrevon demo. There is no package-index install — nothing is published.",
+      "The source quickstart is clone + uv + Docker: uv sync --locked, irrevon init, docker compose up, irrevon doctor, irrevon demo. It works independently of package-index availability.",
     source: "README.md (Quickstart)",
     label: "VF",
   },
   "not-published": {
     claim:
-      "Pre-release: not on any package index. The name is decided — Irrevon (ADR-0023, superseding ADR-011); the PyPI name 'irrevon' appeared available at screening and its registration is unblocked pending external clearances and the counsel trademark screen. When published, the install will be `uv tool install irrevon` — future tense until then.",
-    source: "docs/decisions/0023-rename-to-irrevon.md + docs/review-queue.md §3 item 4",
+      "Package availability is never inferred from marketing copy. The Status page points to the canonical registry and release records for the exact version; the source quickstart remains valid independently.",
+    source: "docs/project-status.json + docs/release-process.md + README.md",
     label: "VF",
   },
   "license-apache2": {

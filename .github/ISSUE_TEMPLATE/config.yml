@@ -1,5 +1,11 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Ask a question
+    url: https://github.com/PranavMishra28/irrevon/discussions/categories/q-a
+    about: Get setup and usage help from the community.
+  - name: Share an idea or feedback
+    url: https://github.com/PranavMishra28/irrevon/discussions/categories/ideas
+    about: Start with an open discussion before writing a scoped proposal.
   - name: Report a vulnerability privately
     url: https://github.com/PranavMishra28/irrevon/security/advisories/new
     about: Do not disclose suspected vulnerabilities in a public issue.
