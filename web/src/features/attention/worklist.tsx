@@ -64,7 +64,7 @@ export function AttentionWorklist({ items }: { items: AttentionItem[] }) {
             </h3>
             <ul className="mt-2 grid grid-cols-1 gap-3 min-[768px]:grid-cols-2 min-[1120px]:grid-cols-1">
               {groupItems.map(({ item, index }) => (
-                <li key={item.key}>
+                <li key={item.key} className="min-w-0">
                   <a
                     href={
                       item.target.kind === "effect"
@@ -95,16 +95,16 @@ export function AttentionWorklist({ items }: { items: AttentionItem[] }) {
                       .map((reason) => reason.detail)
                       .join("; ")}`}
                     className={
-                      "flex min-h-11 flex-col gap-1 rounded-(--radius-structural) border " +
+                      "flex min-h-11 min-w-0 flex-col gap-1 rounded-(--radius-structural) border " +
                       "border-border-subtle bg-layer-panel p-(--dt-panel-pad) " +
                       "shadow-(--sys-edge-light) hover:bg-(--sys-state-hover)"
                     }
                   >
-                    <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                    <span className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
                       <span className="machine-id font-mono text-xs font-medium text-text-primary">
                         {item.title}
                       </span>
-                      <span className="machine-id font-mono text-2xs text-text-tertiary">
+                      <span className="machine-id min-w-0 max-w-full break-all font-mono text-2xs text-text-tertiary">
                         {formatKey(item.key)}
                       </span>
                     </span>

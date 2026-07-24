@@ -12,7 +12,7 @@ LYCHEE_VERSION := 0.24.2
 CHECK_JSONSCHEMA_VERSION := 0.37.4
 GITLEAKS_VERSION := 8.30.1
 
-.PHONY: check links schemas secrets integrity tools tools-check
+.PHONY: check links links-online schemas secrets integrity tools tools-check
 
 check: links schemas secrets integrity
 	@echo "OK: all validation gates passed"
@@ -29,6 +29,13 @@ links:
 	  --remap "file://$(CURDIR)/fonts/ file://$(CURDIR)/web/public/fonts/" \
 	  --remap "file://$(CURDIR)/brand/ file://$(CURDIR)/web/public/brand/" .
 
+links-online:
+	lychee --include-fragments --no-progress --root-dir "$(CURDIR)" \
+	  $(LYCHEE_EXCLUDES) \
+	  $(LYCHEE_ONLINE_EXCLUDES) \
+	  --remap "file://$(CURDIR)/fonts/ file://$(CURDIR)/web/public/fonts/" \
+	  --remap "file://$(CURDIR)/brand/ file://$(CURDIR)/web/public/brand/" .
+
 # site/src/content/ is excluded as a SOURCE only: it holds byte-synced mirrors of
 # repository docs (drift-gated by scripts/sync-docs.mjs --check) plus site-authored
 # markdown whose repo-relative links are resolved at build time by
@@ -37,6 +44,14 @@ links:
 # paths, and the BUILT site's links are checked by the site Playwright link suite
 # (make site-test). Nothing is exempted twice-unchecked.
 links: LYCHEE_EXCLUDES := --exclude-path site/src/content
+links-online: LYCHEE_EXCLUDES := --exclude-path site/src/content
+# Placeholder hosts are deliberately non-resolving. The SEC order is an
+# authoritative primary source that returns 403 to automated clients; exclude
+# that exact resource rather than teaching the checker to accept arbitrary 4xx.
+links-online: LYCHEE_ONLINE_EXCLUDES := \
+	--exclude 'https://irrevon\.dev' \
+	--exclude 'https://example\.com' \
+	--exclude 'https://www\.sec\.gov/files/litigation/admin/2013/34-70694\.pdf'
 
 # Every schema must be valid against its declared metaschema; every valid-*.json
 # example must pass; every invalid-*.json example must be REJECTED (the invalid
@@ -148,7 +163,7 @@ tools-pinned:
 # `check` stays node-free by design (docs/ci.md tier table); `check-all` folds the
 # web gates in below. web-vrt is authoritative only inside the pinned container.
 .PHONY: web-check web-test web-e2e web-vrt
-check-all: web-check web-test
+check-all: web-check web-test web-e2e
 
 # F0 static: typecheck, lint, stylelint, format, codegen drift, fixture pins,
 # font drift, unit tests (the `check` script bundles the unit project).
@@ -166,7 +181,9 @@ web-test:
 
 # F3: Playwright workflows + a11y against the built review app.
 web-e2e:
-	cd web && pnpm install --frozen-lockfile && pnpm exec playwright test --project=e2e --project=a11y
+	cd web && pnpm install --frozen-lockfile \
+	  && pnpm exec playwright install chromium --only-shell \
+	  && pnpm exec playwright test --project=e2e --project=a11y
 
 # F4: pixel baselines — only meaningful inside the pinned Linux container
 # (see web/README.md); a bare local run skips the vrt project by design.
@@ -244,7 +261,7 @@ third-party:
 # so `check` stays install-free; the encoder-exact fixture parity and the full
 # harness suites run under py-test / py-test-integration. bench-smoke is the
 # CLI-level end-to-end (conventional arms only — no DB) folded into check-all.
-.PHONY: bench-integrity bench-smoke
+.PHONY: bench-integrity bench-smoke benchmark-stage-b sandbox-stage-m4 release-gate
 check: bench-integrity
 
 bench-integrity:
@@ -259,6 +276,34 @@ bench-smoke:
 	  --arms B0,B1,B3,B5,B6,B5+B3+B6 >/dev/null
 
 check-all: bench-smoke
+
+# Reserved M7 workflow entrypoint. This recipe is intentionally unconditional:
+# neither a credential nor the existence of a registration-shaped file can
+# turn a no-op into a green benchmark run. A later human-approved Stage-B
+# activation task must replace this refusal with the complete registered run
+# procedure and update the fail-closed workflow contract in the same change.
+benchmark-stage-b:
+	@echo "benchmark-stage-b: REFUSED - the M7 workflow is a fail-closed skeleton." >&2
+	@echo "A human Stage-B freeze and a real registered benchmark recipe are required." >&2
+	@exit 1
+
+# Reserved M4 sandbox-workflow entrypoint. This recipe is intentionally
+# unconditional: no input, credential, or checked-in file can turn a dormant
+# dispatch green. A separate human-reviewed activation task may replace it only
+# after Stage A, ADR-0010/ADR-0012, terms review, and the contract recipe close.
+sandbox-stage-m4:
+	@echo "sandbox-stage-m4: REFUSED - the M4 workflow is a fail-closed skeleton." >&2
+	@echo "Stage A and every human sandbox-activation gate must close first." >&2
+	@exit 1
+
+# Reserved public-release workflow entrypoint. This recipe is intentionally
+# unconditional: neither an input, credential, nor checked-in file can turn a
+# dormant dispatch green. A separate human-approved activation task may replace
+# it only after every item in docs/execution-plan.md's public-release gate closes.
+release-gate:
+	@echo "release-gate: REFUSED - distribution is a fail-closed skeleton." >&2
+	@echo "Every public-release gate item and a separate human activation are required." >&2
+	@exit 1
 
 # Live E2E foundation for the consolidator's `web-e2e-live` (WEB's Playwright
 # suite consumes this). Invocation contract (tests/serve/live_server.py):

@@ -122,9 +122,13 @@ test.describe("overview", () => {
     }
   });
 
-  test("bench readiness pointer states no run exists and links to /bench", async ({ page }) => {
+  test("bench readiness pointer discloses developmental pilots and links to /bench", async ({
+    page,
+  }) => {
     await page.goto("/");
-    await expect(page.getByText("No benchmark run contract or artifact exists")).toBeVisible();
+    await expect(
+      page.getByText(/Developmental S-REF pilots are non-confirmatory mechanism evidence/),
+    ).toBeVisible();
     await page.getByRole("link", { name: /Benchmark readiness and prerequisites/ }).click();
     await expect(page).toHaveURL(/\/bench$/);
   });

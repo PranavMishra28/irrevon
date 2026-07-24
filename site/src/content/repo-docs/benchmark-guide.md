@@ -2,8 +2,8 @@
 title: "IrrevonBench guide — measurement, governance, adoption"
 description: "The benchmark guide: exact measurement boundary, oracle and causal-history checking, tracks and anti-cheating rules, governance, adoption path, and the BetterBench self-assessment."
 sourcePath: "docs/benchmark.md"
-sourceSha256: "fb62b25e6cd210dbb3a770adbb3d1973ab6005205391af4a8aca25f9b917d091"
-syncedAt: "2026-07-22"
+sourceSha256: "e27f656ca3e3d7e459c0f527b159f7714378ff6ca43a65d6005487199a16350c"
+syncedAt: "2026-07-24"
 section: "Benchmark"
 renderTitle: false
 ---
@@ -15,14 +15,27 @@ renderTitle: false
 > statistics, integrity gates — [ADR-0030](decisions/0030-bench-harness-contracts.md),
 > proposed). The scientific design authority is
 > [benchmark-preregistration.md](benchmark-preregistration.md) (DRAFT; Stage-A
-> freeze is a human act). **No confirmatory run has occurred and none can occur
-> pre-freeze** — `irrevon bench run` is an integrity refusal (exit 4) until
+> freeze is a human act). **Developmental S-REF smoke pilots have occurred; no
+> live-sandbox or confirmatory run has occurred.** The synthetic pilots are
+> permanently engineering evidence, not scientific results (preregistration
+> §0.2). Confirmatory execution cannot occur pre-freeze — `irrevon bench run`
+> is an integrity refusal (exit 4) until
 > BOTH human freeze registrations pass machine verification
 > (`irrevonbench/freeze-registration/v1`, ADR-0033: hash-bound to the exact
 > preregistration bytes, analysis sources, §0.1 parameters, fixture root, and
 > holdout commitment; drafts carry `REQUIRED-HUMAN` sentinels and can never
 > verify). Every result the harness can currently produce is labeled
 > `non-confirmatory` at the schema level.
+
+**Developmental-observation record** `[VF]`: harness/CLI smoke pilots have
+exercised public dev fixtures and injected fault schedules against the
+synthetic refdest. ADR-0032 additionally records a full-matrix
+attribution-hardening pilot: 488 synthetic destination effects under the
+enrichment quirk and 144 pre/post metric units with no rate shift. These
+observations can establish only that the mechanism behaved as tested; they
+cannot establish efficacy, a live-provider property, a hypothesis result, or
+the publish threshold. The DRAFT preregistration §0.2 is the inventory and
+explicitly does **not** claim pristine pre-observation registration.
 
 This page answers, in order, the ten questions a benchmark must be able to
 answer about itself. Epistemic labels per master doc §0.
@@ -38,7 +51,7 @@ were "final and complete, not subject to revocation"
 ([SDNY](https://www.nysd.uscourts.gov/sites/default/files/2021-02/20cv6539%20Citibank%20Opinion.pdf));
 in 2025, agents deleted a production database during an explicit freeze and
 misreported their own recovery options (Replit,
-[The Register](https://www.theregister.com/software/2025/07/21/vibe_coding_replit_database/))
+[The Register](https://www.theregister.com/software/2025/07/21/vibe-coding-service-replit-deleted-production-database/719783?td=amp-keepreading))
 and destroyed user files after acting on hallucinated state (Gemini CLI,
 [Ars Technica](https://arstechnica.com/information-technology/2025/07/ai-coding-assistants-chase-phantoms-destroy-real-user-data/)).
 Honest boundary `[EI]`: no public case yet documents an LLM agent causing
@@ -203,7 +216,7 @@ published decision log.
 
 ## 5. What claims the results support — and cannot support
 
-**Supported (after the human freezes and M7 runs; nothing today):**
+**Supported (after the human freezes and M7 runs; no scientific support today):**
 capability-stratified, fault-conditional comparisons of client-side
 reconciliation strategies against declared destination contracts, with paired
 seed-level inference per the preregistered §5 analysis (superiority /
@@ -216,7 +229,7 @@ rates without the fault-incidence qualifier; any confirmatory claim from
 S-REF (synthetic destination) cells; any claim from a result document whose
 labels include `non-confirmatory` — which is every result the current
 harness can produce. Pre-freeze mechanism runs are engineering evidence that
-the harness works, **not** evidence about the hypotheses.
+the harness behaved as tested, **not** evidence about the hypotheses.
 
 ## 6. How another person reproduces a run
 

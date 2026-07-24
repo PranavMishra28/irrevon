@@ -2,8 +2,8 @@
 title: "Execution plan — phases and gates"
 description: "Phases P0–P8, their gates, and the public-release gate. Order is load-bearing; nothing here is a date."
 sourcePath: "docs/execution-plan.md"
-sourceSha256: "a79d969e5a87f7c2c8b23c55d216ea55663b7aadcb0a1a94cb0088ecb3e82dc0"
-syncedAt: "2026-07-22"
+sourceSha256: "8c97939122b1b067f34783baa9d5911375cab44262a71ce3acb3b45faefb17aa"
+syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
 ---
@@ -16,10 +16,13 @@ canonical for the implementation era. Owner "human" means the step cannot be del
 agent; "agent" means an agent executes it as a bounded task from `tasks/` with human review.
 
 Ordering rationale: **Stage-A preregistration freeze (P3) comes before any
-sandbox spike (P4/P5).** A preregistration only has integrity value if the hypotheses,
-metrics, and falsification criterion demonstrably predate every observation — and test-mode
-API pokes are observations. This ordering was a reviewer-identified blocker against an earlier
-draft plan that ran the spikes first.
+live-sandbox spike (P4/P5).** Synthetic S-REF engineering pilots have already occurred and
+are disclosed in preregistration §0.2, so Stage A is not represented as preceding every
+observation or as pristine. The remaining order is still load-bearing: hypotheses, metrics,
+and the falsification criterion must predate every live-provider observation, and test-mode
+API pokes are observations. Stage B must predate every confirmatory observation. Whether the
+disclosed design-stage exposure requires a reset or independent review before Stage A is an
+open human ruling in the review queue.
 
 | # | Phase | Gate (must hold before starting) | Exit criterion | Owner |
 |---|---|---|---|---|
@@ -39,7 +42,8 @@ draft plan that ran the spikes first.
   published from anywhere, until the environment is personal and the clearances are at least
   requested (publication additionally requires them granted — master doc §13). Details and
   status live in [review-queue.md](review-queue.md) section 3.
-- **P3 before P4/P5** is deliberate and load-bearing (see rationale above). If a spike must
+- **P3 before P4/P5** is deliberate and load-bearing (see rationale above). Developmental
+  S-REF pilots do not waive this gate and cannot support scientific claims. If a live spike must
   run early for a hard external reason, Stage-A must freeze first anyway; record the deviation
   in the preregistration's amendment log.
 - **P4 → P7 ordering:** Stage-B names concrete adapters, so it cannot freeze before the C2

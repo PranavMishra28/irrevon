@@ -1,7 +1,7 @@
 ---
 title: "Preregistering a benchmark, including the result that would kill it"
 date: "2026-07-21"
-summary: "How IrrevonBench borrows preregistration from the experimental sciences: hypotheses, metrics, and analysis frozen before any run — with a pre-committed falsification criterion that would declare the engine unnecessary."
+summary: "How IrrevonBench uses a two-stage freeze before live and confirmatory evidence, while disclosing synthetic development pilots and a falsification criterion that would declare the engine unnecessary."
 badges: ["preregistered"]
 claims:
   - prereg-draft-status
@@ -20,9 +20,11 @@ sources:
 ---
 
 The preregistration this post describes is a **draft**. Nothing is frozen, no section
-carries integrity weight yet, and no benchmark run, sandbox spike, or fault trial may
-occur before the Stage-A freeze — which is a deliberate, human act. That status is the
-first thing the document itself says, and it should be the first thing this post says.
+carries integrity weight yet, and it is not pristine: synthetic S-REF harness and
+fault-smoke pilots have occurred, including ADR-0032's 488-effect attribution-hardening
+pilot. They are disclosed as permanently non-confirmatory engineering evidence. No
+live-sandbox observation or confirmatory run has occurred. Stage A must precede the former
+and Stage B the latter; each freeze is a deliberate, human act.
 
 ## Why preregister a systems benchmark at all
 
@@ -33,12 +35,14 @@ recommendation in July after flagging roughly a quarter to a third of public tas
 broken. A benchmark whose author also ships the system being measured starts with even
 less benefit of the doubt.
 
-Preregistration is the experimental sciences' answer, and it transfers: write down the
-hypotheses, the metrics, the analysis plan, and — critically — the result that would
-falsify the thesis, *before* any observation exists. Then freeze it where tampering
-would be visible: the plan is to stamp the frozen document with a signed tag,
-an external timestamp, and an OSF registration of the same hash. Two stages: a design
-freeze before any sandbox observation, an execution freeze before any confirmatory run.
+Preregistration is the experimental sciences' answer, but the claim must match the record.
+The current draft was exposed to synthetic mechanism observations, so it cannot claim that
+the hypotheses predate every datum. The remaining separation is explicit: freeze the
+hypotheses, metrics, analysis plan, and falsification rule before any **live-sandbox**
+observation, then freeze operational details before any **confirmatory** run. The plan is
+to make both acts tamper-visible with a signed tag, external timestamp, and OSF
+registration of the same hash. Whether the developmental exposure requires a reset or
+independent review before Stage A is an open human ruling, not a claim this post resolves.
 
 ## The kill criterion, stated plainly
 
@@ -74,12 +78,13 @@ apparatus is part of the deliverable, not an afterthought.
 
 ## What exists today, and what does not
 
-There are no results. There is no frozen document. There is a draft anyone can read —
-rendered on this site with its source hash, canonical in the repository — and a
-[reproduction contract](/docs/benchmark-reproduction/) published before the first run
-so the promise is inspectable in advance. When the freeze happens, it will be visible:
-a signed tag, an external timestamp, and a hash that this site will cite instead of
-paraphrase.
+There are no scientific or confirmatory results. There is no frozen document. There are
+disclosed developmental S-REF pilot observations that can support only mechanism debugging,
+never an efficacy or live-provider claim. The draft is rendered on this site with its
+source hash, canonical in the repository, and a
+[reproduction contract](/docs/benchmark-reproduction/) is published before the first
+live-sandbox or confirmatory run. When the freeze happens, it will be visible: a signed tag,
+an external timestamp, and a hash that this site will cite instead of paraphrase.
 
 One exposure is acknowledged rather than hidden: publishing the design before running
 it means others can front-run the benchmark. The preregistration records that tension

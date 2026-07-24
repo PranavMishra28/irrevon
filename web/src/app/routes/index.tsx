@@ -230,7 +230,9 @@ function OverviewPage() {
         <ConceptualArchitecture />
         <Panel title="Bench readiness">
           <p className="max-w-[65ch] text-sm text-text-primary">
-            No benchmark run contract or artifact exists. Nothing here is a result.
+            Benchmark contracts and a harness exist. Developmental S-REF pilots are
+            non-confirmatory mechanism evidence; nothing here is a scientific or confirmatory
+            result.
           </p>
           <p className="mt-1.5 text-sm text-text-secondary">
             <Link to="/bench" className="text-accent underline underline-offset-2">
