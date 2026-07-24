@@ -12,10 +12,10 @@ geometry only; references may be studied for direction and must be named; no
 traced, copied, or auto-generated third-party geometry; no stock, no clip-art, no
 AI-image imports. Fonts are the repository's licensed set only.
 
-The repository currently carries no license (LICENSING.md; ADR-0014 open):
-project-original assets are recorded for future licensing decisions; nothing here
-grants or implies external reuse rights. `site/ASSETS.md` is a pointer to this
-registry.
+Project-original assets are licensed Apache-2.0 as part of the repository; see
+LICENSE, NOTICE, LICENSING.md, and ADR-0028. Third-party assets retain the separate
+upstream licenses recorded in their rows; this registry does not alter those terms.
+`site/ASSETS.md` is a pointer to this registry.
 
 ## Reference imagery (preamble)
 
@@ -23,7 +23,7 @@ Design references (screenshots of third-party marketing/product sites, studied d
 
 ## 1. E1 "Convergence Seat" mark (+ favicon copy)
 
-- **type:** mark · **origin:** original · **license:** project license (pending ADR-0014) · **date:** 2026-07-21
+- **type:** mark · **origin:** original · **license:** Apache-2.0 · **date:** 2026-07-21
 - **source:** in-repository vector work, 2026-07-21 redesign cycle
 - **provenance:** Original vector work created in-repository; drawn from geometric primitives (original 45-degree stroke construction); no third-party vector source, no font-outline tracing (lockup text set in IBM Plex per its OFL terms). Ball-detent engineering conventions (90-degree V, seat depth, apex daylight) studied as facts, not artwork. Working history retained privately; the committed files are canonical.
 - **files (sha256):**
@@ -32,7 +32,7 @@ Design references (screenshots of third-party marketing/product sites, studied d
 
 ## 2. D1 seat mark (core geometry)
 
-- **type:** mark · **origin:** original · **license:** project license (pending ADR-0014) · **date:** 2026-07-21
+- **type:** mark · **origin:** original · **license:** Apache-2.0 · **date:** 2026-07-21
 - **source:** in-repository vector work, 2026-07-21 redesign cycle
 - **provenance:** Original vector work; the D1 core geometry the E1 mark builds on. Same construction posture as the E1 row.
 - **files (sha256):**
@@ -60,7 +60,7 @@ Design references (screenshots of third-party marketing/product sites, studied d
 
 ## 4. Domain icon set (16 glyphs)
 
-- **type:** icon-source · **origin:** original · **license:** project license (pending ADR-0014) · **date:** 2026-07-21
+- **type:** icon-source · **origin:** original · **license:** Apache-2.0 · **date:** 2026-07-21
 - **source:** identity cycle (N4 design), 2026-07-21
 - **provenance:** Original hand-written paths. Lucide's published grid conventions (24 grid, 2 px stroke, round caps) adopted for compatibility; no Lucide path reused, traced, or modified. seat-settle derives from the in-house D1 geometry. Per-file provenance comment embedded in each SVG; call sites always pair an icon with a visible text label.
 - **files (sha256):**
@@ -83,7 +83,7 @@ Design references (screenshots of third-party marketing/product sites, studied d
 
 ## 5. OG social card template (1200x630)
 
-- **type:** illustration · **origin:** original · **license:** project license (pending ADR-0014) · **date:** 2026-07-21
+- **type:** illustration · **origin:** original · **license:** Apache-2.0 · **date:** 2026-07-21
 - **source:** identity cycle (N4 design), 2026-07-21
 - **provenance:** Original composition of the E1 mark + the One-Way Seat sequence strip; text slots are template variables; colors from the ratified token set.
 - **files (sha256):**
@@ -91,7 +91,7 @@ Design references (screenshots of third-party marketing/product sites, studied d
 
 ## 6. OG rendered cards (8 files)
 
-- **type:** illustration · **origin:** self-generated · **license:** project license (pending ADR-0014) · **date:** 2026-07-21
+- **type:** illustration · **origin:** self-generated · **license:** Apache-2.0 · **date:** 2026-07-21
 - **source:** rendered from site/og/template.svg by site/scripts/build-og.mjs
 - **provenance:** Mechanical render of the template via pinned Playwright Chromium with the repo's IBM Plex subsets; hashes additionally pinned in site/og/manifest.json and drift-gated by build-og.mjs --check.
 - **files (sha256):**
@@ -106,7 +106,7 @@ Design references (screenshots of third-party marketing/product sites, studied d
 
 ## 7. Workbench screenshots (4 files)
 
-- **type:** screenshot · **origin:** self-generated · **license:** project license (pending ADR-0014) · **date:** 2026-07-21
+- **type:** screenshot · **origin:** self-generated · **license:** Apache-2.0 · **date:** 2026-07-21
 - **source:** site/scripts/capture-workbench.mjs (Playwright shots project)
 - **provenance:** Captured from the running fixture-backed web/ app at 1440x900 (2x DPR), both themes, SYNTHETIC FIXTURE banner deliberately in frame (synthetic data, engine capture seed 777); no third-party content. Re-capture after any workbench visual change.
 - **files (sha256):**
