@@ -15,7 +15,6 @@ that date.
 | [`sandbox.yml`](../.github/workflows/sandbox.yml) | `workflow_dispatch` only | T4 sandbox contracts — fail-closed skeleton, gated by the `sandbox` environment; every dispatch is deliberately red until human M4 activation | skeleton (always refuses) |
 | [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | IrrevonBench preregistered runs — fail-closed skeleton, gated by the `benchmark` environment; every dispatch is deliberately red until human Stage-B activation | skeleton (always refuses) |
 | [`release.yml`](../.github/workflows/release.yml) | PR + manual dry run; canonical `vMAJOR.MINOR.PATCH` tag | Non-publishing artifact dry run on PRs; clean tagged build, exact version/content/smoke gates, checksums, lock-aware SPDX SBOM, artifact attestation, then protected-environment PyPI/GitHub publication | prepared; no release exists |
-| [`codeql.yml`](../.github/workflows/codeql.yml) | main push/PR + weekly | Python and JavaScript/TypeScript CodeQL analysis with SARIF upload | active |
 | [`scorecard.yml`](../.github/workflows/scorecard.yml) | main/protection change + weekly | OpenSSF Scorecard evidence and SARIF upload | active |
 | [`dependabot.yml`](../.github/dependabot.yml) | monthly | Five noise-contained update lanes (actions / uv / web npm / site npm / Docker), one PR per lane, with release-age cooldowns and grouped updates | active |
 
@@ -148,8 +147,10 @@ After `ci-required` has reported on at least one PR (order matters — see traps
 
 5. **Ruleset phase 2** — add `required_status_checks` with the single context
    `ci-required`. Never list individual jobs.
-6. **CodeQL default setup** — Settings → Advanced Security → CodeQL → Default. Idle (no
-   supported language yet) but free and safe to enable `[VF]`.
+6. **CodeQL default setup** — Settings → Advanced Security → CodeQL → Default. Verified
+   active for Python and JavaScript/TypeScript on 2026-07-24. Keep the settings-managed
+   scanner enabled; GitHub rejects a competing advanced-configuration workflow while
+   default setup is active `[VF]`.
 7. Retention stays 90 days (public max). **Private vulnerability reporting**: verified
    enabled (API read, 2026-07-21) — see [SECURITY.md](../SECURITY.md).
 
