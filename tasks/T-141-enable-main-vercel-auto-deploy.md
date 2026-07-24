@@ -123,6 +123,13 @@ now ignores missing/non-`main` refs before installation and runs Corepack from
 `site/`, where the checked-in pnpm pin is authoritative. The executable
 deployment-policy test covers both ignore-command outcomes.
 
+The hosted site matrix then exposed a pre-existing capacity mismatch in its
+single comprehensive link/fragment crawl: the unchanged 393-check suite passed
+locally, while three hosted attempts reached the suite's 30-second per-test
+default at different valid navigation points after 392 checks passed. The site
+test command now gives each test a 60-second ceiling without changing,
+skipping, retrying, or weakening any assertion.
+
 The reviewed branch was not merged or deployed. PR #21 merged while this task
 was being validated, so the deployment policy moved to a focused follow-up PR
 based on that exact merged tree.
