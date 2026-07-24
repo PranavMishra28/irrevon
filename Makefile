@@ -205,12 +205,21 @@ web-e2e:
 # F4: pixel baselines — only meaningful inside the pinned Linux container
 # (see web/README.md); a bare local run skips the vrt project by design.
 web-vrt:
-	cd web && docker run --rm --ipc=host -e CI=1 \
-	  -v "$$PWD":/work -v /work/node_modules -w /work \
-	  mcr.microsoft.com/playwright:v1.61.1-noble \
-	  bash -lc 'corepack enable && \
-	            pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store && \
-	            IRREVON_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
+	cd web && { \
+	  vrt_status=0; cleanup_status=0; \
+	  docker run --rm --ipc=host -e CI=1 \
+	    -v "$$PWD":/work -v /work/node_modules -w /work \
+	    mcr.microsoft.com/playwright:v1.61.1-noble \
+	    bash -lc 'corepack enable && \
+	              pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store && \
+	              IRREVON_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt' \
+	    || vrt_status=$$?; \
+	  docker run --rm -v "$$PWD":/work -w /work \
+	    mcr.microsoft.com/playwright:v1.61.1-noble \
+	    rm -rf dist || cleanup_status=$$?; \
+	  if [ "$$vrt_status" -ne 0 ]; then exit "$$vrt_status"; fi; \
+	  exit "$$cleanup_status"; \
+	}
 
 # ── Marketing site gates (appended by the site/ task; see site/README.md) ─────
 # Self-contained Node package, same corepack/pnpm pattern as web/. Repository

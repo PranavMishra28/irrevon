@@ -133,16 +133,15 @@ retries — a flake is a bug.
 
 ## VRT
 
-Baselines live in `e2e/visual/__baselines__` and are Linux-only, generated inside the
-pinned Playwright container:
+Baselines live in `e2e/visual/__baselines__` and are Linux-only. From the
+repository root, run the pinned Playwright container through the canonical
+target:
 
 ```sh
-docker run --rm --ipc=host -e CI=1 -v "$PWD":/work -w /work \
-  mcr.microsoft.com/playwright:v1.61.1-noble \
-  bash -lc 'corepack enable && \
-            pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store && \
-            IRREVON_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
+make web-vrt
 ```
 
-Add `--update-snapshots` only when a PR states why pixels changed. A bare local `pnpm vrt`
-outside the container skips the project by design.
+The target removes the container-owned generated `web/dist` directory even
+when the VRT run fails, so later host-side builds cannot inherit root-owned
+output. Add `--update-snapshots` only when a PR states why pixels changed. A
+bare local `pnpm vrt` outside the container skips the project by design.

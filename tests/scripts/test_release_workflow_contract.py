@@ -222,6 +222,17 @@ def test_makefile_exposes_non_publishing_launch_and_release_dry_runs() -> None:
     assert "\nrelease-dry-run:\n\tbash scripts/release-dry-run.sh" in makefile
 
 
+def test_container_vrt_cleans_its_root_owned_build_output() -> None:
+    makefile = MAKEFILE.read_text()
+    vrt = makefile.split("\nweb-vrt:\n", 1)[1].split("\n# ── Marketing site", 1)[0]
+
+    assert "vrt_status=0; cleanup_status=0" in vrt
+    assert "IRREVON_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt" in vrt
+    assert "rm -rf dist || cleanup_status=$$?" in vrt
+    assert 'if [ "$$vrt_status" -ne 0 ]; then exit "$$vrt_status"; fi' in vrt
+    assert 'exit "$$cleanup_status"' in vrt
+
+
 def test_release_dry_run_strictly_checks_pypi_readme_without_publishing() -> None:
     script = DRY_RUN.read_text()
     assert "uv run --locked --group release-validation twine check --strict" in script
