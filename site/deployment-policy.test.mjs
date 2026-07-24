@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { lstatSync, readFileSync, readlinkSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
@@ -9,7 +9,7 @@ const config = JSON.parse(
   readFileSync(new URL("../vercel.json", import.meta.url), "utf8"),
 );
 
-test("Vercel deploys protected main and no other branch", () => {
+test("Vercel permits production deployments from main and no other branch", () => {
   assert.deepEqual(config.git?.deploymentEnabled, {
     "*": false,
     main: true,
@@ -21,6 +21,12 @@ test("Vercel deploys protected main and no other branch", () => {
     "corepack enable && pnpm --dir site install --frozen-lockfile",
   );
   assert.equal(config.buildCommand, "bash scripts/vercel-build.sh");
+});
+
+test("the accepted ADR's historical configuration path resolves without duplication", () => {
+  const legacyPath = fileURLToPath(new URL("./vercel.json", import.meta.url));
+  assert.equal(lstatSync(legacyPath).isSymbolicLink(), true);
+  assert.equal(readlinkSync(legacyPath), "../vercel.json");
 });
 
 const runVercelBuild = (overrides) =>

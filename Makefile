@@ -19,24 +19,22 @@ check: links schemas secrets integrity public-truth
 
 # Internal links + heading anchors across tracked markdown. --offline checks only
 # local file links, so the gate is deterministic and network-free; external URLs
-# are deliberately not checked here. The asset remaps encode Vite's public-dir
-# serving semantics. The exact-file remap preserves strict link checking for
-# accepted ADR-0027's immutable historical path after ADR-0038 moved the applied
-# Vercel configuration to the repository root.
+# are deliberately not checked here. The remaps encode Vite's public-dir serving
+# semantics: web/ root-absolute asset URLs (/fonts/*, /brand/*) resolve to
+# web/public/* at runtime — the remapped file must still exist, so the check
+# stays strict.
 links:
 	lychee --offline --include-fragments --no-progress --root-dir "$(CURDIR)" \
 	  $(LYCHEE_EXCLUDES) \
 	  --remap "file://$(CURDIR)/fonts/ file://$(CURDIR)/web/public/fonts/" \
-	  --remap "file://$(CURDIR)/brand/ file://$(CURDIR)/web/public/brand/" \
-	  --remap "file://$(CURDIR)/site/vercel.json file://$(CURDIR)/vercel.json" .
+	  --remap "file://$(CURDIR)/brand/ file://$(CURDIR)/web/public/brand/" .
 
 links-online:
 	lychee --include-fragments --no-progress --root-dir "$(CURDIR)" \
 	  $(LYCHEE_EXCLUDES) \
 	  $(LYCHEE_ONLINE_EXCLUDES) \
 	  --remap "file://$(CURDIR)/fonts/ file://$(CURDIR)/web/public/fonts/" \
-	  --remap "file://$(CURDIR)/brand/ file://$(CURDIR)/web/public/brand/" \
-	  --remap "file://$(CURDIR)/site/vercel.json file://$(CURDIR)/vercel.json" .
+	  --remap "file://$(CURDIR)/brand/ file://$(CURDIR)/web/public/brand/" .
 
 # site/src/content/ is excluded as a SOURCE only: it holds byte-synced mirrors of
 # repository docs (drift-gated by scripts/sync-docs.mjs --check) plus site-authored
@@ -215,8 +213,9 @@ web-vrt:
 	            IRREVON_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
 
 # ── Marketing site gates (appended by the site/ task; see site/README.md) ─────
-# Self-contained Node package, same corepack/pnpm pattern as web/. Vercel builds
-# site/dist only from protected main after merge (ADR-0038), never from CI.
+# Self-contained Node package, same corepack/pnpm pattern as web/. Repository
+# policy permits Vercel to build site/dist only from main after owner activation
+# (ADR-0038); GitHub Actions never deploys it.
 .PHONY: site-check site-build site-test site-vrt site-production-smoke
 
 # Static gates: astro check + vendored token/font drift + claims-registry drift.

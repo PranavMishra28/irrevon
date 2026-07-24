@@ -221,11 +221,10 @@ After `ci-required` has reported on at least one PR (order matters — see traps
 
 Site deploys (not a GitHub Actions workflow):
 
-8. **Vercel deploys the site automatically from protected `main`**
+8. **Repository policy permits Vercel auto-deployment from `main` only**
    ([ADR-0038](decisions/0038-main-vercel-auto-deploy.md), superseding
-   ADR-0027's manual-upload mechanic). Pull requests first pass `ci-required`;
-   after the owner merges one, Vercel's Git integration builds that exact
-   `main` commit. The root [`vercel.json`](../vercel.json) overrides the
+   ADR-0027's manual-upload mechanic). The root
+   [`vercel.json`](../vercel.json) overrides the
    project's stale Python autodetection, installs the locked `site/` pnpm
    graph, invokes `scripts/vercel-build.sh`, serves `site/dist`, and carries
    the response-header contract. Its branch map disables every automatic
@@ -235,6 +234,13 @@ Site deploys (not a GitHub Actions workflow):
    marketing/docs site—it cannot merge code or publish Python packages,
    GitHub Releases, benchmarks, or provider activity. Details in
    [site/README.md](../site/README.md).
+   Vercel does not wait for `ci-required`; the normal pull-request path supplies
+   that review boundary, while the repository-role bypass reported in item 4
+   must be removed before launch. The linked Vercel project was paused on
+   2026-07-24, and the authenticated read-back did not expose its Production
+   Branch. After merging, the owner must confirm Production Branch = `main`,
+   reactivate the project, and then compare live `/version.json` with the
+   intended commit.
    **Production read-back 2026-07-24:** the public alias serves content matching
    the July 22 pre-main build and `/version.json` is absent. This content
    comparison is not cryptographic proof of a deployed commit. Treat the alias

@@ -2,7 +2,7 @@
 title: "Decision records — index and policy"
 description: "The append-only ADR index and policy. If a decision is not in the index, it has not been made."
 sourcePath: "docs/decisions/README.md"
-sourceSha256: "e8621ddc2ae0424001d6196c35e5da0e1508025c91716763a2ed1260b5484993"
+sourceSha256: "1d79f9713d9afb89be0b97fcf132f9d9db3ae1eb695eecddb3579e5fdfe4b751"
 syncedAt: "2026-07-24"
 section: "Decisions"
 renderTitle: false
@@ -61,7 +61,7 @@ created *then*, per §12.5/§17 — which is when append-only file history becom
 | 0035 | External contributions — Apache-2.0 inbound=outbound, mandatory DCO, no CLA | accepted (owner launch directive 2026-07-23; resolves ADR-0014's contributor-governance half) | [0035-external-contributions.md](0035-external-contributions.md) |
 | 0036 | Loopback evidence privacy — digest stable identifier values by default | accepted (owner launch directive 2026-07-23; supersedes ADR-0024 decision item 5) | [0036-loopback-evidence-privacy.md](0036-loopback-evidence-privacy.md) |
 | 0037 | Intent input resource bounds and JCS-domain refusal | accepted (owner launch security directive 2026-07-23) | [0037-intent-resource-bounds.md](0037-intent-resource-bounds.md) |
-| 0038 | Vercel Git integration deploys the static site from protected main | accepted (owner automatic-deployment directive 2026-07-24; supersedes ADR-0027's human-upload mechanic) | [0038-main-vercel-auto-deploy.md](0038-main-vercel-auto-deploy.md) |
+| 0038 | Vercel Git integration permits main-only static-site deployments | accepted (owner automatic-deployment directive 2026-07-24; activation remains owner-gated; supersedes ADR-0027's human-upload mechanic) | [0038-main-vercel-auto-deploy.md](0038-main-vercel-auto-deploy.md) |
 
 ## Policy
 

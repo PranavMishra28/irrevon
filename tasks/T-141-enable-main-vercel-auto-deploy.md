@@ -1,4 +1,4 @@
-# T-141: Enable protected-main Vercel auto-deployment
+# T-141: Prepare main-only Vercel auto-deployment
 
 ---
 id: T-141
@@ -9,16 +9,17 @@ invariant: "public-site provenance remains exact and package/scientific publicat
 
 ## Objective
 
-Make the existing Git-connected Vercel project rebuild and publish the static
-marketing site from each validated commit merged to `main`, while refusing
-automatic deployments from every other branch.
+Configure the repository so the existing Git-connected Vercel project can
+rebuild and publish the static marketing site from `main`, while refusing
+automatic deployments from every other branch. Platform activation remains an
+explicit owner action after merge.
 
 ## Why
 
 The repository currently disables the Vercel Git integration after an earlier
 root-level Python autodetection caused failed deployment statuses. The owner's
-2026-07-24 directive replaces manual uploads with automatic production builds
-from protected `main`; package releases, benchmark publication, and other
+2026-07-24 directive replaces manual uploads with a main-only automatic
+production-build policy; package releases, benchmark publication, and other
 platforms remain separate gated workflows.
 
 ## Context — read these first
@@ -49,16 +50,16 @@ Anything else is out of scope.
 ## Acceptance criteria
 
 - [x] Root `vercel.json` defines the Astro build from `site/`, the exact static
-      output directory, all response-header rules, and automatic deployment for
-      `main` only.
+      output directory, all response-header rules, and automatic-deployment
+      eligibility for `main` only.
 - [x] The Vercel build wrapper refuses non-production/non-`main` Git builds and
       a malformed or absent Git commit before running the site build.
 - [x] Production smoke rejects a configuration that enables another branch,
       omits the protected-main rule, or changes the build/output contract.
 - [x] Root `vercel.json` changes select the site CI slice.
-- [x] Documentation and ADR history explain that merge-to-main deployment is
-      automatic while PyPI, GitHub Release, benchmark, and provider publication
-      remain human-gated.
+- [x] Documentation and ADR history explain the main-only repository policy,
+      the owner activation/read-back steps, and the independent human gates for
+      PyPI, GitHub Release, benchmark, and provider publication.
 - [x] `make check` and `make public-truth` pass.
 
 ## Required validation
@@ -84,16 +85,21 @@ site mirrors.
 
 All repository-local criteria pass on the follow-up PR, hosted CI is green, and
 the Vercel connector read-back proves the existing project and Node 24 runtime.
-The task remains blocked until the owner merges the reviewed PR; no deployment
-or direct default-branch write occurs in this task.
+The task remains blocked until the owner merges the reviewed PR, confirms
+Production Branch = `main`, reactivates the paused project, removes the GitHub
+ruleset bypass, and verifies live provenance. No deployment or direct
+default-branch write occurs in this task.
 
 ## Outcome
 
 The existing Git-connected Vercel project was read back before implementation:
 the platform uses Node 24, historical deployments carry repository Git
-metadata, and the project-level framework detection remains the stale `python`
-value. The repository-root configuration now overrides that detection with the
-locked Astro build and permits automatic deployment only for `main`.
+metadata, the project-level framework detection remains the stale `python`
+value, and the project is paused. The available authenticated read-back did not
+expose the Production Branch. The repository-root configuration now overrides
+the framework detection with the locked Astro build and permits automatic
+deployment only for `main`; it cannot reactivate the platform project or prove
+that project-level branch setting.
 
 Repository-local validation:
 
@@ -112,6 +118,11 @@ PASS  git diff --check
 
 The reviewed branch was not merged or deployed. PR #21 merged while this task
 was being validated, so the deployment policy moved to a focused follow-up PR
-based on that exact merged tree. After the owner merges the follow-up, Vercel
-should build the resulting exact `main` commit; live `/version.json` read-back
-remains the post-merge proof.
+based on that exact merged tree.
+
+Remaining owner actions:
+
+1. Merge the follow-up through the reviewed pull-request path.
+2. Remove the repository-role bypass from the default-branch ruleset.
+3. Confirm Vercel Production Branch = `main` and reactivate the paused project.
+4. Verify live `/version.json` identifies the intended merged commit.

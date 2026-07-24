@@ -4,13 +4,14 @@ The Irrevon public site: the original six pages plus the discovery surface added
 the site-expansion cycle (docs section with drift-gated rendered repository documents,
 searchable via self-hosted Pagefind; the interactive recorded demo; research,
 changelog, roadmap, install; full SEO/metadata). **Configured for Vercel at the origin
-root** by owner directive ([ADR-0027](../docs/decisions/0027-site-vercel-deploy.md));
-validated commits merged to protected `main` deploy automatically through
-Vercel's Git integration ([ADR-0038](../docs/decisions/0038-main-vercel-auto-deploy.md);
-see [Deploy](#deploy) below).
-The configured production deployment was paused when checked on 2026-07-24 and
-must not be described as live until the owner restores it and verifies the
-launch checklist in `docs/discoverability.md`.
+root** by owner directive ([ADR-0027](../docs/decisions/0027-site-vercel-deploy.md)).
+Repository policy permits production Git builds only from `main`
+([ADR-0038](../docs/decisions/0038-main-vercel-auto-deploy.md); see
+[Deploy](#deploy) below). The linked project was paused when checked on
+2026-07-24, and its Production Branch was not exposed by the available
+authenticated read-back. Automatic deployment therefore starts only after the
+owner confirms Production Branch = `main`, reactivates the project, and verifies
+the launch checklist in `docs/discoverability.md`.
 The site never ships in the Python wheel (ADR-0018) and shares no build with `web/`.
 
 ## Page inventory
@@ -159,13 +160,21 @@ optional navigation aid only; it is not a ranking, crawler, or licensing control
 
 ## Deploy
 
-Vercel's Git integration automatically builds a production deployment for
-each commit that reaches protected `main`. Every other branch is disabled by
-the branch map in the repository-root [`vercel.json`](../vercel.json), and
+The repository is ready for main-only Vercel Git deployment. Once the owner
+confirms Production Branch = `main` and reactivates the currently paused
+project, Vercel automatically builds each eligible `main` commit. Every other
+branch is disabled by the branch map in the repository-root
+[`vercel.json`](../vercel.json), and
 [`scripts/vercel-build.sh`](../scripts/vercel-build.sh) independently refuses
 non-production, non-`main`, or malformed-provenance Git builds. Vercel serves
 only the resulting static `site/dist` files; Irrevon has no site runtime or
 server function.
+
+Vercel does not wait for the GitHub `ci-required` check. The normal branch
+ruleset routes pull requests through that check, but its 2026-07-24 read-back
+still showed an always-allowed repository-role bypass. The owner must remove
+that bypass before describing every deployable `main` commit as reviewed or
+CI-validated.
 
 The equivalent local production rehearsal is:
 
@@ -188,7 +197,9 @@ URLs end in `/`, matching the sitemap). The origin and repository URL are
 deployment-provided at build time—committed files never carry either. Vercel
 read-back on 2026-07-24 confirmed the existing project and Node 24 runtime; the
 committed configuration overrides its stale root-level Python framework
-autodetection.
+autodetection. The same read-back reported the project paused and did not expose
+its Production Branch; both remain explicit owner checks rather than inferred
+repository facts.
 Google/Bing verification values and the optional IndexNow key belong in protected
 production build variables, never a committed file or pasted command history.
 

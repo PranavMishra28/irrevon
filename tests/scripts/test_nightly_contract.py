@@ -21,7 +21,6 @@ def test_online_links_reuse_the_local_source_and_asset_rules() -> None:
     assert "links-online: LYCHEE_EXCLUDES := --exclude-path site/src/content" in makefile
     assert "file://$(CURDIR)/web/public/fonts/" in makefile
     assert "file://$(CURDIR)/web/public/brand/" in makefile
-    assert "file://$(CURDIR)/site/vercel.json file://$(CURDIR)/vercel.json" in makefile
     assert "34-70694" in makefile
     assert "--accept" not in makefile
 
