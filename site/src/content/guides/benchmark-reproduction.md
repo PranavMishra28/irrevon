@@ -35,9 +35,9 @@ When a benchmark run is published, reproducing it is committed to work through *
 of these legs (per the distribution decision record,
 [ADR-0018](/docs/reference/adr-0018-distribution-model/)):
 
-1. **Locked toolchain from a signed tag.** Check out the signed release tag and
-   `uv sync --locked` — the committed `uv.lock` pins the exact dependency set that
-   produced the run.
+1. **Locked toolchain from an annotated release tag.** Check out the annotated
+   release tag, verify the GitHub artifact attestation, and `uv sync --locked` —
+   the committed `uv.lock` pins the exact dependency set that produced the run.
 2. **Digest-pinned container.** A reproduction image, referenced by digest (not tag),
    for environments where the host toolchain cannot be trusted to match.
 

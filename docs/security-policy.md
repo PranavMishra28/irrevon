@@ -50,9 +50,14 @@ project's benchmark-integrity reputation.
 in this repository. These layers are containment for a well-meaning-but-injected agent, not
 a boundary against a determined adversary. The controls that actually hold are outside the
 repo: human review of every diff before push, a fine-grained PAT scoped to this single
-repository, server-side rulesets/branch protection (free on public repositories —
-human-only settings change, pending), and mirroring the deny hook in the user-level
+repository, server-side rulesets/branch protection, and mirroring the deny hook in the user-level
 `~/.cursor/hooks.json` (repo files cannot remove user-level hooks).
+
+Repository-setting read-back on 2026-07-24 found secret scanning, push
+protection, CodeQL for Python and JavaScript/TypeScript, and the `ci-required`
+ruleset active. Non-provider-pattern scanning, platform Actions
+allowlisting/SHA-pin enforcement, and removal of the ruleset's repository-role
+bypass remain owner actions.
 
 ## Fork pull requests and CI (public repo)
 
@@ -66,8 +71,10 @@ convenience:
 - Sandbox credentials (when they ever exist) live only in a protected environment used by
   a tag-bound, manually dispatched workflow after required review — never as repo-level
   secrets readable by arbitrary workflows.
-- Enable the now-free public-repo services (human, settings): **secret scanning + push
-  protection**, CodeQL default setup, and rulesets enforcing required checks.
+- Keep the enabled public-repo services active: **secret scanning + push
+  protection**, CodeQL default setup, and the ruleset enforcing `ci-required`.
+  Before launch, the owner must enable non-provider patterns and platform
+  Actions SHA-pin/allowlist enforcement and remove the ruleset bypass actor.
 - No comment-consuming automation (auto-triage loops, bot-driven fix loops) until
   untrusted-input handling is audited; any review-bot autofix stays OFF.
 
@@ -93,8 +100,8 @@ deliberate human act. This is policy, not repo-enforceable.
   store — never in any committed file, example, or log. Placeholders in examples.
 - **Scanning layers:** the gitleaks pre-commit hook (pinned to a full commit SHA in
   `.pre-commit-config.yaml` — a mutable tag must not select the scanner), `make secrets`
-  (working tree + history), and — once enabled in settings (human) — GitHub secret scanning
-  with push protection, free on public repositories. Never bypass any layer; false
+  (working tree + history), plus GitHub secret scanning with push protection
+  (enabled; read back 2026-07-24). Never bypass any layer; false
   positives get a narrow `.gitleaks.toml` allowlist entry, never a skip.
 - **Local tool supply chain:** `make tools` installs via Homebrew and then runs
   `make tools-check`, which fails on any drift from the tested versions pinned in the
@@ -116,8 +123,10 @@ attempted injections. Never pipe downloaded content into a shell.
 - [ ] Close DE-1 — the development-environment migration (review-queue §3, top priority).
 - [ ] Fine-grained GitHub PAT scoped to this repo only, used for all agent `gh` operations;
       a separate **read-only** PAT for any MCP configuration.
-- [ ] Enable secret scanning + push protection; enable CodeQL default setup; configure
-      rulesets/required checks (all free on the public repo).
+- [x] Secret scanning + push protection, CodeQL default setup, and the
+      `ci-required` ruleset are enabled (read back 2026-07-24).
+- [ ] Enable non-provider secret patterns and the Actions allowlist/SHA-pin
+      setting; remove the active ruleset's repository-role bypass actor.
 - [ ] Mirror `deny.sh` registration in user-level `~/.cursor/hooks.json`.
 - [ ] `pre-commit install`; run `gitleaks git -v .` once after any scanner version bump.
 - [ ] 2FA + offline recovery codes on the GitHub account.

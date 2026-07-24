@@ -7,7 +7,7 @@ import { SITE_NAME, REPO_URL, repoDoc } from "../config";
 
 <Base
   title={`Security & trust — ${SITE_NAME}`}
-  description="The trust boundary: model output never holds authority over irreversible actions. Metadata-and-digest ledger, zero telemetry, and a verifiable supply-chain posture — plus the explicit non-claims."
+  description="The trust boundary: model output never holds authority over irreversible actions. Sensitive ledger data stays operator-controlled, the engine and Workbench have zero telemetry, and the supply-chain posture is verifiable."
 >
   <section class="section">
     <div class="container">
@@ -98,20 +98,22 @@ import { SITE_NAME, REPO_URL, repoDoc } from "../config";
     <div class="container">
       <div class="section-head">
         <span class="kicker">Data posture</span>
-        <h2>Metadata and digests, not payloads</h2>
+        <h2>Minimize payloads; treat the ledger as sensitive</h2>
       </div>
       <div class="grid-3">
         <article class="panel-subtle trust-card">
           <h3>What the ledger stores</h3>
           <p>
-            Effect metadata and SHA-256 digests, not raw payloads where avoidable. A redaction pipeline
-            governs exported evidence bundles. No end-customer personal data or partner production data in any
-            record.
+            The ledger stores intent metadata, raw stable identifiers, dispatch parameters needed for recovery,
+            digests, transitions, receipts, probes, and findings. It does not retain raw destination response
+            bodies, but parameters can contain personal or confidential data when an integrator puts it there.
+            Treat the database and every evidence export as sensitive, minimize payloads, and apply operator
+            access, retention, backup, and deletion controls.
           </p>
           <Source id="ledger-privacy" />
         </article>
         <article class="panel-subtle trust-card">
-          <h3>Zero telemetry, no accounts</h3>
+          <h3>Zero runtime telemetry; site analytics disclosed</h3>
           <p>
             The engine and the workbench phone home to nothing; the workbench’s no-external-request and
             read-only properties are enforced by end-to-end tests. This site is static, self-hosts its

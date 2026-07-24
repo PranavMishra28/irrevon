@@ -49,7 +49,7 @@ stage="release-dry-run"
 make release-dry-run
 
 stage="public-data"
-python3 scripts/check-public-data.py
+python3 scripts/check-public-data.py --include-generated
 gitleaks dir --no-banner --redact site/dist
 gitleaks dir --no-banner --redact dist
 gitleaks dir --no-banner --redact src/irrevon/_web

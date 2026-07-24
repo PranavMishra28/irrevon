@@ -2,6 +2,7 @@
 import "../styles/site.css";
 import Mark from "../components/Mark.astro";
 import { SITE_NAME, REPO_URL, repoDoc } from "../config";
+import { serializeJsonLd } from "../lib/jsonld-serialization";
 import { BUILD_COMMIT, BUILD_COMMIT_SHORT, BUILT_AT } from "../lib/provenance";
 import { href } from "../lib/url";
 import { normalizePathname, robotsDirective } from "../../search-policy.mjs";
@@ -124,7 +125,7 @@ const isCurrent = (path: string) => {
         />
       )
     }
-    {jsonLd.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
+    {jsonLd.map((obj) => <script type="application/ld+json" set:html={serializeJsonLd(obj)} />)}
     <!-- Theme boot: honors a stored explicit choice before first paint.
          Without JS, tokens.css's generated prefers-color-scheme block applies. -->
     <script is:inline>

@@ -15,9 +15,9 @@ labels: ""
 ### Triage protocol
 
 1. Reproduce locally: `make check` for the deterministic gates; for the online
-   checks, re-run the failing command from the workflow log. Once property
-   suites exist (M3+), reproduce from the printed Hypothesis seed/blob in the
-   run log — never from cached state.
+   checks, re-run the failing command from the workflow log. For a property-suite
+   failure, reproduce from the printed Hypothesis seed/blob in the run log —
+   never from cached state.
 2. If the failure is a real invariant violation: fix forward; the failing case
    becomes a regression test. Never weaken the property, its case floor, or any
    gate to get green.

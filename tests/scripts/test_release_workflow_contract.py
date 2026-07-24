@@ -30,7 +30,8 @@ def test_pr_path_is_non_publishing_and_tag_path_is_canonical_only() -> None:
     assert "permissions: {}" in header
 
     dry = _job(workflow, "dry-run", "validate-build")
-    assert "github.ref_type != 'tag'" in dry
+    assert "github.event_name != 'push'" in dry
+    assert "github.ref_type != 'tag'" not in dry
     assert "make release-dry-run" in dry
     assert "bash scripts/bootstrap-tools.sh" in dry
     assert "contents: read" in dry
@@ -47,6 +48,7 @@ def test_pr_path_is_non_publishing_and_tag_path_is_canonical_only() -> None:
         assert "github.ref_type == 'tag'" in block
         assert "github.event_name == 'push'" in block
         assert "github.repository == 'PranavMishra28/irrevon'" in block
+        assert "github.actor == github.repository_owner" in block
 
 
 def test_untrusted_build_is_separate_from_oidc_and_publication_permissions() -> None:
@@ -70,6 +72,7 @@ def test_untrusted_build_is_separate_from_oidc_and_publication_permissions() -> 
     assert "run:" not in attest
     assert "id-token: write" in attest
     assert "attestations: write" in attest
+    assert "contents: read" in attest
 
     assert "environment: release" in pypi
     assert "id-token: write" in pypi
@@ -87,6 +90,8 @@ def test_release_refuses_mismatched_versions_and_attests_every_evidence_file() -
     build = _job(workflow, "validate-build", "build-attest")
     attest = _job(workflow, "build-attest", "publish-pypi")
     assert "tag is not exactly vMAJOR.MINOR.PATCH" in build
+    assert 'git cat-file -t "refs/tags/$TAG_NAME"' in build
+    assert 'git merge-base --is-ancestor "$TAG_NAME^{}" origin/main' in build
     assert 'test "v$package_version" = "$TAG_NAME"' in build
     assert "*dev*|*+*" in build
     assert 'test -z "$(git status --porcelain)"' in build

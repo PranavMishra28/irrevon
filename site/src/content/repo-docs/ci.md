@@ -2,7 +2,7 @@
 title: "CI — how this repository builds"
 description: "The CI workflow map: tiers, required checks, owner settings checklist, and local parity via make targets."
 sourcePath: "docs/ci.md"
-sourceSha256: "70a60c83ac9a7a87f7df9cbc5614dcaa8cceb4c0a73629f948b15b7088a4f917"
+sourceSha256: "92bdc767796213855cba689461ef00babee2002769783bbbd9381a45869b4bdf"
 syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
@@ -131,10 +131,11 @@ the pending-forever trap).
 ## Owner settings checklist (HUMAN-only; agents are hook-blocked from all of it)
 
 **Script:** [`scripts/setup-repo-settings.sh`](../scripts/setup-repo-settings.sh) automates
-items 1–5 below (`bash scripts/setup-repo-settings.sh`, idempotent, read-back verification
-included) and item 6 (`--phase2`, self-guarded: refuses until `ci-required` has reported
-green on a real PR). The Actions allowlist/SHA-pin checkbox in item 3 and items 7–8 stay
-manual UI steps.
+secret scanning, Dependabot, default workflow permissions, fork approval, and the initial
+ruleset (`bash scripts/setup-repo-settings.sh`, idempotent, semantic read-back included).
+Its `--phase2` mode is self-guarded and refuses until `ci-required` has reported green on a
+real PR. The Actions allowlist/SHA-pin checkbox, CodeQL default setup, and private
+vulnerability reporting remain manual UI/read-back controls.
 
 Now (with this branch's merge):
 
@@ -150,9 +151,16 @@ Now (with this branch's merge):
    check **Require actions to be pinned to a full-length commit SHA**; fork-PR approval =
    **Require approval for all external contributors** (the default first-time-only tier is
    gameable `[VF]`); workflow permissions read-only, "create and approve pull requests" off.
+   **Read-back 2026-07-24:** the repository still allows all actions and has platform
+   SHA-pin enforcement disabled. This remains an owner launch action; repository
+   workflows are individually full-SHA-pinned and locally checked meanwhile.
 4. **Ruleset phase 1** — Settings → Rules → Rulesets → New branch ruleset on the default
    branch: `deletion`, `non_fast_forward`, `pull_request` (0 required approvals — a solo
    owner cannot approve their own PR), `bypass_actors: []`.
+   **Read-back 2026-07-24:** the active ruleset has `ci-required`, but also has an
+   always-allowed repository-role bypass actor. Remove that bypass before launch. The
+   setup script now refuses semantic drift instead of treating a same-named ruleset as
+   correct.
 After `ci-required` has reported on at least one PR (order matters — see traps below):
 
 5. **Ruleset phase 2** — add `required_status_checks` with the single context
@@ -219,7 +227,7 @@ Before the first M4/M7 dispatch:
 - **Nightly external-link failures** are often flakes: follow the triage protocol in the
   auto-filed issue; close only after a green manual re-run.
 
-## Design notes — cuts from the source designs `[DD]`
+## Design notes — historical cuts and current reconciliation `[DD]`
 
 Reconciliation rule: the public-repo review findings supersede the earlier private-repo
 design.
@@ -234,16 +242,17 @@ design.
   separate path-filtered workflows, the correct shape. Two fewer third-party actions.
 - **Cut the workflow-level `on.paths` filters** (ci.yml): they break required checks
   (pending-forever trap); replaced by the `changes` job + aggregator.
-- **Cut Postgres service containers from committed YAML**: no code exists; the digest pin
-  would rot unused. The T2/T3 bodies are documented (here and in workflow comments) and
-  land with the code at M3.
+- **Postgres service-container cut was temporary:** once the M3 engine and
+  integration suite landed, the digest-pinned Compose service and active T2/T3
+  jobs landed with them. The current workflow and tier tables above are
+  authoritative.
 - **Cut the GitHub Pro pairing recommendation** (CI design review): rulesets/environments are free on
   public repos; Pro buys nothing while public.
-- **Deferred: PR template** — the owner is the sole author today; a checklist nobody else
-  reads is ceremony. Adopt at code landing or first external contributor (whichever first).
-- **Deferred: CODEOWNERS, auto-labeling, Scorecard, README badges** — per the CI design
-  review rulings (solo repo; Scorecard needs a scoped `security-events: write` exception
-  that deserves its own decision at M3).
+- **Community and ownership controls have landed:** the PR template,
+  repository-wide CODEOWNERS baseline with path-specific rules, README badges,
+  and Scorecard workflow are active. Nightly failure labeling is deliberately
+  limited to the fixed owner-created label and title-deduplicated failure issue;
+  there is no general comment-driven auto-labeling bot.
 - **Deferred: Cursor CLI diagnostic workflow** (CI design review): its guardrails are designed, but
   it requires a `CURSOR_API_KEY` secret — which violates the no-repo-level-secrets rule
   until an owner-created environment holds it — and the vendor installer has no published

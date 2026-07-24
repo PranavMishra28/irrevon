@@ -82,6 +82,7 @@ SBOM-only; no shipped artifact contains them.
 | `types-jsonschema` | >=4.25 | Apache-2.0 | <https://pypi.org/project/types-jsonschema/> | — |
 | `ruff` | >=0.14 | MIT | <https://pypi.org/project/ruff/> | — |
 | `import-linter` | >=2.5 | BSD-2-Clause | <https://pypi.org/project/import-linter/> | transitive: grimp (BSD-2), click (BSD-3) |
+| `spdx-tools` | 0.8.3 (==) | Apache-2.0 | <https://github.com/spdx/tools-python> | official SPDX 2.3 parser/validator used only by the release dry run; exact-pinned |
 | `(other dev transitives)` | (uv.lock-pinned) | MIT / BSD / Apache-2.0 / MPL-2.0 (pathspec) | — | execnet, pluggy, iniconfig, rich, mypy-extensions, markdown-it-py, mdurl (MIT); Pygments (BSD-2); sortedcontainers (Apache-2.0); pathspec (MPL-2.0, unmodified dev-only) |
 
 ## 5b. Dev/test dependencies — web (never distributed)

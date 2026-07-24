@@ -3,10 +3,13 @@
 The Irrevon public site: the original six pages plus the discovery surface added by
 the site-expansion cycle (docs section with drift-gated rendered repository documents,
 searchable via self-hosted Pagefind; the interactive recorded demo; research,
-changelog, roadmap, install; full SEO/metadata). **Deployed to Vercel at the origin
+changelog, roadmap, install; full SEO/metadata). **Configured for Vercel at the origin
 root** by owner directive ([ADR-0027](../docs/decisions/0027-site-vercel-deploy.md));
 deploys remain human-gated acts, never CI-triggered (see [Deploy](#deploy) below; the
 gate-reconciliation record lives in [docs/review-queue.md](../docs/review-queue.md)).
+The configured production deployment was paused when checked on 2026-07-24 and
+must not be described as live until the owner restores it and verifies the
+launch checklist in `docs/discoverability.md`.
 The site never ships in the Python wheel (ADR-0018) and shares no build with `web/`.
 
 ## Page inventory
@@ -186,10 +189,11 @@ the discoverability runbook; submission is never part of CI.
 
 - Build and type checks: `pnpm check && pnpm build`.
 - Browser checks: `pnpm test`; review screenshots: `pnpm shots`.
-- JS weight: non-docs pages ~1 KB inline, zero fetched; `/demo` 4.4 KB inline
-  total (island 3,396 B source vs ≤8 KB budget); docs pages zero-fetch until a
-  search gesture, then same-origin `/pagefind/` only. Global gate: ≤10 KB inline,
-  zero fetched scripts (docs lane excepted post-gesture) — unchanged, un-weakened.
+- JS weight: every page remains under the enforced ≤10 KB inline-script budget.
+  All pages may fetch exactly the two permitted same-origin Vercel telemetry
+  loaders. Docs pages may additionally fetch same-origin `/pagefind/` assets
+  only after a search gesture. Browser tests fail on any other fetched script
+  or budget regression.
 - Claims registry: every entry is source-mapped; `CLAIMS.md` is generated and
   drift-gated.
 

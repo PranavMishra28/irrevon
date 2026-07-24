@@ -82,7 +82,10 @@ valid/invalid example suites, which CI enforces.
 
 ## Destination support
 
-Today the only destinations are the in-repo reference destinations (C1/C2/C3
-semantics, deterministic, local). Real-sandbox adapters are gated behind M4 — see the
-[adapter development guide](/docs/adapter-development/) for what a destination must
-declare before an adapter can exist.
+Today the only qualified destinations are the in-repo reference destinations
+(C1/C2/C3 semantics, deterministic, local). Stripe C1 and EasyPost C2 adapter
+implementations exist only as never-live-called, synthetic-transport-tested drafts:
+they reject production credentials and are not evidence of provider behavior.
+Live-sandbox qualification remains human-gated — see the
+[adapter development guide](/docs/adapter-development/) for the declaration and
+evidence a destination requires.

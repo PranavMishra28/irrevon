@@ -25,6 +25,7 @@ Semantics implemented (v1 payments namespace, per AM-5):
 from __future__ import annotations
 
 import os
+import urllib.parse
 from typing import Any
 
 from irrevon.adapters.base import Adapter, DispatchOrder, DispatchResult, StatusAnswer
@@ -62,8 +63,7 @@ class StripeC1Adapter(Adapter):
         declaration: dict[str, Any],
         api_key: str,
         *,
-        transport: Transport = urllib_transport,
-        base_url: str = _BASE,
+        _test_transport: Transport | None = None,
     ) -> None:
         if not api_key or not api_key.startswith(("sk_test_", "rk_test_")):
             # Sandbox-only by construction: a live-mode secret key is refused
@@ -75,8 +75,10 @@ class StripeC1Adapter(Adapter):
         self.adapter_id = adapter_id
         self._declaration = declaration
         self._api_key = api_key
-        self._transport = transport
-        self._base = base_url.rstrip("/")
+        # The credential-bearing origin is deliberately not configurable.
+        # Synthetic tests may replace the wire function, but cannot redirect
+        # the real transport to an attacker-controlled origin.
+        self._transport = _test_transport or urllib_transport
 
     @classmethod
     def from_env(
@@ -85,7 +87,6 @@ class StripeC1Adapter(Adapter):
         declaration: dict[str, Any],
         *,
         key_env: str = "IRREVON_STRIPE_SANDBOX_KEY",
-        transport: Transport = urllib_transport,
     ) -> StripeC1Adapter:
         """Credential-gated construction: the KEY NAME comes from config; the
         value only ever from the environment."""
@@ -96,7 +97,7 @@ class StripeC1Adapter(Adapter):
                 "(sandbox secret key); it is unset — this adapter is "
                 "credential-gated and never runs without one"
             )
-        return cls(adapter_id, declaration, api_key, transport=transport)
+        return cls(adapter_id, declaration, api_key)
 
     def declare(self) -> dict[str, Any]:
         return self._declaration
@@ -164,7 +165,7 @@ class StripeC1Adapter(Adapter):
         try:
             response = self._transport(
                 "POST",
-                f"{self._base}/v1/payment_intents",
+                f"{_BASE}/v1/payment_intents",
                 form,
                 self._headers(idempotency_key=order.client_ref),
                 deadline_s,
@@ -253,9 +254,10 @@ class StripeC1Adapter(Adapter):
     ) -> StatusAnswer:
         try:
             if destination_ref is not None:
+                encoded_ref = urllib.parse.quote(destination_ref, safe="")
                 response = self._transport(
                     "GET",
-                    f"{self._base}/v1/payment_intents/{destination_ref}",
+                    f"{_BASE}/v1/payment_intents/{encoded_ref}",
                     None,
                     self._headers(),
                     deadline_s,
@@ -287,8 +289,8 @@ class StripeC1Adapter(Adapter):
                 query = f'metadata["irrevon_ref"]:"{client_ref}"'
                 response = self._transport(
                     "GET",
-                    f"{self._base}/v1/payment_intents/search?"
-                    + f"query={query}".replace('"', "%22").replace(" ", "%20"),
+                    f"{_BASE}/v1/payment_intents/search?"
+                    + urllib.parse.urlencode({"query": query}),
                     None,
                     self._headers(),
                     deadline_s,
@@ -343,9 +345,14 @@ class StripeC1Adapter(Adapter):
         out: list[dict[str, Any]] = []
         starting_after: str | None = None
         for _ in range(100):  # pagination hard stop
-            url = f"{self._base}/v1/payment_intents?limit=100&created[gte]={gte}&created[lte]={lte}"
-            if starting_after:
-                url += f"&starting_after={starting_after}"
+            query: dict[str, str | int] = {
+                "limit": 100,
+                "created[gte]": gte,
+                "created[lte]": lte,
+            }
+            if starting_after is not None:
+                query["starting_after"] = starting_after
+            url = f"{_BASE}/v1/payment_intents?{urllib.parse.urlencode(query)}"
             response = self._transport("GET", url, None, self._headers(), deadline_s)
             status, body = response.status, response.body
             data = body.get("data")

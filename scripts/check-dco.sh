@@ -33,10 +33,6 @@ while IFS= read -r commit; do
   [ -n "$commit" ] || continue
   count=$((count + 1))
   author=$(git show -s --format='%an <%ae>' "$commit")
-  if [ "$author" = "dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>" ]; then
-    echo "dco: commit ${commit:0:12} is the narrowly exempt Dependabot bot"
-    continue
-  fi
   trailers=$(git show -s --format='%(trailers:key=Signed-off-by,valueonly)' "$commit")
   if ! printf '%s\n' "$trailers" | grep -Eiq "$value_pattern"; then
     echo "dco: commit ${commit:0:12} lacks a syntactically valid Signed-off-by trailer" >&2

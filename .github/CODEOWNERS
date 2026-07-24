@@ -1,4 +1,6 @@
 # The owner reviews trust-boundary and release-sensitive surfaces.
+* @PranavMishra28
+
 /.github/ @PranavMishra28
 /migrations/ @PranavMishra28
 /schemas/ @PranavMishra28

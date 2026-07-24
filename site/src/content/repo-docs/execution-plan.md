@@ -2,7 +2,7 @@
 title: "Execution plan — phases and gates"
 description: "Phases P0–P8, their gates, and the public-release gate. Order is load-bearing; nothing here is a date."
 sourcePath: "docs/execution-plan.md"
-sourceSha256: "a108210e7c41c547fc714cbbd49bcd4e17f86ec186af7aea3983ae782fff9b85"
+sourceSha256: "843d3fce124b5f5ce48d4e84c005e4a771e35b8bfc621ba180ec7ba7f21bb3b3"
 syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
@@ -79,8 +79,9 @@ Repository automation deliberately cannot complete these actions:
 - enable/verify repository rulesets, secret scanning, private vulnerability
   reporting, CodeQL/default setup, release-environment protection, and immutable
   releases;
-- create the PyPI project and configure its GitHub OIDC trusted publisher;
-- create a signed version tag, approve the protected release environment, and
+- register a pending PyPI Trusted Publisher for first-project creation and bind
+  it to this repository, release workflow, and protected environment;
+- create an annotated version tag, approve the protected release environment, and
   publish `0.1.0`;
 - deploy or unpause the owner-controlled Vercel project.
 
@@ -110,8 +111,8 @@ they favor Irrevon or falsify it.
 
 ### R4 — distribution
 
-The owner creates the PyPI trusted-publisher binding and protected GitHub
-release environment, pushes a version-matching tag, reviews the dry-run
+The owner registers the pending PyPI trusted-publisher binding and protected
+GitHub release environment, pushes a version-matching annotated tag, reviews the dry-run
 artifacts, and authorizes publication. The workflow then produces checksums,
 SBOM, attestations, GitHub assets, and PyPI artifacts without a long-lived
 publishing token.

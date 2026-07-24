@@ -15,6 +15,7 @@ import pytest
 from jsonschema import Draft202012Validator
 from psycopg.rows import dict_row
 
+import irrevon.serve as serve_module
 from irrevon.cli import main
 from irrevon.contract import load_schema
 from tests.serve.conftest import DBHandles, RunningServer, _app, _start
@@ -240,6 +241,34 @@ def test_inspect_unknown_id_is_404(
     )
     assert status == 404
     assert payload["error"]["code"] == "not_found"
+
+
+@pytest.mark.parametrize("suffix", ["", "/inspect"])
+def test_effect_detail_responses_fail_closed_before_exceeding_the_size_limit(
+    seeded_server: tuple[RunningServer, str],
+    monkeypatch: pytest.MonkeyPatch,
+    suffix: str,
+) -> None:
+    server, effect_id = seeded_server
+    monkeypatch.setattr(serve_module, "_MAX_JSON_RESPONSE_BYTES", 256)
+
+    status, headers, body = server.request("GET", f"/api/v1/effects/{effect_id}{suffix}")
+
+    assert status == 500
+    assert headers["cache-control"] == "no-store"
+    assert int(headers["content-length"]) == len(body)
+    payload = json.loads(body)
+    assert payload == {
+        "schema_version": "1",
+        "error": {
+            "code": "response_too_large",
+            "message": "response exceeds the serve safety limit",
+            "retryable": False,
+            "details": {},
+        },
+    }
+    assert effect_id.encode() not in body
+    assert b"serve-9410" not in body
 
 
 # ── Q2: /api/v1/findings ──────────────────────────────────────────────────────

@@ -17,6 +17,7 @@
     {"name": "types-jsonschema", "version": ">=4.25", "license": "Apache-2.0", "homepage": "https://pypi.org/project/types-jsonschema/", "note": ""},
     {"name": "ruff", "version": ">=0.14", "license": "MIT", "homepage": "https://pypi.org/project/ruff/", "note": ""},
     {"name": "import-linter", "version": ">=2.5", "license": "BSD-2-Clause", "homepage": "https://pypi.org/project/import-linter/", "note": "transitive: grimp (BSD-2), click (BSD-3)"},
+    {"name": "spdx-tools", "version": "0.8.3 (==)", "license": "Apache-2.0", "homepage": "https://github.com/spdx/tools-python", "note": "official SPDX 2.3 parser/validator used only by the release dry run; exact-pinned"},
     {"name": "(other dev transitives)", "version": "(uv.lock-pinned)", "license": "MIT / BSD / Apache-2.0 / MPL-2.0 (pathspec)", "homepage": "", "note": "execnet, pluggy, iniconfig, rich, mypy-extensions, markdown-it-py, mdurl (MIT); Pygments (BSD-2); sortedcontainers (Apache-2.0); pathspec (MPL-2.0, unmodified dev-only)"}
   ],
   "web_shipped": [

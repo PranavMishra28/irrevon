@@ -19,6 +19,16 @@ a loopback-only read surface. Multi-writer operation, a hosted control plane,
 qualified live-provider behavior, production readiness, scientific validation,
 and production battle-testing are not claimed.
 
+## Owner governance checklist
+
+Implementation has landed for seven decisions that remain explicitly
+**proposed**, not accepted: ADR-0020, ADR-0021, ADR-0022, and ADR-0030 through
+ADR-0034. Before a release, the owner must review each decision against the
+implementation and either ratify it through the repository's human-only ADR
+process, request changes, or leave it proposed with the limitation disclosed.
+Repository automation and this status page never convert implementation into
+ratification.
+
 This readable summary corresponds to
 [project-status.json](project-status.json). Run `make public-truth` to verify
 the primary launch surfaces, or read the complete

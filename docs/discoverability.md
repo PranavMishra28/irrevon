@@ -212,7 +212,12 @@ On the default branch, GitHub will surface “Cite this repository.”
 
 Owner-only settings:
 
-1. Keep the current accurate description and production homepage URL.
+1. Keep the repository description accurate. The configured homepage is
+   `https://irrevon.vercel.app/`, but on 2026-07-24 it returned Vercel
+   `DEPLOYMENT_PAUSED` rather than the site. Before launch, the owner must
+   unpause or redeploy it and verify a final 200 response, expected security
+   headers, canonical URLs, and production crawler policy. Until then, do not
+   describe the site as live.
 2. Add no more than 20 natural lowercase topics. Suggested set:
    `ai-agents`, `agent-reliability`, `distributed-systems`, `reconciliation`,
    `idempotency`, `fault-injection`, `benchmark`, `python`, `postgresql`,

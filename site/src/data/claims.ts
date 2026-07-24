@@ -277,9 +277,9 @@ export const claims = {
   },
   "ledger-privacy": {
     claim:
-      "The ledger stores metadata and digests, not raw payloads where avoidable; a redaction pipeline governs exported evidence bundles; no end-customer personal data or partner production data in any record.",
-    source: "master doc §9 + RFC-002 §0 principle 5",
-    label: "DD",
+      "The ledger stores intent metadata, raw stable identifiers, dispatch parameters needed for recovery, digests, transitions, receipts, probes, and findings. It does not retain raw destination response bodies, but integrator-supplied parameters may contain personal or confidential data. Operators must treat the database and evidence exports as sensitive and apply minimization, access, retention, backup, and deletion controls.",
+    source: "migrations/0002_tables.sql + docs/operations.md § Data classification, redaction, retention",
+    label: "VF",
   },
   "zero-telemetry": {
     claim:
@@ -321,7 +321,7 @@ export const claims = {
   },
   "no-releases": {
     claim:
-      "No release exists: zero git tags, no package, no release artifact. The changelog is computed from git tags at build time, so its empty state is derived, not asserted — the first entry appears when the first signed tag exists, which is human-gated.",
+      "No release exists: zero git tags, no package, no release artifact. The changelog is computed from version-shaped annotated git tags at build time, so its empty state is derived, not asserted — the first entry appears when the first validated release tag exists, which is owner-gated.",
     source: "repository state (git tag --list) + execution plan (public-release gate)",
     label: "VF",
   },

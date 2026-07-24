@@ -20,8 +20,11 @@ the packaged CLI, schemas, migrations, and Workbench.
 
 Before the first release, the repository owner must:
 
-1. create the PyPI `irrevon` project and configure a Trusted Publisher for this
-   repository, `.github/workflows/release.yml`, and the `release` environment;
+1. register a **pending Trusted Publisher** for the not-yet-created PyPI
+   `irrevon` project, bound to this repository,
+   `.github/workflows/release.yml`, and the `release` environment; the first
+   trusted publication creates the project, and the pending publisher does not
+   reserve the name beforehand;
 2. protect that environment with a required reviewer;
 3. enable immutable GitHub releases and the repository security settings in
    [docs/ci.md](ci.md);
@@ -34,11 +37,12 @@ No PyPI API token or long-lived signing key is used.
 
 ## Release execution
 
-The owner creates and pushes an annotated `v0.1.0` tag from the reviewed commit.
-Only a version-shaped tag can enter the publish job. The workflow verifies a
-clean checkout, exact tag/package equality, the full launch gate, archive
-contents, clean installs, checksums, SBOM, and artifact attestations. The
-protected `release` environment is the final human approval boundary.
+The owner creates and pushes an annotated `v0.1.0` tag from the reviewed
+default-branch commit. Only an annotated, version-shaped tag whose peeled commit
+is on `origin/main` can enter the publish job. The workflow verifies a clean
+checkout, exact tag/package equality, the full launch gate, archive contents,
+clean installs, checksums, SBOM, and GitHub artifact attestations. The protected
+`release` environment is the final human approval boundary.
 
 The workflow refuses untagged refs, forks, version mismatches, dirty trees, and
 failed validation. Pull requests run only the non-publishing dry-run job.
@@ -69,7 +73,9 @@ verify-env/bin/pip install ./irrevon-0.1.0-py3-none-any.whl
 verify-env/bin/irrevon --version
 ```
 
-GitHub artifact attestations provide signed provenance in the public Sigstore
-transparency log. The project will describe the achieved SLSA posture only
-after a real release produces verifiable provenance; this preparation alone
-does not claim a SLSA level.
+GitHub artifact attestations provide cryptographically signed provenance in the
+public Sigstore transparency log. This is distinct from claiming that the Git
+tag itself has a cryptographic signature: the required tag is annotated, while
+the release artifacts are attested. The project will describe the achieved SLSA
+posture only after a real release produces verifiable provenance; this
+preparation alone does not claim a SLSA level.

@@ -124,6 +124,19 @@ if STATUS["release_posture"] == "research-preview-unpublished":
         if forbidden in citation:
             fail(f"CITATION.cff must not imply an unpublished release with {forbidden.strip()!r}")
 
+codeowners_lines = [
+    line.split()
+    for line in (ROOT / ".github/CODEOWNERS").read_text(encoding="utf-8").splitlines()
+    if line.strip() and not line.lstrip().startswith("#")
+]
+if not codeowners_lines or codeowners_lines[0] != ["*", "@PranavMishra28"]:
+    fail("CODEOWNERS must begin with the repository-wide '* @PranavMishra28' rule")
+for rule in codeowners_lines:
+    if len(rule) < 2 or "@PranavMishra28" not in rule[1:]:
+        fail(f"CODEOWNERS rule {rule[0]!r} must retain the repository owner")
+if not any(rule[0] in {"*", "/.github/", ".github/"} for rule in codeowners_lines):
+    fail("CODEOWNERS must own .github/CODEOWNERS itself")
+
 schema_count = len(list((ROOT / "schemas").glob("*.schema.json")))
 if schema_count != 13:
     fail(f"schema inventory expected 13, found {schema_count}")

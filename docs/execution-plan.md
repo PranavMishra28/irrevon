@@ -69,8 +69,9 @@ Repository automation deliberately cannot complete these actions:
 - enable/verify repository rulesets, secret scanning, private vulnerability
   reporting, CodeQL/default setup, release-environment protection, and immutable
   releases;
-- create the PyPI project and configure its GitHub OIDC trusted publisher;
-- create a signed version tag, approve the protected release environment, and
+- register a pending PyPI Trusted Publisher for first-project creation and bind
+  it to this repository, release workflow, and protected environment;
+- create an annotated version tag, approve the protected release environment, and
   publish `0.1.0`;
 - deploy or unpause the owner-controlled Vercel project.
 
@@ -100,8 +101,8 @@ they favor Irrevon or falsify it.
 
 ### R4 — distribution
 
-The owner creates the PyPI trusted-publisher binding and protected GitHub
-release environment, pushes a version-matching tag, reviews the dry-run
+The owner registers the pending PyPI trusted-publisher binding and protected
+GitHub release environment, pushes a version-matching annotated tag, reviews the dry-run
 artifacts, and authorizes publication. The workflow then produces checksums,
 SBOM, attestations, GitHub assets, and PyPI artifacts without a long-lived
 publishing token.

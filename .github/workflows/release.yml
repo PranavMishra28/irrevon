@@ -1,5 +1,5 @@
 # Release preparation is executable but publishing is human-gated. Pull
-# requests and manual dispatches run only `dry-run`; only a human-pushed
+# requests and manual dispatches run only `dry-run`; only an owner-pushed
 # version tag in the canonical repository can reach the protected `release`
 # environment and its PyPI/GitHub publication steps.
 name: release
@@ -30,7 +30,7 @@ concurrency:
 jobs:
   dry-run:
     name: Non-publishing release dry run
-    if: github.ref_type != 'tag'
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -73,7 +73,8 @@ jobs:
     if: >-
       github.ref_type == 'tag' &&
       github.event_name == 'push' &&
-      github.repository == 'PranavMishra28/irrevon'
+      github.repository == 'PranavMishra28/irrevon' &&
+      github.actor == github.repository_owner
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -102,6 +103,14 @@ jobs:
           test -z "$(git status --porcelain)"
           [[ "$TAG_NAME" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || {
             echo "::error::tag is not exactly vMAJOR.MINOR.PATCH"
+            exit 1
+          }
+          test "$(git cat-file -t "refs/tags/$TAG_NAME")" = tag || {
+            echo "::error::release tags must be annotated, not lightweight"
+            exit 1
+          }
+          git merge-base --is-ancestor "$TAG_NAME^{}" origin/main || {
+            echo "::error::tagged commit is not reachable from origin/main"
             exit 1
           }
           package_version=$(uv run python -c 'import irrevon; print(irrevon.__version__)')
@@ -136,10 +145,12 @@ jobs:
     if: >-
       github.ref_type == 'tag' &&
       github.event_name == 'push' &&
-      github.repository == 'PranavMishra28/irrevon'
+      github.repository == 'PranavMishra28/irrevon' &&
+      github.actor == github.repository_owner
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
+      contents: read # required by GitHub artifact attestations
       id-token: write # sign the artifact attestation with GitHub OIDC
       attestations: write # publish provenance for the validated artifacts
     steps:
@@ -162,7 +173,8 @@ jobs:
     if: >-
       github.ref_type == 'tag' &&
       github.event_name == 'push' &&
-      github.repository == 'PranavMishra28/irrevon'
+      github.repository == 'PranavMishra28/irrevon' &&
+      github.actor == github.repository_owner
     environment: release
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -194,7 +206,8 @@ jobs:
     if: >-
       github.ref_type == 'tag' &&
       github.event_name == 'push' &&
-      github.repository == 'PranavMishra28/irrevon'
+      github.repository == 'PranavMishra28/irrevon' &&
+      github.actor == github.repository_owner
     environment: release
     runs-on: ubuntu-latest
     timeout-minutes: 15

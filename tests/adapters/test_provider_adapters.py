@@ -55,7 +55,7 @@ def _stripe(responses: list[Any]) -> tuple[StripeC1Adapter, _FakeTransport]:
     transport = _FakeTransport(responses)
     return (
         StripeC1Adapter(
-            "stripe-c1", STRIPE_DECL, "sk_test_synthetic", transport=transport
+            "stripe-c1", STRIPE_DECL, "sk_test_synthetic", _test_transport=transport
         ),
         transport,
     )
@@ -65,7 +65,7 @@ def _easypost(responses: list[Any]) -> tuple[EasyPostC2Adapter, _FakeTransport]:
     transport = _FakeTransport(responses)
     return (
         EasyPostC2Adapter(
-            "easypost-c2", EASYPOST_DECL, "EZTK_synthetic", transport=transport
+            "easypost-c2", EASYPOST_DECL, "EZTK_synthetic", _test_transport=transport
         ),
         transport,
     )
@@ -88,6 +88,23 @@ def test_stripe_refuses_live_mode_keys() -> None:
 def test_easypost_refuses_production_keys() -> None:
     with pytest.raises(ConfigInvalid, match="TEST API keys only"):
         EasyPostC2Adapter("easypost-c2", EASYPOST_DECL, "EZAK_production")
+
+
+def test_provider_origins_are_not_configurable() -> None:
+    with pytest.raises(TypeError):
+        StripeC1Adapter(
+            "stripe-c1",
+            STRIPE_DECL,
+            "sk_test_synthetic",
+            base_url="https://attacker.invalid",  # type: ignore[call-arg]
+        )
+    with pytest.raises(TypeError):
+        EasyPostC2Adapter(
+            "easypost-c2",
+            EASYPOST_DECL,
+            "EZTK_synthetic",
+            base_url="https://attacker.invalid",  # type: ignore[call-arg]
+        )
 
 
 # ── Stripe wire discipline + classification ────────────────────────────────────
@@ -205,6 +222,20 @@ def test_stripe_status_query_mapping() -> None:
     assert adapter.status_query(client_ref=ORDER.client_ref).result == "ABSENT"
 
 
+def test_stripe_query_inputs_are_encoded_and_origin_stays_fixed() -> None:
+    adapter, transport = _stripe([(200, {"id": "pi_1"})])
+    adapter.status_query(destination_ref="../collect?next=https://attacker.invalid")
+    assert transport.requests[0]["url"].startswith("https://api.stripe.com/")
+    assert "../" not in transport.requests[0]["url"]
+    assert "attacker.invalid" in transport.requests[0]["url"]
+    assert "?next=" not in transport.requests[0]["url"]
+
+    adapter, transport = _stripe([(200, {"data": []})])
+    adapter.status_query(client_ref='ref"&limit=1000')
+    assert transport.requests[0]["url"].startswith("https://api.stripe.com/")
+    assert "&limit=1000" not in transport.requests[0]["url"]
+
+
 def test_stripe_status_query_rejects_malformed_nested_shapes_conservatively() -> None:
     adapter, _ = _stripe([(404, {"error": "not-an-object"})])
     assert adapter.status_query(destination_ref="pi_x").result == "INDETERMINATE"
@@ -295,6 +326,24 @@ def test_easypost_declares_no_client_ref_query() -> None:
     adapter, _ = _easypost([])
     with pytest.raises(CapabilityUnsupported, match="destination_ref"):
         adapter.status_query(client_ref="ref-1")
+
+
+def test_easypost_query_inputs_are_encoded_and_origin_stays_fixed() -> None:
+    adapter, transport = _easypost([(200, {"id": "shp_1"})])
+    adapter.status_query(destination_ref="../collect?next=https://attacker.invalid")
+    assert transport.requests[0]["url"].startswith("https://api.easypost.com/")
+    assert "../" not in transport.requests[0]["url"]
+    assert "?next=" not in transport.requests[0]["url"]
+
+    adapter, transport = _easypost([(200, {"shipments": [], "has_more": False})])
+    adapter.list_effects(
+        "2026-07-01T00:00:00Z&purchased=true",
+        "2026-07-22T00:00:00Z&before_id=attacker",
+    )
+    url = transport.requests[0]["url"]
+    assert url.startswith("https://api.easypost.com/")
+    assert url.count("purchased=") == 1
+    assert "&before_id=attacker" not in url
 
 
 def test_easypost_list_paginates_with_before_id() -> None:

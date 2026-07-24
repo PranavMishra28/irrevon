@@ -72,6 +72,7 @@ SCHEMA_VERSION_HEADER = "Irrevon-Schema-Version"
 _BIND_HOST = "127.0.0.1"
 
 _HEALTH_CACHE_S = 5.0
+_MAX_JSON_RESPONSE_BYTES = 4 * 1024 * 1024
 
 _EFFECT_ROUTE = re.compile(r"^/api/v1/effects/([0-9a-f]{64})(/inspect)?$")
 _KNOWN_API_ROUTES = {
@@ -467,7 +468,18 @@ class _Handler(BaseHTTPRequestHandler):
     def _send_json(
         self, status: int, payload: dict[str, Any], *, include_body: bool
     ) -> int:
-        body = json.dumps(payload, default=str).encode("utf-8")
+        body = _bounded_json_bytes(payload)
+        if body is None:
+            # Fail closed before headers or payload bytes are written. Detail
+            # responses can grow with an append-only ledger; never let one
+            # unpaginated representation become a partial evidence export.
+            status = 500
+            body = json.dumps(
+                _error_envelope(
+                    "response_too_large",
+                    "response exceeds the serve safety limit",
+                )
+            ).encode("utf-8")
         self.send_response(status)
         self._send_common_headers(
             "application/json; charset=utf-8", len(body), api=True
@@ -704,6 +716,19 @@ def _error_envelope(
             "details": {},
         },
     }
+
+
+def _bounded_json_bytes(payload: dict[str, Any]) -> bytes | None:
+    """Encode one JSON response without materializing bytes beyond the ceiling."""
+    chunks: list[bytes] = []
+    size = 0
+    for chunk in json.JSONEncoder(default=str).iterencode(payload):
+        encoded = chunk.encode("utf-8")
+        size += len(encoded)
+        if size > _MAX_JSON_RESPONSE_BYTES:
+            return None
+        chunks.append(encoded)
+    return b"".join(chunks)
 
 
 # ── server lifecycle ───────────────────────────────────────────────────────────

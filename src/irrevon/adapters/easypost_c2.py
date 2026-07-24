@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import base64
 import os
+import urllib.parse
 from typing import Any
 
 from irrevon.adapters.base import Adapter, DispatchOrder, DispatchResult, StatusAnswer
@@ -44,8 +45,7 @@ class EasyPostC2Adapter(Adapter):
         declaration: dict[str, Any],
         api_key: str,
         *,
-        transport: Transport = urllib_transport,
-        base_url: str = _BASE,
+        _test_transport: Transport | None = None,
     ) -> None:
         if not api_key or not api_key.startswith("EZTK"):
             # Test-key prefix required: production keys (EZAK) are refused.
@@ -55,8 +55,10 @@ class EasyPostC2Adapter(Adapter):
         self.adapter_id = adapter_id
         self._declaration = declaration
         self._api_key = api_key
-        self._transport = transport
-        self._base = base_url.rstrip("/")
+        # The credential-bearing origin is deliberately not configurable.
+        # Synthetic tests may replace the wire function, but cannot redirect
+        # the real transport to an attacker-controlled origin.
+        self._transport = _test_transport or urllib_transport
 
     @classmethod
     def from_env(
@@ -65,7 +67,6 @@ class EasyPostC2Adapter(Adapter):
         declaration: dict[str, Any],
         *,
         key_env: str = "IRREVON_EASYPOST_TEST_KEY",
-        transport: Transport = urllib_transport,
     ) -> EasyPostC2Adapter:
         api_key = os.environ.get(key_env, "")
         if not api_key:
@@ -74,7 +75,7 @@ class EasyPostC2Adapter(Adapter):
                 "(test API key); it is unset — this adapter is credential-gated "
                 "and never runs without one"
             )
-        return cls(adapter_id, declaration, api_key, transport=transport)
+        return cls(adapter_id, declaration, api_key)
 
     def declare(self) -> dict[str, Any]:
         return self._declaration
@@ -113,7 +114,7 @@ class EasyPostC2Adapter(Adapter):
         }
         try:
             http_response = self._transport(
-                "POST", f"{self._base}/v2/shipments", body, self._headers(), deadline_s
+                "POST", f"{_BASE}/v2/shipments", body, self._headers(), deadline_s
             )
         except WireDropped:
             return DispatchResult(
@@ -193,9 +194,10 @@ class EasyPostC2Adapter(Adapter):
                 "queries only (EasyPost reference is not a query filter)"
             )
         try:
+            encoded_ref = urllib.parse.quote(destination_ref, safe="")
             response = self._transport(
                 "GET",
-                f"{self._base}/v2/shipments/{destination_ref}",
+                f"{_BASE}/v2/shipments/{encoded_ref}",
                 None,
                 self._headers(),
                 deadline_s,
@@ -224,12 +226,15 @@ class EasyPostC2Adapter(Adapter):
         out: list[dict[str, Any]] = []
         before_id: str | None = None
         for _ in range(100):  # pagination hard stop
-            url = (
-                f"{self._base}/v2/shipments?page_size=100&purchased=false"
-                f"&start_datetime={window_from}&end_datetime={window_to}"
-            )
-            if before_id:
-                url += f"&before_id={before_id}"
+            query = {
+                "page_size": "100",
+                "purchased": "false",
+                "start_datetime": window_from,
+                "end_datetime": window_to,
+            }
+            if before_id is not None:
+                query["before_id"] = before_id
+            url = f"{_BASE}/v2/shipments?{urllib.parse.urlencode(query)}"
             response = self._transport("GET", url, None, self._headers(), deadline_s)
             status, body = response.status, response.body
             shipments = body.get("shipments")

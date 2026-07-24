@@ -8,6 +8,7 @@ import { createHash } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { ALL_PAGES, PAGES } from "./pages";
 import { isIndexablePath } from "../search-policy.mjs";
+import { serializeJsonLd } from "../src/lib/jsonld-serialization";
 
 for (const path of ALL_PAGES) {
   test(`metadata: ${path}`, async ({ page }) => {
@@ -109,6 +110,30 @@ test("JSON-LD: no fabricated offers/ratings/reviews/organization on any page", a
       expect(raw, `${path} carries fabricated structured data ${banned}`).not.toContain(banned);
     }
   }
+});
+
+test("JSON-LD serialization cannot terminate its data block or create executable script", async ({ page }) => {
+  const marker = "__irrevonJsonLdInjection";
+  const hostile = {
+    headline: `safe</script><script>globalThis.${marker} = true</script>`,
+    separators: "\u2028\u2029",
+  };
+  const serialized = serializeJsonLd(hostile);
+
+  expect(serialized).not.toContain("</script");
+  expect(JSON.parse(serialized)).toEqual(hostile);
+
+  await page.setContent(
+    `<script type="application/ld+json" id="subject">${serialized}</script>`,
+  );
+  const result = await page.evaluate((injectionMarker) => ({
+    executed: Boolean((globalThis as Record<string, unknown>)[injectionMarker]),
+    scripts: document.scripts.length,
+    decoded: JSON.parse(document.querySelector("#subject")?.textContent ?? "{}"),
+  }), marker);
+  expect(result.executed).toBe(false);
+  expect(result.scripts).toBe(1);
+  expect(result.decoded).toEqual(hostile);
 });
 
 test("JSON-LD: research post is an Article with published date", async ({ page }) => {

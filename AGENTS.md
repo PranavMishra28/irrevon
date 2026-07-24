@@ -1,8 +1,9 @@
 # AGENTS.md — Irrevon agent operating guide
 
-Irrevon is a planned benchmark (IrrevonBench, preregistration drafted but not frozen) +
-reference reconciliation engine for irreversible AI-agent actions, benchmark-first and
-C2-scoped. Current status: see [README §What exists today](README.md#what-exists-today).
+Irrevon is a reference reconciliation engine plus an implemented IrrevonBench
+development harness for irreversible AI-agent actions, benchmark-first and C2-scoped.
+The preregistration is drafted but not frozen, so no confirmatory result exists. Current
+status: see [README §What exists today](README.md#what-exists-today).
 The source tree is licensed Apache-2.0 (LICENSE + NOTICE; ADR-0028). External
 contributions use inbound-equals-outbound Apache-2.0 with DCO sign-off and no
 CLA (ADR-0035; see `CONTRIBUTING.md`).
@@ -27,7 +28,7 @@ instead of restating it.
 | Benchmark guide: measurement boundary, governance, tracks, adoption, BetterBench self-score | [docs/benchmark.md](docs/benchmark.md); harness in `src/irrevon/bench/` (ADR-0030 proposed), data policy in [bench/README.md](bench/README.md), integrity gate `make bench-integrity`, CLI `irrevon bench` (confirmatory mode = integrity refusal pre-freeze) |
 | CI: workflow map, tiers, owner settings checklist | [docs/ci.md](docs/ci.md) (workflows in `.github/workflows/`; every job body is one `make` target) |
 | Workbench frontend (read-only; fixture + live data modes; v0.2 redesign: Overview at `/`, causal graph, responsive shell) | `web/` — see [web/README.md](web/README.md); stack per [ADR-0016](docs/decisions/0016-frontend-workbench-stack.md), serve surface per [ADR-0024](docs/decisions/0024-serve-read-surface.md), gates `make web-check` / `web-test` (pixel gate `make web-vrt`, container-only) |
-| Marketing site (built + gated; deploy human-only, dispatch-only workflow) | `site/` — see [site/README.md](site/README.md); ADR proposed (review-queue §3 item 20), gates `make site-check` / `site-build` / `site-test` |
+| Marketing site (built + gated; owner-directed Vercel deployment, never push-triggered) | `site/` — see [site/README.md](site/README.md); stack/discovery posture per accepted [ADR-0025](docs/decisions/0025-site-discovery-surface.md), hosting per accepted [ADR-0027](docs/decisions/0027-site-vercel-deploy.md), gates `make site-check` / `site-build` / `site-test` |
 | Machine-readable contracts + what is deferred | [schemas/README.md](schemas/README.md) |
 | Engine implementation (first slice) | `src/irrevon/` — module boundaries per [RFC-002 §14](docs/rfc-002-engine-design.md); the ratified state tables are encoded ONCE in `src/irrevon/statetable.py` (generated-from, never hand-copied) |
 | Ledger schema + locked transition functions | [migrations/](migrations/) (plain SQL per ADR-0013; runner ADR-0022) |

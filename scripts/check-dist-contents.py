@@ -4,12 +4,14 @@
 from __future__ import annotations
 
 import argparse
+import stat
 import sys
 import tarfile
 import zipfile
 from pathlib import Path, PurePosixPath
 
-SDIST_TOP_LEVEL = {
+ROOT = Path(__file__).resolve().parents[1]
+SDIST_ROOT_FILES = {
     ".gitignore",
     "LICENSE",
     "LICENSING.md",
@@ -22,11 +24,9 @@ SDIST_TOP_LEVEL = {
     "PACKAGE_README.md",
     "README.md",
     "hatch_build.py",
-    "migrations",
     "pyproject.toml",
-    "schemas",
-    "src",
 }
+SOURCE_TREES = ("migrations", "schemas", "src")
 
 
 class ContractError(ValueError):
@@ -40,12 +40,6 @@ def _safe_parts(name: str, *, artifact: str) -> tuple[str, ...]:
     return tuple(part for part in path.parts if part not in {"", "."})
 
 
-def _require_members(names: set[str], required: set[str], *, artifact: str) -> None:
-    missing = sorted(required - names)
-    if missing:
-        raise ContractError(f"{artifact} is missing required members: {missing}")
-
-
 def _split_names(names: list[str], *, artifact: str) -> list[tuple[str, ...]]:
     result = []
     for name in names:
@@ -55,9 +49,70 @@ def _split_names(names: list[str], *, artifact: str) -> list[tuple[str, ...]]:
     return result
 
 
-def check_sdist(path: Path) -> None:
+def _source_files(root: Path, relative: str) -> set[str]:
+    base = root / relative
+    return {
+        path.relative_to(root).as_posix()
+        for path in base.rglob("*")
+        if path.is_file()
+        and "__pycache__" not in path.parts
+        and path.suffix not in {".pyc", ".pyo"}
+    }
+
+
+def _expected_sdist(root: Path) -> set[str]:
+    return SDIST_ROOT_FILES | set().union(
+        *(_source_files(root, tree) for tree in SOURCE_TREES)
+    )
+
+
+def _expected_wheel(root: Path, info_dir: str) -> set[str]:
+    package = {
+        path.removeprefix("src/")
+        for path in _source_files(root, "src/irrevon")
+    }
+    schemas = {
+        f"irrevon/_schemas/{path.removeprefix('schemas/')}"
+        for path in _source_files(root, "schemas")
+    }
+    migrations = {
+        f"irrevon/_migrations/{path.removeprefix('migrations/')}"
+        for path in _source_files(root, "migrations")
+    }
+    legal = {
+        f"irrevon/_legal/{name}"
+        for name in ("ASSETS.md", "THIRD-PARTY-LICENSES.md", "THIRD-PARTY-NOTICES.md")
+    }
+    metadata = {
+        f"{info_dir}/METADATA",
+        f"{info_dir}/WHEEL",
+        f"{info_dir}/entry_points.txt",
+        f"{info_dir}/licenses/LICENSE",
+        f"{info_dir}/licenses/NOTICE",
+        f"{info_dir}/RECORD",
+    }
+    return package | schemas | migrations | legal | metadata
+
+
+def _require_exact(actual: set[str], expected: set[str], *, artifact: str) -> None:
+    unexpected = sorted(actual - expected)
+    missing = sorted(expected - actual)
+    if unexpected or missing:
+        raise ContractError(
+            f"{artifact} content differs from the exact source manifest: "
+            f"unexpected={unexpected[:20]}, missing={missing[:20]}"
+        )
+
+
+def check_sdist(path: Path, *, contract_root: Path = ROOT) -> None:
     with tarfile.open(path, mode="r:*") as archive:
-        raw_names = archive.getnames()
+        members = archive.getmembers()
+    raw_names = [member.name for member in members]
+    if len(raw_names) != len(set(raw_names)):
+        raise ContractError("sdist contains duplicate member names")
+    non_files = [member.name for member in members if not member.isfile()]
+    if non_files:
+        raise ContractError(f"sdist contains non-regular members: {non_files[:20]}")
 
     split_names = _split_names(raw_names, artifact="sdist")
     roots = {parts[0] for parts in split_names}
@@ -65,49 +120,8 @@ def check_sdist(path: Path) -> None:
         raise ContractError(f"sdist must have exactly one archive root, found: {sorted(roots)}")
     root = next(iter(roots))
     relative_names = {"/".join(parts[1:]) for parts in split_names if len(parts) > 1}
-    top_level = {parts[1] for parts in split_names if len(parts) > 1}
-    unexpected = sorted(top_level - SDIST_TOP_LEVEL)
-    missing = sorted(SDIST_TOP_LEVEL - top_level)
-    if unexpected or missing:
-        raise ContractError(
-            "sdist top-level content differs from the allowlist: "
-            f"unexpected={unexpected}, missing={missing}"
-        )
+    _require_exact(relative_names, _expected_sdist(contract_root), artifact="sdist")
 
-    _require_members(
-        relative_names,
-        {
-            ".gitignore",
-            "LICENSE",
-            "LICENSING.md",
-            "NOTICE",
-            "THIRD-PARTY-NOTICES.md",
-            "THIRD-PARTY-LICENSES.md",
-            "ASSETS.md",
-            "CHANGELOG.md",
-            "PKG-INFO",
-            "PACKAGE_README.md",
-            "README.md",
-            "hatch_build.py",
-            "pyproject.toml",
-            "src/irrevon/__init__.py",
-            "src/irrevon/_web/index.html",
-            "migrations/0005_read_role.sql",
-            "schemas/capability-declaration.schema.json",
-        },
-        artifact="sdist",
-    )
-
-    source_packages = {
-        parts[2]
-        for parts in split_names
-        if len(parts) > 3 and parts[1] == "src"
-    }
-    if source_packages != {"irrevon"}:
-        raise ContractError(
-            "sdist src/ packages must be exactly ['irrevon'], "
-            f"found: {sorted(source_packages)}"
-        )
     stale = [
         "/".join(parts)
         for parts in split_names
@@ -115,12 +129,22 @@ def check_sdist(path: Path) -> None:
     ]
     if stale:
         raise ContractError(f"sdist carries stale detent paths: {stale[:10]}")
-    print(f"sdist content contract OK: root={root}, top-level={sorted(top_level)}")
+    print(f"sdist exact content contract OK: root={root}, files={len(relative_names)}")
 
 
-def check_wheel(path: Path) -> None:
+def check_wheel(path: Path, *, contract_root: Path = ROOT) -> None:
     with zipfile.ZipFile(path) as archive:
-        raw_names = archive.namelist()
+        members = archive.infolist()
+    raw_names = [member.filename for member in members]
+    if len(raw_names) != len(set(raw_names)):
+        raise ContractError("wheel contains duplicate member names")
+    links = [
+        member.filename
+        for member in members
+        if stat.S_ISLNK((member.external_attr >> 16) & 0xFFFF)
+    ]
+    if links:
+        raise ContractError(f"wheel contains symbolic links: {links[:20]}")
 
     split_names = _split_names(raw_names, artifact="wheel")
     names = {"/".join(parts) for parts in split_names}
@@ -135,24 +159,7 @@ def check_wheel(path: Path) -> None:
         )
 
     info_dir = next(iter(dist_info))
-    _require_members(
-        names,
-        {
-            "irrevon/__init__.py",
-            "irrevon/_web/index.html",
-            "irrevon/_migrations/0005_read_role.sql",
-            "irrevon/_schemas/capability-declaration.schema.json",
-            "irrevon/_legal/THIRD-PARTY-NOTICES.md",
-            "irrevon/_legal/THIRD-PARTY-LICENSES.md",
-            "irrevon/_legal/ASSETS.md",
-            f"{info_dir}/METADATA",
-            f"{info_dir}/WHEEL",
-            f"{info_dir}/RECORD",
-            f"{info_dir}/licenses/LICENSE",
-            f"{info_dir}/licenses/NOTICE",
-        },
-        artifact="wheel",
-    )
+    _require_exact(names, _expected_wheel(contract_root, info_dir), artifact="wheel")
     stale = [
         "/".join(parts)
         for parts in split_names
@@ -161,8 +168,8 @@ def check_wheel(path: Path) -> None:
     if stale:
         raise ContractError(f"wheel carries stale detent paths: {stale[:10]}")
     print(
-        "wheel content contract OK: "
-        f"package=irrevon, dist-info={next(iter(dist_info))}"
+        "wheel exact content contract OK: "
+        f"package=irrevon, dist-info={next(iter(dist_info))}, files={len(names)}"
     )
 
 
@@ -170,10 +177,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("sdist", type=Path)
     parser.add_argument("wheel", type=Path)
+    parser.add_argument(
+        "--contract-root",
+        type=Path,
+        default=ROOT,
+        help=argparse.SUPPRESS,
+    )
     args = parser.parse_args()
     try:
-        check_sdist(args.sdist)
-        check_wheel(args.wheel)
+        check_sdist(args.sdist, contract_root=args.contract_root)
+        check_wheel(args.wheel, contract_root=args.contract_root)
     except (ContractError, tarfile.TarError, zipfile.BadZipFile, OSError) as exc:
         print(f"artifact-content contract failed: {exc}", file=sys.stderr)
         return 1

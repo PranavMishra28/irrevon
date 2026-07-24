@@ -21,8 +21,10 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def digest(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def digest(path: Path, algorithm: str = "sha256") -> str:
+    hasher = hashlib.new(algorithm)
+    hasher.update(path.read_bytes())
+    return hasher.hexdigest()
 
 
 def spdx_id(ecosystem: str, name: str, version: str) -> str:
@@ -201,11 +203,20 @@ def main() -> int:
             }
         )
 
+    artifact_sha1s = [digest(artifact, "sha1") for artifact in artifacts]
+    packages[0]["packageVerificationCode"] = {
+        "packageVerificationCodeValue": hashlib.sha1(
+            "".join(sorted(artifact_sha1s)).encode()
+        ).hexdigest()
+    }
     files = [
         {
             "SPDXID": f"SPDXRef-File-{index}",
-            "fileName": artifact.name,
-            "checksums": [{"algorithm": "SHA256", "checksumValue": digest(artifact)}],
+            "fileName": f"./{artifact.name}",
+            "checksums": [
+                {"algorithm": "SHA1", "checksumValue": digest(artifact, "sha1")},
+                {"algorithm": "SHA256", "checksumValue": digest(artifact)},
+            ],
             "licenseConcluded": "NOASSERTION",
             "copyrightText": "NOASSERTION",
         }
@@ -235,16 +246,10 @@ def main() -> int:
             "created": created_at(),
             "creators": ["Tool: scripts/build-sbom.py"],
         },
+        "documentDescribes": [root_id],
         "packages": packages,
         "files": files,
-        "relationships": [
-            {
-                "spdxElementId": "SPDXRef-DOCUMENT",
-                "relationshipType": "DESCRIBES",
-                "relatedSpdxElement": root_id,
-            },
-            *relationships,
-        ],
+        "relationships": relationships,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n")
