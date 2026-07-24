@@ -18,6 +18,13 @@ minimumReleaseAge: 10080
 trustPolicy: no-downgrade
 blockExoticSubdeps: true
 
+# The advisory affects every brace-expansion release through 5.0.7. The
+# eslint-plugin-jsx-a11y chain still requests the compatible CommonJS API
+# through minimatch 3, so force that legacy edge onto the patched implementation
+# until the upstream plugin updates its dependency range.
+overrides:
+  "minimatch@3.1.5>brace-expansion": 5.0.8
+
 # Narrow, reviewed exclusions from trustPolicy only (NOT from allowBuilds or
 # minimumReleaseAge). These are years-old transitive pins that predate npm
 # provenance; the "downgrade" signal is an artifact of newer lines having
@@ -27,8 +34,12 @@ blockExoticSubdeps: true
 # discipline as site/pnpm-workspace.yaml; redundant once the window passes).
 # fast-uri: advisory fixes in 3.1.4 (published 2026-07-19, canonical fastify
 #   org); transitive via ajv.
+# brace-expansion: GHSA-mh99-v99m-4gvg fixes in 5.0.8 (published 2026-07-23
+#   by the existing maintainers); transitive via minimatch ^10.2.5. OpenSSF
+#   Scorecard detected the vulnerable 5.0.7 after the release candidate merged.
 minimumReleaseAgeExclude:
   - fast-uri
+  - brace-expansion
 
 trustPolicyExclude:
   - semver@6.3.1
