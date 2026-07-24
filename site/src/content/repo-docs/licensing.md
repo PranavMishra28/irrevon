@@ -2,7 +2,7 @@
 title: "Licensing status"
 description: "Apache-2.0 licensing and contribution posture: inbound=outbound, mandatory DCO 1.1 sign-off, no CLA, and the remaining trademark and release gates."
 sourcePath: "LICENSING.md"
-sourceSha256: "b8eb17f5563595f022eeab3aee5d5a1cab821aea0154a19933eebb587c36b845"
+sourceSha256: "76d52435a394b0dee0d71be5455a0db570022a9fbfd212cb5f394df0cefca49a"
 syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
@@ -26,11 +26,11 @@ What this does **not** change:
   documentation, tests, and benchmark work are accepted through pull requests
   under Apache-2.0, with a Developer Certificate of Origin 1.1 sign-off on every
   commit. No CLA or copyright assignment is required.
-- **Pre-release status.** Nothing is on any package index; packaged releases remain
-  gated by the execution-plan public-release gate (clearances, counsel name screen,
-  sanitization review, human sign-off). Package metadata already carries the
-  `Apache-2.0` SPDX expression, license files, and the Alpha classifier; that
-  preparation does not publish a package or close any release gate.
+- **Distribution lifecycle.** Source checkouts and packaged artifacts carry the
+  same Apache-2.0 terms, NOTICE attribution, third-party notices, and Alpha
+  maturity classifier. Availability from a package index does not imply
+  scientific validation, provider qualification, production adoption, trademark
+  clearance, or production readiness.
 - **Trademarks.** Apache-2.0 §6 grants no rights to the "Irrevon" name or marks.
   No separate trademark registration or conformance program is claimed.
 

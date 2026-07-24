@@ -1,36 +1,35 @@
 ---
-// /install — the honest split between what works today and the gated
-// distribution future. Every planned
-// command renders inside an explicitly PLANNED-labeled block, future tense;
-// the install e2e enforces that no install command renders as available
-// today and that the old squatted package name never appears.
+// /install — source and release installation with one provenance boundary.
+// Package-index commands are conditional on the Status page reporting the
+// exact release; the install e2e also ensures that the old squatted name never
+// appears in an install command.
 import Base from "../layouts/Base.astro";
 import Source from "../components/Source.astro";
 import { SITE_NAME, REPO_URL } from "../config";
 import { href } from "../lib/url";
 
 const packageName = SITE_NAME.toLowerCase();
-const planned = [
+const releaseInstalls = [
   { cmd: `uvx ${packageName}`, note: "run without installing" },
-  { cmd: `uv tool install ${packageName}`, note: "the primary documented path" },
+  { cmd: `uv tool install ${packageName}`, note: "recommended isolated CLI install" },
   { cmd: `pipx install ${packageName}`, note: "isolated CLI install" },
-  { cmd: `pip install ${packageName}`, note: "plain pip, one package" },
+  { cmd: `pip install ${packageName}`, note: "install into the active Python environment" },
 ];
 ---
 
 <Base
   title={`Install — ${SITE_NAME}`}
-  description="Install from source today with uv and Docker. Package-index distribution is decided but gated; every planned command is future tense until the release gate opens."
+  description="Install Irrevon from a verified release or from source, then run the deterministic local demo with uv and Docker."
   ogImage="/og/og-install.png"
 >
   <section class="section">
     <div class="container">
       <span class="kicker">Install</span>
-      <h1>One path works today. The rest is future tense.</h1>
+      <h1>Install the Alpha. Verify what you run.</h1>
       <p class="lead" style="margin-top: 18px; max-width: 64ch;">
-        {SITE_NAME} is pre-release: nothing is on any package index. The repository is licensed Apache-2.0.
-        Building from source works now; everything else on this page is a documented plan behind a
-        human-gated release.
+        Release availability and build identity live on the <a href={href("/status/")}>Status page</a> and in{" "}
+        <a href={href("/version.json")}><code>/version.json</code></a>. Use a package command only when that
+        status identifies the exact version you intend to install. The Apache-2.0 source path remains available.
       </p>
     </div>
   </section>
@@ -38,15 +37,14 @@ const planned = [
   <section class="section" id="from-source">
     <div class="container">
       <div class="section-head">
-        <span class="kicker">Works today</span>
-        <h2>Install from source</h2>
+        <span class="kicker">Source checkout</span>
+        <h2>Build and run locally</h2>
         <p class="lead">
           Prerequisites, honestly: <a href="https://docs.astral.sh/uv/">uv</a>, Docker (for a local,
           digest-pinned Postgres 17 on loopback), and Git.
         </p>
       </div>
-      <pre data-analytics-copy-event="install_command_copy" data-analytics-placement="install"><code># pre-release: clone only — no package-index install exists
-git clone {REPO_URL}.git && cd {packageName}
+      <pre data-analytics-copy-event="install_command_copy" data-analytics-placement="install"><code>git clone {REPO_URL}.git && cd {packageName}
 
 uv sync --locked                # toolchain + deps, pinned by uv.lock
 uv run irrevon init             # writes irrevon.toml, compose.yaml, .env.example
@@ -57,7 +55,7 @@ uv run irrevon init             # now applies the plain-SQL migrations
 uv run irrevon doctor           # non-destructive checks; includes a rolled-back write probe
 uv run irrevon demo             # the two-leg flagship story</code></pre>
       <div style="margin-top: 14px;">
-        <Source id="quickstart-real" also={["not-published"]} />
+        <Source id="quickstart-real" />
       </div>
       <p style="margin-top: 18px;">
         Then step through what the demo recorded: <a href={href("/demo/")}>the One-Way Seat</a>, or follow the{" "}
@@ -66,37 +64,35 @@ uv run irrevon demo             # the two-leg flagship story</code></pre>
     </div>
   </section>
 
-  <section class="section" id="planned">
+  <section class="section" id="release-install">
     <div class="container">
       <div class="section-head">
-        <span class="kicker">Decided, not yet real</span>
-        <h2>Planned distribution — gated</h2>
+        <span class="kicker">Versioned release</span>
+        <h2>Use the package registry only after verification</h2>
         <p class="lead">
-          The distribution model is decided (one PyPI package, workbench embedded, zero recurring cost) and
-          the name is decided — {SITE_NAME}, with PyPI registration of “{packageName}” unblocked pending
-          external clearances and the counsel trademark screen. Until the public-release gate opens, none of
-          the commands below works, and this site will not pretend otherwise.
+          Irrevon distributes as one package with the Workbench embedded. The Status page links the canonical
+          package and GitHub release records and identifies the release commit.
         </p>
       </div>
-      <div class="planned-block" data-planned>
-        <div class="planned-head">
-          <span class="planned-chip">PLANNED — not yet published</span>
-          <span class="mono-chip">future tense</span>
+      <div class="release-block" data-release-install>
+        <div class="release-head">
+          <span class="release-chip">VERIFY RELEASE STATUS</span>
+          <span class="mono-chip">v0.1.0 Alpha</span>
         </div>
-        <ul class="planned-list">
+        <ul class="release-list">
           {
-            planned.map((p) => (
+            releaseInstalls.map((releaseInstall) => (
               <li>
-                <code>{p.cmd}</code>
-                <span>{p.note}</span>
+                <code>{releaseInstall.cmd}</code>
+                <span>{releaseInstall.note}</span>
               </li>
             ))
           }
         </ul>
-        <p class="planned-note">
-          These will work only after: external clearances granted in writing · counsel trademark screen of
-          “{SITE_NAME}” · sanitization review · trusted publishing · human sign-off. The licensing
-          decision is closed — Apache-2.0. Publication is never an automated site action.
+        <p class="release-note">
+          Before installation, confirm the exact version on <a href={href("/status/")}>Status</a>. Published
+          artifacts are built by the protected release workflow with checksums, an SBOM, and attestations;
+          PyPI publication uses OIDC Trusted Publishing rather than a repository token.
         </p>
         <Source id="install-gated" also={["license-apache2"]} />
       </div>
@@ -108,20 +104,20 @@ uv run irrevon demo             # the two-leg flagship story</code></pre>
       <div class="section-head">
         <span class="kicker">Leaving</span>
         <h2>Uninstall</h2>
-        <p class="lead">Nothing global is installed, so removal is complete and local.</p>
+        <p class="lead">Remove the package or source checkout, then remove local demo state if you created it.</p>
       </div>
-      <pre><code>docker compose down -v          # drop the local database volume
-cd .. && rm -rf {packageName}   # remove the clone (irrevon.toml, .env, compose.yaml live inside it)</code></pre>
+      <pre><code>uv tool uninstall {packageName} # when installed with uv tool
+docker compose down -v          # drop the disposable local demo database volume
+cd .. && rm -rf {packageName}   # remove a source checkout and its project-local files</code></pre>
       <p class="muted" style="margin-top: 14px; font-size: var(--site-text-small);">
-        When packaged distribution exists, uninstall will be documented as package removal plus the same two
-        steps — no global state, by design.
+        The volume command is destructive. Do not run it against data you need to retain.
       </p>
     </div>
   </section>
 </Base>
 
 <style>
-  .planned-block {
+  .release-block {
     border: 1px dashed var(--ref-border-strong);
     border-radius: 2px;
     background: var(--ref-layer-panel);
@@ -130,13 +126,13 @@ cd .. && rm -rf {packageName}   # remove the clone (irrevon.toml, .env, compose.
     gap: 16px;
     max-width: 76ch;
   }
-  .planned-head {
+  .release-head {
     display: flex;
     gap: 10px;
     align-items: center;
     flex-wrap: wrap;
   }
-  .planned-chip {
+  .release-chip {
     font-family: var(--font-mono);
     font-size: 0.6875rem;
     letter-spacing: 0.08em;
@@ -146,27 +142,27 @@ cd .. && rm -rf {packageName}   # remove the clone (irrevon.toml, .env, compose.
     padding: 5px 8px;
     color: var(--ref-ink-2);
   }
-  .planned-list {
+  .release-list {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
     gap: 10px;
   }
-  .planned-list li {
+  .release-list li {
     display: flex;
     gap: 16px;
     align-items: baseline;
     flex-wrap: wrap;
   }
-  .planned-list code {
+  .release-list code {
     min-width: 26ch;
   }
-  .planned-list span {
+  .release-list span {
     color: var(--ref-ink-3);
     font-size: var(--site-text-small);
   }
-  .planned-note {
+  .release-note {
     color: var(--ref-ink-2);
     font-size: var(--site-text-small);
     max-width: 64ch;

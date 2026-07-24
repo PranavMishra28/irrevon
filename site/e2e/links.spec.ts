@@ -53,7 +53,7 @@ test("nav lists exactly the built pages — no dead item", async ({ page }) => {
       })),
     );
   const hrefs = links.map((link) => link.href);
-  expect(hrefs.slice(0, -1)).toEqual([
+  expect(hrefs).toEqual([
     "/platform/",
     "/how-it-works/",
     "/demo/",
@@ -61,6 +61,8 @@ test("nav lists exactly the built pages — no dead item", async ({ page }) => {
     "/docs/",
     "/install/",
     "/contributing/",
+    "https://github.com/PranavMishra28/irrevon/discussions",
+    "https://github.com/PranavMishra28/irrevon",
   ]);
   expect(links.map((link) => link.label)).toEqual([
     "Product",
@@ -70,9 +72,12 @@ test("nav lists exactly the built pages — no dead item", async ({ page }) => {
     "Docs",
     "Install",
     "Contribute",
+    "Community",
     "GitHub",
   ]);
-  const repository = new URL(hrefs.at(-1)!);
-  expect(repository.protocol).toBe("https:");
-  expect(repository.hostname).toBe("github.com");
+  for (const external of hrefs.slice(-2)) {
+    const destination = new URL(external!);
+    expect(destination.protocol).toBe("https:");
+    expect(destination.hostname).toBe("github.com");
+  }
 });

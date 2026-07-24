@@ -1,8 +1,9 @@
 # Release process and artifact verification
 
-Irrevon has not been published. This guide prepares a future human-approved
-`0.1.0` release; running the dry run never creates a tag, release, attestation,
-deployment, or package-index upload.
+This guide covers the protected `0.1.0` Alpha release. The machine-readable
+[`project-status.json`](project-status.json) distinguishes a candidate from a
+verified publication. Running the dry run never creates a tag, release,
+attestation, deployment, or package-index upload.
 
 ## Local dry run
 
@@ -31,18 +32,18 @@ release, tag, signing, or deployment path.
 
 ## Human one-time setup
 
-Before the first release, the repository owner must:
+Before the first release, the repository owner must verify:
 
 1. register a **pending Trusted Publisher** for the not-yet-created PyPI
    `irrevon` project, bound to this repository,
    `.github/workflows/release.yml`, and the `release` environment; the first
    trusted publication creates the project, and the pending publisher does not
    reserve the name beforehand;
-2. protect that environment with a required reviewer;
-3. enable immutable GitHub releases and the repository security settings in
-   [docs/ci.md](ci.md);
-4. complete external clearance, provider, scientific, and release gates in
-   [docs/execution-plan.md](execution-plan.md);
+2. the `release` environment requires the owner reviewer, permits self-review
+   for the sole maintainer, and contains no PyPI secret;
+3. immutable releases and the repository security settings in
+   [docs/ci.md](ci.md) remain enabled;
+4. the reviewed tag commit is exactly current `main`;
 5. review the prepared `0.1.0` package metadata, changelog, and citation file,
    then merge a green release PR.
 
@@ -57,8 +58,11 @@ the publish job; an older commit that is merely reachable from `main` is
 refused. The workflow verifies a clean checkout, exact tag/package equality,
 the full launch gate, archive contents and renderer hash invariance, clean
 installs, strict PyPI README rendering, checksums, SBOM, and GitHub artifact
-attestations. The protected `release` environment is the final human approval
-boundary.
+attestations. After protected-environment approval, the workflow stages a
+private draft GitHub Release with the exact reviewed assets, publishes the
+wheel and source distribution through PyPI Trusted Publishing, independently
+matches the PyPI digests, and only then makes the GitHub Release public. A
+conflicting existing PyPI file set or a non-draft GitHub release fails closed.
 
 The workflow refuses untagged refs, forks, version mismatches, dirty trees, and
 failed validation. Pull requests and manual dispatches run only the

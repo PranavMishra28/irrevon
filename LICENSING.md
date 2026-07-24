@@ -16,11 +16,11 @@ What this does **not** change:
   documentation, tests, and benchmark work are accepted through pull requests
   under Apache-2.0, with a Developer Certificate of Origin 1.1 sign-off on every
   commit. No CLA or copyright assignment is required.
-- **Pre-release status.** Nothing is on any package index; packaged releases remain
-  gated by the execution-plan public-release gate (clearances, counsel name screen,
-  sanitization review, human sign-off). Package metadata already carries the
-  `Apache-2.0` SPDX expression, license files, and the Alpha classifier; that
-  preparation does not publish a package or close any release gate.
+- **Distribution lifecycle.** Source checkouts and packaged artifacts carry the
+  same Apache-2.0 terms, NOTICE attribution, third-party notices, and Alpha
+  maturity classifier. Availability from a package index does not imply
+  scientific validation, provider qualification, production adoption, trademark
+  clearance, or production readiness.
 - **Trademarks.** Apache-2.0 §6 grants no rights to the "Irrevon" name or marks.
   No separate trademark registration or conformance program is claimed.
 

@@ -29,7 +29,7 @@ def _route(relative: str) -> str:
     return f"/{relative.removesuffix('index.html')}"
 
 
-def _html(relative: str, *, origin: str = ORIGIN, commit: str = COMMIT) -> str:
+def _html(relative: str, *, origin: str = ORIGIN) -> str:
     canonical = f"{origin}{_route(relative)}"
     nav = "".join(f"<a href='/'>{label}</a>" for label in MODULE.EXPECTED_NAVIGATION)
     return f"""<!doctype html>
@@ -40,7 +40,12 @@ def _html(relative: str, *, origin: str = ORIGIN, commit: str = COMMIT) -> str:
 <meta http-equiv="Content-Security-Policy" content="{CSP}">
 </head><body>
 <nav aria-label="Primary">{nav}</nav>
-<footer><a href="https://github.com/example/irrevon/commit/{commit}"><code>{commit[:12]}</code></a></footer>
+<footer class="site-footer">
+<a href="/platform/">Product</a><a href="/docs/">Documentation</a>
+<a href="/demo/">Demo</a><a href="/community/">Community</a>
+<a href="/github/">GitHub</a><a href="/security/">Security</a>
+<a href="/privacy/">Privacy</a><a href="/licensing/">License</a>
+</footer>
 </body></html>
 """
 
@@ -128,6 +133,7 @@ def _artifact(tmp_path: Path, **manifest_overrides: str) -> tuple[Path, Path]:
 
     manifest = {
         "release_version": "0.1.0.dev0",
+        "release_status": "candidate",
         "commit_sha": COMMIT,
         "built_at": "2026-07-24T12:00:00Z",
         "benchmark_harness_version": "0.1.0",
@@ -146,8 +152,7 @@ def _artifact(tmp_path: Path, **manifest_overrides: str) -> tuple[Path, Path]:
         encoding="utf-8",
     )
     urls = "".join(
-        f"<url><loc>{ORIGIN}{_route(relative)}</loc></url>"
-        for relative in MODULE.REQUIRED_HTML
+        f"<url><loc>{ORIGIN}{_route(relative)}</loc></url>" for relative in MODULE.REQUIRED_HTML
     )
     (dist / "sitemap-0.xml").write_text(
         '<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
@@ -179,11 +184,57 @@ def test_accepts_complete_intended_production_artifact(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
+    "label",
+    MODULE.REQUIRED_FOOTER_LINKS,
+)
+def test_rejects_missing_required_footer_link(tmp_path: Path, label: str) -> None:
+    dist, vercel = _artifact(tmp_path)
+    home = dist / "index.html"
+    before_footer, footer = home.read_text(encoding="utf-8").split(
+        '<footer class="site-footer">',
+        1,
+    )
+    home.write_text(
+        before_footer
+        + '<footer class="site-footer">'
+        + footer.replace(f">{label}</a>", "></a>", 1),
+        encoding="utf-8",
+    )
+    with pytest.raises(MODULE.SmokeFailure, match=f"missing {label!r}"):
+        _validate(dist, vercel)
+
+
+@pytest.mark.parametrize(
+    "clutter",
+    (
+        "Scientific results are not claimed",
+        "Research-preview status",
+        "Apache-2.0 source",
+        "version.json",
+        "Status and provenance",
+    ),
+)
+def test_rejects_launch_clutter_in_footer(tmp_path: Path, clutter: str) -> None:
+    dist, vercel = _artifact(tmp_path)
+    home = dist / "index.html"
+    home.write_text(
+        home.read_text(encoding="utf-8").replace(
+            "</footer>",
+            f"<span>{clutter}</span></footer>",
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(MODULE.SmokeFailure, match="footer retains launch clutter"):
+        _validate(dist, vercel)
+
+
+@pytest.mark.parametrize(
     ("overrides", "expected_commit", "message"),
     [
         ({"commit_sha": "0" * 40}, COMMIT, "does not match expected commit"),
         ({"commit_sha": "unknown"}, COMMIT, "invalid commit_sha"),
         ({"commit_sha": "b" * 40}, COMMIT, "does not match expected commit"),
+        ({"release_status": "unverified"}, COMMIT, "invalid release_status"),
         ({"environment": "preview"}, COMMIT, "expected 'production'"),
     ],
 )
@@ -302,8 +353,7 @@ def test_rejects_legacy_footer_markup(tmp_path: Path) -> None:
     dist, vercel = _artifact(tmp_path)
     home = dist / "index.html"
     home.write_text(
-        home.read_text(encoding="utf-8")
-        + '<h2 class="footer-head">Policies</h2>',
+        home.read_text(encoding="utf-8") + '<h2 class="footer-head">Policies</h2>',
         encoding="utf-8",
     )
     with pytest.raises(MODULE.SmokeFailure, match="legacy navigation or footer"):
@@ -370,9 +420,7 @@ def test_rejects_weakened_vercel_security_or_cache_policy(
             "main only",
         ),
         (
-            lambda config: config["git"]["deploymentEnabled"].update(
-                {"preview-*": True}
-            ),
+            lambda config: config["git"]["deploymentEnabled"].update({"preview-*": True}),
             "main only",
         ),
         (

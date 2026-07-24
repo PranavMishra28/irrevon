@@ -1,9 +1,8 @@
 ---
 import "../styles/site.css";
 import Mark from "../components/Mark.astro";
-import { SITE_NAME, REPO_URL, repoDoc } from "../config";
+import { SITE_NAME, REPO_URL } from "../config";
 import { serializeJsonLd } from "../lib/jsonld-serialization";
-import { BUILD_COMMIT, BUILD_COMMIT_SHORT, BUILT_AT } from "../lib/provenance";
 import { href } from "../lib/url";
 import { normalizePathname, robotsDirective } from "../../search-policy.mjs";
 
@@ -45,13 +44,9 @@ const nav = [
   { label: "Contribute", path: "/contributing/" },
 ];
 const footerPages = [
-  { label: "Status", path: "/status/" },
   { label: "Security", path: "/security/" },
   { label: "Privacy", path: "/privacy/" },
-  { label: "Contributing", path: "/contributing/" },
   { label: "License", path: "/licensing/" },
-  { label: "Changelog", path: "/changelog/" },
-  { label: "Roadmap", path: "/roadmap/" },
 ];
 
 const canonicalPath = normalizePathname(Astro.url.pathname);
@@ -222,6 +217,13 @@ const isCurrent = (path: string) => {
               }
               <li>
                 <a
+                  href={`${REPO_URL}/discussions`}
+                  data-analytics-event="contribution_click"
+                  data-analytics-placement="header">Community</a
+                >
+              </li>
+              <li>
+                <a
                   href={REPO_URL}
                   data-analytics-event="repository_click"
                   data-analytics-placement="header">GitHub</a
@@ -385,8 +387,7 @@ const isCurrent = (path: string) => {
           <div class="footer-brand">
             <span class="footer-lockup"><Mark size={18} /><span>{SITE_NAME.toLowerCase()}</span></span>
             <p class="footer-tag">
-              Evidence-first reconciliation for irreversible AI-agent actions.
-              Open source. Local-first. Scientific results are not claimed.
+              Reconciliation for irreversible AI-agent actions.
             </p>
           </div>
           <nav aria-label="Project links">
@@ -394,9 +395,9 @@ const isCurrent = (path: string) => {
             <ul>
               <li>
                 <a
-                  href={REPO_URL}
-                  data-analytics-event="repository_click"
-                  data-analytics-placement="footer">GitHub</a
+                  href={href("/platform/")}
+                  data-analytics-event="documentation_entry"
+                  data-analytics-placement="footer">Product</a
                 >
               </li>
               <li>
@@ -410,15 +411,28 @@ const isCurrent = (path: string) => {
                 <a
                   href={href("/demo/")}
                   data-analytics-event="demo_start"
-                  data-analytics-placement="footer">Recorded demo</a
+                  data-analytics-placement="footer">Demo</a
                 >
               </li>
-              <li><a href={repoDoc("LICENSE")}>Apache-2.0 source</a></li>
+              <li>
+                <a
+                  href={`${REPO_URL}/discussions`}
+                  data-analytics-event="contribution_click"
+                  data-analytics-placement="footer">Community</a
+                >
+              </li>
             </ul>
           </nav>
           <nav aria-label="Project policies">
             <h2 class="footer-head">Project</h2>
             <ul>
+              <li>
+                <a
+                  href={REPO_URL}
+                  data-analytics-event="repository_click"
+                  data-analytics-placement="footer">GitHub</a
+                >
+              </li>
               {
                 footerPages.map((item) => (
                   <li>
@@ -431,24 +445,7 @@ const isCurrent = (path: string) => {
         </div>
         <div class="footer-status">
           <p>
-            © 2026 Irrevon contributors · Apache-2.0 ·
-            <a
-              href={href("/security/")}
-              data-analytics-event="security_report_click"
-              data-analytics-placement="footer">Security</a
-            > ·
-            <a href={href("/status/")}>Research-preview status</a>
-          </p>
-          <p class="footer-provenance" data-provenance>
-            Build {
-              BUILD_COMMIT_SHORT ? (
-                <>
-                  commit <a href={`${REPO_URL}/commit/${BUILD_COMMIT}`}><code>{BUILD_COMMIT_SHORT}</code></a>
-                </>
-              ) : (
-                <>commit unknown (built outside git)</>
-              )
-            } · {BUILT_AT}
+            © 2026 Irrevon contributors
           </p>
         </div>
       </div>

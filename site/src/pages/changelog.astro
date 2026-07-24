@@ -1,58 +1,43 @@
 ---
-// Changelog — computed from git tags at build time, never hand-authored.
-// Zero tags exist today, so the page renders a derived empty state: the
-// build proves the emptiness instead of asserting it. When tags exist,
-// entries render from version-shaped annotated tags only; preregistration,
-// benchmark, and lightweight tags are not releases.
-import { execSync } from "node:child_process";
+// Publication truth comes from docs/project-status.json. Phase A commits a
+// candidate; Phase B changes that one record only after PyPI, the GitHub
+// Release, and the release commit have been independently verified. This does
+// not depend on Vercel's checkout containing Git tags.
 import Base from "../layouts/Base.astro";
-import Source from "../components/Source.astro";
-import { SITE_NAME, repoDoc } from "../config";
+import { SITE_NAME } from "../config";
+import {
+  GITHUB_RELEASE_URL,
+  PYPI_PROJECT_URL,
+  RELEASE_COMMIT,
+  RELEASE_STATE,
+  RELEASE_TAG,
+  RELEASE_VERSION,
+  RELEASED_AT,
+} from "../lib/release-provenance";
 import { href } from "../lib/url";
 
-interface TagEntry {
-  objectType: string;
-  tag: string;
-  date: string;
-  subject: string;
-}
-
-// The build already shells to git for the repository URL (astro.config.mjs);
-// reading tags is the same trust level.
-const raw = execSync(
-  "git tag --list --sort=-creatordate --format='%(objecttype)\t%(refname:short)\t%(creatordate:short)\t%(subject)'",
-  {
-    encoding: "utf8",
-  },
-).trim();
-const tags: TagEntry[] = raw
-  ? raw
-      .split("\n")
-      .map((line) => {
-        const [objectType, tag, date, subject] = line.split("\t");
-        return { objectType, tag, date: date ?? "", subject: subject ?? "" };
-      })
-      .filter(
-        ({ objectType, tag }) =>
-          objectType === "tag" &&
-          /^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/.test(tag),
-      )
-  : [];
-const checkedAt = new Date().toISOString().slice(0, 10);
+const published = RELEASE_STATE === "published";
+const releaseDate = RELEASED_AT?.slice(0, 10);
 ---
 
 <Base
   title={`Changelog — ${SITE_NAME}`}
-  description="Releases, derived from annotated version tags at build time. No releases exist yet — the empty state is computed, not written, and the first entry appears with the first validated release tag."
+  description={
+    published
+      ? `${SITE_NAME} ${RELEASE_VERSION} Alpha release history, linked to its verified package and GitHub Release.`
+      : `${SITE_NAME} ${RELEASE_VERSION} Alpha candidate status. Package publication is in progress.`
+  }
 >
   <section class="section">
     <div class="container">
       <span class="kicker">Changelog</span>
-      <h1>Releases, derived from the repository</h1>
+      <h1>{published ? "Released software" : "Alpha release candidate"}</h1>
       <p class="lead" style="margin-top: 18px; max-width: 64ch;">
-        This page is computed from annotated <code>vMAJOR.MINOR.PATCH</code> tags at build time. No entry is
-        ever hand-authored: the validated release tag is the record, and until one exists there is nothing
-        to list — shown, not hidden.
+        {
+          published
+            ? "This entry is rendered from the repository’s machine-readable release record, updated only after the package, release, and source commit are verified."
+            : "Irrevon 0.1.0 Alpha is prepared and under final release validation. Source installation remains available while package publication completes."
+        }
       </p>
     </div>
   </section>
@@ -60,40 +45,39 @@ const checkedAt = new Date().toISOString().slice(0, 10);
   <section class="section">
     <div class="container">
       {
-        tags.length === 0 ? (
+        published ? (
+          <ol class="tag-list">
+            <li>
+              <span class="mono-chip">{RELEASE_TAG}</span>
+              {releaseDate && <time datetime={releaseDate}>{releaseDate}</time>}
+              <h2>Irrevon {RELEASE_VERSION} Alpha</h2>
+              <p>
+                The reconciliation engine, continuous single-writer worker, local read-only
+                Workbench, deterministic synthetic demonstration, and benchmark development
+                harness are available as the first public software release.
+              </p>
+              <p>
+                <a href={PYPI_PROJECT_URL}>PyPI package</a> ·{" "}
+                <a href={GITHUB_RELEASE_URL}>GitHub Release and artifacts</a>
+              </p>
+              {RELEASE_COMMIT && (
+                <p class="empty-derived mono-chip">release commit {RELEASE_COMMIT}</p>
+              )}
+            </li>
+          </ol>
+        ) : (
           <div class="empty-state">
-            <p class="empty-count" aria-hidden="true">
-              0
-            </p>
-            <h2>No releases yet.</h2>
+            <span class="mono-chip">{RELEASE_TAG} candidate</span>
+            <h2>Package release in progress</h2>
             <p class="empty-body">
-              This project is pre-release: no release tag, package, or release artifact has been published.
-              The first entry appears here when the first validated annotated release tag exists — and
-              creating it is owner-gated behind the public-release gate: external clearances, the counsel
-              name screen, and a sanitization review (the licensing decision is closed — Apache-2.0,
-              the project licensing record).
-            </p>
-            <p class="empty-derived mono-chip">
-              derived from annotated version tags at build · 0 releases · checked {checkedAt}
+              The reviewed Alpha candidate is not represented as published until independent
+              checks confirm both PyPI and the corresponding GitHub Release.
             </p>
             <div class="empty-links">
-              <a href={href("/roadmap/")}>What has to happen first → the roadmap</a>
-              <a href={repoDoc("docs/execution-plan.md")}>The public-release gate (execution plan)</a>
-            </div>
-            <div style="margin-top: 6px;">
-              <Source id="no-releases" />
+              <a href={href("/install/")}>Install from source</a>
+              <a href={href("/status/")}>Current project status</a>
             </div>
           </div>
-        ) : (
-          <ol class="tag-list">
-            {tags.map((t) => (
-              <li>
-                <span class="mono-chip">{t.tag}</span>
-                <time datetime={t.date}>{t.date}</time>
-                <p>{t.subject}</p>
-              </li>
-            ))}
-          </ol>
         )
       }
     </div>
@@ -110,12 +94,6 @@ const checkedAt = new Date().toISOString().slice(0, 10);
     gap: 14px;
     max-width: 72ch;
     justify-items: start;
-  }
-  .empty-count {
-    font-family: var(--font-mono);
-    font-size: clamp(2.5rem, 6vw, 4rem);
-    line-height: 1;
-    color: var(--ref-ink-3);
   }
   .empty-body {
     color: var(--ref-ink-2);

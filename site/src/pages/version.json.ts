@@ -3,6 +3,7 @@ import { BUILD_COMMIT, BUILT_AT } from "../lib/provenance";
 import {
   BENCHMARK_HARNESS_VERSION,
   BUILD_ENVIRONMENT,
+  RELEASE_STATE,
   RELEASE_VERSION,
   SCHEMA_VERSION,
 } from "../lib/release-provenance";
@@ -17,6 +18,7 @@ export const GET: APIRoute = () => {
     JSON.stringify(
       {
         release_version: RELEASE_VERSION,
+        release_status: RELEASE_STATE,
         commit_sha: BUILD_COMMIT,
         built_at: BUILT_AT,
         benchmark_harness_version: BENCHMARK_HARNESS_VERSION,

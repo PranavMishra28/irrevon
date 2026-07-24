@@ -17,6 +17,11 @@ BOOTSTRAP = ROOT / "scripts" / "bootstrap-tools.sh"
 PYPROJECT = ROOT / "pyproject.toml"
 UV_LOCK = ROOT / "uv.lock"
 WEB_PACKAGE = ROOT / "web" / "package.json"
+PACKAGE_README = ROOT / "PACKAGE_README.md"
+CHANGELOG = ROOT / "CHANGELOG.md"
+CITATION = ROOT / "CITATION.cff"
+LICENSING = ROOT / "LICENSING.md"
+THIRD_PARTY_NOTICES = ROOT / "THIRD-PARTY-NOTICES.md"
 
 
 def _job(workflow: str, name: str, next_name: str | None = None) -> str:
@@ -62,7 +67,8 @@ def test_pr_path_is_non_publishing_and_tag_path_is_canonical_only() -> None:
 
     for name, next_name in (
         ("validate-build", "build-attest"),
-        ("build-attest", "publish-pypi"),
+        ("build-attest", "stage-github-release"),
+        ("stage-github-release", "publish-pypi"),
         ("publish-pypi", "publish-github"),
         ("publish-github", None),
     ):
@@ -76,7 +82,8 @@ def test_pr_path_is_non_publishing_and_tag_path_is_canonical_only() -> None:
 def test_untrusted_build_is_separate_from_oidc_and_publication_permissions() -> None:
     workflow = WORKFLOW.read_text()
     build = _job(workflow, "validate-build", "build-attest")
-    attest = _job(workflow, "build-attest", "publish-pypi")
+    attest = _job(workflow, "build-attest", "stage-github-release")
+    draft = _job(workflow, "stage-github-release", "publish-pypi")
     pypi = _job(workflow, "publish-pypi", "publish-github")
     github_release = _job(workflow, "publish-github")
 
@@ -98,21 +105,42 @@ def test_untrusted_build_is_separate_from_oidc_and_publication_permissions() -> 
     assert "attestations: write" in attest
     assert "contents: read" in attest
 
+    assert "needs: build-attest" in draft
+    assert "environment: release" in draft
+    assert "contents: write" in draft
+    assert "id-token: write" not in draft
+    assert "actions/checkout@" not in draft
+    assert "actions/download-artifact@" in draft
+    assert 'gh release create "$TAG_NAME"' in draft
+    assert "--draft --verify-tag" in draft
+    assert "gh release upload" in draft
+    assert "--clobber" in draft
+    assert "refusing to replace an already-published release" in draft
+    assert 'test "$(gh release view "$TAG_NAME" --json isDraft --jq .isDraft)" = "true"' in draft
+
+    assert "needs: stage-github-release" in pypi
     assert "environment: release" in pypi
     assert "id-token: write" in pypi
     assert "contents: write" not in pypi
     assert "packages-dir: packages" in pypi
+    assert "PyPI already has conflicting files for this version" in pypi
+    assert "published != expected" in pypi
+    assert "steps.pypi-state.outputs.publish == 'true'" in pypi
 
-    assert "needs: [build-attest, publish-pypi]" in github_release
+    assert "needs: [stage-github-release, publish-pypi]" in github_release
     assert "environment: release" in github_release
     assert "contents: write" in github_release
     assert "id-token: write" not in github_release
+    assert "https://pypi.org/pypi/irrevon/{version}/json" in github_release
+    assert "published == expected" in github_release
+    assert 'gh release edit "$TAG_NAME" --draft=false --latest' in github_release
+    assert "gh release create" not in github_release
 
 
 def test_release_refuses_mismatched_versions_and_attests_every_evidence_file() -> None:
     workflow = WORKFLOW.read_text()
     build = _job(workflow, "validate-build", "build-attest")
-    attest = _job(workflow, "build-attest", "publish-pypi")
+    attest = _job(workflow, "build-attest", "stage-github-release")
     assert "tag is not exactly vMAJOR.MINOR.PATCH" in build
     assert 'git cat-file -t "refs/tags/$TAG_NAME"' in build
     assert 'tagged_commit=$(git rev-parse "$TAG_NAME^{}")' in build
@@ -126,6 +154,66 @@ def test_release_refuses_mismatched_versions_and_attests_every_evidence_file() -
     assert 'test -z "$(git status --porcelain)"' in build
     for path in ("dist/*.whl", "dist/*.tar.gz", "dist/SHA256SUMS", "dist/irrevon.spdx.json"):
         assert path in attest
+
+
+def test_release_notes_are_curated_alpha_copy_with_explicit_evidence_boundaries() -> None:
+    workflow = WORKFLOW.read_text()
+    draft = _job(workflow, "stage-github-release", "publish-pypi")
+    normalized = draft.lower()
+    for expected in (
+        "initial Alpha release",
+        "continuous single-writer reconciliation engine",
+        "loopback-only, read-only Workbench",
+        "pip install irrevon==0.1.0",
+    ):
+        assert expected in draft
+    for expected in (
+        "development evidence is synthetic",
+        "preregistration remains an unfrozen draft",
+        "provider adapters have not",
+        "production readiness",
+        "universal exactly-once behavior",
+    ):
+        assert expected in normalized
+    for forbidden in (
+        "scientifically validated",
+        "production-proven",
+        "enterprise-ready",
+        "exactly-once guarantee",
+    ):
+        assert forbidden not in draft
+
+
+def test_package_facing_copy_is_lifecycle_neutral_and_alpha_scoped() -> None:
+    documents = {
+        "PACKAGE_README.md": PACKAGE_README.read_text(),
+        "CHANGELOG.md": CHANGELOG.read_text(),
+        "CITATION.cff": CITATION.read_text(),
+        "LICENSING.md": LICENSING.read_text(),
+        "THIRD-PARTY-NOTICES.md": THIRD_PARTY_NOTICES.read_text(),
+    }
+    lifecycle_fragments = (
+        "pending publication",
+        "Nothing is on any package index",
+        "No Irrevon artifact has been published",
+        "package-index release exists yet",
+        "release candidate",
+    )
+    for name, text in documents.items():
+        for fragment in lifecycle_fragments:
+            assert fragment not in text, f"{name} contains lifecycle-bound copy {fragment!r}"
+
+    package_readme = documents["PACKAGE_README.md"]
+    normalized_package_readme = " ".join(package_readme.split())
+    assert "initial Alpha release" in package_readme
+    assert "development evidence is synthetic" in package_readme.lower()
+    assert "provider qualification" in normalized_package_readme
+    assert "production adoption" in normalized_package_readme
+
+    project = tomllib.loads(PYPROJECT.read_text())
+    assert "Development Status :: 3 - Alpha" in project["project"]["classifiers"]
+    assert "Typing :: Typed" in project["project"]["classifiers"]
+    assert project["project"]["urls"]["Release-notes"].endswith("/releases/tag/v0.1.0")
 
 
 def test_makefile_exposes_non_publishing_launch_and_release_dry_runs() -> None:

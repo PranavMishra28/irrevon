@@ -164,42 +164,46 @@ database against the PR diff. The job exists only on `pull_request` events, is
 included in `ci-required.needs`, and the aggregator requires it to succeed on
 pull requests while accepting its skip on push events.
 
-## Owner settings checklist (HUMAN-only; agents are hook-blocked from all of it)
+## Owner settings and verified launch posture
 
 **Script:** [`scripts/setup-repo-settings.sh`](../scripts/setup-repo-settings.sh) automates
 secret scanning, Dependabot, default workflow permissions, fork approval, and the initial
 ruleset (`bash scripts/setup-repo-settings.sh`, idempotent, semantic read-back included).
 Its `--phase2` mode is self-guarded and refuses until `ci-required` has reported green on a
-real PR. The Actions allowlist/SHA-pin checkbox, CodeQL default setup, and private
-vulnerability reporting remain manual UI/read-back controls.
+real PR. Actions allowlisting/SHA-pin enforcement, CodeQL default setup, private
+vulnerability reporting, immutable releases, and environments require
+authenticated platform configuration plus semantic read-back.
 
-Now (with this branch's merge):
+Verified read-back on 2026-07-24:
 
 1. **Secret scanning + push protection** — Settings → Advanced Security → enable
    *Secret scanning*, *Push protection*, and *Scan for non-provider patterns*.
    Automated by `scripts/setup-repo-settings.sh` (phase 1).
    Second layer only — local gitleaks (pre-commit + `make secrets`) stays primary.
+   Secret scanning and push protection are enabled. GitHub accepted but did not
+   activate non-provider-pattern and validity scanning for this account, so both
+   remain explicitly unavailable rather than represented as enabled.
 2. **Dependabot alerts + security updates** — same pane; automated by
    `scripts/setup-repo-settings.sh` (phase 1). Also enable **Grouped security
    updates**; configuration groups remain per ecosystem because GitHub does not
    combine security fixes across ecosystems.
-3. **Actions posture** — Settings → Actions → General: *Allow `<owner>`, and select
-   non-`<owner>`, actions* with allowlist `astral-sh/setup-uv@*`,
-   `ossf/scorecard-action@*`, and `pypa/gh-action-pypi-publish@*` (GitHub-owned
-   `actions/*` and `github/*` actions are allowed);
+3. **Actions posture** — Settings → Actions → General: use selected-actions mode
+   with GitHub-owned actions plus only the exact full-SHA setup-uv, Scorecard,
+   and PyPI-publish pins committed in the workflows;
    check **Require actions to be pinned to a full-length commit SHA**; fork-PR approval =
    **Require approval for all external contributors** (the default first-time-only tier is
    gameable `[VF]`); workflow permissions read-only, "create and approve pull requests" off.
-   **Read-back 2026-07-24:** the repository still allows all actions and has platform
-   SHA-pin enforcement disabled. This remains an owner launch action; repository
-   workflows are individually full-SHA-pinned and locally checked meanwhile.
+   **Read-back:** selected-actions mode and platform SHA-pin enforcement are
+   enabled. GitHub-owned actions plus the exact full-SHA pins for setup-uv,
+   Scorecard, and PyPI publication are allowed. Default workflow permissions
+   are read-only and Actions cannot approve pull requests.
 4. **Ruleset phase 1** — Settings → Rules → Rulesets → New branch ruleset on the default
    branch: `deletion`, `non_fast_forward`, `pull_request` (0 required approvals — a solo
    owner cannot approve their own PR), `bypass_actors: []`.
-   **Read-back 2026-07-24:** the active ruleset has `ci-required`, but also has an
-   always-allowed repository-role bypass actor. Remove that bypass before launch. The
-   setup script now refuses semantic drift instead of treating a same-named ruleset as
-   correct.
+   **Read-back:** `main-protection-phase1` is active, applies to `main`, requires
+   the pull-request path and `ci-required`, blocks deletion and non-fast-forward
+   updates, and has an empty `bypass_actors` array. The setup script refuses
+   semantic drift instead of treating a same-named ruleset as correct.
 After `ci-required` has reported on at least one PR (order matters — see traps below):
 
 5. **Ruleset phase 2** — add `required_status_checks` with the single context
@@ -210,14 +214,13 @@ After `ci-required` has reported on at least one PR (order matters — see traps
    default setup is active `[VF]`.
 7. Retention stays 90 days (public max). **Private vulnerability reporting**: verified
    enabled (API read, 2026-07-21) — see [SECURITY.md](../SECURITY.md).
-   **Additional read-back 2026-07-24:** Discussions and non-provider secret
-   scanning are disabled; immutable releases are disabled; and the `release`,
-   `sandbox`, and `benchmark` environments are absent. Before exposing any
-   Discussion link, the owner must enable Discussions; create or verify
-   `Announcements`, `Q&A`, `Ideas and feedback`, and `Show and tell`; publish
-   and pin a welcome post; and read back every category URL. Create and protect
-   each workflow environment before its first use; never rely on GitHub's
-   silent auto-creation behavior.
+   **Additional read-back:** Discussions and all six default categories are
+   enabled; immutable releases are enabled; and the protected `release`
+   environment requires the owner reviewer with self-review permitted. Its
+   PyPI path uses OIDC and has no environment secret. The launch welcome post is
+   created through one exact, payload-validated operation after this branch
+   reaches `main`. The unrelated `sandbox` and `benchmark` environments remain
+   absent and must be created before their first human-approved use.
 
 Site deploys (not a GitHub Actions workflow):
 
@@ -238,18 +241,12 @@ Site deploys (not a GitHub Actions workflow):
    marketing/docs site—it cannot merge code or publish Python packages,
    GitHub Releases, benchmarks, or provider activity. Details in
    [site/README.md](../site/README.md).
-   Vercel does not wait for `ci-required`; the normal pull-request path supplies
-   that review boundary, while the repository-role bypass reported in item 4
-   must be removed before launch. The linked Vercel project was paused on
-   2026-07-24, and the authenticated read-back did not expose its Production
-   Branch. After merging, the owner must confirm Production Branch = `main`,
-   reactivate the project, and then compare live `/version.json` with the
-   intended commit.
-   **Production read-back 2026-07-24:** the public alias serves content matching
-   the July 22 pre-main build and `/version.json` is absent. This content
-   comparison is not cryptographic proof of a deployed commit. Treat the alias
-   as stale until the reviewed auto-deployment reaches `main` and the owner
-   verifies its version document and intended commit.
+   Vercel does not wait for `ci-required`; the protected pull-request path
+   supplies the review boundary before a commit reaches `main`.
+   **Production read-back 2026-07-24:** main-only Git deployment is active, the
+   production deployment is ready at `https://irrevon.vercel.app/`, and
+   `/version.json` reports the exact current `main` commit and `production`
+   environment. Each launch merge is verified against that document again.
 
 Before the first M4/M7 dispatch:
 

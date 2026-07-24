@@ -5,15 +5,15 @@ order: 1
 badge: "recorded"
 claims:
   - quickstart-real
-  - not-published
   - demo-sequence
   - demo-contrast
 ---
 
-Irrevon is pre-release: nothing is on a package index; the repository is licensed
-Apache-2.0. The only install path today is a clone, with a deterministic demo at the
-end of it. Planned distribution is documented on the [install page](/install/), future
-tense.
+Irrevon `v0.1.0` is Alpha software licensed under Apache-2.0. The source path
+below ends in a deterministic demo and works independently of package-index
+availability. Check the [Status page](/status/) for the exact deployed commit
+and release links; the [install page](/install/) documents both release and
+source paths.
 
 ## Prerequisites
 
@@ -21,8 +21,9 @@ tense.
 - Docker — runs a local, digest-pinned Postgres 17 on loopback. Nothing else.
 - Git.
 
-Irrevon makes no network connections except to the destinations you configure and your
-own Postgres: no telemetry, no crash reporting, no update checking.
+After dependencies are installed, the Irrevon runtime makes no network
+connections except to destinations you configure and your own Postgres: no
+telemetry, crash reporting, or update checks.
 
 ## Clone and set up
 

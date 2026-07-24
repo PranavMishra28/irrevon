@@ -1,21 +1,64 @@
 ---
 import Base from "../layouts/Base.astro";
+import {
+  GITHUB_RELEASE_URL,
+  PYPI_PROJECT_URL,
+  RELEASE_COMMIT,
+  RELEASE_STATE,
+  RELEASE_TAG,
+  RELEASE_VERSION,
+  RELEASED_AT,
+} from "../lib/release-provenance";
 import { href } from "../lib/url";
+
+const published = RELEASE_STATE === "published";
+const releaseDate = RELEASED_AT?.slice(0, 10);
 ---
 
 <Base
   title="Project status — Irrevon"
-  description="What Irrevon implements today, what remains synthetic or unvalidated, and which release actions remain human-gated."
+  description={
+    published
+      ? `Irrevon ${RELEASE_VERSION} Alpha software release status and the scientific and deployment claims that remain unestablished.`
+      : `Irrevon ${RELEASE_VERSION} Alpha candidate status and the scientific and deployment claims that remain unestablished.`
+  }
 >
   <section class="section">
     <div class="container prose">
       <span class="kicker">Project status</span>
-      <h1>Implemented source. Synthetic evidence. No release yet.</h1>
+      <h1>
+        {
+          published
+            ? `Irrevon ${RELEASE_VERSION} Alpha is published.`
+            : `Irrevon ${RELEASE_VERSION} Alpha is a release candidate.`
+        }
+      </h1>
       <p class="lead">
-        Irrevon is a public Apache-2.0 research preview. The single-writer engine and worker,
-        deterministic demo, loopback read-only Workbench, benchmark development harness, and
-        package build exist. No package, release, confirmatory result, or live-provider result exists.
+        The public Apache-2.0 source includes the single-writer engine and worker, deterministic
+        synthetic demo, loopback read-only Workbench, and benchmark development harness.{" "}
+        {
+          published
+            ? `The ${RELEASE_TAG} package and GitHub Release are recorded as verified.`
+            : "Package publication is in progress and is not represented as complete."
+        }
       </p>
+      {
+        published && (
+          <>
+            <h2>Verified software release</h2>
+            <ul>
+              <li>
+                <a href={PYPI_PROJECT_URL}>irrevon=={RELEASE_VERSION} on PyPI</a>
+              </li>
+              <li>
+                <a href={GITHUB_RELEASE_URL}>{RELEASE_TAG} GitHub Release and artifacts</a>
+              </li>
+              {releaseDate && <li>Published {releaseDate}</li>}
+              {RELEASE_COMMIT && <li>Release commit: <code>{RELEASE_COMMIT}</code></li>}
+            </ul>
+          </>
+        )
+      }
       <h2>Ready to evaluate from source</h2>
       <ul>
         <li>PostgreSQL-backed persist-before-dispatch engine and crash recovery</li>
@@ -31,13 +74,19 @@ import { href } from "../lib/url";
         <li>Qualified Stripe or EasyPost behavior; both adapters remain never-live-called drafts</li>
         <li>Multi-writer availability, hosted control plane, or remote administrative UI</li>
         <li>A supported production topology, production battle-testing, or uptime evidence</li>
-        <li>Published PyPI package, tag, GitHub release, or active site deployment guarantee</li>
+        {
+          !published && (
+            <li>Published PyPI package, tag, or GitHub Release</li>
+          )
+        }
+        <li>A hosted service or active site deployment guarantee</li>
         <li>Owner ratification of implemented but still-proposed technical decisions</li>
       </ul>
       <p>
         Read the <a href={href("/roadmap/")}>release roadmap</a>, the{" "}
         <a href={href("/benchmark/")}>benchmark boundary</a>, and the{" "}
-        <a href={href("/install/")}>source quickstart</a>.
+        <a href={href("/install/")}>source quickstart</a>. Track public software changes in the{" "}
+        <a href={href("/changelog/")}>changelog</a>.
       </p>
     </div>
   </section>

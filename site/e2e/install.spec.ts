@@ -4,9 +4,8 @@
 //      active package — installing it was the decisive naming collision).
 //      The strings below are the banned literals, present here ONLY to
 //      assert their absence.
-//   2. No install command renders as available today: every package-index
-//      command appears inside the explicitly PLANNED-labeled block on
-//      /install/, and nowhere else.
+//   2. Package-index commands appear only on /install/ inside the release
+//      verification boundary, never as context-free marketing copy.
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,33 +46,33 @@ test("literal ban: no install command for the old squatted package name", () => 
   }
 });
 
-test("no package-index install command renders as available today", () => {
+test("package-index commands stay inside the verified release boundary", () => {
   const commands = [/pip install irrevon/, /uvx irrevon/, /uv tool install irrevon/, /pipx install irrevon/];
   for (const file of htmlFiles(dist)) {
     if (ADR_0023.test(file)) continue; // historical decision text, provenance-bannered
     const html = readFileSync(file, "utf8");
     for (const re of commands) {
       if (!re.test(html)) continue;
-      // Any page carrying a package-index command must carry it inside the
-      // PLANNED block (data-planned) — /install/ is the only such page.
+      // /install/ is the only page that may carry package-index commands.
       expect(file.replace(dist, ""), `package-index command ${re} outside /install/`).toMatch(
         /install\/index\.html$/,
       );
-      const plannedBlock = html.match(/<[^>]*data-planned[\s\S]*?<\/div>\s*<\/div>\s*<\/section>/)?.[0] ?? "";
-      expect(plannedBlock, `PLANNED block missing around ${re} in ${file}`).toMatch(re);
+      const releaseBlock =
+        html.match(/<[^>]*data-release-install[\s\S]*?<\/div>\s*<\/div>\s*<\/section>/)?.[0] ?? "";
+      expect(releaseBlock, `release verification block missing around ${re} in ${file}`).toMatch(re);
     }
   }
 });
 
-test("/install/ labels the planned block and lists the gates", async ({ page }) => {
+test("/install/ requires release verification and keeps source setup first", async ({ page }) => {
   await page.goto("/install/");
-  const planned = page.locator("[data-planned]");
-  await expect(planned).toBeVisible();
-  await expect(planned.locator(".planned-chip")).toContainText("PLANNED");
-  await expect(planned).toContainText("counsel trademark screen");
-  await expect(planned).toContainText("licensing decision");
-  // The works-today section leads the page.
+  const release = page.locator("[data-release-install]");
+  await expect(release).toBeVisible();
+  await expect(release.locator(".release-chip")).toContainText("VERIFY RELEASE STATUS");
+  await expect(release).toContainText("OIDC Trusted Publishing");
+  await expect(release.getByRole("link", { name: "Status" })).toHaveAttribute("href", /\/status\/$/);
+  // The source checkout section leads the page.
   const sections = page.locator("main section");
-  await expect(sections.nth(1)).toContainText("Install from source");
+  await expect(sections.nth(1)).toContainText("Build and run locally");
   await expect(sections.nth(1)).toContainText("set -a && . ./.env && set +a");
 });

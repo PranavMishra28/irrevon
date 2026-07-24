@@ -26,7 +26,7 @@ const outDir = join(siteRoot, "public", "og");
 const check = process.argv.includes("--check");
 
 const PRODUCT_NAME = "Irrevon";
-const FOOTER = "SEED 777 · RECORDED RUN · 1 DESTINATION EFFECT";
+const FOOTER = "v0.1.0 ALPHA · OPEN SOURCE · APACHE-2.0";
 
 // One card per top section (+ the default). Two headline lines max, 64px.
 const CARDS = {
@@ -34,10 +34,10 @@ const CARDS = {
   "og-platform": ["Persist. Dispatch.", "Reconcile — with evidence."],
   "og-how-it-works": ["Identity from facts,", "never model output."],
   "og-demo": ["One crash, one retry.", "One destination effect."],
-  "og-benchmark": ["Preregistered.", "No results yet — by design."],
+  "og-benchmark": ["Draft methodology.", "No scientific results."],
   "og-docs": ["Documentation,", "drift-gated from the repo."],
   "og-research": ["Written before", "the results exist."],
-  "og-install": ["Build from source today.", "Distribution: gated."],
+  "og-install": ["Install with provenance.", "Run the demo locally."],
 };
 
 const sha256 = (buf) => createHash("sha256").update(buf).digest("hex");

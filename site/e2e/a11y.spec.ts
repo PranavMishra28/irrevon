@@ -146,7 +146,7 @@ test("responsive: phone navigation is compact and keyboard-operable", async ({ p
     await button.focus();
     await page.keyboard.press("Enter");
     await expect(button).toHaveAttribute("aria-expanded", "true");
-    await expect(page.locator("nav[aria-label='Primary'] a")).toHaveCount(8);
+    await expect(page.locator("nav[aria-label='Primary'] a")).toHaveCount(9);
     await expect(page.locator("nav[aria-label='Primary'] a").first()).toBeVisible();
     await page.keyboard.press("Enter");
     await expect(button).toHaveAttribute("aria-expanded", "false");
@@ -197,7 +197,7 @@ test("no-JS: content and nav render without JavaScript", async ({ browser }) => 
   const page = await context.newPage();
   await page.goto("/");
   await expect(page.locator("h1")).toBeVisible();
-  await expect(page.locator("nav[aria-label='Primary'] a")).toHaveCount(8);
+  await expect(page.locator("nav[aria-label='Primary'] a")).toHaveCount(9);
   // The theme toggle is JS-only and must stay hidden without it.
   await expect(page.locator("#theme-toggle")).toBeHidden();
   await context.close();

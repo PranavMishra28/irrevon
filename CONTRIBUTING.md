@@ -17,11 +17,9 @@ no CLA.
    scientific evidence, use the benchmark-integrity issue form unless disclosure
    would expose a vulnerability.
 
-GitHub Discussions is currently disabled, and no Discussion link is exposed.
-Before exposing one, the owner must enable Discussions; create or verify
-`Announcements`, `Q&A`, `Ideas and feedback`, and `Show and tell`; publish and
-pin a welcome post; and read back every category URL. Bugs, documentation
-reports, benchmark-integrity concerns, and scoped proposals continue to use
+Use [GitHub Discussions](https://github.com/PranavMishra28/irrevon/discussions)
+for questions, early ideas, and open-ended design conversation. Bugs,
+documentation reports, benchmark-integrity concerns, and scoped proposals use
 their public issue forms.
 
 The project is intentionally narrow: C2 reconciliation for irreversible
@@ -89,10 +87,10 @@ amend it locally and force-push only your own contribution branch.
 - Add or update tests for changed behavior.
 - Preserve every existing validation, security, accessibility, and benchmark
   safeguard.
-- Do not include credentials, personal data, real customer/provider records,
+- Do not include credentials, personal data, real customer/destination records,
   production endpoints, private research notes, generated package artifacts, or
   copied proprietary material.
-- Label synthetic fixtures and unobserved provider behavior explicitly.
+- Label synthetic fixtures and unobserved destination behavior explicitly.
 - Update user-facing documentation and `CHANGELOG.md` when behavior changes.
 - Run `make check` before every commit and report the other gates you ran.
 
@@ -108,9 +106,9 @@ command documented in [site/README.md](site/README.md).
 
 For a new destination, start with the
 [adapter-development guide](site/src/content/guides/adapter-development.md).
-Provider claims need primary-source citations, a capability declaration,
+Destination capability claims need primary-source citations, a declaration,
 strict synthetic contract tests, and clear `observed` versus `unobserved`
-attribution. Never put a real key in a fixture or run a live provider call as
+attribution. Never put a real key in a fixture or run a live destination call as
 part of a contribution.
 
 ## Review and governance

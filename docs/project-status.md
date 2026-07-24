@@ -1,16 +1,16 @@
 # Project status
 
-Irrevon is a public Apache-2.0 research preview prepared as an unpublished
-`v0.1.0` alpha candidate. The source, deterministic
-synthetic demo, single-writer engine and worker, local read-only Workbench,
-benchmark development harness, and package build are implemented. Contributions
-are open under inbound-equals-outbound Apache-2.0 with mandatory DCO 1.1
-sign-off and no CLA.
+Irrevon is a public Apache-2.0 `v0.1.0` Alpha candidate. The source,
+deterministic synthetic demo, single-writer engine and worker, local read-only
+Workbench, benchmark development harness, and distribution pipeline are
+implemented. Contributions are open under inbound-equals-outbound Apache-2.0
+with mandatory DCO 1.1 sign-off and no CLA.
 
-No package or release has been published. The preregistration remains an
-unfrozen draft, no confirmatory results exist, and no independent reproduction
-is claimed. Stripe C1 and EasyPost C2 adapters are test/sandbox-key-gated drafts
-that have never been live-called.
+The release-state source remains `candidate` until PyPI and GitHub provide
+verifiable publication evidence. The preregistration remains an unfrozen draft,
+no confirmatory results exist, and no independent reproduction is claimed.
+Stripe C1 and EasyPost C2 adapters are test/sandbox-key-gated drafts that have
+never been live-called.
 
 The evaluated deployment boundary is self-hosted, PostgreSQL 17, and at most
 one active writer. It is **not yet a supported production topology**: the
@@ -22,25 +22,22 @@ and production battle-testing are not claimed.
 
 ## Public launch read-back
 
-The configured public alias, <https://irrevon.vercel.app/>, currently serves
-content matching the July 22 pre-main build and does not serve
-`/version.json`. That content comparison is operational evidence, not
-cryptographic proof of the deployed commit. The repository is the current
-source of truth until the owner deploys the reviewed production build and
-verifies its version document, origin, headers, canonical URLs, and commit.
+The configured public alias, <https://irrevon.vercel.app/>, is a ready
+main-only Git deployment. Its `/version.json` reports the exact current `main`
+commit and the `production` environment. The launch process repeats that
+read-back after each merge.
 
 Public issue forms are ready for bugs, documentation, benchmark-integrity
-reports, and scoped proposals. GitHub Discussions is disabled and no Discussion
-link is exposed. Before exposing one, the owner must enable Discussions; create
-or verify `Announcements`, `Q&A`, `Ideas and feedback`, and `Show and tell`;
-publish and pin a welcome post; and read back every category URL. Private
-vulnerability reporting is enabled and remains the only vulnerability channel.
+reports, and scoped proposals. GitHub Discussions and all six default
+categories are enabled and publicly linked; the exact welcome post is created
+after this candidate reaches `main`. Private vulnerability reporting is
+enabled and remains the only vulnerability channel.
 
-The 2026-07-24 owner-settings read-back also found an active default-branch
-ruleset with a repository-role bypass, while non-provider secret scanning,
-immutable releases, the Actions allowlist, platform SHA-pin enforcement, and
-the `release`, `sandbox`, and `benchmark` environments remain absent or
-disabled. These are owner settings, not changes a pull request can make.
+The 2026-07-24 owner-settings read-back found an active default-branch ruleset
+with no bypass actors, immutable releases, selected Actions allowlisting,
+platform SHA-pin enforcement, and a protected `release` environment.
+Non-provider secret scanning remains unavailable; the unrelated `sandbox` and
+`benchmark` environments remain absent.
 
 ## Public-history privacy boundary
 

@@ -5,13 +5,13 @@ import Source from "../components/Source.astro";
 import DemoTranscript from "../components/DemoTranscript.astro";
 import OneWayStage from "../components/OneWayStage.astro";
 import Icon from "../components/Icon.astro";
-import { SITE_NAME, BENCH_NAME, REPO_URL, repoDoc } from "../config";
+import { SITE_NAME, BENCH_NAME, REPO_URL } from "../config";
 import { href, asset } from "../lib/url";
 import { softwareSourceCode, webSite } from "../lib/jsonld";
 
 const siteUrl = new URL(href("/"), Astro.site);
 const description =
-  "A reference reconciliation engine and draft preregistration for benchmarking irreversible AI-agent actions. Identity from stable business identifiers, persist-before-dispatch, reconcile-by-query. Pre-release, open research.";
+  "An open-source Alpha reconciliation engine and benchmark development harness for irreversible AI-agent actions. Stable identity, persist-before-dispatch, reconcile-by-query.";
 ---
 
 <Base
@@ -28,7 +28,7 @@ const description =
         <p class="lead hero-lead">
           An agent that crashes mid-call, retries a timeout, or re-synthesizes its arguments can charge a card
           twice, book the wrong slot, or leave an orphaned order no process reconciles. {SITE_NAME} is an
-          open-source reference engine — and a benchmark drafted for preregistration — for exactly that failure.
+          open-source reference engine with a benchmark design documented in a draft preregistration.
         </p>
         <Source id="problem-ambiguous-outcome" also={["resynthesis-defeats-keys"]} />
         <div class="hero-ctas">
@@ -39,9 +39,15 @@ const description =
             data-analytics-placement="hero">View the source</a
           >
           <a class="btn btn-secondary" href={href("/how-it-works/")}>How it works</a>
+          <a
+            class="btn btn-secondary"
+            href={`${REPO_URL}/discussions`}
+            data-analytics-event="contribution_click"
+            data-analytics-placement="hero">Ask a question or share feedback</a
+          >
         </div>
         <p class="hero-note">
-          Pre-release · not on any package index · benchmark draft, synthetic development pilots disclosed
+          v0.1.0 Alpha · Apache-2.0 · draft benchmark methodology, synthetic development evidence
         </p>
       </div>
       <aside class="hero-proof" aria-label="Recorded demo outcome">
@@ -276,8 +282,8 @@ const description =
         <span class="kicker">Get started</span>
         <h2>Clone it and run the flagship demo</h2>
         <p class="lead">
-          Pre-release: nothing is on a package index; the repository is Apache-2.0-licensed. The
-          demo runs locally against a deterministic reference destination with uv and Docker.
+          The source path is deterministic and self-contained. The demo runs locally against a
+          reference destination with uv, Docker, and loopback-only PostgreSQL.
         </p>
       </div>
       <pre data-analytics-copy-event="clone_command_copy" data-analytics-placement="body"><code>git clone {REPO_URL}.git && cd irrevon
@@ -290,7 +296,7 @@ uv run irrevon init             # now applies the plain-SQL migrations
 uv run irrevon doctor           # checks, including a rolled-back write probe
 uv run irrevon demo             # the two-leg flagship story</code></pre>
       <div style="margin-top: 14px;">
-        <Source id="quickstart-real" also={["not-published", "license-apache2"]} />
+        <Source id="quickstart-real" also={["license-apache2"]} />
       </div>
       <div class="hero-ctas" style="margin-top: 24px;">
         <a
@@ -299,7 +305,7 @@ uv run irrevon demo             # the two-leg flagship story</code></pre>
           data-analytics-event="repository_click"
           data-analytics-placement="body">Open the repository</a
         >
-        <a class="btn btn-secondary" href={repoDoc("docs/master-doc.md")}>Read the master document</a>
+        <a class="btn btn-secondary" href={href("/docs/")}>Read the documentation</a>
       </div>
     </div>
   </section>

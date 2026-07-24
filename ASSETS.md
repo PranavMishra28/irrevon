@@ -95,14 +95,14 @@ Design references (screenshots of third-party marketing/product sites, studied d
 - **source:** rendered from site/og/template.svg by site/scripts/build-og.mjs
 - **provenance:** Mechanical render of the template via pinned Playwright Chromium with the repo's IBM Plex subsets; hashes additionally pinned in site/og/manifest.json and drift-gated by build-og.mjs --check.
 - **files (sha256):**
-  - `site/public/og/og-default.png` — `d52afd75163307c52fa6d76069a82a8abbf5366063ccb4eed92615754e5abb1e`
-  - `site/public/og/og-platform.png` — `3772864fb442376f69693cc2de310540480d27c1cc6a6b62ab19d793bb29323b`
-  - `site/public/og/og-how-it-works.png` — `611f0b40eec7b2ec1ff29eee1238b2cd482cd15d5520424f7438a3da79040673`
-  - `site/public/og/og-benchmark.png` — `dd3810799887e708aff806d3ba4a061c726478b79c5952989c236d7a8351afe6`
-  - `site/public/og/og-demo.png` — `7e878bc8e6110af304cd0de64cecf86ae0609dda8e8b60e617b1641ac0422596`
-  - `site/public/og/og-docs.png` — `6837b8de23d48056dac5e78388672df0120a6da86330f8117442a4bf72940527`
-  - `site/public/og/og-research.png` — `04f363dac183548a18ff1fa00fd628ebf2d068d09511ab585345df08abe15fa9`
-  - `site/public/og/og-install.png` — `401190017999c68967bbdd6738ec173cf1da2171205995b59da9d1a39276a249`
+  - `site/public/og/og-default.png` — `2604db5807d621c084638a66801408203a9481acec5b84676c6329ce792c380f`
+  - `site/public/og/og-platform.png` — `2fc179fdd1543de0ae5c35a332ff1bbdd297bc4d780ad0484175247b195c7f44`
+  - `site/public/og/og-how-it-works.png` — `7c86a40ca921606dc270c9efab48f4246a657854a05d96c97c32d4a12f725896`
+  - `site/public/og/og-benchmark.png` — `49bc95f74da53bf592f32abc7bd83359c44710b41f24879e215b1ed59a4ff0ad`
+  - `site/public/og/og-demo.png` — `51230b7467dd2dffc46a63f56e39eac05c50d47eab7d6174173fb7f2a04cca07`
+  - `site/public/og/og-docs.png` — `8409e249d0848aba64609f882508e17e861c80221fcd87f4b03da586c6c07d21`
+  - `site/public/og/og-research.png` — `b4160aa226db98906139d9b2cfe857e8fb756993f25b01e0cbce54ad5fb3b600`
+  - `site/public/og/og-install.png` — `f103c77de7366760dc2027465507d64fb8895e9b313b77dc8ae5b9f1411116f1`
 
 ## 7. Workbench screenshots (4 files)
 

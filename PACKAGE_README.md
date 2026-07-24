@@ -7,10 +7,11 @@ and queries destination evidence before any policy-controlled redispatch. It is
 designed for the failure where an external system commits an action but the
 response is lost, so a blind retry could duplicate the real-world effect.
 
-Version 0.1.0 is the initial Alpha release candidate. Development evidence is
-synthetic; the preregistration is not frozen, no confirmatory result exists,
-and the draft provider adapters have never been live-called. It does not claim
-universal exactly-once execution or production readiness.
+Version 0.1.0 is the initial Alpha release. The Alpha label describes software
+maturity: development evidence is synthetic, the preregistration is not frozen,
+no confirmatory result exists, and the draft provider adapters have never been
+live-called. It does not claim universal exactly-once execution, provider
+qualification, production adoption, or production readiness.
 
 Documentation, quickstart, security policy, limitations, and source:
 
