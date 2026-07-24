@@ -114,9 +114,9 @@ checks is what `make check` checks. `[DD]` Three documented exceptions: `workflo
 runs zizmor with network advisories and nightly runs lychee/zizmor online (*online variants*
 of offline make gates — the local gate stays deterministic `--offline` on purpose), and
 `dependency-review` (GitHub-owned action, SHA-pinned, `contents: read`) has no local
-equivalent because it consumes GitHub's advisory database against the PR diff; it is
-deliberately OUTSIDE the `ci-required` aggregator (it exists only on pull_request events —
-the pending-forever trap).
+equivalent because it consumes GitHub's advisory database against the PR diff. The job
+exists only on `pull_request` events, is included in `ci-required.needs`, and the aggregator
+requires it to succeed on pull requests while accepting its skip on push events.
 
 ## Owner settings checklist (HUMAN-only; agents are hook-blocked from all of it)
 

@@ -126,10 +126,10 @@ jobs:
         run: make check
 
   # Supply-chain: fail PRs that introduce known-vulnerable dependencies
-  # (ADR-0034 tranche; supply-chain research 2026-07-22). Deliberately NOT in
-  # the ci-required aggregator: it runs only on pull_request (the API needs a
-  # base/head diff), and adding a sometimes-absent job to the required
-  # aggregator would recreate the pending-forever trap docs/ci.md warns about.
+  # (ADR-0034 tranche; supply-chain research 2026-07-22). It runs only on
+  # pull_request (the API needs a base/head diff), is included in
+  # ci-required.needs, and is required there on PR events; push events skip it
+  # and the aggregator accepts that event-appropriate skip.
   # GitHub-owned action, SHA-pinned; contents: read only. One of the
   # documented non-make-target exceptions (docs/ci.md Local parity).
   dependency-review:

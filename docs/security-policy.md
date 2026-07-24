@@ -105,9 +105,17 @@ deliberate human act. This is policy, not repo-enforceable.
   positives get a narrow `.gitleaks.toml` allowlist entry, never a skip.
 - **Local tool supply chain:** `make tools` installs via Homebrew and then runs
   `make tools-check`, which fails on any drift from the tested versions pinned in the
-  Makefile. This is version-pinning, not checksum-pinning — the checksum-verified
-  installer is a CI-workstream deliverable; until then the enforcing local control is the
-  version check plus the SHA-pinned pre-commit scanner.
+  Makefile. That local path is version-pinned rather than checksum-pinned. The existing
+  checksum-verified bootstrap, `scripts/bootstrap-tools.sh`, installs the pinned standalone
+  tools used by CI and the release workflow; the SHA-pinned pre-commit scanner remains a
+  separate local layer.
+- **Automated scan boundary and historical exposure:** gitleaks and
+  `scripts/check-public-data.py` check defined secret, credential-bearing DSN, machine-path,
+  environment-file, and media-metadata patterns in their documented scopes. They are not
+  semantic PII detectors and do not prove the absence of all historical PII.
+  Pre-redaction personal prose remains reachable in the public Git history. No automated
+  result should call that history PII-free; accepting that exposure or coordinating a
+  human-only history rewrite is an explicit owner decision.
 - Incident basics: on any suspected exposure — stop, preserve evidence, rotate the
   credential, record the incident. Rotation is never deferred to "after the task".
 
@@ -151,15 +159,21 @@ ADR-0034 PR). Applied here; owner-only settings stay on the human checklist.
   fuzz harnesses below); RV.1/RV.2 (SECURITY.md intake + advisory path).
   Organization-level PO practices do not apply to a solo project and are not
   claimed.
-- **SLSA posture** `[VF]`: the prepared (disabled) release pipeline's
-  `attest-build-provenance` step yields SLSA v1.0 **Build L2** when it first
-  runs on a GitHub-hosted runner; Build L3 requires the reusable-workflow
+- **SLSA posture** `[VF]`: the release workflow is active but human-gated.
+  Pull requests and manual dispatches run only its non-publishing dry run.
+  Only an owner-pushed annotated version tag in the canonical repository may
+  enter tagged validation and attestation; it can reach protected publication
+  only after the owner configures the release environment and publisher
+  binding. When it first runs on a GitHub-hosted runner, the
+  `attest-build-provenance` step yields SLSA v1.0 **Build L2**; Build L3
+  requires the reusable-workflow
   separation and is a post-first-release upgrade path. No level is claimed
   until an artifact exists.
 - **Dependency review** `[DD]`: `actions/dependency-review-action` (v5,
   SHA-pinned, `contents: read`) fails PRs that introduce known-vulnerable
-  dependencies; deliberately outside the `ci-required` aggregator (it exists
-  only on pull_request events — the pending-forever trap).
+  dependencies. It exists only on `pull_request` events, is included in
+  `ci-required.needs`, and is required by the aggregator on pull requests;
+  push events legitimately skip it.
 - **Fuzzing** `[DD]`: Hypothesis-driven fuzz harnesses cover the two parser
   trust boundaries — intent-contract validation (arbitrary JSON must produce
   `ContractInvalid` or a valid contract, never a crash or a bypass) and JCS

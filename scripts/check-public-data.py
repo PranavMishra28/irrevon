@@ -143,6 +143,8 @@ allowed_history = inspect_history()
 if failed:
     raise SystemExit(1)
 print(
-    "public-data: current/generated paths, DSNs, environment files, media metadata, "
-    f"and reachable history clean ({allowed_history} allowlisted historical blobs)"
+    "public-data: defined-pattern scan passed for current/generated paths, DSNs, "
+    "environment files, media metadata, and reachable history "
+    f"({allowed_history} allowlisted historical blobs); "
+    "not an exhaustive historical-PII audit"
 )
