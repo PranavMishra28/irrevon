@@ -165,6 +165,7 @@ confirms Production Branch = `main` and reactivates the currently paused
 project, Vercel automatically builds each eligible `main` commit. Every other
 branch is disabled by the branch map in the repository-root
 [`vercel.json`](../vercel.json), and
+the fail-closed ignore command stops those refs before dependency installation.
 [`scripts/vercel-build.sh`](../scripts/vercel-build.sh) independently refuses
 non-production, non-`main`, or malformed-provenance Git builds. Vercel serves
 only the resulting static `site/dist` files; Irrevon has no site runtime or
@@ -191,7 +192,8 @@ SITE_EXPECT_COMMIT="$EXPECTED_COMMIT" \
 ```
 
 The root `vercel.json` pins the Astro build command, locked install, static
-output directory, deployment branches, response headers, and cache rules (the applied form of
+output directory, deployment branches, pre-install ignore rule, response
+headers, and cache rules (the applied form of
 [`docs/headers-spec.md`](docs/headers-spec.md)) and `trailingSlash: true` (canonical
 URLs end in `/`, matching the sitemap). The origin and repository URL are
 deployment-provided at build time—committed files never carry either. Vercel
@@ -200,6 +202,9 @@ committed configuration overrides its stale root-level Python framework
 autodetection. The same read-back reported the project paused and did not expose
 its Production Branch; both remain explicit owner checks rather than inferred
 repository facts.
+Both install and build enter `site/` before invoking Corepack so
+`site/package.json`'s pinned pnpm version is authoritative on Vercel as well as
+locally.
 Google/Bing verification values and the optional IndexNow key belong in protected
 production build variables, never a committed file or pasted command history.
 

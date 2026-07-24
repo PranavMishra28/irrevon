@@ -1,7 +1,7 @@
 ---
 title: "Vercel Git integration permits main-only static-site deployments"
 sourcePath: "docs/decisions/0038-main-vercel-auto-deploy.md"
-sourceSha256: "91d9f2d72adf5f6445f80511377bba47af2a83e20b489a00aa0aedb3e70ecf78"
+sourceSha256: "c7e4b26a9df50a2f281a4640e2708e2334d1fd954cd428fed7ec3c440e4370ce"
 syncedAt: "2026-07-24"
 section: "Decisions"
 renderTitle: true
@@ -94,3 +94,13 @@ cannot reactivate a paused project.
 Revisit if preview environments become an explicit reviewed requirement, the
 site moves away from Vercel, Vercel branch-matching semantics change, or a
 protected staged-promotion workflow becomes necessary.
+
+## Implementation clarification — 2026-07-24
+
+Vercel may evaluate a pull-request deployment before the branch map in the
+candidate commit prevents it. The repository therefore also uses a fail-closed
+ignore command: a missing or non-`main` ref is ignored before dependency
+installation, while `main` continues to the independent production/ref/SHA
+checks in the build wrapper. Install and build enter `site/` before invoking
+Corepack so `site/package.json`'s pinned pnpm version is selected instead of a
+platform default.

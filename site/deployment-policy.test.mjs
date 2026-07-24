@@ -17,10 +17,30 @@ test("Vercel permits production deployments from main and no other branch", () =
   assert.equal(config.framework, "astro");
   assert.equal(config.outputDirectory, "site/dist");
   assert.equal(
+    config.ignoreCommand,
+    'test "${VERCEL_GIT_COMMIT_REF:-}" != main',
+  );
+  assert.equal(
     config.installCommand,
-    "corepack enable && pnpm --dir site install --frozen-lockfile",
+    "corepack enable && cd site && corepack pnpm install --frozen-lockfile",
   );
   assert.equal(config.buildCommand, "bash scripts/vercel-build.sh");
+});
+
+const runIgnoreCommand = (commitRef) =>
+  spawnSync("bash", ["-c", config.ignoreCommand], {
+    cwd: repositoryRoot,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      VERCEL_GIT_COMMIT_REF: commitRef,
+    },
+  });
+
+test("Vercel ignores non-main refs before install and continues main", () => {
+  assert.equal(runIgnoreCommand("feature").status, 0);
+  assert.equal(runIgnoreCommand("").status, 0);
+  assert.equal(runIgnoreCommand("main").status, 1);
 });
 
 test("the accepted ADR's historical configuration path resolves without duplication", () => {

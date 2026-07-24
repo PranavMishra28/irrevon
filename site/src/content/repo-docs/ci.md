@@ -2,7 +2,7 @@
 title: "CI — how this repository builds"
 description: "The CI workflow map: tiers, required checks, owner settings checklist, and local parity via make targets."
 sourcePath: "docs/ci.md"
-sourceSha256: "761404ebe54fc4b30c585d5523a1970a4badf05a6c63794a2dc453b4e7abb697"
+sourceSha256: "62a4f67cbf4c438a563c3fe408b7568386121686e854dcaa62409c69d2fdd3ac"
 syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
@@ -238,8 +238,12 @@ Site deploys (not a GitHub Actions workflow):
    project's stale Python autodetection, installs the locked `site/` pnpm
    graph, invokes `scripts/vercel-build.sh`, serves `site/dist`, and carries
    the response-header contract. Its branch map disables every automatic
-   deployment except `main`; the wrapper independently refuses a non-production
-   environment, non-`main` ref, or non-full commit SHA. Root `vercel.json`
+   deployment except `main`; its ignore command stops other refs before
+   dependency installation, and the wrapper independently refuses a
+   non-production environment, non-`main` ref, or non-full commit SHA. The
+   install and build commands enter `site/` before invoking Corepack, so the
+   checked-in `packageManager` pin selects pnpm rather than a platform default.
+   Root `vercel.json`
    changes select the complete site CI slice. This path deploys only the
    marketing/docs site—it cannot merge code or publish Python packages,
    GitHub Releases, benchmarks, or provider activity. Details in

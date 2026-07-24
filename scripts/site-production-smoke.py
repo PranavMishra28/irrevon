@@ -73,7 +73,8 @@ ROUTE_HEADERS = {
 
 VERCEL_BUILD_CONTRACT = {
     "framework": "astro",
-    "installCommand": "corepack enable && pnpm --dir site install --frozen-lockfile",
+    "ignoreCommand": 'test "${VERCEL_GIT_COMMIT_REF:-}" != main',
+    "installCommand": "corepack enable && cd site && corepack pnpm install --frozen-lockfile",
     "buildCommand": "bash scripts/vercel-build.sh",
     "outputDirectory": "site/dist",
 }

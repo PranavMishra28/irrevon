@@ -111,10 +111,17 @@ PASS  make site-test — 393 browser/accessibility/security/SEO checks
 PASS  production build through scripts/vercel-build.sh from both repository
       root and site/ working directories
 PASS  make site-production-smoke — exact commit and canonical origin
-PASS  40 focused production-smoke unit tests
+PASS  42 focused production-smoke unit tests
 PASS  actionlint .github/workflows/ci.yml
 PASS  git diff --check
 ```
+
+The first PR-branch Vercel check began dependency installation before the
+candidate branch map could suppress the preview and selected a
+platform-default pnpm from the repository root. The follow-up configuration
+now ignores missing/non-`main` refs before installation and runs Corepack from
+`site/`, where the checked-in pnpm pin is authoritative. The executable
+deployment-policy test covers both ignore-command outcomes.
 
 The reviewed branch was not merged or deployed. PR #21 merged while this task
 was being validated, so the deployment policy moved to a focused follow-up PR

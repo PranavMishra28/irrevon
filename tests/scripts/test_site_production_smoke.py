@@ -356,6 +356,16 @@ def test_rejects_weakened_vercel_security_or_cache_policy(
             "outputDirectory does not match",
         ),
         (
+            lambda config: config.update({"ignoreCommand": "exit 1"}),
+            "ignoreCommand does not match",
+        ),
+        (
+            lambda config: config.update(
+                {"installCommand": "pnpm --dir site install --frozen-lockfile"}
+            ),
+            "installCommand does not match",
+        ),
+        (
             lambda config: config["git"].update({"deploymentEnabled": True}),
             "main only",
         ),

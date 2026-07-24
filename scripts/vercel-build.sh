@@ -26,4 +26,5 @@ if [ "${VERCEL:-}" = "1" ]; then
   fi
 fi
 
-pnpm --dir site build
+cd "$repository_root/site"
+corepack pnpm build

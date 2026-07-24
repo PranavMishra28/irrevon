@@ -88,3 +88,13 @@ cannot reactivate a paused project.
 Revisit if preview environments become an explicit reviewed requirement, the
 site moves away from Vercel, Vercel branch-matching semantics change, or a
 protected staged-promotion workflow becomes necessary.
+
+## Implementation clarification — 2026-07-24
+
+Vercel may evaluate a pull-request deployment before the branch map in the
+candidate commit prevents it. The repository therefore also uses a fail-closed
+ignore command: a missing or non-`main` ref is ignored before dependency
+installation, while `main` continues to the independent production/ref/SHA
+checks in the build wrapper. Install and build enter `site/` before invoking
+Corepack so `site/package.json`'s pinned pnpm version is selected instead of a
+platform default.
