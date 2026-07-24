@@ -24,6 +24,8 @@ producers are shared with the CLI (``irrevon.api.readviews``,
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import re
 import signal
@@ -72,6 +74,7 @@ _BIND_HOST = "127.0.0.1"
 _HEALTH_CACHE_S = 5.0
 
 _EFFECT_ROUTE = re.compile(r"^/api/v1/effects/([0-9a-f]{64})(/inspect)?$")
+_INLINE_SCRIPT = re.compile(rb"<script(?:\s[^>]*)?>(.*?)</script\s*>", re.IGNORECASE | re.DOTALL)
 
 _MIME_TYPES: dict[str, str] = {
     ".html": "text/html; charset=utf-8",
@@ -87,11 +90,24 @@ _MIME_TYPES: dict[str, str] = {
 }
 
 # Self-hosted-everything app (fonts packaged, zero external requests —
-# E2E-enforced on the workbench side).
-_CSP = (
-    "default-src 'self'; img-src 'self' data:; "
-    "style-src 'self' 'unsafe-inline'; connect-src 'self'"
+# E2E-enforced on the workbench side). ``script-src`` is completed per HTML
+# response by _html_csp(): the Vite entry chunk comes from 'self', while each
+# inline script receives a hash of its exact bytes. That keeps the pre-paint
+# theme/density script functional without authorizing arbitrary inline code.
+_CSP_DIRECTIVES = (
+    "default-src 'none'",
+    "base-uri 'none'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'none'",
+    "img-src 'self' data:",
+    "font-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "connect-src 'self'",
+    "manifest-src 'self'",
 )
+
+_PERMISSIONS_POLICY = "camera=(), geolocation=(), microphone=(), payment=(), usb=()"
 
 _DEGRADE_HTML = (
     "<!doctype html><html><head><title>irrevon serve</title></head><body>"
@@ -100,6 +116,26 @@ _DEGRADE_HTML = (
     "The API under <code>/api/v1/</code> is serving normally.</p>"
     "</body></html>"
 )
+
+
+def _html_csp(body: bytes) -> str:
+    """Return a closed CSP for this exact HTML representation.
+
+    CSP hashes cover the exact UTF-8 bytes between an inline ``<script>`` and
+    ``</script>``. Empty script bodies (including ordinary external-script
+    elements) add no hash. The body is a packaged, trusted static artifact;
+    hashing here keeps build output and the response policy inseparable, so a
+    frontend formatting change cannot silently break first paint.
+    """
+    script_sources = ["'self'"]
+    for script in _INLINE_SCRIPT.findall(body):
+        if not script:
+            continue
+        digest = base64.b64encode(hashlib.sha256(script).digest()).decode("ascii")
+        source = f"'sha256-{digest}'"
+        if source not in script_sources:
+            script_sources.append(source)
+    return "; ".join((*_CSP_DIRECTIVES, f"script-src {' '.join(script_sources)}"))
 
 
 def read_dsn(base_dsn: str) -> str:
@@ -254,16 +290,27 @@ class _Handler(BaseHTTPRequestHandler):
         """Suppress the default stderr access log (serve.request JSONL owns it)."""
 
     def _send_common_headers(
-        self, content_type: str, length: int, *, api: bool, cache: str = "no-store"
+        self,
+        content_type: str,
+        length: int,
+        *,
+        api: bool,
+        cache: str = "no-store",
+        html_body: bytes | None = None,
     ) -> None:
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(length))
         self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("Permissions-Policy", _PERMISSIONS_POLICY)
         self.send_header("Cache-Control", cache)
         if api:
             self.send_header(SCHEMA_VERSION_HEADER, SCHEMA_VERSION)
         if content_type.startswith("text/html"):
-            self.send_header("Content-Security-Policy", _CSP)
+            if html_body is None:  # programming error: hashes must match the body
+                raise RuntimeError("HTML response missing body for CSP construction")
+            self.send_header("Content-Security-Policy", _html_csp(html_body))
 
     def _send_json(
         self, status: int, payload: dict[str, Any], *, include_body: bool
@@ -429,7 +476,12 @@ class _Handler(BaseHTTPRequestHandler):
         if root is None:
             body = _DEGRADE_HTML.encode("utf-8")
             self.send_response(503)
-            self._send_common_headers("text/html; charset=utf-8", len(body), api=False)
+            self._send_common_headers(
+                "text/html; charset=utf-8",
+                len(body),
+                api=False,
+                html_body=body,
+            )
             self.end_headers()
             if include_body:
                 self.wfile.write(body)
@@ -463,7 +515,13 @@ class _Handler(BaseHTTPRequestHandler):
             else "no-store"
         )
         self.send_response(200)
-        self._send_common_headers(content_type, len(body), api=False, cache=cache)
+        self._send_common_headers(
+            content_type,
+            len(body),
+            api=False,
+            cache=cache,
+            html_body=body if content_type.startswith("text/html") else None,
+        )
         self.end_headers()
         if include_body:
             self.wfile.write(body)

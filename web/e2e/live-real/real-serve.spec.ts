@@ -1,4 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import AxeBuilder from "@axe-core/playwright";
@@ -124,6 +125,93 @@ test("served bundle: no fixture sentinel, no MSW worker (sentinel-zero scan)", (
         false,
       );
     }
+  }
+});
+
+test("served security boundary: exact CSP hashes and persisted pre-paint theme", async ({
+  browser,
+  request,
+}) => {
+  const response = await request.get(origin);
+  expect(response.status()).toBe(200);
+  const headers = response.headers();
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["x-frame-options"]).toBe("DENY");
+  expect(headers["referrer-policy"]).toBe("no-referrer");
+  expect(headers["permissions-policy"]).toBe(
+    "camera=(), geolocation=(), microphone=(), payment=(), usb=()",
+  );
+
+  const csp = headers["content-security-policy"];
+  if (csp === undefined) throw new Error("workbench response missing CSP");
+  expect(csp).toContain("default-src 'none'");
+  expect(csp).toContain("base-uri 'none'");
+  expect(csp).toContain("object-src 'none'");
+  expect(csp).toContain("frame-ancestors 'none'");
+  expect(csp).toContain("form-action 'none'");
+  const scriptDirective = csp
+    .split(";")
+    .map((directive) => directive.trim())
+    .find((directive) => directive.startsWith("script-src "));
+  expect(scriptDirective).toBeDefined();
+  expect(scriptDirective).not.toContain("'unsafe-inline'");
+
+  const html = readFileSync(join(STAGED, "index.html"), "utf8");
+  const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script\s*>/gi)]
+    .map((match) => match[1])
+    .filter((script): script is string => script !== undefined && script.length > 0);
+  expect(inlineScripts.length).toBeGreaterThan(0);
+  for (const script of inlineScripts) {
+    const exact = createHash("sha256").update(script, "utf8").digest("base64");
+    const mutated = createHash("sha256").update(`${script} `, "utf8").digest("base64");
+    expect(scriptDirective).toContain(`'sha256-${exact}'`);
+    expect(scriptDirective).not.toContain(`'sha256-${mutated}'`);
+  }
+
+  const context = await browser.newContext({ baseURL: origin, colorScheme: "light" });
+  const page = await context.newPage();
+  const external: string[] = [];
+  page.on("request", (outbound) => {
+    const target = new URL(outbound.url());
+    if (!["localhost", "127.0.0.1", "[::1]"].includes(target.hostname)) {
+      external.push(`${outbound.method()} ${target.href}`);
+    }
+  });
+  await page.route("**/*", async (route) => {
+    const target = new URL(route.request().url());
+    if (!["localhost", "127.0.0.1", "[::1]"].includes(target.hostname)) {
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+  await page.addInitScript(() => {
+    const state = window as unknown as { __irrevonCspViolations: string[] };
+    state.__irrevonCspViolations = [];
+    document.addEventListener("securitypolicyviolation", (event) => {
+      state.__irrevonCspViolations.push(
+        `${event.violatedDirective}: ${event.blockedURI || "inline"}`,
+      );
+    });
+  });
+  try {
+    await page.goto(origin);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await page.getByRole("button", { name: "Switch to dark theme" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+    await page.reload();
+    // RootLayout reads the preference but does not set this attribute on
+    // mount: dark on reload therefore proves the CSP-authorized pre-paint
+    // script ran before the application module.
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    const violations = await page.evaluate(
+      () => (window as unknown as { __irrevonCspViolations: string[] }).__irrevonCspViolations,
+    );
+    expect(violations, "no browser CSP violations").toEqual([]);
+    expect(external, "no non-loopback requests").toEqual([]);
+  } finally {
+    await context.close();
   }
 });
 
