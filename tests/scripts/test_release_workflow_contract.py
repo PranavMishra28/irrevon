@@ -32,6 +32,7 @@ def test_pr_path_is_non_publishing_and_tag_path_is_canonical_only() -> None:
     dry = _job(workflow, "dry-run", "validate-build")
     assert "github.ref_type != 'tag'" in dry
     assert "make release-dry-run" in dry
+    assert "bash scripts/bootstrap-tools.sh" in dry
     assert "contents: read" in dry
     assert "id-token: write" not in dry
     assert "contents: write" not in dry
@@ -56,6 +57,7 @@ def test_untrusted_build_is_separate_from_oidc_and_publication_permissions() -> 
     github_release = _job(workflow, "publish-github")
 
     assert "make launch-audit" in build
+    assert "bash scripts/bootstrap-tools.sh" in build
     assert "id-token: write" not in build
     assert "attestations: write" not in build
     assert "contents: write" not in build

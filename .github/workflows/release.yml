@@ -49,6 +49,8 @@ jobs:
           node-version-file: web/.nvmrc
           package-manager-cache: false
       - run: corepack enable
+      - name: Install checksum-pinned validation tools
+        run: bash scripts/bootstrap-tools.sh
       - name: Validate source and build release candidates
         run: |
           set -euo pipefail
@@ -90,6 +92,8 @@ jobs:
           node-version-file: web/.nvmrc
           package-manager-cache: false
       - run: corepack enable
+      - name: Install checksum-pinned validation tools
+        run: bash scripts/bootstrap-tools.sh
       - name: Refuse a mismatched or dirty tag
         env:
           TAG_NAME: ${{ github.ref_name }}
