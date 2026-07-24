@@ -1,0 +1,133 @@
+---
+import Base from "../layouts/Base.astro";
+import { href } from "../lib/url";
+---
+
+<Base
+  title="Privacy — Irrevon"
+  description="Irrevon's local-first data boundary, identifier handling, telemetry, fixtures, and operator responsibilities."
+>
+  <section class="section">
+    <div class="container prose">
+      <span class="kicker">Privacy</span>
+      <h1>Local-first does not mean data-free.</h1>
+      <p class="lead">
+        The CLI, engine, worker, and Workbench have no telemetry, update checks, crash reporting, or
+        hosted Irrevon service. Runtime records stay in the operator's PostgreSQL deployment. This
+        static website has a separate, disclosed measurement boundary.
+      </p>
+
+      <h2>Website measurement</h2>
+      <p>
+        When the owner enables them on a Vercel production deployment, this site loads Vercel Web
+        Analytics and Speed Insights from same-origin paths. They are cookie-free, aggregated
+        telemetry, but Vercel still processes the measurements. Depending on the product, that can
+        include a timestamp, cleaned page URL, referrer, coarse geography, browser, device and
+        operating-system information, plus Web Vitals. See Vercel's{" "}
+        <a href="https://vercel.com/docs/analytics/privacy-policy">Web Analytics privacy documentation</a>
+        and <a href="https://vercel.com/docs/speed-insights">Speed Insights documentation</a>.
+      </p>
+      <p>
+        By default, the site removes every query parameter before both telemetry streams send an
+        event. A separately gated build may retain only the five validated lowercase UTM parameters.
+        Custom conversion events are also disabled by default; when explicitly enabled on a
+        compatible plan, they carry only a fixed event name and fixed placement value. No event
+        includes effect IDs, stable IDs, API payloads, search text, email addresses, credentials,
+        user IDs, or free text.
+      </p>
+
+      <div class="panel-subtle analytics-choice" aria-labelledby="analytics-choice-title">
+        <h3 id="analytics-choice-title">Measurement preference on this browser</h3>
+        <p>
+          This local preference blocks future Web Analytics and Speed Insights events from this
+          browser. It cannot retract a pageview or performance event sent before you changed it, and
+          it does not alter runtime Irrevon data because runtime components never use this telemetry.
+        </p>
+        <button class="btn btn-secondary" type="button" id="analytics-choice">
+          Disable future site measurement
+        </button>
+        <p class="muted" id="analytics-choice-status" role="status" aria-live="polite">
+          Reading this browser's preference…
+        </p>
+      </div>
+      <script is:inline>
+        (() => {
+          const key = "irrevon-analytics-opt-out";
+          const button = document.getElementById("analytics-choice");
+          const status = document.getElementById("analytics-choice-status");
+          if (!button || !status) return;
+          const read = () => {
+            try {
+              return localStorage.getItem(key) === "1";
+            } catch {
+              return null;
+            }
+          };
+          const render = (disabled) => {
+            if (disabled === null) {
+              button.hidden = true;
+              status.textContent =
+                "Browser storage is unavailable. Use browser blocking controls if you want to block these requests.";
+              return;
+            }
+            button.hidden = false;
+            button.textContent = disabled
+              ? "Enable site measurement"
+              : "Disable future site measurement";
+            status.textContent = disabled
+              ? "Future site measurement is disabled in this browser."
+              : "Site measurement is allowed in this browser when the deployment enables it.";
+          };
+          render(read());
+          button.addEventListener("click", () => {
+            const disabled = read();
+            if (disabled === null) return;
+            try {
+              if (disabled) localStorage.removeItem(key);
+              else localStorage.setItem(key, "1");
+              render(!disabled);
+            } catch {
+              render(null);
+            }
+          });
+        })();
+      </script>
+
+      <h2>Workbench boundary</h2>
+      <p>
+        <code>irrevon serve</code> binds only to <code>127.0.0.1</code>, validates the Host header,
+        accepts GET/HEAD only, and connects through a SELECT-only database role. Stable upstream
+        identifier keys remain visible, while values are represented as deterministic SHA-256
+        digests. Raw values require the explicit local CLI <code>inspect --reveal</code> option.
+      </p>
+      <h2>What the ledger stores</h2>
+      <p>
+        The ledger stores intent metadata, request parameters needed for recovery, digests,
+        transitions, receipts, probes, and findings. Request parameters can contain personal or
+        confidential data when an integrator puts it there. Digests are not anonymization, especially
+        for low-entropy values.
+      </p>
+      <h2>Operator responsibilities</h2>
+      <ul>
+        <li>Minimize provider payloads and keep credentials outside configuration files.</li>
+        <li>Set retention, backup, access-control, and deletion policy for the deployment.</li>
+        <li>Treat evidence exports, screenshots, logs, and backups as potentially sensitive.</li>
+        <li>Never submit production records, keys, or private identifiers to public issues.</li>
+      </ul>
+      <p>Security reports use the private path on the <a href={href("/security/")}>Security page</a>.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .analytics-choice {
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+    margin-block: 24px;
+    max-width: 72ch;
+  }
+  .analytics-choice p {
+    margin: 0;
+  }
+</style>

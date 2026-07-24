@@ -9,6 +9,7 @@ localhost Postgres."""
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 from irrevon.cli.config import Config
@@ -23,13 +24,7 @@ schema_version = "1"
 [ledger]
 # DSN may embed user/host/db but NEVER a password; the password comes from the
 # env var named below (set it in .env, which is gitignored).
-dsn = "postgresql://irrevon@localhost:5432/irrevon"
-password_env = "IRREVON_LEDGER_PASSWORD"
-
-[adapters.refdest-c2]
-kind = "refdest"
-capability_declaration = "refdest-c2.capability.json"
-# the reference destination is credential-free and network-free (in-process)
+dsn = "postgresql://irrevon_app@localhost:5432/irrevon"
 
 [demo]
 seed = 42
@@ -43,9 +38,11 @@ services:
     # postgres:17-alpine (17.10), digest-pinned
     image: postgres@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
     environment:
-      POSTGRES_USER: irrevon
+      POSTGRES_USER: postgres
       POSTGRES_DB: irrevon
-      POSTGRES_PASSWORD: ${IRREVON_LEDGER_PASSWORD:?set it in .env}
+      # Disposable LOCAL development only. The port is loopback-only and this
+      # trust-auth database must never be used as a production deployment.
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "127.0.0.1:5432:5432" # loopback only — never exposed off-host
     volumes:
@@ -61,10 +58,11 @@ volumes:
 """
 
 ENV_EXAMPLE = """\
-# .env.example — copy to .env (gitignored) and fill in LOCAL values only.
-# A production-scope credential anywhere is a stop-and-rotate incident
-# (master doc §9). Placeholders only in this file.
-IRREVON_LEDGER_PASSWORD=change-me-locally
+# .env.example — local bootstrap only; no credential is stored here.
+# Source this file before the second `irrevon init`. The admin DSN is used
+# only for migrations; normal runtime config uses the non-superuser
+# irrevon_app role and `irrevon serve` swaps to irrevon_read.
+IRREVON_MIGRATION_DSN=postgresql://postgres@localhost:5432/irrevon
 """
 
 FILES = {
@@ -96,7 +94,17 @@ def run_init(
     try:
         from irrevon.ledger.db import apply_migrations
 
-        migrations_applied = apply_migrations(config.resolved_dsn())
+        # Local generated Compose exposes a migration-only admin DSN through a
+        # named environment value. Runtime operations continue to use the
+        # non-superuser DSN in irrevon.toml.
+        migration_dsn = os.environ.get("IRREVON_MIGRATION_DSN")
+        if not migration_dsn:
+            db_note = (
+                "migrations not attempted — set IRREVON_MIGRATION_DSN explicitly "
+                "to the intended migration target, then re-run `irrevon init`"
+            )
+        else:
+            migrations_applied = apply_migrations(migration_dsn)
     except StorageUnavailable:  # DB not up yet — expected on first run
         db_note = (
             "ledger DB not reachable yet — start it (docker compose up -d --wait) "
@@ -138,5 +146,8 @@ def run_init(
             )
         elif db_note:
             print(f"note: {db_note}")
-        print("\nnext: cp .env.example .env && docker compose up -d --wait && irrevon doctor")
+        print(
+            "\nnext: cp .env.example .env && set -a && . ./.env && set +a "
+            "&& docker compose up -d --wait && irrevon init && irrevon doctor"
+        )
     return 0

@@ -1,0 +1,31 @@
+---
+import Base from "../layouts/Base.astro";
+import { repoDoc } from "../config";
+---
+
+<Base
+  title="Licensing — Irrevon"
+  description="Apache-2.0 project licensing, contribution terms, attribution, and third-party notices."
+>
+  <section class="section">
+    <div class="container prose">
+      <span class="kicker">Licensing</span>
+      <h1>Apache-2.0, inbound and outbound.</h1>
+      <p class="lead">
+        Irrevon source is licensed under the Apache License, Version 2.0. Contributions use the same
+        license with DCO 1.1 sign-off; no CLA or copyright assignment is required.
+      </p>
+      <p>
+        Apache-2.0 permits use, modification, distribution, and commercial use subject to its terms.
+        It does not grant trademark rights. This page is a project summary, not legal advice; the
+        committed license text controls.
+      </p>
+      <ul>
+        <li><a href={repoDoc("LICENSE")}>Apache-2.0 license text</a></li>
+        <li><a href={repoDoc("NOTICE")}>Project NOTICE</a></li>
+        <li><a href={repoDoc("LICENSING.md")}>Licensing posture</a></li>
+        <li><a href={repoDoc("THIRD-PARTY-NOTICES.md")}>Third-party notices</a></li>
+      </ul>
+    </div>
+  </section>
+</Base>

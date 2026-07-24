@@ -8,7 +8,8 @@ Design contract: [ADR-0016](../docs/decisions/0016-frontend-workbench-stack.md) 
 README (the working brief was internal; its durable decisions are recorded here).
 
 Status: the full workbench scope is implemented against the shipped engine.
-Types generate from the five admitted JSON Schemas plus the RFC-002 §3 canonical state
+Types generate from the five engine/Workbench JSON Schemas (of 13 repository
+contracts) plus the RFC-002 §3 canonical state
 tables (`pnpm codegen`, committed, drift-gated, SHA-256-pinned in
 `contracts/schema-pins.json`). The canonical fixtures are **captured transcripts of the
 real engine** (`scripts/capture-fixtures.py`, seed 777; commit + derivations recorded in

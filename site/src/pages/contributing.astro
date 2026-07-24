@@ -1,0 +1,35 @@
+---
+import Base from "../layouts/Base.astro";
+import { REPO_URL, repoDoc } from "../config";
+---
+
+<Base
+  title="Contributing — Irrevon"
+  description="Contribute code, documentation, adapters, and benchmark engineering under Apache-2.0 with DCO sign-off."
+>
+  <section class="section">
+    <div class="container prose">
+      <span class="kicker">Contributing</span>
+      <h1>Pull requests are open.</h1>
+      <p class="lead">
+        Contributions use inbound-equals-outbound Apache-2.0. Every commit requires Developer
+        Certificate of Origin 1.1 sign-off. Irrevon has no CLA.
+      </p>
+      <pre><code>git commit -s -m "your change"
+make check</code></pre>
+      <p>
+        Small fixes can go directly to a pull request. Propose new features, trust-boundary changes,
+        schemas, or benchmark-design changes in an issue first. Never publish credentials,
+        production payloads, private holdout material, or personal data.
+      </p>
+      <p>
+        <a href={repoDoc("CONTRIBUTING.md")}>Read the commit-pinned contribution guide</a> ·{" "}
+        <a
+          href={`${REPO_URL}/issues/new/choose`}
+          data-analytics-event="contribution_click"
+          data-analytics-placement="body">Choose an issue form</a
+        >
+      </p>
+    </div>
+  </section>
+</Base>

@@ -1,12 +1,19 @@
-// robots.txt, generated so the sitemap URL derives from the deploy-provided
-// origin/base. Honest caveat (recorded in site/README.md): on a project
-// Pages site this file is not served at the origin root and is therefore
-// not authoritative per RFC 9309; it becomes real the day a custom domain
-// exists. Emitting it now costs nothing and is correct later.
+// Search/index crawlers remain welcome. Named training/data crawlers are a
+// separate policy choice; robots is advisory and does not alter Apache-2.0.
 import type { APIContext } from "astro";
+import { renderRobots } from "../../search-policy.mjs";
 
 export function GET(context: APIContext) {
   const sitemap = new URL(`${import.meta.env.BASE_URL.replace(/\/$/, "")}/sitemap-index.xml`, context.site);
-  const body = ["User-agent: *", "Allow: /", "", `Sitemap: ${sitemap}`, ""].join("\n");
-  return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
+  const isVercelPreview = Boolean(process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production");
+  const productionPolicy = renderRobots(sitemap.href);
+  const body = isVercelPreview
+    ? ["User-agent: *", "Disallow: /", ""].join("\n")
+    : productionPolicy;
+  return new Response(body, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "public, max-age=300, must-revalidate",
+    },
+  });
 }

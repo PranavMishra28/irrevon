@@ -17,6 +17,7 @@
     {"name": "types-jsonschema", "version": ">=4.25", "license": "Apache-2.0", "homepage": "https://pypi.org/project/types-jsonschema/", "note": ""},
     {"name": "ruff", "version": ">=0.14", "license": "MIT", "homepage": "https://pypi.org/project/ruff/", "note": ""},
     {"name": "import-linter", "version": ">=2.5", "license": "BSD-2-Clause", "homepage": "https://pypi.org/project/import-linter/", "note": "transitive: grimp (BSD-2), click (BSD-3)"},
+    {"name": "spdx-tools", "version": "0.8.3 (==)", "license": "Apache-2.0", "homepage": "https://github.com/spdx/tools-python", "note": "official SPDX 2.3 parser/validator used only by the release dry run; exact-pinned"},
     {"name": "(other dev transitives)", "version": "(uv.lock-pinned)", "license": "MIT / BSD / Apache-2.0 / MPL-2.0 (pathspec)", "homepage": "", "note": "execnet, pluggy, iniconfig, rich, mypy-extensions, markdown-it-py, mdurl (MIT); Pygments (BSD-2); sortedcontainers (Apache-2.0); pathspec (MPL-2.0, unmodified dev-only)"}
   ],
   "web_shipped": [
@@ -26,7 +27,7 @@
     {"name": "@tanstack/react-table", "version": "8.21.3", "license": "MIT", "homepage": "https://tanstack.com/table", "note": "shipped"},
     {"name": "@base-ui/react", "version": "1.6.0", "license": "MIT", "homepage": "https://base-ui.com", "note": "shipped"},
     {"name": "lucide-react", "version": "1.24.0", "license": "ISC", "homepage": "https://lucide.dev", "note": "attribution-preserving ISC terms; consumed as code via the internal icon registry — no committed icon files"},
-    {"name": "tailwindcss (generated CSS)", "version": "4.3.2", "license": "MIT", "homepage": "https://tailwindcss.com", "note": "the generated stylesheet ships; the tool itself is dev-only"}
+    {"name": "tailwindcss (generated CSS)", "version": "4.3.3", "license": "MIT", "homepage": "https://tailwindcss.com", "note": "the generated stylesheet ships; the tool itself is dev-only"}
   ],
   "web_dev": [
     {"name": "@playwright/test", "version": "1.61.1", "license": "Apache-2.0", "homepage": "https://playwright.dev", "note": ""},
@@ -35,7 +36,7 @@
     {"name": "(all other web devDependencies)", "version": "(exact-pinned in web/package.json)", "license": "MIT / ISC", "homepage": "", "note": "vite, vitest, storybook, @storybook/react-vite, @storybook/addon-a11y, @storybook/addon-vitest, eslint, eslint-plugin-boundaries, eslint-plugin-jsx-a11y, eslint-import-resolver-typescript, typescript-eslint, @tanstack/eslint-plugin-query, @tanstack/eslint-plugin-router, @tanstack/router-plugin, stylelint, stylelint-declaration-strict-value, prettier, msw, size-limit, @size-limit/preset-app, json-schema-to-typescript, @vitejs/plugin-react, @vitest/browser-playwright, @tailwindcss/vite, @types/node, @types/react, @types/react-dom"}
   ],
   "site": [
-    {"name": "astro", "version": "7.0.9", "license": "MIT", "homepage": "https://astro.build", "note": "static output; runtime helpers in built HTML are MIT"},
+    {"name": "astro", "version": "7.1.0", "license": "MIT", "homepage": "https://astro.build", "note": "static output; runtime helpers in built HTML are MIT"},
     {"name": "@astrojs/sitemap", "version": "3.7.3", "license": "MIT", "homepage": "https://docs.astro.build", "note": ""},
     {"name": "@astrojs/rss", "version": "4.0.19", "license": "MIT", "homepage": "https://docs.astro.build", "note": ""},
     {"name": "@astrojs/markdown-satteri", "version": "0.3.4", "license": "MIT", "homepage": "https://docs.astro.build", "note": "explicit pin of Astro 7's markdown processor (local plugins import a declared dependency)"},

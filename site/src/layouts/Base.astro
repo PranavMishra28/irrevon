@@ -2,8 +2,10 @@
 import "../styles/site.css";
 import Mark from "../components/Mark.astro";
 import { SITE_NAME, REPO_URL, repoDoc } from "../config";
+import { serializeJsonLd } from "../lib/jsonld-serialization";
 import { BUILD_COMMIT, BUILD_COMMIT_SHORT, BUILT_AT } from "../lib/provenance";
 import { href } from "../lib/url";
+import { normalizePathname, robotsDirective } from "../../search-policy.mjs";
 
 interface Props {
   title: string;
@@ -18,6 +20,8 @@ interface Props {
   rssAlternate?: boolean;
   /** JSON-LD structured-data objects (rendered as data blocks; never offers/ratings). */
   jsonLd?: Record<string, unknown>[];
+  /** Accessible description of the social card. */
+  ogImageAlt?: string;
 }
 const {
   title,
@@ -27,6 +31,7 @@ const {
   publishedTime,
   rssAlternate = false,
   jsonLd = [],
+  ogImageAlt = "Irrevon — evidence-first reconciliation for irreversible AI-agent actions",
 } = Astro.props;
 const ogImageAbs = new URL(href(ogImage), Astro.site);
 
@@ -42,15 +47,41 @@ const nav = [
   { label: "Install", path: "/install/" },
 ];
 const footerPages = [
-  ...nav,
+  { label: "Status", path: "/status/" },
   { label: "Security", path: "/security/" },
+  { label: "Privacy", path: "/privacy/" },
+  { label: "Contributing", path: "/contributing/" },
+  { label: "License", path: "/licensing/" },
   { label: "Changelog", path: "/changelog/" },
   { label: "Roadmap", path: "/roadmap/" },
 ];
 
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const canonicalPath = normalizePathname(Astro.url.pathname);
+if (!canonicalPath) throw new Error("irrevon-site: generated page has a noncanonical pathname");
+const canonical = new URL(canonicalPath, Astro.site);
+canonical.search = "";
+canonical.hash = "";
+const isVercelPreview = Boolean(process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production");
+const robots = isVercelPreview ? "noindex,nofollow" : robotsDirective(Astro.url.pathname);
+const isHome = Astro.url.pathname === "/";
+const verificationToken = (name: string): string | undefined => {
+  const value = process.env[name]?.trim();
+  if (!value) return undefined;
+  if (!/^[A-Za-z0-9._~+/-]{8,256}$/.test(value)) {
+    throw new Error(`irrevon-site: ${name} contains unsupported characters`);
+  }
+  return value;
+};
+const googleVerification = isHome ? verificationToken("GOOGLE_SITE_VERIFICATION") : undefined;
+const bingVerification = isHome ? verificationToken("BING_SITE_VERIFICATION") : undefined;
+const enableCustomEvents = process.env.SITE_ENABLE_CUSTOM_EVENTS === "1";
+const retainCampaignParameters = process.env.SITE_ENABLE_UTM_ANALYTICS === "1";
 const current = Astro.url.pathname.replace(/index\.html$/, "");
-const isCurrent = (path: string) => current === href(path) || current === href(path).replace(/\/$/, "");
+const isCurrent = (path: string) => {
+  const target = href(path).replace(/\/$/, "");
+  const normalized = current.replace(/\/$/, "");
+  return normalized === target || (target !== "" && normalized.startsWith(`${target}/`));
+};
 ---
 
 <!doctype html>
@@ -60,6 +91,9 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="robots" content={robots} />
+    {googleVerification && <meta name="google-site-verification" content={googleVerification} />}
+    {bingVerification && <meta name="msvalidate.01" content={bingVerification} />}
     <link rel="canonical" href={canonical} />
     <link rel="icon" href={href("/favicon.svg")} type="image/svg+xml" />
     <meta name="color-scheme" content="light dark" />
@@ -74,10 +108,12 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
     <meta property="og:image" content={ogImageAbs} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageAbs} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
     {publishedTime && <meta property="article:published_time" content={publishedTime} />}
     {
       rssAlternate && (
@@ -89,7 +125,7 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
         />
       )
     }
-    {jsonLd.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
+    {jsonLd.map((obj) => <script type="application/ld+json" set:html={serializeJsonLd(obj)} />)}
     <!-- Theme boot: honors a stored explicit choice before first paint.
          Without JS, tokens.css's generated prefers-color-scheme block applies. -->
     <script is:inline>
@@ -107,7 +143,7 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
          beacon endpoints live on this origin (/_vercel/...); off-Vercel (local
          dev, CI preview) the loaders 404 harmlessly and nothing beacons. The
          bootstrap below is hashed into the per-page CSP like every inline script. -->
-    <script is:inline>
+    <script is:inline define:vars={{ retainCampaignParameters }}>
       window.va =
         window.va ||
         function () {
@@ -118,6 +154,28 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
         function () {
           (window.siq = window.siq || []).push(arguments);
         };
+      const irrevonTelemetryBeforeSend = (event) => {
+        try {
+          if (localStorage.getItem("irrevon-analytics-opt-out") === "1") return null;
+          const url = new URL(event.url);
+          const allowed = new Set(["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"]);
+          for (const key of [...url.searchParams.keys()]) {
+            const value = url.searchParams.get(key) || "";
+            if (
+              !retainCampaignParameters ||
+              !allowed.has(key) ||
+              !/^[a-z0-9][a-z0-9.-]{0,63}$/.test(value)
+            ) {
+              url.searchParams.delete(key);
+            }
+          }
+          return { ...event, url: url.toString() };
+        } catch {
+          return null;
+        }
+      };
+      window.va("beforeSend", irrevonTelemetryBeforeSend);
+      window.si("beforeSend", irrevonTelemetryBeforeSend);
     </script>
     <script is:inline defer src="/_vercel/insights/script.js"></script>
     <script is:inline defer src="/_vercel/speed-insights/script.js"></script>
@@ -175,8 +233,8 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
             <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
           </svg>
         </button>
-        <!-- The theme toggle is the site's only JavaScript (site contract:
-             zero JS by default; toggle stays <1 KB, no framework). -->
+        <!-- Small framework-free behavior: the theme toggle and the
+             privacy-bounded measurement hooks share the global inline budget. -->
         <script is:inline>
           (() => {
             const btn = document.getElementById("theme-toggle");
@@ -184,6 +242,11 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
             btn.hidden = false;
             const systemDark = matchMedia("(prefers-color-scheme: dark)");
             const effective = () => document.documentElement.dataset.theme ?? (systemDark.matches ? "dark" : "light");
+            const updateLabel = () => {
+              const target = effective() === "dark" ? "light" : "dark";
+              btn.setAttribute("aria-label", `Switch to ${target} theme`);
+            };
+            updateLabel();
             btn.addEventListener("click", () => {
               const next = effective() === "dark" ? "light" : "dark";
               document.documentElement.dataset.theme = next;
@@ -192,7 +255,9 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
               } catch {
                 /* persistence unavailable; the in-page toggle still applies */
               }
+              updateLabel();
             });
+            systemDark.addEventListener("change", updateLabel);
           })();
         </script>
       </div>
@@ -202,37 +267,104 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
       <slot />
     </main>
 
+    <!-- Optional Pro/Enterprise conversion events. The allowlist and fixed
+         placement values prevent arbitrary or high-cardinality data. Hobby
+         plans simply retain ordinary page analytics; navigation still works. -->
+    <script is:inline define:vars={{ enableCustomEvents }}>
+      (() => {
+        if (!enableCustomEvents) return;
+        const events = new Set([
+          "repository_click",
+          "clone_command_copy",
+          "install_command_copy",
+          "demo_start",
+          "demo_complete",
+          "video_start",
+          "video_complete",
+          "workbench_exploration",
+          "documentation_entry",
+          "benchmark_methodology_visit",
+          "adapter_guide_visit",
+          "contribution_click",
+          "security_report_click",
+          "launch_cta",
+        ]);
+        const placements = new Set([
+          "header",
+          "hero",
+          "proof",
+          "body",
+          "footer",
+          "install",
+          "docs",
+          "benchmark",
+          "demo",
+        ]);
+        const measure = (name, placement) => {
+          if (!events.has(name) || !placements.has(placement)) return;
+          window.va?.("event", { name, data: { placement } });
+        };
+        window.irrevonMeasure = measure;
+        addEventListener("click", (click) => {
+          const target = click.target instanceof Element ? click.target.closest("[data-analytics-event]") : null;
+          if (!target) return;
+          const name = target.getAttribute("data-analytics-event");
+          const placement = target.getAttribute("data-analytics-placement") || "body";
+          measure(name, placement);
+        });
+        addEventListener("copy", () => {
+          const selection = getSelection();
+          const node = selection?.anchorNode;
+          const element = node instanceof Element ? node : node?.parentElement;
+          const target = element?.closest("[data-analytics-copy-event]");
+          if (!target) return;
+          measure(
+            target.getAttribute("data-analytics-copy-event"),
+            target.getAttribute("data-analytics-placement") || "body",
+          );
+        });
+      })();
+    </script>
+
     <footer class="site-footer">
       <div class="container">
         <div class="footer-grid">
           <div class="footer-brand">
             <span class="footer-lockup"><Mark size={18} /><span>{SITE_NAME.toLowerCase()}</span></span>
             <p class="footer-tag">
-              A reference reconciliation engine and benchmark drafted for preregistration for irreversible
-              AI-agent actions.
-              Benchmark-first, C2-scoped, pre-release.
+              Evidence-first reconciliation for irreversible AI-agent actions.
+              Open source, synthetic-evidence research preview.
             </p>
           </div>
-          <nav aria-label="Source of truth">
-            <h2 class="footer-head">Source of truth</h2>
+          <nav aria-label="Project links">
+            <h2 class="footer-head">Project</h2>
             <ul>
-              <li><a href={REPO_URL}>Repository</a></li>
-              <li><a href={repoDoc("docs/master-doc.md")}>Master document</a></li>
-              <li><a href={repoDoc("docs/rfc-002-engine-design.md")}>RFC-002 · engine design</a></li>
-              <li><a href={repoDoc("docs/benchmark-preregistration.md")}>Benchmark preregistration (draft)</a></li>
+              <li>
+                <a
+                  href={REPO_URL}
+                  data-analytics-event="repository_click"
+                  data-analytics-placement="footer">Repository</a
+                >
+              </li>
+              <li>
+                <a
+                  href={href("/docs/")}
+                  data-analytics-event="documentation_entry"
+                  data-analytics-placement="footer">Documentation</a
+                >
+              </li>
+              <li>
+                <a
+                  href={href("/demo/")}
+                  data-analytics-event="demo_start"
+                  data-analytics-placement="footer">Recorded demo</a
+                >
+              </li>
+              <li><a href={repoDoc("LICENSE")}>Apache-2.0 source</a></li>
             </ul>
           </nav>
-          <nav aria-label="Project governance">
-            <h2 class="footer-head">Governance</h2>
-            <ul>
-              <li><a href={repoDoc("docs/security-policy.md")}>Security policy</a></li>
-              <li><a href={repoDoc("docs/execution-plan.md")}>Execution plan</a></li>
-              <li><a href={repoDoc("docs/decisions/README.md")}>Decision records</a></li>
-              <li><a href={repoDoc("LICENSING.md")}>Licensing status</a></li>
-            </ul>
-          </nav>
-          <nav aria-label="Site pages">
-            <h2 class="footer-head">Site</h2>
+          <nav aria-label="Project policies">
+            <h2 class="footer-head">Policies</h2>
             <ul>
               {
                 footerPages.map((item) => (
@@ -246,17 +378,16 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
         </div>
         <div class="footer-status">
           <p>
-            © 2026 Irrevon contributors. Licensed under Apache-2.0 (ADR-0028). Contributions are not yet accepted —
-            inbound governance (ADR-0014’s remaining half) is still open. “{SITE_NAME}” is a working name; the
-            counsel name screen is pending.
-          </p>
-          <p>
-            Pre-release software: not on any package index. This site is static — no cookies, no third-party
-            requests; measurement is limited to Vercel’s same-origin, cookieless Web Analytics and Speed Insights
-            (ADR-0029).
+            © 2026 Irrevon contributors · Apache-2.0 ·
+            <a
+              href={href("/security/")}
+              data-analytics-event="security_report_click"
+              data-analytics-placement="footer">Security</a
+            > ·
+            <a href={href("/status/")}>Research-preview status</a>
           </p>
           <p class="footer-provenance" data-provenance>
-            Build provenance: {
+            Build {
               BUILD_COMMIT_SHORT ? (
                 <>
                   commit <a href={`${REPO_URL}/commit/${BUILD_COMMIT}`}><code>{BUILD_COMMIT_SHORT}</code></a>
@@ -264,8 +395,7 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
               ) : (
                 <>commit unknown (built outside git)</>
               )
-            } · built {BUILT_AT}. A static build cannot know whether it still matches the current default
-            branch — compare the commit against the repository before relying on this copy.
+            } · {BUILT_AT}
           </p>
         </div>
       </div>
@@ -372,7 +502,7 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
   }
   .footer-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr;
     gap: 32px;
   }
   @media (max-width: 900px) {

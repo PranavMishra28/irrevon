@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import base64
 import os
+import urllib.parse
 from typing import Any
 
 from irrevon.adapters.base import Adapter, DispatchOrder, DispatchResult, StatusAnswer
@@ -44,20 +45,20 @@ class EasyPostC2Adapter(Adapter):
         declaration: dict[str, Any],
         api_key: str,
         *,
-        transport: Transport = urllib_transport,
-        base_url: str = _BASE,
+        _test_transport: Transport | None = None,
     ) -> None:
         if not api_key or not api_key.startswith("EZTK"):
             # Test-key prefix required: production keys (EZAK) are refused.
             raise ConfigInvalid(
-                "EasyPost adapter accepts TEST API keys only (EZTK prefix); "
-                "refusing to construct"
+                "EasyPost adapter accepts TEST API keys only (EZTK prefix); refusing to construct"
             )
         self.adapter_id = adapter_id
         self._declaration = declaration
         self._api_key = api_key
-        self._transport = transport
-        self._base = base_url.rstrip("/")
+        # The credential-bearing origin is deliberately not configurable.
+        # Synthetic tests may replace the wire function, but cannot redirect
+        # the real transport to an attacker-controlled origin.
+        self._transport = _test_transport or urllib_transport
 
     @classmethod
     def from_env(
@@ -66,7 +67,6 @@ class EasyPostC2Adapter(Adapter):
         declaration: dict[str, Any],
         *,
         key_env: str = "IRREVON_EASYPOST_TEST_KEY",
-        transport: Transport = urllib_transport,
     ) -> EasyPostC2Adapter:
         api_key = os.environ.get(key_env, "")
         if not api_key:
@@ -75,7 +75,7 @@ class EasyPostC2Adapter(Adapter):
                 "(test API key); it is unset — this adapter is credential-gated "
                 "and never runs without one"
             )
-        return cls(adapter_id, declaration, api_key, transport=transport)
+        return cls(adapter_id, declaration, api_key)
 
     def declare(self) -> dict[str, Any]:
         return self._declaration
@@ -89,8 +89,7 @@ class EasyPostC2Adapter(Adapter):
     def dispatch(self, order: DispatchOrder, deadline_s: float) -> DispatchResult:
         if order.effect_type != _EFFECT_TYPE:
             raise CapabilityUnsupported(
-                f"adapter {self.adapter_id} supports {_EFFECT_TYPE!r}, not "
-                f"{order.effect_type!r}"
+                f"adapter {self.adapter_id} supports {_EFFECT_TYPE!r}, not {order.effect_type!r}"
             )
         missing = [key for key in _REQUIRED_SHIPMENT_FIELDS if key not in order.payload]
         if missing:
@@ -107,12 +106,15 @@ class EasyPostC2Adapter(Adapter):
             "adapter_id": self.adapter_id,
             "client_ref": order.client_ref,
             "request_digest": canonical_digest(
-                {"effect_type": order.effect_type, "payload_digest": canonical_digest(body)}
+                {
+                    "effect_type": order.effect_type,
+                    "payload_digest": canonical_digest(body),
+                }
             ),
         }
         try:
             http_response = self._transport(
-                "POST", f"{self._base}/v2/shipments", body, self._headers(), deadline_s
+                "POST", f"{_BASE}/v2/shipments", body, self._headers(), deadline_s
             )
         except WireDropped:
             return DispatchResult(
@@ -130,14 +132,22 @@ class EasyPostC2Adapter(Adapter):
             {"response_headers": response_headers} if response_headers else {}
         )
         digest = canonical_digest(response)
-        if status in (200, 201) and isinstance(response.get("id"), str):
+        if (
+            status in (200, 201)
+            and isinstance(response.get("id"), str)
+            and response["id"]
+        ):
             return DispatchResult(
-                "OK", destination_ref=response["id"], response_digest=digest,
+                "OK",
+                destination_ref=response["id"],
+                response_digest=digest,
                 evidence={**evidence, "status": status, **header_evidence},
             )
         if status == 429:
             return DispatchResult(
-                "FAILED", failure_kind="RETRYABLE", response_digest=digest,
+                "FAILED",
+                failure_kind="RETRYABLE",
+                response_digest=digest,
                 evidence={
                     **evidence,
                     "status": status,
@@ -148,7 +158,9 @@ class EasyPostC2Adapter(Adapter):
         if status == 422:
             # Documented validation rejection: nothing was created.
             return DispatchResult(
-                "FAILED", failure_kind="TERMINAL", response_digest=digest,
+                "FAILED",
+                failure_kind="TERMINAL",
+                response_digest=digest,
                 evidence={
                     **evidence,
                     "status": status,
@@ -157,7 +169,8 @@ class EasyPostC2Adapter(Adapter):
                 },
             )
         return DispatchResult(
-            "LOST", response_digest=digest,
+            "LOST",
+            response_digest=digest,
             evidence={
                 **evidence,
                 "status": status,
@@ -181,18 +194,24 @@ class EasyPostC2Adapter(Adapter):
                 "queries only (EasyPost reference is not a query filter)"
             )
         try:
+            encoded_ref = urllib.parse.quote(destination_ref, safe="")
             response = self._transport(
-                "GET", f"{self._base}/v2/shipments/{destination_ref}",
-                None, self._headers(), deadline_s,
+                "GET",
+                f"{_BASE}/v2/shipments/{encoded_ref}",
+                None,
+                self._headers(),
+                deadline_s,
             )
         except (WireDropped, TimeoutError) as err:
             return StatusAnswer(
                 "INDETERMINATE", None, (), {"transport_error": type(err).__name__}
             )
         status, body = response.status, response.body
-        if status == 200 and isinstance(body.get("id"), str):
+        if status == 200 and isinstance(body.get("id"), str) and body["id"]:
             return StatusAnswer(
-                "PRESENT", 1, (body["id"],),
+                "PRESENT",
+                1,
+                (body["id"],),
                 {"status": status, "response_digest": canonical_digest(body)},
             )
         if status == 404:
@@ -207,21 +226,33 @@ class EasyPostC2Adapter(Adapter):
         out: list[dict[str, Any]] = []
         before_id: str | None = None
         for _ in range(100):  # pagination hard stop
-            url = (
-                f"{self._base}/v2/shipments?page_size=100&purchased=false"
-                f"&start_datetime={window_from}&end_datetime={window_to}"
-            )
-            if before_id:
-                url += f"&before_id={before_id}"
+            query = {
+                "page_size": "100",
+                "purchased": "false",
+                "start_datetime": window_from,
+                "end_datetime": window_to,
+            }
+            if before_id is not None:
+                query["before_id"] = before_id
+            url = f"{_BASE}/v2/shipments?{urllib.parse.urlencode(query)}"
             response = self._transport("GET", url, None, self._headers(), deadline_s)
             status, body = response.status, response.body
             shipments = body.get("shipments")
-            if status != 200 or not isinstance(shipments, list):
+            if (
+                status != 200
+                or not isinstance(shipments, list)
+                or not all(isinstance(item, dict) for item in shipments)
+            ):
                 raise CapabilityUnsupported(f"list failed with status {status}")
+            if any(
+                not isinstance(item.get("id"), str) or not item["id"]
+                for item in shipments
+            ):
+                raise CapabilityUnsupported("list returned an invalid shipment id")
             for item in shipments:
                 out.append(
                     {
-                        "destination_ref": item.get("id"),
+                        "destination_ref": item["id"],
                         "effect_type": "shipment",
                         "client_ref": item.get("reference"),
                         "created_at": item.get("created_at"),
@@ -230,9 +261,5 @@ class EasyPostC2Adapter(Adapter):
                 )
             if not body.get("has_more") or not shipments:
                 return out
-            before_id = shipments[-1].get("id")
-            if not isinstance(before_id, str) or not before_id:
-                raise CapabilityUnsupported(
-                    "list pagination returned has_more=true without a terminal shipment id"
-                )
+            before_id = shipments[-1]["id"]
         raise CapabilityUnsupported("pagination exceeded the hard stop")

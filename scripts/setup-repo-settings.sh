@@ -16,7 +16,8 @@
 #                                                  # and refuses otherwise)
 #
 # IDEMPOTENT: every mutation is preceded by a read of the current state and is
-# skipped when the setting is already applied — safe to re-run at any time.
+# skipped when the setting is already applied. Existing rulesets are compared
+# semantically; unexpected bypasses or weakened review settings cause refusal.
 # Ends with a read-back verification section printing each setting's final state.
 #
 # Endpoints verified against the GitHub REST docs on 2026-07-21:
@@ -189,7 +190,29 @@ phase1() {
   existing_id=$(api_get "repos/$REPO/rulesets" \
                   --jq ".[] | select(.name == \"$RULESET_NAME\") | .id")
   if [ -n "$existing_id" ]; then
-    info "ruleset '$RULESET_NAME' already exists (id $existing_id) - skip"
+    info "ruleset '$RULESET_NAME' exists (id $existing_id) - verifying semantics"
+    local existing_ruleset
+    existing_ruleset=$(api_get "repos/$REPO/rulesets/$existing_id")
+    if ! printf '%s' "$existing_ruleset" | jq -e '
+      .enforcement == "active"
+      and .conditions.ref_name.include == ["~DEFAULT_BRANCH"]
+      and .conditions.ref_name.exclude == []
+      and (.bypass_actors | length) == 0
+      and ([.rules[].type] | index("deletion") != null)
+      and ([.rules[].type] | index("non_fast_forward") != null)
+      and ([.rules[]
+        | select(.type == "pull_request")
+        | select(.parameters.required_approving_review_count == 0)
+        | select(.parameters.require_code_owner_review == false)
+      ] | length) == 1
+    ' >/dev/null; then
+      echo "REFUSING: existing ruleset '$RULESET_NAME' has drifted from the"
+      echo "documented no-bypass, zero-approval solo-maintainer baseline."
+      echo "Inspect and correct it in GitHub Settings; this script will not replace"
+      echo "an unknown ruleset or discard phase-2 required checks."
+      exit 1
+    fi
+    info "semantics verified - skip"
   else
     printf '%s' '{
       "name": "'"$RULESET_NAME"'",
@@ -250,7 +273,7 @@ phase1() {
   echo
   echo "Phase 1 complete. Manual UI items left (no full API): Actions allowlist +"
   echo "SHA-pin checkbox, CodeQL default setup, private vulnerability reporting"
-  echo "(docs/ci.md checklist items 3, 7, 8)."
+  echo "(see the named manual controls in docs/ci.md)."
   echo "Run '--phase2' AFTER ci-required has reported green on a real PR."
 }
 

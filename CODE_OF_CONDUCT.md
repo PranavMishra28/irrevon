@@ -2,10 +2,9 @@
 
 > Adopted 2026-07-21 (Contributor Covenant version 3.0, verified against
 > contributor-covenant.org at adoption). This project is solo-maintained and
-> currently accepts no code contributions (see [CONTRIBUTING.md](CONTRIBUTING.md));
-> "Community Moderators" below means the repository owner. The reporting channel is
-> interim wording pending the owner's contact-address ruling
-> (docs/review-queue.md §3 item 20(b); tracked as item 27).
+> accepts contributions under [CONTRIBUTING.md](CONTRIBUTING.md).
+> "Community Moderators" below means the repository owner. No project-specific
+> confidential conduct-reporting channel has been published.
 
 ## Our Pledge
 
@@ -75,12 +74,13 @@ collaborate. Not every conflict represents a code of conduct violation, and this
 of Conduct reinforces encouraged behaviors and norms that can help avoid conflicts
 and minimize harm.
 
-When an incident does occur, it is important to report it promptly. To report a
-possible violation, contact **the repository owner via GitHub private vulnerability
-reporting** (Security tab → "Report a vulnerability" — used here as the only private
-channel this repository currently offers; see [SECURITY.md](SECURITY.md)). This
-channel is interim pending the owner's public-contact ruling (review-queue §3
-item 20(b)).
+When an incident does occur, it is important to report it promptly. For GitHub
+content, use GitHub's own reporting and blocking tools. If a report can safely be
+public, open an issue using the question form and ask the repository owner to follow
+up. Do **not** use the private vulnerability-reporting form for conduct reports:
+that channel is reserved for security vulnerabilities. A project-specific
+confidential conduct-reporting channel is not currently available; this is a
+documented solo-maintainer limitation, not an implied private contact.
 
 Community Moderators take reports of violations seriously and will make every effort
 to respond in a timely manner. They will investigate all reports of code of conduct

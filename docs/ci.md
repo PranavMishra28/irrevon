@@ -14,8 +14,9 @@ that date.
 | [`nightly.yml`](../.github/workflows/nightly.yml) | cron 09:17 UTC + dispatch | Full local gate on a clean machine + online audits (external links, networked zizmor); grows the T3 suites at M3+; files/updates one title-deduplicated nightly-failure issue on red | active |
 | [`sandbox.yml`](../.github/workflows/sandbox.yml) | `workflow_dispatch` only | T4 sandbox contracts — fail-closed skeleton, gated by the `sandbox` environment; every dispatch is deliberately red until human M4 activation | skeleton (always refuses) |
 | [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | IrrevonBench preregistered runs — fail-closed skeleton, gated by the `benchmark` environment; every dispatch is deliberately red until human Stage-B activation | skeleton (always refuses) |
-| [`release.yml`](../.github/workflows/release.yml) | `workflow_dispatch` only | Package-release fail-closed skeleton; every dispatch runs an unconditional refusal and is deliberately red until a separate human activation after every public-release gate item | skeleton (always refuses) |
-| [`dependabot.yml`](../.github/dependabot.yml) | monthly | Four noise-contained update lanes (actions / uv / web npm / site npm): at most one grouped version-update PR per lane (≤4/month), 7-day cooldowns (30-day uv majors; npm majors ignored for deliberate human migrations), current owner auto-assigned; uv/npm security updates are separately grouped and all security updates bypass schedule and cooldown | active |
+| [`release.yml`](../.github/workflows/release.yml) | PR + manual dry run; canonical `vMAJOR.MINOR.PATCH` tag | Non-publishing artifact dry run on PRs; clean tagged build, exact version/content/smoke gates, checksums, lock-aware SPDX SBOM, artifact attestation, then protected-environment PyPI/GitHub publication | prepared; no release exists |
+| [`scorecard.yml`](../.github/workflows/scorecard.yml) | main/protection change + weekly | OpenSSF Scorecard evidence and SARIF upload | active |
+| [`dependabot.yml`](../.github/dependabot.yml) | monthly | Five noise-contained update lanes (actions / uv / web npm / site npm / Docker), one PR per lane, with release-age cooldowns and grouped updates | active |
 
 ## Tier table — what runs when
 
@@ -37,7 +38,7 @@ that date.
 | wheel smoke | `wheel-smoke` (nightly) | cron | `make dist-smoke` (= `make dist` + the Node-less container smoke; ADR-0018 chain, wheel + sdist legs) | active — nightly, not PR: needs docker + a second full web build + wheel build; the PR-side integration truth is `web-e2e-live` |
 | T4 sandbox | `sandbox-contract` (sandbox) | human dispatch + env approval | Today: exactly `make sandbox-stage-m4`, whose reserved recipe unconditionally refuses. M4 activation must replace it with the reviewed credentialed contract recipe | skeleton (always refuses) |
 | benchmark | `bench` (benchmark) | human dispatch + env approval | Today: exactly `make benchmark-stage-b`, whose reserved recipe unconditionally refuses. M7 activation must replace it with the complete preregistered, cache-free, sanitized-evidence recipe | skeleton (always refuses) |
-| package release | `release-gate` (release) | human dispatch | Today: exactly `make release-gate`, whose reserved recipe unconditionally refuses. A separate human activation may replace it only after every public-release gate item closes | skeleton (always refuses) |
+| package release | `dry-run` / `validate-build` / `build-attest` / publish jobs (release) | PR/manual is non-publishing; canonical version tag only for publication | `make launch-audit` + release dry run; privileged attestation/publish jobs download validated artifacts and never execute repository code | prepared; protected `release` environment and publisher binding are owner gates |
 
 The local `make check-all` ladder includes `web-check`, `web-test`, and `web-e2e`; F4
 pixel baselines remain the explicit container-only `make web-vrt` gate. The bench
@@ -92,22 +93,17 @@ the manual trigger and environment approval, and replace the static refusal cont
 tests of the real target. A green pre-activation dispatch is a workflow integrity failure,
 not a successful benchmark.
 
-### Fail-closed package-release skeleton
+### Prepared package release
 
-`[DD]` The `release` workflow cannot be used as release-readiness evidence today. Manual
-dispatch has no inputs and cannot be skipped by a condition: after credential-free checkout,
-its sole executable body is `make release-gate`. That reserved target unconditionally exits
-nonzero without reading a secret, checking for a file, building a distribution, creating an
-artifact, requesting OIDC, or publishing anything. Every pre-activation dispatch must
-therefore finish red; a skipped or green result is a workflow integrity failure.
-
-Activation is a separate human-reviewed change only after **every** item in
-[`docs/execution-plan.md`'s public-release gate](execution-plan.md#public-release-gate-last-listed-once)
-is complete. That change must replace the refusal with the complete release procedure,
-establish the approved trigger and environment, grant only the permissions each reviewed
-step needs, and replace the static refusal contract with tests of the activated workflow.
-The commented outline in `release.yml` is non-executable design context, not an activation
-checklist or a claim that the release mechanics are ready.
+`[DD]` Pull requests and manual dispatches can only run the non-publishing dry
+run. Publication requires a canonical-repository tag that exactly matches a
+non-development package version. Repository code runs only in an unprivileged
+validation job; a separate job downloads those artifacts to request GitHub
+attestations. PyPI and GitHub publication are separate least-privilege jobs
+behind the owner-created and protected `release` environment. No long-lived
+publishing token is accepted. The workflow is prepared but has never produced a
+release or attestation; setup and execution remain the owner actions in
+[release-process.md](release-process.md).
 
 ## Local parity
 
@@ -118,17 +114,18 @@ checks is what `make check` checks. `[DD]` Three documented exceptions: `workflo
 runs zizmor with network advisories and nightly runs lychee/zizmor online (*online variants*
 of offline make gates — the local gate stays deterministic `--offline` on purpose), and
 `dependency-review` (GitHub-owned action, SHA-pinned, `contents: read`) has no local
-equivalent because it consumes GitHub's advisory database against the PR diff; it is
-deliberately OUTSIDE the `ci-required` aggregator (it exists only on pull_request events —
-the pending-forever trap).
+equivalent because it consumes GitHub's advisory database against the PR diff. The job
+exists only on `pull_request` events, is included in `ci-required.needs`, and the aggregator
+requires it to succeed on pull requests while accepting its skip on push events.
 
 ## Owner settings checklist (HUMAN-only; agents are hook-blocked from all of it)
 
 **Script:** [`scripts/setup-repo-settings.sh`](../scripts/setup-repo-settings.sh) automates
-items 1–5 below (`bash scripts/setup-repo-settings.sh`, idempotent, read-back verification
-included) and item 6 (`--phase2`, self-guarded: refuses until `ci-required` has reported
-green on a real PR). The Actions allowlist/SHA-pin checkbox in item 3 and items 7–8 stay
-manual UI steps.
+secret scanning, Dependabot, default workflow permissions, fork approval, and the initial
+ruleset (`bash scripts/setup-repo-settings.sh`, idempotent, semantic read-back included).
+Its `--phase2` mode is self-guarded and refuses until `ci-required` has reported green on a
+real PR. The Actions allowlist/SHA-pin checkbox, CodeQL default setup, and private
+vulnerability reporting remain manual UI/read-back controls.
 
 Now (with this branch's merge):
 
@@ -144,15 +141,24 @@ Now (with this branch's merge):
    check **Require actions to be pinned to a full-length commit SHA**; fork-PR approval =
    **Require approval for all external contributors** (the default first-time-only tier is
    gameable `[VF]`); workflow permissions read-only, "create and approve pull requests" off.
+   **Read-back 2026-07-24:** the repository still allows all actions and has platform
+   SHA-pin enforcement disabled. This remains an owner launch action; repository
+   workflows are individually full-SHA-pinned and locally checked meanwhile.
 4. **Ruleset phase 1** — Settings → Rules → Rulesets → New branch ruleset on the default
    branch: `deletion`, `non_fast_forward`, `pull_request` (0 required approvals — a solo
    owner cannot approve their own PR), `bypass_actors: []`.
+   **Read-back 2026-07-24:** the active ruleset has `ci-required`, but also has an
+   always-allowed repository-role bypass actor. Remove that bypass before launch. The
+   setup script now refuses semantic drift instead of treating a same-named ruleset as
+   correct.
 After `ci-required` has reported on at least one PR (order matters — see traps below):
 
 5. **Ruleset phase 2** — add `required_status_checks` with the single context
    `ci-required`. Never list individual jobs.
-6. **CodeQL default setup** — Settings → Advanced Security → CodeQL → Default. Idle (no
-   supported language yet) but free and safe to enable `[VF]`.
+6. **CodeQL default setup** — Settings → Advanced Security → CodeQL → Default. Verified
+   active for Python and JavaScript/TypeScript on 2026-07-24. Keep the settings-managed
+   scanner enabled; GitHub rejects a competing advanced-configuration workflow while
+   default setup is active `[VF]`.
 7. Retention stays 90 days (public max). **Private vulnerability reporting**: verified
    enabled (API read, 2026-07-21) — see [SECURITY.md](../SECURITY.md).
 
@@ -211,7 +217,7 @@ Before the first M4/M7 dispatch:
 - **Nightly external-link failures** are often flakes: follow the triage protocol in the
   auto-filed issue; close only after a green manual re-run.
 
-## Design notes — cuts from the source designs `[DD]`
+## Design notes — historical cuts and current reconciliation `[DD]`
 
 Reconciliation rule: the public-repo review findings supersede the earlier private-repo
 design.
@@ -226,16 +232,17 @@ design.
   separate path-filtered workflows, the correct shape. Two fewer third-party actions.
 - **Cut the workflow-level `on.paths` filters** (ci.yml): they break required checks
   (pending-forever trap); replaced by the `changes` job + aggregator.
-- **Cut Postgres service containers from committed YAML**: no code exists; the digest pin
-  would rot unused. The T2/T3 bodies are documented (here and in workflow comments) and
-  land with the code at M3.
+- **Postgres service-container cut was temporary:** once the M3 engine and
+  integration suite landed, the digest-pinned Compose service and active T2/T3
+  jobs landed with them. The current workflow and tier tables above are
+  authoritative.
 - **Cut the GitHub Pro pairing recommendation** (CI design review): rulesets/environments are free on
   public repos; Pro buys nothing while public.
-- **Deferred: PR template** — the owner is the sole author today; a checklist nobody else
-  reads is ceremony. Adopt at code landing or first external contributor (whichever first).
-- **Deferred: CODEOWNERS, auto-labeling, Scorecard, README badges** — per the CI design
-  review rulings (solo repo; Scorecard needs a scoped `security-events: write` exception
-  that deserves its own decision at M3).
+- **Community and ownership controls have landed:** the PR template,
+  repository-wide CODEOWNERS baseline with path-specific rules, README badges,
+  and Scorecard workflow are active. Nightly failure labeling is deliberately
+  limited to the fixed owner-created label and title-deduplicated failure issue;
+  there is no general comment-driven auto-labeling bot.
 - **Deferred: Cursor CLI diagnostic workflow** (CI design review): its guardrails are designed, but
   it requires a `CURSOR_API_KEY` secret — which violates the no-repo-level-secrets rule
   until an owner-created environment holds it — and the vendor installer has no published

@@ -9,8 +9,10 @@ Irrevon's [capability declaration](../schemas/capability-declaration.schema.json
 stays the internal contract; this annex documents how it projects onto the
 protocols agents actually use, and where those protocols carry nothing at all.
 The declaration's differentiator is not the vocabulary — it is that
-declarations are **empirically verified** (`irrevon bench conform`,
-declared-vs-observed probes) rather than self-asserted.
+declarations are designed to be **empirically checked** (`irrevon bench conform`,
+declared-vs-observed probes) rather than self-asserted. Current conformance
+evidence covers only reference/synthetic destinations; provider drafts remain
+unobserved.
 
 Facts verified against primary specs, 2026-07-22. Epistemic labels per master
 doc §0.

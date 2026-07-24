@@ -16,7 +16,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-export function repoLinksPlugin({ manifestPath, repoUrl, base }) {
+export function repoLinksPlugin({ manifestPath, repoUrl, buildCommit, base }) {
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
   const slugBySource = new Map(manifest.render.map((e) => [e.source, e.slug]));
   const prefix = base.replace(/\/$/, "");
@@ -32,7 +32,7 @@ export function repoLinksPlugin({ manifestPath, repoUrl, base }) {
     const frag = fragment ? `#${fragment}` : "";
     const slug = slugBySource.get(repoPath);
     if (slug) return `${prefix}/docs/reference/${slug}/${frag}`;
-    return `${repoUrl}/blob/HEAD/${repoPath}${frag}`;
+    return `${repoUrl}/blob/${buildCommit}/${repoPath}${frag}`;
   };
 
   const visit = (node, ctx) => {

@@ -256,9 +256,9 @@ def _check_declarations(config: Config) -> CheckResult:
 def _check_credentials(config: Config) -> CheckResult:
     missing = []
     for name, entry in config.adapters.items():
-        for env_name in (entry.get("credentials") or {}).values():
-            if not os.environ.get(str(env_name)):
-                missing.append(f"{name}: {env_name}")
+        env_name = entry.get("credentials")
+        if env_name and not os.environ.get(str(env_name)):
+            missing.append(f"{name}: {env_name}")
     if config.password_env and not os.environ.get(config.password_env):
         return CheckResult(
             "credentials",

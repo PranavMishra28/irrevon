@@ -71,6 +71,23 @@ updates:
     assignees:
       - "PranavMishra28"
 
+  # Runtime/reproducibility containers. Digests stay authoritative; Dependabot
+  # proposes reviewed digest refreshes rather than allowing mutable tags.
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 7
+    groups:
+      containers-all:
+        patterns: ["*"]
+    commit-message:
+      prefix: "deps"
+    open-pull-requests-limit: 1
+    assignees:
+      - "PranavMishra28"
+
   # Marketing/docs site (pnpm via the npm ecosystem). This is an independent
   # package.json + pnpm-lock.yaml tree, so it needs its own update lane. Match
   # the exact-pinned frontend posture: human-reviewed majors, grouped minor/

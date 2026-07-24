@@ -133,7 +133,7 @@ function renderLlmsTxt() {
   const lines = [
     "# Irrevon",
     "",
-    "> A preregistered benchmark (IrrevonBench) and reference reconciliation",
+    "> A benchmark drafted for preregistration (IrrevonBench) and reference reconciliation",
     "> engine for irreversible AI-agent actions. Pre-release; no benchmark",
     "> results exist; confirmatory runs are mechanically refused before the",
     "> human preregistration freeze.",

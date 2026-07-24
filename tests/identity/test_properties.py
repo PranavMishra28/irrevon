@@ -73,7 +73,13 @@ def st_model_payload() -> st.SearchStrategy[dict[str, Any]]:
         st.none(),
         st.booleans(),
         st.integers(min_value=-(10**9), max_value=10**9),
-        st.floats(allow_nan=False, allow_infinity=False, width=32),
+        st.floats(
+            min_value=-(10**9),
+            max_value=10**9,
+            allow_nan=False,
+            allow_infinity=False,
+            width=32,
+        ),
         st.text(max_size=64),
         st.sampled_from(
             [

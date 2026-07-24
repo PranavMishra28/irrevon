@@ -1,0 +1,15 @@
+{
+  "schema_version": "1",
+  "stable_ids": {
+    "order_id": "unsafe-integer"
+  },
+  "effect_type": "order.create",
+  "effect_class": "IRREVERSIBLE",
+  "scope": "example/prod",
+  "adapter_id": "refdest-c2",
+  "parameters": {
+    "quantity": 1208925819614629174706176
+  },
+  "authority_ref": "auth_unsafe_integer",
+  "stamped_at": "2026-07-23T00:00:00Z"
+}

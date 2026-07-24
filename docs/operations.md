@@ -1,10 +1,13 @@
 # Operations — running Irrevon as a service
 
-Operator documentation for the self-hosted runtime (`irrevon worker` +
-`irrevon serve`; ADR-0034, proposed). Scope honesty: this documents the
-**continuous single-writer service** that exists and is tested. Multi-worker
-operation is designed (ADR-0034 decision 2) and NOT available; nothing here
-claims high availability.
+Evaluation and operator-design notes for the self-hosted runtime (`irrevon
+worker` + `irrevon serve`; ADR-0034, proposed). The continuous worker and
+loopback read process exist and are tested, but the repository does **not** yet
+claim a supported production deployment: the worker lacks a durable
+registration/dispatch ingress, and host processes can instantiate the engine
+outside that ownership boundary. The topology decision, fresh-cluster restore,
+catch-up, and supervisor evidence remain open in review-queue item 45.
+Multi-worker operation is not available and high availability is not claimed.
 
 ## Deployment shape
 
@@ -15,8 +18,9 @@ Two long-lived processes against one Postgres 17:
 | `irrevon worker` | The single writer: recovery on boot, continuous reconciliation, orphan sweeps, gauges | Outbound to configured destinations + Postgres only |
 | `irrevon serve` | Read-only workbench/API surface | Loopback listener (127.0.0.1), GET/HEAD only |
 
-Run under systemd or a container supervisor; `irrevon init` scaffolds the
-compose file with the digest-pinned Postgres. Configuration is
+For evaluation, run under a process supervisor; `irrevon init` scaffolds a
+loopback-only **local-development** Compose database using PostgreSQL trust
+authentication. It is not a production database template. Configuration is
 `irrevon.toml` (validated, unknown keys fatal) + environment variables for
 every secret — config carries **names**, never values; provider adapters
 refuse to construct without their credential variable and refuse
@@ -79,12 +83,12 @@ Standard Postgres discipline applies, with one Irrevon-specific rule:
 
 - Continuous archiving + PITR (`pg_basebackup` + WAL archiving) is the
   recommended shape; nightly `pg_dump` is the floor.
-- **Restore runbook**: restore the database → start ONE worker → recovery
-  replay adjudicates every DISPATCHED/AMBIGUOUS record against the
-  destinations BEFORE accepting new work — destination read-back, not the
-  backup, is the authority for what actually happened after the backup
-  point. Effects dispatched after the restore point surface as findings
-  (orphan sweep + audit), not silent loss. Never re-dispatch on belief.
+- **Candidate restore sequence (not yet a production capability):** restore the
+  database → keep registration and dispatch ingress stopped → start one worker
+  → inspect recovery and sweep evidence against each destination. Destination
+  read-back, not the backup, is authoritative after the backup point. The
+  current code does not yet prove that a fresh-cluster restore discovers every
+  post-backup effect, so operators must not infer complete catch-up.
 - Test the restore path routinely (a restore that has never run is a plan,
   not a capability). The e2e crash suites (`tests/process/`,
   `tests/e2e/`) exercise the same replay mechanics the restore path uses.
@@ -98,10 +102,13 @@ doc §12.4. Credential exposure = stop-and-rotate (master doc §9).
 
 ## Data classification, redaction, retention
 
-Ledger rows carry metadata + digests, never raw payload bodies (RFC-002 §0
-rule 5); upstream identifiers are digested-or-absent in logs; `inspect`
-redacts stable-id values by default; the serve surface exposes evidence
-digest-only until the redaction pipeline lands (Q2). Retention/deletion of
+Ledger rows include validated dispatch parameters needed to reproduce an
+authorized request, plus digests; they do not retain raw provider response
+bodies. Treat the database as sensitive. Upstream identifiers are
+digested-or-absent in structured logs; `inspect` redacts stable-id values by
+default, and the serve surface returns digested stable identifiers. Explicit
+local `inspect --reveal` may show raw stable identifiers to an authorized local
+operator. Retention/deletion of
 ledger history is the operator's policy — rows are append-only by role
 design; deletion is a DBA act on a copy-and-truncate basis, never in-place
 mutation of live history.

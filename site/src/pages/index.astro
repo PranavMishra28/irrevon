@@ -10,13 +10,14 @@ import { href, asset } from "../lib/url";
 import { softwareSourceCode, webSite } from "../lib/jsonld";
 
 const siteUrl = new URL(href("/"), Astro.site);
-const searchUrl = new URL(href("/docs/search/"), Astro.site);
+const description =
+  "A reference reconciliation engine and draft preregistration for benchmarking irreversible AI-agent actions. Identity from stable business identifiers, persist-before-dispatch, reconcile-by-query. Pre-release, open research.";
 ---
 
 <Base
   title={`${SITE_NAME} — honest handling of irreversible AI-agent actions`}
-  description="A reference reconciliation engine and draft preregistration for benchmarking irreversible AI-agent actions. Identity from stable business identifiers, persist-before-dispatch, reconcile-by-query. Pre-release, open research."
-  jsonLd={[softwareSourceCode(siteUrl), webSite(siteUrl, searchUrl)]}
+  description={description}
+  jsonLd={[softwareSourceCode(siteUrl, description), webSite(siteUrl)]}
 >
   <!-- ── Hero ─────────────────────────────────────────────────────────── -->
   <section class="section hero">
@@ -31,7 +32,12 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
         </p>
         <Source id="problem-ambiguous-outcome" also={["resynthesis-defeats-keys"]} />
         <div class="hero-ctas">
-          <a class="btn btn-primary" href={REPO_URL}>View the source</a>
+          <a
+            class="btn btn-primary"
+            href={REPO_URL}
+            data-analytics-event="repository_click"
+            data-analytics-placement="hero">View the source</a
+          >
           <a class="btn btn-secondary" href={href("/how-it-works/")}>How it works</a>
         </div>
         <p class="hero-note">
@@ -50,7 +56,12 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
             Beat 10 of the recorded sequence: evidence returns; the effect does not.
           </figcaption>
         </figure>
-        <a class="btn btn-secondary hero-poster-cta" href={href("/demo/") + "#beat-01"}>
+        <a
+          class="btn btn-secondary hero-poster-cta"
+          href={href("/demo/") + "#beat-01"}
+          data-analytics-event="demo_start"
+          data-analytics-placement="proof"
+        >
           <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" fill="currentColor">
             <path d="M2 1 L11 6 L2 11 Z"></path>
           </svg>
@@ -86,7 +97,7 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
         <p class="lead">
           The flagship demo persists an intent, loses the dispatch response on cue, is really SIGKILLed, and
           recovers by asking the destination — then rejects the agent’s re-worded retry as a duplicate of the
-          same stable identity. The strongest conventional baseline, under the identical fault schedule,
+          same stable identity. A developmental file-journal B5 stand-in, under the identical fault schedule,
           creates the duplicate.
         </p>
       </div>
@@ -220,6 +231,13 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
         <Badge kind="recorded" />
       </div>
       <Source id="workbench-fixture-screens" />
+      <p style="margin-top: 20px;">
+        <a
+          href={href("/platform/") + "#workbench"}
+          data-analytics-event="workbench_exploration"
+          data-analytics-placement="body"
+        >Inspect the Workbench boundary and evidence model →</a>
+      </p>
     </div>
   </section>
 
@@ -235,13 +253,17 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
         <p>
           The preregistration is a <strong>draft</strong>; nothing is frozen. Synthetic S-REF development
           pilots have occurred and are disclosed, but no live-sandbox observation or confirmatory run has
-          occurred. If the strongest conventional baseline matches {SITE_NAME} on C2 destinations, the
+          occurred. If the preselected composite comparator matches {SITE_NAME} on C2 destinations, the
           pre-committed falsification criterion fires: {SITE_NAME} is unnecessary, and the project says so.
         </p>
         <Source id="prereg-draft-status" also={["developmental-pilot-disclosure", "kill-criterion"]} />
       </div>
       <p style="margin-top: 20px;">
-        <a href={href("/benchmark/")}>Read the benchmark design and the kill criterion →</a>
+        <a
+          href={href("/benchmark/")}
+          data-analytics-event="benchmark_methodology_visit"
+          data-analytics-placement="benchmark"
+        >Read the benchmark design and the kill criterion →</a>
       </p>
     </div>
   </section>
@@ -258,7 +280,7 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
           Docker.
         </p>
       </div>
-      <pre><code>git clone {REPO_URL}.git && cd irrevon
+      <pre data-analytics-copy-event="clone_command_copy" data-analytics-placement="body"><code>git clone {REPO_URL}.git && cd irrevon
 uv sync --locked        # toolchain + deps, pinned by uv.lock
 uv run irrevon init      # config, compose file, then migrations
 docker compose up -d --wait
@@ -268,7 +290,12 @@ uv run irrevon demo      # the two-leg flagship story</code></pre>
         <Source id="quickstart-real" also={["not-published", "license-apache2"]} />
       </div>
       <div class="hero-ctas" style="margin-top: 24px;">
-        <a class="btn btn-primary" href={REPO_URL}>Open the repository</a>
+        <a
+          class="btn btn-primary"
+          href={REPO_URL}
+          data-analytics-event="repository_click"
+          data-analytics-placement="body">Open the repository</a
+        >
         <a class="btn btn-secondary" href={repoDoc("docs/master-doc.md")}>Read the master document</a>
       </div>
     </div>

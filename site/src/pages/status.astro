@@ -1,0 +1,44 @@
+---
+import Base from "../layouts/Base.astro";
+import { href } from "../lib/url";
+---
+
+<Base
+  title="Project status — Irrevon"
+  description="What Irrevon implements today, what remains synthetic or unvalidated, and which release actions remain human-gated."
+>
+  <section class="section">
+    <div class="container prose">
+      <span class="kicker">Project status</span>
+      <h1>Implemented source. Synthetic evidence. No release yet.</h1>
+      <p class="lead">
+        Irrevon is a public Apache-2.0 research preview. The single-writer engine and worker,
+        deterministic demo, loopback read-only Workbench, benchmark development harness, and
+        package build exist. No package, release, confirmatory result, or live-provider result exists.
+      </p>
+      <h2>Ready to evaluate from source</h2>
+      <ul>
+        <li>PostgreSQL-backed persist-before-dispatch engine and crash recovery</li>
+        <li>Deterministic synthetic C2 lost-response demonstration</li>
+        <li>Read-only evidence Workbench with digested upstream identifiers</li>
+        <li>Development benchmark fixtures, histories, metrics, and integrity refusals</li>
+        <li>Wheel/sdist dry run, checksums, SBOM, and clean-install checks</li>
+        <li>Apache-2.0 pull requests with DCO 1.1 sign-off and no CLA</li>
+      </ul>
+      <h2>Not established</h2>
+      <ul>
+        <li>Scientific validation, confirmatory results, or independent reproduction</li>
+        <li>Qualified Stripe or EasyPost behavior; both adapters remain never-live-called drafts</li>
+        <li>Multi-writer availability, hosted control plane, or remote administrative UI</li>
+        <li>A supported production topology, production battle-testing, or uptime evidence</li>
+        <li>Published PyPI package, tag, GitHub release, or active site deployment guarantee</li>
+        <li>Owner ratification of implemented-but-proposed ADR-0020–0022 and ADR-0030–0034</li>
+      </ul>
+      <p>
+        Read the <a href={href("/roadmap/")}>release roadmap</a>, the{" "}
+        <a href={href("/benchmark/")}>benchmark boundary</a>, and the{" "}
+        <a href={href("/install/")}>source quickstart</a>.
+      </p>
+    </div>
+  </section>
+</Base>

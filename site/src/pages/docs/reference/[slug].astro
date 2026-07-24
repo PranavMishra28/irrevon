@@ -21,11 +21,14 @@ const description =
   doc.data.description ??
   `Rendered copy of ${doc.data.sourcePath} — the repository copy is canonical; this rendering is drift-gated.`;
 const pageUrl = new URL(href(`/docs/reference/${doc.id}/`), Astro.site);
+const visibleHeading = doc.data.renderTitle
+  ? doc.data.title
+  : headings.find((heading) => heading.depth === 1)?.text ?? doc.data.title;
 const jsonLd = [
-  techArticle({ title: doc.data.title, description, url: pageUrl }),
+  techArticle({ title: visibleHeading, description, url: pageUrl }),
   breadcrumbs([
     { name: "Docs", url: new URL(href("/docs/"), Astro.site) },
-    { name: doc.data.title, url: pageUrl },
+    { name: visibleHeading, url: pageUrl },
   ]),
 ];
 ---

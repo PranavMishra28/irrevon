@@ -1,0 +1,43 @@
+name: Bug report
+description: Report reproducible incorrect behavior
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Remove credentials, personal data, provider payloads, and production identifiers before submitting."
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Provide commands or a small synthetic example.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Irrevon version or commit
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Python, OS, and Postgres versions
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed secrets, personal data, production records, and private infrastructure details.
+          required: true
+        - label: This is not a vulnerability report.
+          required: true

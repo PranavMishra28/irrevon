@@ -54,7 +54,9 @@ class _FakeTransport:
 def _stripe(responses: list[Any]) -> tuple[StripeC1Adapter, _FakeTransport]:
     transport = _FakeTransport(responses)
     return (
-        StripeC1Adapter("stripe-c1", STRIPE_DECL, "sk_test_synthetic", transport=transport),
+        StripeC1Adapter(
+            "stripe-c1", STRIPE_DECL, "sk_test_synthetic", _test_transport=transport
+        ),
         transport,
     )
 
@@ -62,7 +64,9 @@ def _stripe(responses: list[Any]) -> tuple[StripeC1Adapter, _FakeTransport]:
 def _easypost(responses: list[Any]) -> tuple[EasyPostC2Adapter, _FakeTransport]:
     transport = _FakeTransport(responses)
     return (
-        EasyPostC2Adapter("easypost-c2", EASYPOST_DECL, "EZTK_synthetic", transport=transport),
+        EasyPostC2Adapter(
+            "easypost-c2", EASYPOST_DECL, "EZTK_synthetic", _test_transport=transport
+        ),
         transport,
     )
 
@@ -84,6 +88,23 @@ def test_stripe_refuses_live_mode_keys() -> None:
 def test_easypost_refuses_production_keys() -> None:
     with pytest.raises(ConfigInvalid, match="TEST API keys only"):
         EasyPostC2Adapter("easypost-c2", EASYPOST_DECL, "EZAK_production")
+
+
+def test_provider_origins_are_not_configurable() -> None:
+    with pytest.raises(TypeError):
+        StripeC1Adapter(
+            "stripe-c1",
+            STRIPE_DECL,
+            "sk_test_synthetic",
+            base_url="https://attacker.invalid",  # type: ignore[call-arg]
+        )
+    with pytest.raises(TypeError):
+        EasyPostC2Adapter(
+            "easypost-c2",
+            EASYPOST_DECL,
+            "EZTK_synthetic",
+            base_url="https://attacker.invalid",  # type: ignore[call-arg]
+        )
 
 
 # ── Stripe wire discipline + classification ────────────────────────────────────
@@ -110,6 +131,7 @@ def test_stripe_sends_idempotency_key_version_and_metadata() -> None:
         (409, {"error": {"type": "idempotency_error"}}, "FAILED", "TERMINAL"),
         (500, {"error": {"type": "api_error"}}, "LOST", None),
         (200, {"weird": True}, "LOST", None),  # unrecognized success shape
+        (200, {"id": ""}, "LOST", None),
     ],
 )
 def test_stripe_classification_table(
@@ -191,6 +213,8 @@ def test_stripe_status_query_mapping() -> None:
     assert adapter.status_query(destination_ref="pi_x").result == "ABSENT"
     adapter, _ = _stripe([(500, {})])
     assert adapter.status_query(destination_ref="pi_1").result == "INDETERMINATE"
+    adapter, _ = _stripe([(200, {"id": ""})])
+    assert adapter.status_query(destination_ref="pi_1").result == "INDETERMINATE"
     adapter, _ = _stripe([(200, {"data": [{"id": "pi_1"}, {"id": "pi_2"}]})])
     answer = adapter.status_query(client_ref=ORDER.client_ref)
     assert (answer.result, answer.n_found) == ("PRESENT", 2)
@@ -198,11 +222,37 @@ def test_stripe_status_query_mapping() -> None:
     assert adapter.status_query(client_ref=ORDER.client_ref).result == "ABSENT"
 
 
+def test_stripe_query_inputs_are_encoded_and_origin_stays_fixed() -> None:
+    adapter, transport = _stripe([(200, {"id": "pi_1"})])
+    adapter.status_query(destination_ref="../collect?next=https://attacker.invalid")
+    assert transport.requests[0]["url"].startswith("https://api.stripe.com/")
+    assert "../" not in transport.requests[0]["url"]
+    assert "attacker.invalid" in transport.requests[0]["url"]
+    assert "?next=" not in transport.requests[0]["url"]
+
+    adapter, transport = _stripe([(200, {"data": []})])
+    adapter.status_query(client_ref='ref"&limit=1000')
+    assert transport.requests[0]["url"].startswith("https://api.stripe.com/")
+    assert "&limit=1000" not in transport.requests[0]["url"]
+
+
+def test_stripe_status_query_rejects_malformed_nested_shapes_conservatively() -> None:
+    adapter, _ = _stripe([(404, {"error": "not-an-object"})])
+    assert adapter.status_query(destination_ref="pi_x").result == "INDETERMINATE"
+    adapter, _ = _stripe([(200, {"data": [1]})])
+    assert adapter.status_query(client_ref=ORDER.client_ref).result == "INDETERMINATE"
+
+
 def test_stripe_list_paginates_with_cursor() -> None:
     adapter, transport = _stripe(
         [
-            (200, {"data": [{"id": "pi_1", "metadata": {"irrevon_ref": "r1"}}],
-                   "has_more": True}),
+            (
+                200,
+                {
+                    "data": [{"id": "pi_1", "metadata": {"irrevon_ref": "r1"}}],
+                    "has_more": True,
+                },
+            ),
             (200, {"data": [{"id": "pi_2", "metadata": {}}], "has_more": False}),
         ]
     )
@@ -211,13 +261,28 @@ def test_stripe_list_paginates_with_cursor() -> None:
     assert "starting_after=pi_1" in transport.requests[1]["url"]
 
 
+@pytest.mark.parametrize(
+    "data",
+    [
+        [1],
+        [{"id": None}],
+        [{"id": ""}],
+    ],
+)
+def test_stripe_list_rejects_malformed_items(data: list[Any]) -> None:
+    adapter, _ = _stripe([(200, {"data": data, "has_more": False})])
+    with pytest.raises(CapabilityUnsupported):
+        adapter.list_effects("2026-07-01T00:00:00Z", "2026-07-22T00:00:00Z")
+
+
 # ── EasyPost wire discipline + declared query boundary ─────────────────────────
 
 
 def test_easypost_stamps_reference_and_classifies() -> None:
     adapter, transport = _easypost([(201, {"id": "shp_1", "status": "created"})])
     order = DispatchOrder(
-        operation_id="b" * 64 + ":0", effect_type="shipment.create",
+        operation_id="b" * 64 + ":0",
+        effect_type="shipment.create",
         payload={
             "to_address": {"name": "Synthetic"},
             "from_address": {"name": "Synthetic sender"},
@@ -230,6 +295,9 @@ def test_easypost_stamps_reference_and_classifies() -> None:
     assert transport.requests[0]["body"]["shipment"]["reference"] == order.client_ref
     assert transport.requests[0]["headers"]["Authorization"].startswith("Basic ")
 
+    adapter, _ = _easypost([(201, {"id": ""})])
+    assert adapter.dispatch(order, 10.0).transport_outcome == "LOST"
+
 
 @pytest.mark.parametrize(
     ("status", "outcome", "kind"),
@@ -238,8 +306,13 @@ def test_easypost_stamps_reference_and_classifies() -> None:
 def test_easypost_classification(status: int, outcome: str, kind: str | None) -> None:
     adapter, _ = _easypost([(status, {"error": {"message": "synthetic"}})])
     order = DispatchOrder(
-        operation_id="b" * 64 + ":0", effect_type="shipment.create",
-        payload={"to_address": "adr_to", "from_address": "adr_from", "parcel": "prcl_1"},
+        operation_id="b" * 64 + ":0",
+        effect_type="shipment.create",
+        payload={
+            "to_address": "adr_to",
+            "from_address": "adr_from",
+            "parcel": "prcl_1",
+        },
         client_ref="b" * 64 + ":0",
     )
     result = adapter.dispatch(order, 10.0)
@@ -255,11 +328,35 @@ def test_easypost_declares_no_client_ref_query() -> None:
         adapter.status_query(client_ref="ref-1")
 
 
+def test_easypost_query_inputs_are_encoded_and_origin_stays_fixed() -> None:
+    adapter, transport = _easypost([(200, {"id": "shp_1"})])
+    adapter.status_query(destination_ref="../collect?next=https://attacker.invalid")
+    assert transport.requests[0]["url"].startswith("https://api.easypost.com/")
+    assert "../" not in transport.requests[0]["url"]
+    assert "?next=" not in transport.requests[0]["url"]
+
+    adapter, transport = _easypost([(200, {"shipments": [], "has_more": False})])
+    adapter.list_effects(
+        "2026-07-01T00:00:00Z&purchased=true",
+        "2026-07-22T00:00:00Z&before_id=attacker",
+    )
+    url = transport.requests[0]["url"]
+    assert url.startswith("https://api.easypost.com/")
+    assert url.count("purchased=") == 1
+    assert "&before_id=attacker" not in url
+
+
 def test_easypost_list_paginates_with_before_id() -> None:
     adapter, transport = _easypost(
         [
-            (200, {"shipments": [{"id": "shp_2", "reference": "r2"}], "has_more": True}),
-            (200, {"shipments": [{"id": "shp_1", "reference": "r1"}], "has_more": False}),
+            (
+                200,
+                {"shipments": [{"id": "shp_2", "reference": "r2"}], "has_more": True},
+            ),
+            (
+                200,
+                {"shipments": [{"id": "shp_1", "reference": "r1"}], "has_more": False},
+            ),
         ]
     )
     listed = adapter.list_effects("2026-07-01T00:00:00Z", "2026-07-22T00:00:00Z")
@@ -293,7 +390,14 @@ def test_easypost_rejects_wrong_effect_missing_fields_and_reference_override() -
 
 def test_easypost_pagination_refuses_missing_cursor() -> None:
     adapter, _ = _easypost([(200, {"shipments": [{}], "has_more": True})])
-    with pytest.raises(CapabilityUnsupported, match="terminal shipment id"):
+    with pytest.raises(CapabilityUnsupported, match="invalid shipment id"):
+        adapter.list_effects("2026-07-01T00:00:00Z", "2026-07-22T00:00:00Z")
+
+
+@pytest.mark.parametrize("shipments", [[1], [{"id": None}], [{"id": ""}]])
+def test_easypost_list_rejects_malformed_items(shipments: list[Any]) -> None:
+    adapter, _ = _easypost([(200, {"shipments": shipments, "has_more": False})])
+    with pytest.raises(CapabilityUnsupported):
         adapter.list_effects("2026-07-01T00:00:00Z", "2026-07-22T00:00:00Z")
 
 

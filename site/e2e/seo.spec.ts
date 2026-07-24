@@ -2,10 +2,13 @@
 // page (with hashes matching the actual inline scripts — the JS-creep drift
 // gate), sitemap correctness, robots.txt, RSS validity, JSON-LD honesty
 // (SoftwareSourceCode, never SoftwareApplication; no offers/ratings/reviews
-// anywhere — nothing exists to offer or rate).
+// anywhere — nothing exists to offer or rate). The broader built-output
+// contract lives in discoverability.spec.ts.
 import { createHash } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { ALL_PAGES, PAGES } from "./pages";
+import { isIndexablePath } from "../search-policy.mjs";
+import { serializeJsonLd } from "../src/lib/jsonld-serialization";
 
 for (const path of ALL_PAGES) {
   test(`metadata: ${path}`, async ({ page }) => {
@@ -42,14 +45,17 @@ for (const path of ALL_PAGES) {
   });
 }
 
-test("sitemap exists, covers pages, excludes 404", async ({ request }) => {
+test("sitemap exists, covers indexable pages, excludes noindex/error pages", async ({ request }) => {
   const index = await request.get("/sitemap-index.xml");
   expect(index.status()).toBe(200);
   const sub = await request.get("/sitemap-0.xml");
   expect(sub.status()).toBe(200);
   const xml = await sub.text();
-  for (const p of PAGES) expect(xml, `sitemap missing ${p}`).toContain(`${p}</loc>`);
+  for (const p of PAGES.filter((path) => isIndexablePath(path))) {
+    expect(xml, `sitemap missing ${p}`).toContain(`${p}</loc>`);
+  }
   expect(xml).not.toContain("/404");
+  expect(xml).not.toContain("/docs/search/");
 });
 
 test("robots.txt allows all and names the sitemap", async ({ request }) => {
@@ -75,7 +81,7 @@ test("research pages advertise the feed", async ({ page }) => {
   await expect(page.locator("link[rel=alternate][type='application/rss+xml']")).toHaveCount(1);
 });
 
-test("JSON-LD: home is SoftwareSourceCode + WebSite/SearchAction; honesty holds everywhere", async ({ page }) => {
+test("JSON-LD: home is SoftwareSourceCode + WebSite without retired SearchAction", async ({ page }) => {
   await page.goto("/");
   const blocks = await page
     .locator("script[type='application/ld+json']")
@@ -86,9 +92,12 @@ test("JSON-LD: home is SoftwareSourceCode + WebSite/SearchAction; honesty holds 
   expect(types).not.toContain("SoftwareApplication");
   const source = blocks.find((b) => b["@type"] === "SoftwareSourceCode");
   expect(source).toBeTruthy();
-  expect(source!.license).toBe(`${source!.codeRepository}/blob/HEAD/LICENSE`);
+  expect(source!.license).toContain(`${source!.codeRepository}/blob/`);
+  expect(source!.license).toMatch(/\/LICENSE$/);
   const site = blocks.find((b) => b["@type"] === "WebSite");
-  expect(JSON.stringify(site)).toContain("q={search_term_string}");
+  expect(site).toEqual(expect.objectContaining({ name: "Irrevon" }));
+  expect(JSON.stringify(site)).not.toContain("SearchAction");
+  expect(JSON.stringify(site)).not.toContain("potentialAction");
 });
 
 test("JSON-LD: no fabricated offers/ratings/reviews/organization on any page", async ({ page }) => {
@@ -101,6 +110,30 @@ test("JSON-LD: no fabricated offers/ratings/reviews/organization on any page", a
       expect(raw, `${path} carries fabricated structured data ${banned}`).not.toContain(banned);
     }
   }
+});
+
+test("JSON-LD serialization cannot terminate its data block or create executable script", async ({ page }) => {
+  const marker = "__irrevonJsonLdInjection";
+  const hostile = {
+    headline: `safe</script><script>globalThis.${marker} = true</script>`,
+    separators: "\u2028\u2029",
+  };
+  const serialized = serializeJsonLd(hostile);
+
+  expect(serialized).not.toContain("</script");
+  expect(JSON.parse(serialized)).toEqual(hostile);
+
+  await page.setContent(
+    `<script type="application/ld+json" id="subject">${serialized}</script>`,
+  );
+  const result = await page.evaluate((injectionMarker) => ({
+    executed: Boolean((globalThis as Record<string, unknown>)[injectionMarker]),
+    scripts: document.scripts.length,
+    decoded: JSON.parse(document.querySelector("#subject")?.textContent ?? "{}"),
+  }), marker);
+  expect(result.executed).toBe(false);
+  expect(result.scripts).toBe(1);
+  expect(result.decoded).toEqual(hostile);
 });
 
 test("JSON-LD: research post is an Article with published date", async ({ page }) => {

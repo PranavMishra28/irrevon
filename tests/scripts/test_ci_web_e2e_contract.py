@@ -41,6 +41,8 @@ def _run_aggregator(*, web_changed: bool, web_e2e_result: str) -> subprocess.Com
     results = {
         "changes": {"result": "success"},
         "docs": {"result": "success"},
+        "dco": {"result": "success"},
+        "dependency-review": {"result": "success"},
         "py-check": {"result": "skipped"},
         "py-test": {"result": "skipped"},
         "py-test-integration": {"result": "skipped"},
@@ -62,6 +64,7 @@ def _run_aggregator(*, web_changed: bool, web_e2e_result: str) -> subprocess.Com
         "PY_EXISTS": "true",
         "WEB_EXISTS": "true",
         "SITE_EXISTS": "true",
+        "EVENT_NAME": "pull_request",
     }
     return subprocess.run(
         ["bash", "-c", _aggregator_script(workflow)],

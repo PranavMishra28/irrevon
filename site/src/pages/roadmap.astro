@@ -1,8 +1,8 @@
 ---
 // Roadmap — a styled projection of the rendered execution plan (repo-docs
-// collection, drift-gated against docs/execution-plan.md). The phase table
-// is PARSED from the document at build time, not restated by hand, so this
-// page cannot fork the plan. No dates, ever: order is the promise.
+// collection, drift-gated against docs/execution-plan.md). Roadmap headings
+// and descriptions are parsed from the document at build time, not restated
+// by hand, so this page cannot fork the plan. No dates, ever.
 import { getEntry } from "astro:content";
 import Base from "../layouts/Base.astro";
 import Source from "../components/Source.astro";
@@ -20,32 +20,28 @@ const strip = (s: string) =>
     .replace(/`/g, "")
     .trim();
 
-interface Phase {
+interface RoadmapItem {
   id: string;
   name: string;
-  gate: string;
-  exit: string;
-  owner: string;
-  done: boolean;
+  description: string;
 }
 
-const phases: Phase[] = (plan.body ?? "")
-  .split("\n")
-  .filter((l) => /^\|\s*P\d/.test(l))
-  .map((line) => {
-    const cells = line.split("|").map((c) => c.trim());
-    // | # | Phase | Gate | Exit criterion | Owner |
-    const [, id, name, gate, exit, owner] = cells;
-    return {
-      id: strip(id),
-      name: strip(name),
-      gate: strip(gate),
-      exit: strip(exit),
-      owner: strip(owner),
-      done: /\bDone\b/.test(exit) || /\(this commit\)/.test(name),
-    };
+const lines = (plan.body ?? "").split("\n");
+const phases: RoadmapItem[] = [];
+for (let i = 0; i < lines.length; i += 1) {
+  const heading = lines[i].match(/^###\s+(R\d+)\s+[—-]\s+(.+)\s*$/);
+  if (!heading) continue;
+  const paragraphs: string[] = [];
+  for (let j = i + 1; j < lines.length && !/^#{2,3}\s+/.test(lines[j]); j += 1) {
+    if (lines[j].trim()) paragraphs.push(lines[j].trim());
+  }
+  phases.push({
+    id: heading[1],
+    name: strip(heading[2]),
+    description: strip(paragraphs.join(" ")),
   });
-if (phases.length === 0) throw new Error("roadmap: could not parse the phase table from execution-plan");
+}
+if (phases.length === 0) throw new Error("roadmap: could not parse roadmap items from execution-plan");
 ---
 
 <Base
@@ -76,12 +72,12 @@ if (phases.length === 0) throw new Error("roadmap: could not parse the phase tab
     <div class="container">
       <div class="section-head">
         <span class="kicker">The phases</span>
-        <h2>P0 – P8, in order</h2>
+        <h2>{phases[0].id} – {phases.at(-1)?.id}, in order</h2>
       </div>
       <ol class="phase-list">
         {
           phases.map((p) => (
-            <li class:list={["phase", { done: p.done }]}>
+            <li class="phase">
               <div class="phase-rail" aria-hidden="true">
                 <span class="phase-dot" />
               </div>
@@ -89,28 +85,20 @@ if (phases.length === 0) throw new Error("roadmap: could not parse the phase tab
                 <div class="phase-head">
                   <span class="phase-id">{p.id}</span>
                   <h3>{p.name}</h3>
-                  <span class:list={["phase-chip", p.done ? "chip-done" : "chip-open"]}>
-                    {p.done ? "DONE (recorded in the plan)" : "OPEN / GATED"}
-                  </span>
+                  <span class="phase-chip chip-open">ROADMAP</span>
                 </div>
-                {p.gate && p.gate !== "—" && (
-                  <p class="phase-gate">
-                    <strong>Gate:</strong> {p.gate}
-                  </p>
-                )}
                 <p class="phase-exit">
-                  <strong>Exit:</strong> {p.exit}
+                  {p.description}
                 </p>
-                <p class="phase-owner">owner: {p.owner}</p>
               </div>
             </li>
           ))
         }
       </ol>
       <p class="muted" style="margin-top: 20px; max-width: 70ch; font-size: var(--site-text-small);">
-        Status chips appear only where the plan records them. Beyond these phases: real destination adapters
-        (M4) and the benchmark harness (M5+) remain gated per the master document's milestones; any packaged
-        release waits behind the public-release gate below.
+        Status chips appear only where the plan records them. Beyond these phases: live-provider
+        qualification and frozen or confirmatory benchmark execution remain gated per the master document's
+        milestones; any packaged release waits behind the public-release gate below.
       </p>
     </div>
   </section>

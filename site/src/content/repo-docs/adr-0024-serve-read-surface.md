@@ -1,13 +1,13 @@
 ---
 title: "\"`irrevon serve` — the loopback read-only workbench surface\""
 sourcePath: "docs/decisions/0024-serve-read-surface.md"
-sourceSha256: "e9b10596fdf5639ae24ac543db09fbe193ac4393239d403db2eb44ff4d28dfe8"
-syncedAt: "2026-07-22"
+sourceSha256: "fc95804b6281bf85fbbb66fd9f4b18f5ea087eaa4b202f15864dae8613372656"
+syncedAt: "2026-07-24"
 section: "Decisions"
 renderTitle: true
 adr:
   id: "ADR-0024"
-  status: "accepted (owner serve directive, 2026-07-21 — the same order that lifted BI-4)"
+  status: "accepted (owner serve directive, 2026-07-21); decision item 5 superseded by ADR-0036"
   date: "2026-07-21"
   supersedes: "—"
 ---

@@ -38,6 +38,7 @@ const { title, description, jsonLd = [] } = Astro.props;
     gap: clamp(28px, 4vw, 56px);
     padding-block: clamp(32px, 5vw, 56px);
     align-items: start;
+    min-width: 0;
   }
   .docs-side {
     position: sticky;
@@ -45,6 +46,44 @@ const { title, description, jsonLd = [] } = Astro.props;
     max-height: calc(100vh - 48px);
     overflow-y: auto;
     font-size: var(--site-text-small);
+    min-width: 0;
+  }
+  .docs-main {
+    min-width: 0;
+    width: 100%;
+  }
+  .docs-main :global(.doc-article) {
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    width: 100%;
+  }
+  .docs-main :global(.doc-article > *) {
+    max-width: 100%;
+  }
+  .docs-main :global(.doc-body) {
+    justify-self: stretch;
+    max-width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    width: auto;
+  }
+  .docs-main :global(.mono-chip) {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+  .docs-main :global(h1),
+  .docs-main :global(h2),
+  .docs-main :global(h3),
+  .docs-main :global(h4) {
+    overflow-wrap: anywhere;
+  }
+  .docs-main :global(.doc-body ul),
+  .docs-main :global(.doc-body ol),
+  .docs-main :global(.doc-body li) {
+    max-width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   .docs-side-mobile {
     display: none;
@@ -52,7 +91,7 @@ const { title, description, jsonLd = [] } = Astro.props;
 
   @media (max-width: 899px) {
     .docs-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 20px;
     }
     .docs-side {

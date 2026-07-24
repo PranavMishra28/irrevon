@@ -4,6 +4,44 @@
   "$comment": "See ADR-0015 (tooling) and ADR-0019 (shape: dispatchable request model — schema_version, adapter_id, parameters, branch_ref, event_time). $id host is a placeholder identifier (not a locator) until the irrevon.dev domain purchase closes (ADR-0023). Shape changes require an ADR.",
   "title": "Intent contract",
   "description": "The validated input to registerIntent — the ONLY channel through which model-generated content reaches the deterministic core (master doc §6.3, §7.2, §7.3; RFC-002 §1). Identity derives exclusively from stable_ids + effect_type + scope; adapter_id, parameters, branch_ref, and event_time are carriers, never identity inputs (conformance-tested at M3), and additionalProperties is closed to keep undeclared members out.",
+  "$defs": {
+    "boundedJson": {
+      "oneOf": [
+        {
+          "type": "object",
+          "maxProperties": 256,
+          "propertyNames": {
+            "maxLength": 65536
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/boundedJson"
+          }
+        },
+        {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/boundedJson"
+          }
+        },
+        {
+          "type": "string",
+          "maxLength": 65536
+        },
+        {
+          "type": "number",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
   "type": "object",
   "properties": {
     "schema_version": {
@@ -14,15 +52,22 @@
       "description": "Stable upstream business identifiers keyed by identifier type (e.g. order_id, invoice_id, approved_task_id, workflow_command_id, authorization_id). At least one is required — the Intent Registrar rejects intents lacking a stable identifier (§6.1).",
       "type": "object",
       "minProperties": 1,
+      "maxProperties": 32,
+      "propertyNames": {
+        "minLength": 1,
+        "maxLength": 128
+      },
       "additionalProperties": {
         "type": "string",
-        "minLength": 1
+        "minLength": 1,
+        "maxLength": 512
       }
     },
     "effect_type": {
       "description": "Destination-facing effect type, e.g. 'order.create'.",
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 256
     },
     "effect_class": {
       "description": "Reversibility class (master doc §7.3).",
@@ -31,21 +76,28 @@
     "scope": {
       "description": "Serialization scope: one in-flight dispatch per (scope, effect_type) (§7.4 item 3).",
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 512
     },
     "adapter_id": {
       "description": "The configured adapter/destination binding for this effect (ADR-0019, C1 finding B1). NOT an identity input.",
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 256
     },
     "parameters": {
       "description": "Effect payload the adapter builds the destination request from; may be empty. Validated against the adapter's per-effect-type parameter schema before persistence; stored with a canonical digest as evidence. NEVER an input to identity or idempotency-key derivation (RFC-001 §1; conformance-tested).",
-      "type": "object"
+      "type": "object",
+      "maxProperties": 256,
+      "additionalProperties": {
+        "$ref": "#/$defs/boundedJson"
+      }
     },
     "branch_ref": {
       "description": "Optional workflow branch-lineage carrier for the commit gate's branch check (RFC-001 §4 check 3). Absent means a vacuous pass.",
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 512
     },
     "event_time": {
       "description": "Optional upstream business time (RFC 3339). Evidence only; never used in control decisions.",
@@ -55,7 +107,8 @@
     "authority_ref": {
       "description": "Reference to the upstream authorization for this effect; freshness/binding is checked deterministically at the commit gate (§7.4 item 4).",
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 512
     },
     "stamped_at": {
       "description": "When the authority was stamped (RFC 3339).",

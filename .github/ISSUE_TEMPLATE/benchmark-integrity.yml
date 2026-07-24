@@ -1,0 +1,34 @@
+name: Benchmark integrity
+description: Report leakage, contamination, oracle, metric, or evidence concerns
+title: "[Benchmark integrity]: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: "If disclosure could expose a security vulnerability or private holdout material, stop and use private vulnerability reporting instead."
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Fixture or holdout leakage
+        - Oracle independence
+        - Metric or statistical implementation
+        - Contamination or benchmark awareness
+        - Invalid-run preservation
+        - Provider residue
+        - Claim or attribution
+        - Other integrity concern
+    validations:
+      required: true
+  - type: textarea
+    id: concern
+    attributes:
+      label: Concern
+      description: Describe the issue without including private holdout values or secrets.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Reproduction or evidence

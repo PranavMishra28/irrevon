@@ -42,7 +42,8 @@ def test_init_writes_templates_non_destructively(tmp_path: Path, capsys: Any) ->
     )
     # Placeholders only — never a credential value.
     env_example = (tmp_path / ".env.example").read_text()
-    assert "change-me-locally" in env_example
+    assert "change-me-locally" not in env_example
+    assert "IRREVON_MIGRATION_DSN=" in env_example
     compose = (tmp_path / "compose.yaml").read_text()
     assert "sha256:" in compose, "compose Postgres is digest-pinned"
     assert "127.0.0.1:5432" in compose, "loopback only"
@@ -221,7 +222,7 @@ def test_inspect_shows_evidence_and_integrity(
     assert rc == 0
     # Redacted by default: stable-id VALUES never shown without --reveal.
     assert "insp-9410" not in out
-    assert "<redacted" in out
+    assert "sha256:" in out
     assert "SETTLED_COMMITTED" in out
     assert "CONFIRMED_UNIQUE" in out
     assert "check=dedup" in out

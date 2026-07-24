@@ -1,17 +1,18 @@
 """B5 baseline operationalization — the honest contrast leg.
 
-B5 models the STRONGEST conventional stack (master doc §8; RFC-001 §9.5):
-a durable-execution-style runtime with stable workflow op-IDs, a durable
-journal, and native idempotency keys sent on every attempt. Its recovery
+B5 is a developmental file-journal operationalization of the durable-retry
+semantics selected in the draft protocol (master doc §8; RFC-001 §9.5):
+stable workflow op-IDs, a durable journal, and native idempotency keys sent
+on every attempt. Its recovery
 semantics are the industry's: an activity with an unknown outcome is retried
 with the SAME op-ID and idempotency key (at-least-once delivery + key-based
 dedup). On C1 destinations that is exactly right. On C2 — where the key is
 accepted but not honored — the retry creates a second effect. That residue is
 the project's wedge.
 
-One operationalization serves both the demo/E2E contrast leg and (at M5) the
+This stand-in serves both the demo/E2E contrast leg and the development
 benchmark harness — sharing prevents a "demo B5" weaker than the "benchmark
-B5" (testing.md §8, baseline-weakening by the back door).
+B5". It is not the real Temporal comparator required before Stage B.
 
 This module deliberately does NOT import the ledger/gate/reconciler: B5 is a
 baseline, not Irrevon.
@@ -35,7 +36,7 @@ class B5DurableRuntime:
     every op without a recorded outcome using the same op-ID/key — faithful
     durable-execution retry semantics, NOT a strawman: the key IS sent; a C1
     destination would dedup it (verified by the test-of-the-test with keys
-    honored).
+    honored). This is an in-family stand-in, not evidence about Temporal.
     """
 
     def __init__(self, journal_path: Path, adapter: Adapter) -> None:

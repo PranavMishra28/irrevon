@@ -315,7 +315,7 @@ _LADDER: dict[str, dict[str, Any]] = {
     "B5": {
         "description": (
             "Durable runtime + stable op-IDs + native idempotency keys "
-            "(strongest conventional single arm)."
+            "(preselected developmental conventional arm)."
         ),
         "retry_behavior": (
             "durable journal; ops without a recorded outcome are retried with "

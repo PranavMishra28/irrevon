@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use Irrevon or IrrevonBench, cite this software and the exact version or commit you evaluated."
+title: "Irrevon: evidence-first reconciliation for irreversible AI-agent actions"
+type: software
+abstract: >-
+  An Apache-2.0 research-preview reconciliation engine and draft benchmark for
+  ambiguous outcomes at irreversible AI-agent action boundaries. The software
+  persists intent before dispatch, preserves uncertainty after lost responses,
+  and uses capability-bounded destination evidence during recovery. No
+  confirmatory benchmark result or package-index release exists yet.
+authors:
+  - family-names: "Mishra"
+    given-names: "Pranav"
+repository-code: "https://github.com/PranavMishra28/irrevon"
+url: "https://github.com/PranavMishra28/irrevon"
+license: "Apache-2.0"
+keywords:
+  - "AI agents"
+  - "distributed systems"
+  - "reconciliation"
+  - "idempotency"
+  - "fault injection"

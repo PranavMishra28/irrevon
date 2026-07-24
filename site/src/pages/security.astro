@@ -2,12 +2,12 @@
 import Base from "../layouts/Base.astro";
 import Badge from "../components/Badge.astro";
 import Source from "../components/Source.astro";
-import { SITE_NAME, repoDoc } from "../config";
+import { SITE_NAME, REPO_URL, repoDoc } from "../config";
 ---
 
 <Base
   title={`Security & trust — ${SITE_NAME}`}
-  description="The trust boundary: model output never holds authority over irreversible actions. Metadata-and-digest ledger, zero telemetry, and a verifiable supply-chain posture — plus the explicit non-claims."
+  description="The trust boundary: model output never holds authority over irreversible actions. Sensitive ledger data stays operator-controlled, the engine and Workbench have zero telemetry, and the supply-chain posture is verifiable."
 >
   <section class="section">
     <div class="container">
@@ -98,26 +98,30 @@ import { SITE_NAME, repoDoc } from "../config";
     <div class="container">
       <div class="section-head">
         <span class="kicker">Data posture</span>
-        <h2>Metadata and digests, not payloads</h2>
+        <h2>Minimize payloads; treat the ledger as sensitive</h2>
       </div>
       <div class="grid-3">
         <article class="panel-subtle trust-card">
           <h3>What the ledger stores</h3>
           <p>
-            Effect metadata and SHA-256 digests, not raw payloads where avoidable. A redaction pipeline
-            governs exported evidence bundles. No end-customer personal data or partner production data in any
-            record.
+            The ledger stores intent metadata, raw stable identifiers, dispatch parameters needed for recovery,
+            digests, transitions, receipts, probes, and findings. It does not retain raw destination response
+            bodies, but parameters can contain personal or confidential data when an integrator puts it there.
+            Treat the database and every evidence export as sensitive, minimize payloads, and apply operator
+            access, retention, backup, and deletion controls.
           </p>
           <Source id="ledger-privacy" />
         </article>
         <article class="panel-subtle trust-card">
-          <h3>Zero telemetry, no accounts</h3>
+          <h3>Zero runtime telemetry; site analytics disclosed</h3>
           <p>
             The engine and the workbench phone home to nothing; the workbench’s no-external-request and
-            read-only properties are enforced by end-to-end tests. This site is static, self-hosts its fonts,
-            and makes no third-party requests; its only measurement is Vercel’s cookieless, same-origin Web
-            Analytics and Speed Insights (owner-enabled, ADR-0029) — and the site’s budget tests pin the
-            allowance to exactly those two first-party scripts.
+            read-only properties are enforced by end-to-end tests. This site is static, self-hosts its
+            fonts, and makes no third-party requests. Its only measurement is Vercel’s cookie-free,
+            same-origin Web Analytics and Speed Insights (owner-enabled, ADR-0029): query data is
+            redacted by default, visitors have a local opt-out, optional conversion events are
+            allowlisted and plan-gated, and budget tests pin the fetched-script allowance to exactly
+            those two first-party loaders.
           </p>
           <Source id="zero-telemetry" />
         </article>
@@ -217,6 +221,23 @@ import { SITE_NAME, repoDoc } from "../config";
       </ul>
       <div style="margin-top: 14px;">
         <Source id="security-non-claims" />
+      </div>
+
+      <div class="panel-subtle" style="margin-top: 28px; max-width: 80ch;">
+        <h3>Report a vulnerability privately</h3>
+        <p class="muted" style="margin-top: 8px;">
+          Use GitHub's private vulnerability-reporting form. Do not put credentials, private
+          identifiers, or an undisclosed vulnerability in a public issue. The repository security
+          policy defines scope, safe harbor, and the no-SLA disclosure posture.
+        </p>
+        <p style="margin-top: 12px;">
+          <a
+            href={`${REPO_URL}/security/advisories/new`}
+            data-analytics-event="security_report_click"
+            data-analytics-placement="body">Open the private report form</a
+          >
+          {" "}· <a href={repoDoc("SECURITY.md")}>Read SECURITY.md</a>
+        </p>
       </div>
 
       <div class="grid-2" style="margin-top: 32px;">

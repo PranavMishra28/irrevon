@@ -1,332 +1,286 @@
+<p align="center">
+  <img src="site/public/favicon.svg" width="72" alt="Irrevon mark">
+</p>
+
 # Irrevon
 
-**Evidence-first handling for irreversible AI-agent actions.**
+**Evidence-first reconciliation for irreversible AI-agent actions.**
 
-Irrevon combines two things:
+[![CI](https://github.com/PranavMishra28/irrevon/actions/workflows/ci.yml/badge.svg)](https://github.com/PranavMishra28/irrevon/actions/workflows/ci.yml)
+[![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-3776AB)](pyproject.toml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Release: unpublished](https://img.shields.io/badge/release-unpublished-orange)](docs/execution-plan.md)
 
-1. **IrrevonBench** — a fault-injection benchmark for measuring duplicate, orphaned,
-   and lost external effects.
-2. **Irrevon** — a reference reconciliation engine that persists intent before dispatch,
-   derives identity from stable business facts, and resolves ambiguous outcomes by querying
-   the destination.
+An agent asks an API to create a payment, shipment, order, or booking. The
+destination commits, the response disappears, and the agent cannot know whether
+retrying will duplicate the real-world effect. Irrevon persists intent before
+dispatch, makes ambiguity explicit, and reconciles against destination evidence
+instead of guessing.
 
-An AI agent can time out after a payment, order, or booking has already committed. A blind
-retry can repeat the effect; assuming success can lose it. Irrevon makes that uncertainty a
-durable, inspectable state instead of silently guessing.
-
-> [!IMPORTANT]
-> This is a **research preview**, not released production software. The core engine,
-> continuous single-writer worker, local read-only Workbench, benchmark foundation, and
-> deterministic flagship demo are implemented. The benchmark preregistration is still a
-> draft; public development fixtures are synthetic; provider adapters are credential-gated
-> drafts that have never been live-called; and no package has been published.
-
-[Run the demo](#quickstart) · [Understand the mechanism](#how-it-works) ·
-[Explore the repository](#repository-map) ·
-[Read the benchmark plan](docs/benchmark.md) ·
-[See the release gates](docs/execution-plan.md)
-
----
-
-## The problem
-
-Suppose an agent asks an external API to create an order:
-
-```text
-request sent → destination commits → response is lost → agent retries
-```
-
-The caller cannot infer whether the first attempt committed from the missing response.
-Model-generated retries make the problem worse: wording and incidental fields can change
-even when the underlying business operation is identical. A fresh UUID or an idempotency
-key derived from the regenerated request therefore may not identify the same real-world
-effect.
-
-Irrevon is built around a narrower, honest goal:
-
-- identify an intended effect from stable upstream business identifiers;
-- durably record that intent before any external call;
-- preserve ambiguity when the outcome is unknown;
-- reconcile by authoritative destination read-back where the destination permits it;
-- reject or surface duplicates with evidence;
-- measure where the method works, adds nothing, or is impossible.
-
-It does **not** claim universal exactly-once execution. It does **not** call compensation
-rollback. Its guarantees are bounded by destination capabilities.
-
-## How it works
-
-```mermaid
-flowchart LR
-    A["Agent proposes an effect"] --> B["Gate validates stable identity inputs"]
-    B --> C["Ledger persists intent before dispatch"]
-    C --> D["Adapter makes one bounded attempt"]
-    D -->|Definite response| E["Record committed or failed outcome"]
-    D -->|Timeout, crash, or lost response| F["Preserve AMBIGUOUS state"]
-    F --> G["Recovery queries the destination"]
-    G -->|Effect found| H["Settle committed with evidence"]
-    G -->|Confirmed absent after uncertainty window| I["Permit policy-controlled redispatch"]
-    G -->|Still unknowable| J["Escalate; never guess"]
-```
-
-Three design choices carry the system:
-
-### 1. Identity comes from business facts
-
-An effect ID is derived from stable fields such as tenant, effect type, order ID, or invoice
-ID—not from model prose. Two differently worded attempts for the same business operation
-collapse to the same identity.
-
-### 2. Intent is persisted before dispatch
-
-The ledger records what may happen before the adapter crosses the irreversible boundary.
-A crash before the record exists is effect-free; a crash after it exists leaves evidence
-for recovery.
-
-### 3. Recovery asks the destination
-
-After an ambiguous result, the engine does not trust the caller’s belief and does not
-automatically retry. It queries authoritative destination state when available, accounts
-for consistency windows, and keeps unknown outcomes explicit.
-
-## Capability tiers
-
-| Tier | Destination capability | Honest system boundary |
-|---|---|---|
-| **C1** | Dependable native idempotency | The destination already prevents duplicates; Irrevon pre-commits to no benchmark advantage. |
-| **C2** | No dependable idempotency, but authoritative status is queryable | Reconciliation can detect committed effects and may permit redispatch only after confirmed absence. This is Irrevon’s primary scope. |
-| **C3** | No dependable key and no authoritative query | Lost and orphaned effects are unknowable for every client-side method. Irrevon exposes this impossibility boundary. |
-
-## What is implemented
-
-| Surface | What exists today | Evidence / boundary |
-|---|---|---|
-| Core engine | Identity, ledger, gate, dispatcher, reconciliation, recovery, sweep, auditor | [RFC-002](docs/rfc-002-engine-design.md), `src/irrevon/`, `tests/` |
-| Flagship demo | Real Postgres, deterministic C2 destination, lost response, actual SIGKILL, restart, reconciliation, and B5 contrast | `uv run irrevon demo`; synthetic reference destination |
-| Worker | Continuous single-writer reconciliation/sweep loop, writer-lock exclusion, graceful shutdown, freshness health file | [Operations guide](docs/operations.md); multi-writer is designed, not implemented |
-| IrrevonBench | Contracts, fault orchestration, baseline registry, two-oracle scoring, statistics pipeline, deterministic public dev fixtures | [Benchmark guide](docs/benchmark.md); no confirmatory results |
-| Workbench | Local-first, read-only evidence UI with fixture and loopback live modes | [web/README.md](web/README.md); no mutation API |
-| Marketing/docs site | Static Astro site, rendered docs, search, recorded demo, claims registry, SEO, CSP, accessibility tests | [site/README.md](site/README.md); deployment is owner-controlled |
-| Packaging | Wheel and sdist build plus isolated install smoke test | Built locally; unpublished |
-| Provider adapters | Draft Stripe C1 and EasyPost C2 adapters with sandbox-key gates and synthetic transports | Never live-called; ADR-0010/0012 and provider/ToS review remain human gates |
-
-### Workbench
-
-The Workbench keeps lifecycle, classification, and resolution separate and connects every
-operator-facing conclusion to recorded evidence. Fixture and live modes are visibly
-different and cannot be mixed.
-
-![Irrevon Workbench showing an effect investigation and causal evidence](site/public/images/workbench-inspect-dark.png)
-
-The screenshot uses schema-validated synthetic fixtures captured from the reference engine.
-The Workbench can also read from `irrevon serve`, a loopback-only GET/HEAD surface backed by
-a SELECT-only database role.
-
-## The flagship demonstration
-
-`irrevon demo` runs the same fault schedule through two legs:
-
-1. **Irrevon leg.** The intent is persisted, the destination commits, the response is
-   deliberately lost, and the engine process is SIGKILLed. On restart, recovery queries
-   before redispatch, finds the effect, settles it with evidence, and rejects a
-   re-synthesized duplicate. The destination contains one effect.
-2. **B5 contrast leg.** A durable conventional runtime retries with an idempotency key, but
-   the C2 reference destination does not honor that key. The destination contains two
-   effects.
-
-This is a deterministic development artifact, not a scientific benchmark result. The demo
-fails if the expected contrast disappears; the benchmark is not designed so Irrevon must
-win.
+> **Current status:** public Apache-2.0 research preview. The engine,
+> continuous single-writer worker, local read-only Workbench, deterministic
+> demo, benchmark development harness, and package build are implemented.
+> Development evidence is synthetic. The preregistration is an unfrozen draft,
+> there are no confirmatory results, and the Stripe/EasyPost adapters are drafts
+> that have never been live-called. Nothing has been published to PyPI.
 
 ## Quickstart
 
-Prerequisites:
+You do **not** need a hosted Postgres account. The demo uses the digest-pinned
+PostgreSQL 17 container in this repository and binds it only to loopback.
 
-- [uv](https://docs.astral.sh/uv/)
-- Docker with Compose
-- Git
-
-No hosted Postgres account is required. The initializer creates a digest-pinned Postgres 17
-Compose service bound to loopback.
+Prerequisites: [uv](https://docs.astral.sh/uv/), Docker with Compose, and Git.
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/PranavMishra28/irrevon.git
 cd irrevon
 
 uv sync --locked
 uv run irrevon init
 cp .env.example .env
+set -a && . ./.env && set +a
 docker compose up -d --wait
-
-# Re-run after Postgres is ready so migrations are applied.
 uv run irrevon init
 uv run irrevon doctor
 uv run irrevon demo
 ```
 
-The generated `.env` example contains a local placeholder only. Never commit a real
-credential.
+The demo deliberately loses a committed response, kills the engine process,
+restarts it, reconciles by destination read-back, and rejects a re-synthesized
+duplicate. It also runs a conventional durable-retry contrast against the same
+synthetic C2 destination. This is a deterministic development demonstration,
+not a benchmark result.
 
-Useful commands:
+Explore the recorded evidence:
 
 ```bash
-uv run irrevon --help
-uv run irrevon worker --help
-uv run irrevon serve --help
-uv run irrevon bench --help
-uv run irrevon inspect <effect_id> --dsn '<dsn printed by the demo>'
+uv run irrevon demo --keep
+uv run irrevon serve --open
 ```
 
-Confirmatory benchmark mode intentionally refuses to run until the human-owned freeze
-registrations verify. Provider adapters also refuse live-mode credentials.
+`irrevon serve` listens only on `127.0.0.1`, implements GET/HEAD only, connects
+as a SELECT-only database role, and returns digests rather than raw upstream
+stable-identifier values. The CLI can reveal those values only through the
+explicit local `irrevon inspect --reveal` option.
 
-## Product surfaces
+[Recorded demo artifacts](site/src/data/demo) ·
+[Getting started](site/src/content/guides/getting-started.md) ·
+[Operations](docs/operations.md) ·
+[Current status](docs/project-status.md) ·
+[Discoverability and launch measurement](docs/discoverability.md)
 
-### CLI and engine
+![Irrevon Workbench showing synthetic effect evidence](site/public/images/workbench-inspect-dark.png)
 
-The Python package is the system of record. It owns identity, transitions, reconciliation,
-adapter registration, migrations, the worker, the benchmark harness, and inspection
-commands.
+The screenshot is generated from schema-validated synthetic fixtures.
 
-### Read-only Workbench
+## The failure Irrevon addresses
 
-`web/` is a React/Vite application for investigating effects and findings. It consumes
-either checked-in fixtures or the loopback read server. It cannot dispatch, reconcile,
-adjudicate, or mutate ledger state.
+```text
+request sent → destination commits → response is lost → caller retries
+```
 
-### Marketing and documentation site
+Ordinary techniques solve adjacent problems but cannot always answer the
+post-crash question:
 
-`site/` is an Astro static site with a drift-gated claims registry, repository-doc mirrors,
-self-hosted search, a recorded interactive demo, source-linked claims, SEO metadata,
-security headers, and automated accessibility checks. Its deployment is intentionally a
-human action.
+- A request hash identifies request bytes, not necessarily one business intent.
+- A fresh UUID changes when an agent reconstructs a tool call.
+- A provider idempotency key helps only when the provider supports it for the
+  operation, retains it long enough, and applies the expected semantics.
+- A durable workflow can retry reliably while still duplicating a C2
+  destination that does not deduplicate.
+- An outbox proves the intent was handed off; it does not prove what an external
+  destination committed after a lost response.
 
-### Benchmark
+Irrevon combines those patterns where useful. It adds stable business-intent
+identity, persist-before-dispatch evidence, explicit ambiguity, and
+capability-bounded destination reconciliation.
 
-The benchmark harness separates public development fixtures from future confirmatory
-evidence, records fault schedules and subject accounting, and cross-checks a destination
-read-back oracle with a causal-history oracle. See [docs/benchmark.md](docs/benchmark.md)
-and the still-draft [preregistration](docs/benchmark-preregistration.md).
+## How it works
+
+```mermaid
+flowchart LR
+    A["Agent proposes an effect"] --> B["Validate stable identity inputs"]
+    B --> C["Persist intent before dispatch"]
+    C --> D["Make one bounded adapter attempt"]
+    D -->|Definite response| E["Record committed or failed outcome"]
+    D -->|Timeout, crash, lost response| F["Preserve AMBIGUOUS"]
+    F --> G["Query authoritative destination state"]
+    G -->|Exactly one found| H["Settle committed with evidence"]
+    G -->|Confirmed absent after bounds| I["Policy-controlled redispatch"]
+    G -->|Unknown or contradictory| J["Park or escalate; never guess"]
+```
+
+Three rules are load-bearing:
+
+1. **Identity comes from stable business facts.** `effect_id` is derived from
+   the RFC 8785 canonical form of `{stable_ids, effect_type, scope}`, not model
+   prose or a regenerated UUID.
+2. **Intent exists before the external effect.** The append-oriented PostgreSQL
+   ledger records the possibility of an effect before an adapter crosses the
+   irreversible boundary.
+3. **The destination is authoritative.** Recovery asks what actually happened
+   when the destination exposes a suitable read path; it does not infer success
+   or safety from a missing response.
+
+## Capability boundary
+
+| Tier | Destination capability | Honest boundary |
+|---|---|---|
+| **C1** | Dependable native idempotency | Use it. Irrevon adds evidence and comparison but pre-commits to no duplicate-prevention advantage. |
+| **C2** | No dependable idempotency, but authoritative status is queryable | Irrevon's primary scope: reconcile before any policy-controlled redispatch. |
+| **C3** | Neither dependable identity nor authoritative query | The outcome may be unknowable for every client-side method; Irrevon preserves that uncertainty. |
+
+Irrevon does **not** guarantee universal exactly-once execution, turn
+compensation into rollback, or make an incapable destination knowable.
+
+## What exists today
+
+| Surface | Implemented | Important limit |
+|---|---|---|
+| Engine | Identity, registrar, append-oriented ledger, gate, dispatcher, reconciliation, recovery, sweep, auditor | One active writer; not a hosted service |
+| Worker | Continuous recovery/reconciliation/sweep loop, writer exclusion, graceful termination, health artifact | Multi-writer leasing and horizontal HA are not implemented |
+| Workbench | Read-only fixture/live evidence UI, causal history, findings, adapter and health views | Loopback-only; no mutations or remote auth |
+| IrrevonBench | Development fixtures, fault schedules, baselines, causal-history oracle, metrics, statistics, integrity refusals | No freeze, confirmatory run, result, or independent reproduction |
+| Adapters | Reference C1/C2/C3 plus draft Stripe C1 and EasyPost C2 code under synthetic transports | Provider drafts are not qualified and reject production credentials |
+| Distribution | Wheel/sdist build, exact-content check, clean-install smoke test | `irrevon` is not published on a package index |
+| Site | Static Astro product/docs build with claims registry and accessibility/link tests | Deployment state is owner-controlled |
+
+The machine-readable source of current release truth is
+[`docs/project-status.json`](docs/project-status.json), checked by
+`make public-truth`.
+
+## Integration model
+
+The Python engine is the authority surface. A host application supplies an
+`IntentContract` containing stable identifiers, effect type, scope, adapter,
+parameters, and upstream authority evidence. The engine:
+
+1. validates and registers the intent;
+2. derives the stable effect identity;
+3. records a gate decision;
+4. claims one dispatch attempt;
+5. records a complete, failed, timeout, or lost receipt;
+6. reconciles ambiguous executions using the adapter declaration.
+
+Start with the [integration guide](site/src/content/guides/integration.md) and
+[adapter-development guide](site/src/content/guides/adapter-development.md).
+Machine-readable contracts live in [`schemas/`](schemas/README.md).
+
+Provider behavior is never inferred from a mock. Declarations distinguish
+cited assumptions, synthetic contract coverage, and future observed evidence.
+Real provider use remains blocked on owner-approved terms review and bounded
+sandbox spikes.
+
+## Evaluated deployment boundary
+
+The implemented components fit a deliberately small self-hosted topology:
+
+```text
+host application → one Irrevon writer/worker → PostgreSQL 17
+                              ↓
+                    configured destinations
+
+operator browser → 127.0.0.1 irrevon serve → SELECT-only ledger session
+```
+
+It is self-hosted, one-active-writer, operator-monitored, and designed for a
+local read-only Workbench. Operators own PostgreSQL backups/PITR, secrets,
+process supervision, capacity, retention, and provider configuration. See
+[operations](docs/operations.md).
+
+This is an evaluated component boundary, not yet a supported production
+deployment profile. The standalone worker has no registration/dispatch ingress;
+an embedded host engine and the worker cannot both own the single-writer lock.
+That topology decision, a fresh-cluster restore proof, durable sweep catch-up,
+and production supervisor/container artifacts must close before production
+support is claimed.
+
+## Benchmark and scientific limits
+
+IrrevonBench is designed to be able to falsify Irrevon's proposed advantage.
+The harness preserves invalid runs, separates subject accounting from scoring,
+cross-checks destination read-back with causal histories, and refuses
+confirmatory mode until machine-verifiable human freezes exist.
+
+Public development fixtures and the flagship demo are **synthetic**. No
+headline result, customer result, provider result, scientific validation,
+independent review, or production evidence exists. Read the
+[benchmark methodology](docs/benchmark.md), [draft preregistration](docs/benchmark-preregistration.md),
+and [publishing policy](bench/PUBLISHING.md).
+
+## Security and privacy
+
+The core threat is false certainty around irreversible effects. Controls
+include:
+
+- persist-before-dispatch ordering and one wire attempt per dispatch claim;
+- strict schemas and unknown-field rejection at trust boundaries;
+- fail-closed response classification and bounded HTTP operations;
+- append-oriented evidence and locked database transition functions;
+- default identifier digestion on the loopback Workbench surface;
+- no CLI telemetry, update checks, crash reporting, or external browser assets;
+- sandbox/test credential gates on draft provider adapters;
+- full-history secret scanning, SHA-pinned Actions, dependency review, and
+  non-publishing release attestations/SBOM preparation.
+
+Do not put production payloads, credentials, or private identifiers in public
+issues or fixtures. Report vulnerabilities privately as described in
+[SECURITY.md](SECURITY.md).
+
+## Contributing
+
+Contributions are welcome under inbound-equals-outbound Apache-2.0 with a
+Developer Certificate of Origin (DCO) 1.1 sign-off on every commit. There is no
+CLA.
+
+```bash
+git commit -s -m "your change"
+make check
+```
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [GOVERNANCE.md](GOVERNANCE.md), and
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Public issue forms distinguish bugs,
+documentation, proposals, questions, and benchmark-integrity concerns.
 
 ## Repository map
 
 ```text
-irrevon/
-├── src/irrevon/          Python engine, CLI, worker, adapters, benchmark harness
-├── migrations/           Plain-SQL ledger schema and locked transition functions
-├── schemas/              Machine-readable trust-boundary contracts
-├── tests/                Unit, property, process, integration, and flagship E2E tests
-├── bench/                Benchmark fixtures, policies, and public development data
-├── web/                  Read-only React/Vite Workbench
-├── site/                 Astro marketing and documentation site
-├── docs/                 Product, RFC, benchmark, operations, CI, and decision records
-├── scripts/              Drift, integrity, packaging, and documentation generators
-├── tasks/                Bounded implementation records
-├── .github/workflows/    CI, nightly, benchmark, sandbox, and release gates
-├── Makefile              Canonical local/CI command surface
-└── AGENTS.md             Repository map and rules for human/agent work
+src/irrevon/       engine, CLI, worker, adapters, benchmark harness
+migrations/        PostgreSQL roles, tables, transitions, and read grants
+schemas/           thirteen machine-readable trust-boundary contracts
+tests/             unit, property, process, integration, security, and E2E
+bench/             synthetic development fixtures and benchmark policies
+web/               React/Vite read-only Workbench
+site/              Astro product and documentation site
+docs/              architecture, operations, benchmark, decisions, roadmap
+scripts/           integrity, privacy, packaging, release, and launch gates
+.github/            CI, security, contribution, and release automation
 ```
 
-The state machine is defined once in `src/irrevon/statetable.py`; database transitions,
-application behavior, schema examples, and tests are checked against that canonical
-definition. The immutable product authority is
-[docs/master-doc.md](docs/master-doc.md), whose hash is pinned and verified.
+The state model is encoded once in `src/irrevon/statetable.py`. The
+hash-pinned [master document](docs/master-doc.md) preserves product authority;
+the [ADR index](docs/decisions/README.md) records decisions; historical task and
+planning records are not required reading for normal use.
 
-## CI/CD and deployment
-
-Every GitHub Actions job body delegates to a named `make` target so local and CI behavior
-stay aligned. The workflow tiers are documented in [docs/ci.md](docs/ci.md):
-
-- pull-request gates validate integrity, Python, schemas, Workbench, site, distribution,
-  and workflow security;
-- nightly jobs run slower reliability and integration checks;
-- benchmark, sandbox, release, and site-deploy paths are fail-closed and human-dispatched;
-- actions are commit-SHA pinned, secrets are scanned, and generated artifacts are
-  drift-checked.
-
-Nothing is automatically published or deployed from an ordinary merge. Postgres is local
-by default. The Workbench is built into a static read surface, the marketing site is a
-static Vercel package, and Python wheel/sdist artifacts are built and smoke-tested but not
-published. Repository settings, credentials, public visibility, live provider calls,
-deployments, preregistration freeze, and releases remain owner-controlled.
-
-## Security model
-
-Irrevon assumes external effects are irreversible and external responses may be missing,
-late, duplicated, or misleading. Important controls include:
-
-- one attempt per adapter dispatch call;
-- fail-closed classification of malformed or ambiguous provider responses;
-- sandbox/test credential prefixes for draft provider adapters;
-- secrets supplied by environment-variable name, never stored values;
-- single-writer advisory locking;
-- append-only evidence and transition enforcement in Postgres;
-- loopback-only read serving with GET/HEAD and a SELECT-only role;
-- dependency and action pinning, secret scanning, workflow linting, and provenance gates.
-
-This is not a security certification. Read [SECURITY.md](SECURITY.md) before reporting a
-vulnerability and [docs/security-policy.md](docs/security-policy.md) for the development
-threat model.
-
-## Scientific and product limits
-
-- The benchmark preregistration is **draft**; no section is frozen.
-- Public benchmark fixtures and disclosed pilot outputs are **developmental/synthetic**.
-- There are **no confirmatory benchmark results** yet.
-- Draft Stripe and EasyPost adapters use synthetic transports and have never been
-  live-called.
-- Multi-worker leasing is designed but not implemented; the shipped worker is
-  single-writer.
-- There is no hosted control plane, SLA, customer claim, pricing, package-index release, or
-  accepted outside contribution path.
-- C1’s expected null and C3’s impossibility result are first-class outcomes, not failures
-  to hide.
-
-The live-provider spikes, independent review, benchmark freeze, name screen, release
-artifacts, and publication sequence are tracked in
-[docs/execution-plan.md](docs/execution-plan.md) and
-[docs/review-queue.md](docs/review-queue.md).
-
-## Licensing
-
-The source tree carries the [Apache License 2.0](LICENSE) and [NOTICE](NOTICE). Apache-2.0
-allows use, modification, and redistribution, including commercially, while requiring
-license/notice preservation and providing an express patent grant. It does **not** prevent
-forks or grant trademark rights.
-
-No outside contributions are accepted while contributor governance remains unresolved.
-Nothing in this repository is legal advice; see [LICENSING.md](LICENSING.md),
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md), and [ASSETS.md](ASSETS.md).
-
-## Validate the repository
+## Development and verification
 
 ```bash
-make tools       # one-time checksum/version-verified tool bootstrap
-make check       # required deterministic repository gate
-make py-check
-make py-test
-make check-all   # complete local ladder
+make check             # deterministic docs, schemas, security, truth, integrity
+make py-check py-test  # lint, types, import boundaries, unit/property tests
+make check-all         # full Python/Postgres/Workbench/site routine ladder
+make dist-smoke        # wheel + sdist exact-content and clean-install proof
+make launch-audit      # non-publishing launch, package, privacy, release audit
 ```
 
-`make check` verifies links, schemas and examples, secret scanning, the master-document
-hash pin, ADR uniqueness, generated-file drift, workflow syntax/security, and
-frozen/append-only rules. See the [CI guide](docs/ci.md) for the full matrix.
+CI maps every job to a named `make` target. Ordinary merges publish and deploy
+nothing. The future release flow requires a human-pushed version tag, protected
+environment approval, tag/version match, full validation, clean builds,
+checksums, SBOM, GitHub attestations, and PyPI Trusted Publishing without a
+long-lived token. See [CI](docs/ci.md) and
+[release process](docs/release-process.md).
 
-## Reading order
+## License
 
-For a complete understanding:
-
-1. [AGENTS.md](AGENTS.md) — source-of-truth map and repository rules.
-2. [docs/master-doc.md](docs/master-doc.md) — product intent, invariants, benchmark design,
-   and canonical decisions.
-3. [docs/rfc-001-first-slice.md](docs/rfc-001-first-slice.md) — first-slice system design.
-4. [docs/rfc-002-engine-design.md](docs/rfc-002-engine-design.md) — state, ledger,
-   reconciliation, and failure mechanics.
-5. [docs/benchmark.md](docs/benchmark.md) — measurement and integrity boundary.
-6. [docs/operations.md](docs/operations.md) — running and operating the worker.
-7. [docs/ci.md](docs/ci.md) — CI/CD and owner-controlled release/deploy paths.
-8. [docs/execution-plan.md](docs/execution-plan.md) — remaining gates.
-9. [docs/decisions/README.md](docs/decisions/README.md) — decision index and open ADRs.
-
-The project’s credibility depends on keeping implemented facts, recorded artifacts,
-proposed designs, and future claims visibly separate.
+Apache License 2.0. See [LICENSE](LICENSE), [NOTICE](NOTICE),
+[LICENSING.md](LICENSING.md), and
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

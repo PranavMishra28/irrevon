@@ -1,7 +1,7 @@
 ---
 id: ADR-0024
 title: "`irrevon serve` — the loopback read-only workbench surface"
-status: accepted (owner serve directive, 2026-07-21 — the same order that lifted BI-4)
+status: accepted (owner serve directive, 2026-07-21); decision item 5 superseded by ADR-0036
 date: 2026-07-21
 supersedes: —
 ---

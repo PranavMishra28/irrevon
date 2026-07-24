@@ -66,10 +66,9 @@ build (`web/`), the marketing site build (`site/`), and the vendored fonts.
 project's own code and content are licensed under Apache-2.0 (ADR-0028; see
 LICENSE, NOTICE, and LICENSING.md). Third-party redistribution obligations remain
 separate from that project license and attach when covered artifacts are
-redistributed. At first project release this file gains the full license texts
-required by the MIT/ISC/BSD notice clauses; until then it is the committed,
-drift-gated inventory (the reviewable registry the release-time SBOM is checked
-against).
+redistributed. Exact upstream license files for every production package
+bundled into the Workbench are committed in `THIRD-PARTY-LICENSES.md` and
+regenerated from the frozen pnpm production graph during the release dry run.
 
 Dev/test dependencies (sections 5a/5b) are never distributed and appear for
 SBOM completeness only. MPL-2.0 items (hypothesis, pathspec, @axe-core/playwright)

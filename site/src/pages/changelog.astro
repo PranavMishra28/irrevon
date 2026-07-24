@@ -2,7 +2,8 @@
 // Changelog — computed from git tags at build time, never hand-authored.
 // Zero tags exist today, so the page renders a derived empty state: the
 // build proves the emptiness instead of asserting it. When tags exist,
-// entries render from tag name + date + annotation; the tag is the record.
+// entries render from version-shaped annotated tags only; preregistration,
+// benchmark, and lightweight tags are not releases.
 import { execSync } from "node:child_process";
 import Base from "../layouts/Base.astro";
 import Source from "../components/Source.astro";
@@ -10,6 +11,7 @@ import { SITE_NAME, repoDoc } from "../config";
 import { href } from "../lib/url";
 
 interface TagEntry {
+  objectType: string;
   tag: string;
   date: string;
   subject: string;
@@ -17,29 +19,40 @@ interface TagEntry {
 
 // The build already shells to git for the repository URL (astro.config.mjs);
 // reading tags is the same trust level.
-const raw = execSync("git tag --list --sort=-creatordate --format='%(refname:short)\t%(creatordate:short)\t%(subject)'", {
-  encoding: "utf8",
-}).trim();
+const raw = execSync(
+  "git tag --list --sort=-creatordate --format='%(objecttype)\t%(refname:short)\t%(creatordate:short)\t%(subject)'",
+  {
+    encoding: "utf8",
+  },
+).trim();
 const tags: TagEntry[] = raw
-  ? raw.split("\n").map((line) => {
-      const [tag, date, subject] = line.split("\t");
-      return { tag, date: date ?? "", subject: subject ?? "" };
-    })
+  ? raw
+      .split("\n")
+      .map((line) => {
+        const [objectType, tag, date, subject] = line.split("\t");
+        return { objectType, tag, date: date ?? "", subject: subject ?? "" };
+      })
+      .filter(
+        ({ objectType, tag }) =>
+          objectType === "tag" &&
+          /^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/.test(tag),
+      )
   : [];
 const checkedAt = new Date().toISOString().slice(0, 10);
 ---
 
 <Base
   title={`Changelog — ${SITE_NAME}`}
-  description="Releases, derived from git tags at build time. No releases exist yet — the empty state is computed, not written, and the first entry appears with the first signed tag."
+  description="Releases, derived from annotated version tags at build time. No releases exist yet — the empty state is computed, not written, and the first entry appears with the first validated release tag."
 >
   <section class="section">
     <div class="container">
       <span class="kicker">Changelog</span>
       <h1>Releases, derived from the repository</h1>
       <p class="lead" style="margin-top: 18px; max-width: 64ch;">
-        This page is computed from <code>git tag --list</code> at build time. No entry is ever hand-authored:
-        the signed tag is the record, and until one exists there is nothing to list — shown, not hidden.
+        This page is computed from annotated <code>vMAJOR.MINOR.PATCH</code> tags at build time. No entry is
+        ever hand-authored: the validated release tag is the record, and until one exists there is nothing
+        to list — shown, not hidden.
       </p>
     </div>
   </section>
@@ -54,12 +67,15 @@ const checkedAt = new Date().toISOString().slice(0, 10);
             </p>
             <h2>No releases yet.</h2>
             <p class="empty-body">
-              This project is pre-release: no tag, no package, no release artifact has been published. The
-              first entry appears here when the first signed tag exists — and creating it is human-gated
-              behind the public-release gate: external clearances, the counsel name screen, and a
-              sanitization review (the licensing decision is closed — Apache-2.0, ADR-0028).
+              This project is pre-release: no release tag, package, or release artifact has been published.
+              The first entry appears here when the first validated annotated release tag exists — and
+              creating it is owner-gated behind the public-release gate: external clearances, the counsel
+              name screen, and a sanitization review (the licensing decision is closed — Apache-2.0,
+              ADR-0028).
             </p>
-            <p class="empty-derived mono-chip">derived from `git tag --list` at build · 0 tags · checked {checkedAt}</p>
+            <p class="empty-derived mono-chip">
+              derived from annotated version tags at build · 0 releases · checked {checkedAt}
+            </p>
             <div class="empty-links">
               <a href={href("/roadmap/")}>What has to happen first → the roadmap</a>
               <a href={repoDoc("docs/execution-plan.md")}>The public-release gate (execution plan)</a>
@@ -107,6 +123,8 @@ const checkedAt = new Date().toISOString().slice(0, 10);
   }
   .empty-derived {
     margin-top: 4px;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
   .empty-links {
     display: grid;

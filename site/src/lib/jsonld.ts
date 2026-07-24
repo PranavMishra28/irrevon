@@ -7,31 +7,22 @@ import { SITE_NAME, REPO_URL, repoDoc } from "../config";
 
 type JsonLd = Record<string, unknown>;
 
-export const softwareSourceCode = (siteUrl: URL): JsonLd => ({
+export const softwareSourceCode = (siteUrl: URL, description: string): JsonLd => ({
   "@context": "https://schema.org",
   "@type": "SoftwareSourceCode",
   name: SITE_NAME,
-  description:
-    "A planned benchmark and reference reconciliation engine for irreversible AI-agent actions. Pre-release, Apache-2.0-licensed open research.",
+  description,
   codeRepository: REPO_URL,
   license: repoDoc("LICENSE"),
   programmingLanguage: "Python",
   url: siteUrl.toString(),
 });
 
-export const webSite = (siteUrl: URL, searchUrl: URL): JsonLd => ({
+export const webSite = (siteUrl: URL): JsonLd => ({
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: SITE_NAME,
   url: siteUrl.toString(),
-  potentialAction: {
-    "@type": "SearchAction",
-    target: {
-      "@type": "EntryPoint",
-      urlTemplate: `${searchUrl}?q={search_term_string}`,
-    },
-    "query-input": "required name=search_term_string",
-  },
 });
 
 export const article = (opts: { title: string; description: string; url: URL; datePublished: string }): JsonLd => ({
@@ -41,7 +32,6 @@ export const article = (opts: { title: string; description: string; url: URL; da
   description: opts.description,
   url: opts.url.toString(),
   datePublished: opts.datePublished,
-  author: { "@type": "Person", name: `${SITE_NAME} maintainer` },
 });
 
 export const techArticle = (opts: { title: string; description: string; url: URL }): JsonLd => ({

@@ -2,8 +2,8 @@
 title: "Security policy — development process"
 description: "The development threat model and agent execution policy: what agents may do, what is human-only, and the enforcement layers."
 sourcePath: "docs/security-policy.md"
-sourceSha256: "19063d1537dbc3c66297ed5dc5145e666c33939da806167d56a84d5c7a43cdca"
-syncedAt: "2026-07-22"
+sourceSha256: "cb8aab7191126c468c243c57c0232ca1f0360e3e21c605165a7b842a2e874d2d"
+syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
 ---
@@ -60,9 +60,14 @@ project's benchmark-integrity reputation.
 in this repository. These layers are containment for a well-meaning-but-injected agent, not
 a boundary against a determined adversary. The controls that actually hold are outside the
 repo: human review of every diff before push, a fine-grained PAT scoped to this single
-repository, server-side rulesets/branch protection (free on public repositories —
-human-only settings change, pending), and mirroring the deny hook in the user-level
+repository, server-side rulesets/branch protection, and mirroring the deny hook in the user-level
 `~/.cursor/hooks.json` (repo files cannot remove user-level hooks).
+
+Repository-setting read-back on 2026-07-24 found secret scanning, push
+protection, CodeQL for Python and JavaScript/TypeScript, and the `ci-required`
+ruleset active. Non-provider-pattern scanning, platform Actions
+allowlisting/SHA-pin enforcement, and removal of the ruleset's repository-role
+bypass remain owner actions.
 
 ## Fork pull requests and CI (public repo)
 
@@ -76,8 +81,10 @@ convenience:
 - Sandbox credentials (when they ever exist) live only in a protected environment used by
   a tag-bound, manually dispatched workflow after required review — never as repo-level
   secrets readable by arbitrary workflows.
-- Enable the now-free public-repo services (human, settings): **secret scanning + push
-  protection**, CodeQL default setup, and rulesets enforcing required checks.
+- Keep the enabled public-repo services active: **secret scanning + push
+  protection**, CodeQL default setup, and the ruleset enforcing `ci-required`.
+  Before launch, the owner must enable non-provider patterns and platform
+  Actions SHA-pin/allowlist enforcement and remove the ruleset bypass actor.
 - No comment-consuming automation (auto-triage loops, bot-driven fix loops) until
   untrusted-input handling is audited; any review-bot autofix stays OFF.
 
@@ -103,14 +110,22 @@ deliberate human act. This is policy, not repo-enforceable.
   store — never in any committed file, example, or log. Placeholders in examples.
 - **Scanning layers:** the gitleaks pre-commit hook (pinned to a full commit SHA in
   `.pre-commit-config.yaml` — a mutable tag must not select the scanner), `make secrets`
-  (working tree + history), and — once enabled in settings (human) — GitHub secret scanning
-  with push protection, free on public repositories. Never bypass any layer; false
+  (working tree + history), plus GitHub secret scanning with push protection
+  (enabled; read back 2026-07-24). Never bypass any layer; false
   positives get a narrow `.gitleaks.toml` allowlist entry, never a skip.
 - **Local tool supply chain:** `make tools` installs via Homebrew and then runs
   `make tools-check`, which fails on any drift from the tested versions pinned in the
-  Makefile. This is version-pinning, not checksum-pinning — the checksum-verified
-  installer is a CI-workstream deliverable; until then the enforcing local control is the
-  version check plus the SHA-pinned pre-commit scanner.
+  Makefile. That local path is version-pinned rather than checksum-pinned. The existing
+  checksum-verified bootstrap, `scripts/bootstrap-tools.sh`, installs the pinned standalone
+  tools used by CI and the release workflow; the SHA-pinned pre-commit scanner remains a
+  separate local layer.
+- **Automated scan boundary and historical exposure:** gitleaks and
+  `scripts/check-public-data.py` check defined secret, credential-bearing DSN, machine-path,
+  environment-file, and media-metadata patterns in their documented scopes. They are not
+  semantic PII detectors and do not prove the absence of all historical PII.
+  Pre-redaction personal prose remains reachable in the public Git history. No automated
+  result should call that history PII-free; accepting that exposure or coordinating a
+  human-only history rewrite is an explicit owner decision.
 - Incident basics: on any suspected exposure — stop, preserve evidence, rotate the
   credential, record the incident. Rotation is never deferred to "after the task".
 
@@ -126,8 +141,10 @@ attempted injections. Never pipe downloaded content into a shell.
 - [ ] Close DE-1 — the development-environment migration (review-queue §3, top priority).
 - [ ] Fine-grained GitHub PAT scoped to this repo only, used for all agent `gh` operations;
       a separate **read-only** PAT for any MCP configuration.
-- [ ] Enable secret scanning + push protection; enable CodeQL default setup; configure
-      rulesets/required checks (all free on the public repo).
+- [x] Secret scanning + push protection, CodeQL default setup, and the
+      `ci-required` ruleset are enabled (read back 2026-07-24).
+- [ ] Enable non-provider secret patterns and the Actions allowlist/SHA-pin
+      setting; remove the active ruleset's repository-role bypass actor.
 - [ ] Mirror `deny.sh` registration in user-level `~/.cursor/hooks.json`.
 - [ ] `pre-commit install`; run `gitleaks git -v .` once after any scanner version bump.
 - [ ] 2FA + offline recovery codes on the GitHub account.
@@ -152,15 +169,21 @@ ADR-0034 PR). Applied here; owner-only settings stay on the human checklist.
   fuzz harnesses below); RV.1/RV.2 (SECURITY.md intake + advisory path).
   Organization-level PO practices do not apply to a solo project and are not
   claimed.
-- **SLSA posture** `[VF]`: the prepared (disabled) release pipeline's
-  `attest-build-provenance` step yields SLSA v1.0 **Build L2** when it first
-  runs on a GitHub-hosted runner; Build L3 requires the reusable-workflow
+- **SLSA posture** `[VF]`: the release workflow is active but human-gated.
+  Pull requests and manual dispatches run only its non-publishing dry run.
+  Only an owner-pushed annotated version tag in the canonical repository may
+  enter tagged validation and attestation; it can reach protected publication
+  only after the owner configures the release environment and publisher
+  binding. When it first runs on a GitHub-hosted runner, the
+  `attest-build-provenance` step yields SLSA v1.0 **Build L2**; Build L3
+  requires the reusable-workflow
   separation and is a post-first-release upgrade path. No level is claimed
   until an artifact exists.
 - **Dependency review** `[DD]`: `actions/dependency-review-action` (v5,
   SHA-pinned, `contents: read`) fails PRs that introduce known-vulnerable
-  dependencies; deliberately outside the `ci-required` aggregator (it exists
-  only on pull_request events — the pending-forever trap).
+  dependencies. It exists only on `pull_request` events, is included in
+  `ci-required.needs`, and is required by the aggregator on pull requests;
+  push events legitimately skip it.
 - **Fuzzing** `[DD]`: Hypothesis-driven fuzz harnesses cover the two parser
   trust boundaries — intent-contract validation (arbitrary JSON must produce
   `ContractInvalid` or a valid contract, never a crash or a bypass) and JCS

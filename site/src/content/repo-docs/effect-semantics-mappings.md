@@ -2,8 +2,8 @@
 title: "Effect-semantics mappings — declarations over existing protocols"
 description: "How Irrevon's capability declaration projects onto MCP, A2A, OpenAPI, HTTP, and ACP — and where those protocols carry no effect semantics at all."
 sourcePath: "docs/effect-semantics-mappings.md"
-sourceSha256: "e4492a9b34bc737f2f393c0e41f059f22d551b5e95d087cc8cdc5e313007df64"
-syncedAt: "2026-07-22"
+sourceSha256: "4548f6b8e539684238f230a01737ce19f89e0775da44cbef84697c00d6c3a856"
+syncedAt: "2026-07-24"
 section: "Benchmark"
 renderTitle: false
 ---
@@ -19,8 +19,10 @@ Irrevon's [capability declaration](../schemas/capability-declaration.schema.json
 stays the internal contract; this annex documents how it projects onto the
 protocols agents actually use, and where those protocols carry nothing at all.
 The declaration's differentiator is not the vocabulary — it is that
-declarations are **empirically verified** (`irrevon bench conform`,
-declared-vs-observed probes) rather than self-asserted.
+declarations are designed to be **empirically checked** (`irrevon bench conform`,
+declared-vs-observed probes) rather than self-asserted. Current conformance
+evidence covers only reference/synthetic destinations; provider drafts remain
+unobserved.
 
 Facts verified against primary specs, 2026-07-22. Epistemic labels per master
 doc §0.

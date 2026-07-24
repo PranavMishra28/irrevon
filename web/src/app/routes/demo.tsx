@@ -70,7 +70,7 @@ function DemoPage() {
   return (
     <Page
       title="Demo"
-      lead="Guided replay of a recorded flagship run: a response lost, a real SIGKILL, recovery by query, and a re-synthesized retry denied with evidence — beside the strongest conventional baseline under the identical fault schedule."
+      lead="Guided replay of a recorded flagship run: a response lost, a real SIGKILL, recovery by query, and a re-synthesized retry denied with evidence — beside the developmental B5 file-journal stand-in under the identical fault schedule."
     >
       {artifact.isPending ? (
         <div className="min-h-64" aria-busy="true" />

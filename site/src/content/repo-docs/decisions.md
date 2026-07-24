@@ -2,8 +2,8 @@
 title: "Decision records — index and policy"
 description: "The append-only ADR index and policy. If a decision is not in the index, it has not been made."
 sourcePath: "docs/decisions/README.md"
-sourceSha256: "7144fe494f44e3dbcdb767c393ef6069292a111b095bda44967be1a052d63be9"
-syncedAt: "2026-07-22"
+sourceSha256: "7b441944253f7a1ab173c004ae437cc57ed4a8f0749d5e35fd879371a17809af"
+syncedAt: "2026-07-24"
 section: "Decisions"
 renderTitle: false
 ---
@@ -19,7 +19,7 @@ drift (split-brain). Files exist only for decisions that are **OPEN** (still bei
 **NEW** (not in §11). When a §11 decision is superseded or reopened, a full ADR file is
 created *then*, per §12.5/§17 — which is when append-only file history becomes necessary.
 
-## Index (complete: 0000–0034)
+## Index (complete: 0000–0037)
 
 | ADR | Title | Status | Canonical text |
 |---|---|---|---|
@@ -37,7 +37,7 @@ created *then*, per §12.5/§17 — which is when append-only file history becom
 | 0011 | Working name "Detent" | **superseded by ADR-0023** (screen fired its reopen trigger) | master doc §11 |
 | 0012 | C2 sandbox selection | **OPEN** | [0012-c2-sandbox.md](0012-c2-sandbox.md) |
 | 0013 | Implementation language and stack | accepted (ratified 2026-07-21) | [0013-implementation-language.md](0013-implementation-language.md) |
-| 0014 | Licensing and contributor governance | license half resolved by ADR-0028 (Apache-2.0, owner ratification 2026-07-21); contributor-governance half **OPEN** | [0014-licensing.md](0014-licensing.md) |
+| 0014 | Licensing and contributor governance | **superseded in full:** license half by ADR-0028; contributor-governance half by ADR-0035 | [0014-licensing.md](0014-licensing.md) |
 | 0015 | Schema dialect and validation tooling | accepted (countersign requested, review-queue §3) | [0015-schema-validation-tooling.md](0015-schema-validation-tooling.md) |
 | 0016 | Frontend workbench stack (Vite SPA + TanStack) | accepted (ratified 2026-07-21) | [0016-frontend-workbench-stack.md](0016-frontend-workbench-stack.md) |
 | 0017 | Build orchestration (plain Make over uv/pnpm) | accepted (ratified 2026-07-21) | [0017-build-orchestration.md](0017-build-orchestration.md) |
@@ -47,7 +47,7 @@ created *then*, per §12.5/§17 — which is when append-only file history becom
 | 0021 | Record schemas admitted at M3 (ADR-0019 criteria) | **proposed** | [0021-record-schemas-admission.md](0021-record-schemas-admission.md) |
 | 0022 | Migration runner (in-package plain-SQL, hash journal) | **proposed** | [0022-migration-runner.md](0022-migration-runner.md) |
 | 0023 | Rename: Detent → Irrevon; DetentBench → IrrevonBench | accepted (owner written directive 2026-07-21; supersedes ADR-011) | [0023-rename-to-irrevon.md](0023-rename-to-irrevon.md) |
-| 0024 | `irrevon serve` — loopback read-only workbench surface | accepted (owner serve directive 2026-07-21) | [0024-serve-read-surface.md](0024-serve-read-surface.md) |
+| 0024 | `irrevon serve` — loopback read-only workbench surface | accepted; stable-identifier exposure item superseded by ADR-0036 | [0024-serve-read-surface.md](0024-serve-read-surface.md) |
 | 0025 | Marketing site + discovery surface (`site/`), deploy gated | accepted (owner rebuild directive 2026-07-21); deploy mechanics (items 4–5) superseded by ADR-0027 | [0025-site-discovery-surface.md](0025-site-discovery-surface.md) |
 | 0026 | Sanitization supersession of ADR-0000's non-goals wording | **proposed** (owner countersign required) | [0026-scope-freeze-wording-sanitization.md](0026-scope-freeze-wording-sanitization.md) |
 | 0027 | Site hosting — Vercel at the origin root (retires the Pages plan) | accepted (owner deploy directive 2026-07-21; supersedes ADR-0025 items 4–5) | [0027-site-vercel-deploy.md](0027-site-vercel-deploy.md) |
@@ -58,6 +58,9 @@ created *then*, per §12.5/§17 — which is when append-only file history becom
 | 0032 | Causal effect histories + checker, capability conformance verification, oracle attribution hardening | **proposed** (owner follow-on directive 2026-07-22) | [0032-causal-histories-and-conformance.md](0032-causal-histories-and-conformance.md) |
 | 0033 | Machine-verifiable freeze registrations; adapter attribution declarations; site build provenance | **proposed** (owner completion directive 2026-07-22) | [0033-verifiable-freeze-and-attribution-declarations.md](0033-verifiable-freeze-and-attribution-declarations.md) |
 | 0034 | Continuous worker service; provider-adapter framework (Stripe/EasyPost drafts); multi-worker + Temporal-baseline designs | **proposed** (owner completion directive 2026-07-22) | [0034-continuous-worker-and-provider-adapters.md](0034-continuous-worker-and-provider-adapters.md) |
+| 0035 | External contributions — Apache-2.0 inbound=outbound, mandatory DCO, no CLA | accepted (owner launch directive 2026-07-23; resolves ADR-0014's contributor-governance half) | [0035-external-contributions.md](0035-external-contributions.md) |
+| 0036 | Loopback evidence privacy — digest stable identifier values by default | accepted (owner launch directive 2026-07-23; supersedes ADR-0024 decision item 5) | [0036-loopback-evidence-privacy.md](0036-loopback-evidence-privacy.md) |
+| 0037 | Intent input resource bounds and JCS-domain refusal | accepted (owner launch security directive 2026-07-23) | [0037-intent-resource-bounds.md](0037-intent-resource-bounds.md) |
 
 ## Policy
 

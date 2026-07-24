@@ -3,9 +3,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
-import { PAGES } from "./pages";
+import { ALL_PAGES, DOCS_PAGES } from "./pages";
 
-for (const path of PAGES) {
+for (const path of ALL_PAGES) {
   for (const theme of ["light", "dark"] as const) {
     test(`axe: ${path} [${theme}]`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: theme });
@@ -121,12 +121,27 @@ test("forced colors: critical controls retain boundaries, state, and focus", asy
 });
 
 test("keyboard: nav links and theme toggle are reachable and operable", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
   const toggle = page.locator("#theme-toggle");
   await expect(toggle).toBeVisible();
+  await expect(toggle).toHaveAttribute("aria-label", "Switch to dark theme");
   await toggle.focus();
   await page.keyboard.press("Enter");
-  await expect(page.locator("html")).toHaveAttribute("data-theme", /dark|light/);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(toggle).toHaveAttribute("aria-label", "Switch to light theme");
+});
+
+test("responsive: docs never widen the page at the minimum supported viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  for (const path of DOCS_PAGES) {
+    await page.goto(path);
+    const viewport = await page.evaluate(() => ({
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+    expect(viewport.scrollWidth, `${path} widened the 320px viewport`).toBeLessThanOrEqual(viewport.clientWidth);
+  }
 });
 
 test("reduced motion: pages render with reduce preference", async ({ page }) => {
