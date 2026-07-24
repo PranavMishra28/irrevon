@@ -59,7 +59,8 @@ assert by["serve_ready"]["status"] == "ok", by["serve_ready"]  # wheel embeds _w
 PY
 
 echo "== journey: demo --jsonl (writes the artifact)"
-"$IRV" demo --jsonl --keep --artifact ./irrevon-demo-artifact.json >demo.jsonl
+IRREVON_MIGRATION_DSN="$ADMIN_DSN" \
+  "$IRV" demo --jsonl --keep --artifact ./irrevon-demo-artifact.json >demo.jsonl
 python3 - <<'PY'
 import json
 lines = [json.loads(l) for l in open("demo.jsonl") if l.strip()]

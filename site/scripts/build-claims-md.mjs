@@ -24,10 +24,12 @@ const badgeText = {
 const esc = (s) => s.replaceAll("|", "\\|").replaceAll("\n", " ");
 
 const rows = Object.entries(claims)
-  .map(
-    ([id, c]) =>
-      `| \`${id}\` | ${esc(c.claim)} | ${esc(c.source)} | \`[${c.label}]\` | ${c.badge ? badgeText[c.badge] : "—"} |`,
-  )
+  .map(([id, c]) => {
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) {
+      throw new TypeError(`claims-md: claim id cannot form a stable anchor: ${id}`);
+    }
+    return `| <a id="claim-${id}" name="claim-${id}"></a>\`${id}\` | ${esc(c.claim)} | ${esc(c.source)} | \`[${c.label}]\` | ${c.badge ? badgeText[c.badge] : "—"} |`;
+  })
   .join("\n");
 
 const doc = `# Site claims registry

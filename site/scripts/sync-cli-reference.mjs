@@ -24,7 +24,22 @@ const repoRoot = join(siteRoot, "..");
 const outFile = join(siteRoot, "src", "content", "guides", "cli-reference.md");
 const check = process.argv.includes("--check");
 
-const SUBCOMMANDS = ["init", "doctor", "demo", "inspect"];
+const COMMANDS = [
+  ["init"],
+  ["doctor"],
+  ["demo"],
+  ["serve"],
+  ["worker"],
+  ["inspect"],
+  ["bench"],
+  ["bench", "fixtures"],
+  ["bench", "validate"],
+  ["bench", "smoke"],
+  ["bench", "conform"],
+  ["bench", "analyze"],
+  ["bench", "run"],
+  ["bench", "freeze"],
+];
 const sha256 = (text) => createHash("sha256").update(text).digest("hex");
 
 function capture(args) {
@@ -38,9 +53,10 @@ function capture(args) {
 
 function buildBody() {
   const top = capture(["--help"]);
-  const sections = SUBCOMMANDS.map((sub) => {
-    const text = capture([sub, "--help"]);
-    return `## \`irrevon ${sub}\`\n\n\`\`\`text\n${text}\n\`\`\``;
+  const sections = COMMANDS.map((command) => {
+    const text = capture([...command, "--help"]);
+    const invocation = command.join(" ");
+    return `## \`irrevon ${invocation}\`\n\n\`\`\`text\n${text}\n\`\`\``;
   });
   return [
     "Captured verbatim from the CLI's own `--help` output — the engine is the",

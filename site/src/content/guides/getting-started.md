@@ -1,6 +1,6 @@
 ---
 title: "Getting started"
-description: "From clone to the recorded flagship demo in about five minutes: uv, Docker, irrevon init, doctor, and the two-leg demo run."
+description: "From clone to the recorded flagship demo: uv, Docker, irrevon init, doctor, and the two-leg demo run."
 order: 1
 badge: "recorded"
 claims:
@@ -11,15 +11,15 @@ claims:
 ---
 
 Irrevon is pre-release: nothing is on a package index; the repository is licensed
-Apache-2.0 (ADR-0028). The only install path today is a clone — and that is a
-five-minute path, with a deterministic demo at the end of it. Planned distribution is
-documented on the [install page](/install/), future tense.
+Apache-2.0. The only install path today is a clone, with a deterministic demo at the
+end of it. Planned distribution is documented on the [install page](/install/), future
+tense.
 
 ## Prerequisites
 
 - [uv](https://docs.astral.sh/uv/) — resolves the pinned toolchain and dependencies from `uv.lock`.
 - Docker — runs a local, digest-pinned Postgres 17 on loopback. Nothing else.
-- About five minutes.
+- Git.
 
 Irrevon makes no network connections except to the destinations you configure and your
 own Postgres: no telemetry, no crash reporting, no update checking.
@@ -45,13 +45,23 @@ discipline.
 ## Verify the environment
 
 ```bash
-uv run irrevon doctor           # read-only checks incl. the identity self-test
+uv run irrevon doctor           # non-destructive checks; includes a rolled-back write probe
 ```
 
-`doctor` is read-only: it validates the database roles, the migration journal, and runs
+`doctor` is non-destructive, but it is not strictly read-only: it validates the database
+roles and migration journal, performs a rolled-back temporary-table write probe, and runs
 the identity self-test (the same derivation the conformance suite property-tests). If a
-check fails, the message tells you exactly which layer to fix — a stale pre-rename
-database, for instance, is cured by `docker compose down -v && uv run irrevon init`.
+check fails, the message tells you exactly which layer to fix. For a stale pre-rename
+database, the following reset deletes the disposable local PostgreSQL volume before
+restarting PostgreSQL and initializing it again:
+
+```bash
+docker compose down -v
+docker compose up -d --wait
+uv run irrevon init
+```
+
+Do not use this destructive reset against a volume containing data you need to keep.
 
 ## Run the flagship demo
 
@@ -61,9 +71,10 @@ uv run irrevon demo             # the two-leg flagship story
 
 The demo runs the same fault schedule twice — a lost dispatch response, a real SIGKILL,
 and a re-synthesized retry — once through the Irrevon engine and once through a
-developmental file-journal operationalization of B5 semantics (durable retry,
-stable operation IDs, idempotency keys sent), both against the reference C2
-destination. A real Temporal comparator remains a Stage-B prerequisite.
+developmental file-journal durable-runtime comparison (benchmark arm B5: durable retry,
+stable operation IDs, idempotency keys sent), both against the queryable reference
+destination (tier C2). A real Temporal comparator remains a prerequisite for the
+operational freeze (Stage B).
 
 ## What you should see
 
@@ -81,10 +92,10 @@ Irrevon leg
   resynthesis_collapsed       replayed true (same identity, different wording)
   duplicate_rejected          denied · deny_check dedup · decision_id 2
 
-B5 contrast leg (identical fault schedule)
+Durable-runtime contrast leg (benchmark arm B5; identical fault schedule)
   b5_response_lost            transport_outcome LOST
   b5_restart                  durable runtime restarts the workflow
-  b5_retried                  key sent — the C2 destination ignores it
+  b5_retried                  key sent — the queryable tier-C2 destination ignores it
   b5_duplicate                destination_effects 2
 ```
 

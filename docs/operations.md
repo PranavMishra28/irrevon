@@ -26,6 +26,47 @@ every secret — config carries **names**, never values; provider adapters
 refuse to construct without their credential variable and refuse
 non-sandbox/test key prefixes outright.
 
+## Runnable synthetic worker exercise
+
+This source-only smoke exercise starts the deterministic C2 reference
+destination and runs three real worker cycles. It makes no provider call and is
+not production evidence. Complete the README quickstart first so PostgreSQL is
+running and migrations are current.
+
+Add the reference adapter to the generated `irrevon.toml`:
+
+```toml
+[adapters.refdest-c2]
+kind = "refdest"
+```
+
+In terminal 1, start the loopback-only synthetic destination on a known port:
+
+```bash
+uv run python -m irrevon.adapters.refdest_server \
+  --port 5181 --seed 11 --profile C2
+```
+
+Wait for `REFDEST READY 5181`. In terminal 2, run a bounded worker:
+
+```bash
+IRREVON_REFDEST_URL=http://127.0.0.1:5181 \
+  uv run irrevon worker \
+    --interval 1 \
+    --sweep-interval 2 \
+    --health-file .scratch/worker-health.json \
+    --max-cycles 3
+
+uv run python -m json.tool .scratch/worker-health.json
+```
+
+The worker emits `worker.started`, three `worker.cycle` events, and
+`worker.completed`; the health document ends at cycle 3. With no queued intent,
+the gauges remain empty—this proves process wiring, writer ownership, sweep
+scheduling, structured events, and health freshness, not recovery efficacy.
+Use the README's faulted demo for the end-to-end evidence path. Stop terminal 1
+with Ctrl-C.
+
 ## Health, liveness, readiness
 
 - **Worker liveness**: `--health-file /path/health.json` is rewritten every

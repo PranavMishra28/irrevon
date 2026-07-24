@@ -2,7 +2,7 @@
 title: "CI — how this repository builds"
 description: "The CI workflow map: tiers, required checks, owner settings checklist, and local parity via make targets."
 sourcePath: "docs/ci.md"
-sourceSha256: "c2a54036554d285acf38b653690d204ee34dc26b779029678f0ad7a0bd1b1d72"
+sourceSha256: "07d122aefa2ed78abc3a835f1879b1a58e55e45a4c2bd1670fdb83db837c492d"
 syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
@@ -24,9 +24,9 @@ that date.
 | [`nightly.yml`](../.github/workflows/nightly.yml) | cron 09:17 UTC + dispatch | Full local gate on a clean machine + online audits (external links, networked zizmor); grows the T3 suites at M3+; files/updates one title-deduplicated nightly-failure issue on red | active |
 | [`sandbox.yml`](../.github/workflows/sandbox.yml) | `workflow_dispatch` only | T4 sandbox contracts — fail-closed skeleton, gated by the `sandbox` environment; every dispatch is deliberately red until human M4 activation | skeleton (always refuses) |
 | [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | IrrevonBench preregistered runs — fail-closed skeleton, gated by the `benchmark` environment; every dispatch is deliberately red until human Stage-B activation | skeleton (always refuses) |
-| [`release.yml`](../.github/workflows/release.yml) | PR + manual dry run; canonical `vMAJOR.MINOR.PATCH` tag | Non-publishing artifact dry run on PRs; clean tagged build, exact version/content/smoke gates, checksums, lock-aware SPDX SBOM, artifact attestation, then protected-environment PyPI/GitHub publication | prepared; no release exists |
+| [`release.yml`](../.github/workflows/release.yml) | PR + manual dry run; canonical `vMAJOR.MINOR.PATCH` tag | Non-publishing artifact dry run on PRs; clean tagged build, exact HEAD/tag/current-main identity, Node-24/content/renderer-hash/smoke gates, checksums, lock-aware SPDX SBOM, artifact attestation, then protected-environment PyPI/GitHub publication | prepared; no release exists |
 | [`scorecard.yml`](../.github/workflows/scorecard.yml) | main/protection change + weekly | OpenSSF Scorecard evidence and SARIF upload | active |
-| [`dependabot.yml`](../.github/dependabot.yml) | monthly | Five noise-contained update lanes (actions / uv / web npm / site npm / Docker), one PR per lane, with release-age cooldowns and grouped updates | active |
+| [`dependabot.yml`](../.github/dependabot.yml) | monthly routine + prompt security | One multi-ecosystem routine PR across Actions, uv, web npm, site npm, and Docker; security remediation remains grouped per ecosystem | active |
 
 ## Tier table — what runs when
 
@@ -48,7 +48,7 @@ that date.
 | wheel smoke | `wheel-smoke` (nightly) | cron | `make dist-smoke` (= `make dist` + the Node-less container smoke; ADR-0018 chain, wheel + sdist legs) | active — nightly, not PR: needs docker + a second full web build + wheel build; the PR-side integration truth is `web-e2e-live` |
 | T4 sandbox | `sandbox-contract` (sandbox) | human dispatch + env approval | Today: exactly `make sandbox-stage-m4`, whose reserved recipe unconditionally refuses. M4 activation must replace it with the reviewed credentialed contract recipe | skeleton (always refuses) |
 | benchmark | `bench` (benchmark) | human dispatch + env approval | Today: exactly `make benchmark-stage-b`, whose reserved recipe unconditionally refuses. M7 activation must replace it with the complete preregistered, cache-free, sanitized-evidence recipe | skeleton (always refuses) |
-| package release | `dry-run` / `validate-build` / `build-attest` / publish jobs (release) | PR/manual is non-publishing; canonical version tag only for publication | `make launch-audit` + release dry run; privileged attestation/publish jobs download validated artifacts and never execute repository code | prepared; protected `release` environment and publisher binding are owner gates |
+| package release | `dry-run` / `validate-build` / `build-attest` / publish jobs (release) | PR/manual is non-publishing; canonical version tag only for publication | locked Python validators + `make launch-audit` + Node-24 release dry run; privileged attestation/publish jobs download validated artifacts and never execute repository code | prepared; protected `release` environment and publisher binding are owner gates |
 
 The local `make check-all` ladder includes `web-check`, `web-test`, and `web-e2e`; F4
 pixel baselines remain the explicit container-only `make web-vrt` gate. The bench
@@ -107,26 +107,72 @@ not a successful benchmark.
 
 `[DD]` Pull requests and manual dispatches can only run the non-publishing dry
 run. Publication requires a canonical-repository tag that exactly matches a
-non-development package version. Repository code runs only in an unprivileged
-validation job; a separate job downloads those artifacts to request GitHub
-attestations. PyPI and GitHub publication are separate least-privilege jobs
-behind the owner-created and protected `release` environment. No long-lived
-publishing token is accepted. The workflow is prepared but has never produced a
-release or attestation; setup and execution remain the owner actions in
+non-development package version and whose peeled commit exactly equals current
+`origin/main` and checked-out `HEAD`; merely being an ancestor of main is
+insufficient. Repository code runs only in an unprivileged validation job; a
+separate job downloads those artifacts to request GitHub attestations. The
+candidate build refuses non-Node-24 Workbench builds. Twine 6.2.0,
+`check-jsonschema`, PyPA `pip-audit` 2.10.1, and SPDX Tools are
+exact-constrained in the dedicated `release-validation` group and transitively
+resolved by `uv.lock`; release jobs invoke the group through `uv run --locked`.
+The audit consumes a hash-bearing frozen export of only the production graph
+without dependency resolution. Twine's `check --strict` PyPI
+long-description gate must leave the wheel/sdist hashes unchanged, after which
+the archive manifests are checked again. PyPI and GitHub publication are
+separate least-privilege jobs behind the owner-created and protected `release`
+environment. No long-lived publishing token is accepted. The workflow is
+prepared but has never produced a release or attestation; setup and execution
+remain the owner actions in
 [release-process.md](release-process.md).
+
+### Dependabot update policy
+
+`[DD]` Routine version updates use GitHub's `multi-ecosystem-groups` contract:
+all five supported dependency trees join `monthly-routine`, so the scheduled
+steady state is at most one open routine pull request. Every entry retains a
+seven-day cooldown and a one-PR version-update limit. The group and each
+ecosystem assign the owner and the explicit `dependencies` label; no automatic
+merge path exists.
+
+Security fixes are intentionally different. GitHub does not combine security
+updates across package ecosystems, so each ecosystem has its own
+`applies-to: security-updates` catch-all group. Security updates bypass routine
+schedules and cooldowns and keep their separate platform limit. Repository-level
+**Grouped security updates** must remain enabled so qualifying fixes across
+directories within an ecosystem consolidate without suppressing remediation.
+
+#### Quarterly major-upgrade review
+
+Routine major updates are disabled for `/web` and `/site`, whose dependencies
+are exact-pinned and validated as complete stacks. Once per quarter, the owner:
+
+1. reviews upstream release notes and security advisories for deferred majors;
+2. opens one normal, non-Dependabot change for one stack at a time;
+3. regenerates only that stack's lockfile and dependency notices;
+4. runs its static, unit, browser, accessibility, visual, and package embedding
+   gates plus `make check`; and
+5. merges only through the ordinary `ci-required` path, with rollback notes for
+   material runtime or build changes.
+
+Urgent security remediation never waits for this quarterly cycle.
 
 ## Local parity
 
-**Every CI job body runs exactly one `make` target** after the pinned tool bootstrap
-([`scripts/bootstrap-tools.sh`](../scripts/bootstrap-tools.sh) — the single
-checksum-verified pin table shared by `make tools-pinned`, CI, and cloud agents). What CI
-checks is what `make check` checks. `[DD]` Three documented exceptions: `workflow-security`
-runs zizmor with network advisories and nightly runs lychee/zizmor online (*online variants*
-of offline make gates — the local gate stays deterministic `--offline` on purpose), and
-`dependency-review` (GitHub-owned action, SHA-pinned, `contents: read`) has no local
-equivalent because it consumes GitHub's advisory database against the PR diff. The job
-exists only on `pull_request` events, is included in `ci-required.needs`, and the aggregator
-requires it to succeed on pull requests while accepting its skip on push events.
+Required CI gate bodies run their documented `make` target after
+[`scripts/bootstrap-tools.sh`](../scripts/bootstrap-tools.sh). Its native
+lychee/gitleaks/actionlint/zizmor archives are checksum-verified. The generic
+docs/nightly path retains the explicitly version-pinned `check-jsonschema`
+fallback for runners without uv; the release workflow does not use that
+fallback and instead resolves both Python validators from `uv.lock` through
+`uv run --locked`. What CI checks is what the corresponding local Make target
+checks. `[DD]` Three non-Make exceptions remain: `workflow-security` runs zizmor
+with network advisories and nightly runs lychee/zizmor online (*online variants*
+of offline make gates — the local gate stays deterministic `--offline` on
+purpose), and `dependency-review` (GitHub-owned action, SHA-pinned,
+`contents: read`) has no local equivalent because it consumes GitHub's advisory
+database against the PR diff. The job exists only on `pull_request` events, is
+included in `ci-required.needs`, and the aggregator requires it to succeed on
+pull requests while accepting its skip on push events.
 
 ## Owner settings checklist (HUMAN-only; agents are hook-blocked from all of it)
 
@@ -144,10 +190,13 @@ Now (with this branch's merge):
    Automated by `scripts/setup-repo-settings.sh` (phase 1).
    Second layer only — local gitleaks (pre-commit + `make secrets`) stays primary.
 2. **Dependabot alerts + security updates** — same pane; automated by
-   `scripts/setup-repo-settings.sh` (phase 1).
+   `scripts/setup-repo-settings.sh` (phase 1). Also enable **Grouped security
+   updates**; configuration groups remain per ecosystem because GitHub does not
+   combine security fixes across ecosystems.
 3. **Actions posture** — Settings → Actions → General: *Allow `<owner>`, and select
-   non-`<owner>`, actions* with allowlist `astral-sh/setup-uv@*` (github-owned actions
-   allowed; extend with `anchore/*`, `sigstore/*`, `pypa/*` only at the release gate);
+   non-`<owner>`, actions* with allowlist `astral-sh/setup-uv@*`,
+   `ossf/scorecard-action@*`, and `pypa/gh-action-pypi-publish@*` (GitHub-owned
+   `actions/*` and `github/*` actions are allowed);
    check **Require actions to be pinned to a full-length commit SHA**; fork-PR approval =
    **Require approval for all external contributors** (the default first-time-only tier is
    gameable `[VF]`); workflow permissions read-only, "create and approve pull requests" off.
@@ -171,6 +220,14 @@ After `ci-required` has reported on at least one PR (order matters — see traps
    default setup is active `[VF]`.
 7. Retention stays 90 days (public max). **Private vulnerability reporting**: verified
    enabled (API read, 2026-07-21) — see [SECURITY.md](../SECURITY.md).
+   **Additional read-back 2026-07-24:** Discussions and non-provider secret
+   scanning are disabled; immutable releases are disabled; and the `release`,
+   `sandbox`, and `benchmark` environments are absent. Before exposing any
+   Discussion link, the owner must enable Discussions; create or verify
+   `Announcements`, `Q&A`, `Ideas and feedback`, and `Show and tell`; publish
+   and pin a welcome post; and read back every category URL. Create and protect
+   each workflow environment before its first use; never rely on GitHub's
+   silent auto-creation behavior.
 
 Site deploys (not a workflow):
 
@@ -183,6 +240,11 @@ Site deploys (not a workflow):
    `git.deploymentEnabled: false` so the Vercel GitHub integration never deploys on push
    (push-triggered deploys are policy-forbidden, and the git-connected project's
    auto-deploys were failing on every push as a red `Vercel` commit status).
+   **Production read-back 2026-07-24:** the public alias serves content matching
+   the July 22 pre-main build and `/version.json` is absent. This content
+   comparison is not cryptographic proof of a deployed commit. Treat the alias
+   as stale until the owner deploys the reviewed artifact and verifies its
+   version document and intended commit.
 
 Before the first M4/M7 dispatch:
 
@@ -263,6 +325,7 @@ design.
 - **Wheel-smoke network:** Postgres remains host-loopback-only. The Node-less smoke
   container joins the compose network and reaches the `ledger-db-test` service by its
   internal DNS name, which works on Linux without widening the host port binding.
-- **Nightly-failure template placement:** lives in `.github/ISSUE_TEMPLATE/` with
-  frontmatter so the same file serves manual filing; the workflow strips frontmatter,
-  fills placeholders from trusted context only, and deduplicates by the fixed issue title.
+- **Nightly-failure body placement:** lives at
+  `.github/nightly-failure-body.md`, outside the public issue chooser. The
+  workflow fills placeholders from trusted context only and deduplicates by the
+  fixed issue title.

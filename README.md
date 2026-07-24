@@ -17,12 +17,19 @@ retrying will duplicate the real-world effect. Irrevon persists intent before
 dispatch, makes ambiguity explicit, and reconciles against destination evidence
 instead of guessing.
 
-> **Current status:** public Apache-2.0 research preview. The engine,
+> **Current status:** public Apache-2.0 `v0.1.0` alpha candidate, not a
+> published release. The engine,
 > continuous single-writer worker, local read-only Workbench, deterministic
 > demo, benchmark development harness, and package build are implemented.
 > Development evidence is synthetic. The preregistration is an unfrozen draft,
 > there are no confirmatory results, and the Stripe/EasyPost adapters are drafts
 > that have never been live-called. Nothing has been published to PyPI.
+>
+> The configured [public site](https://irrevon.vercel.app/) is not the current
+> source of truth: its observed content matches the July 22 pre-main build and
+> `/version.json` is absent. That observation does not cryptographically identify
+> its deployed commit. Use this repository until the owner redeploys and verifies
+> the production alias.
 
 ## Quickstart
 
@@ -30,6 +37,7 @@ You do **not** need a hosted Postgres account. The demo uses the digest-pinned
 PostgreSQL 17 container in this repository and binds it only to loopback.
 
 Prerequisites: [uv](https://docs.astral.sh/uv/), Docker with Compose, and Git.
+Viewing the source-built Workbench additionally requires Node 24 and Corepack.
 
 ```bash
 git clone https://github.com/PranavMishra28/irrevon.git
@@ -42,8 +50,12 @@ set -a && . ./.env && set +a
 docker compose up -d --wait
 uv run irrevon init
 uv run irrevon doctor
-uv run irrevon demo
+uv run irrevon demo --seed 42 --keep \
+  --artifact ./irrevon-demo-artifact.json
 ```
+
+`doctor` is non-destructive but not strictly read-only: it performs a
+rolled-back temporary-table write probe using the runtime/operator role.
 
 The demo deliberately loses a committed response, kills the engine process,
 restarts it, reconciles by destination read-back, and rejects a re-synthesized
@@ -54,9 +66,19 @@ not a benchmark result.
 Explore the recorded evidence:
 
 ```bash
-uv run irrevon demo --keep
-uv run irrevon serve --open
+corepack enable
+make web-build dist-stage
+uv run irrevon serve \
+  --dsn postgresql://irrevon_app@localhost:5432/irrevon_demo_s42 \
+  --demo-artifact ./irrevon-demo-artifact.json \
+  --open
 ```
+
+`make web-build dist-stage` builds the React Workbench and stages it into the
+source package before `serve` starts. The `--dsn` selects the kept seed-42 demo
+database; `--demo-artifact` hands the exact event transcript and summary to the
+Workbench. The demo prints an equivalent evidence-specific command after every
+successful run.
 
 `irrevon serve` listens only on `127.0.0.1`, implements GET/HEAD only, connects
 as a SELECT-only database role, and returns digests rather than raw upstream
@@ -227,6 +249,22 @@ Do not put production payloads, credentials, or private identifiers in public
 issues or fixtures. Report vulnerabilities privately as described in
 [SECURITY.md](SECURITY.md).
 
+## Community and support
+
+GitHub Discussions is currently disabled, so no Discussion or category link is
+exposed. Public [issues](https://github.com/PranavMishra28/irrevon/issues)
+remain the intake for bugs, documentation problems, benchmark-integrity
+reports, and scoped proposals—not general support or open-ended conversation.
+
+> **Owner-only Discussions gate:** before exposing any Discussion link, enable
+> Discussions; create or verify `Announcements`, `Q&A`, `Ideas and feedback`,
+> and `Show and tell`; publish and pin a welcome post; and read back every
+> category URL.
+
+Never file a vulnerability publicly. Use
+[GitHub private vulnerability reporting](https://github.com/PranavMishra28/irrevon/security/advisories/new).
+Support is best-effort with no response SLA; see [SUPPORT.md](SUPPORT.md).
+
 ## Contributing
 
 Contributions are welcome under inbound-equals-outbound Apache-2.0 with a
@@ -240,7 +278,7 @@ make check
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md), [GOVERNANCE.md](GOVERNANCE.md), and
 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Public issue forms distinguish bugs,
-documentation, proposals, questions, and benchmark-integrity concerns.
+documentation, scoped proposals, and benchmark-integrity concerns.
 
 ## Repository map
 

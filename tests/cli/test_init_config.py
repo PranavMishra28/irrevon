@@ -16,9 +16,7 @@ from irrevon.errors import ConfigInvalid, StorageUnavailable
 from irrevon.ledger import db as ledger_db
 
 _PASSWORD_ENV = "IRREVON_TEST_LEDGER_PASSWORD"
-_SYNTHETIC_PASSWORD = (
-    "not-a-real-secret ' \" \\\n application_name=must-not-inject @:/?#&=%+"
-)
+_SYNTHETIC_PASSWORD = "not-a-real-secret ' \" \\\n application_name=must-not-inject @:/?#&=%+"
 
 
 def _write_config(tmp_path: Path) -> Path:
@@ -65,9 +63,7 @@ def test_resolved_dsn_rejects_invalid_input_without_environment_value_leak(
     with pytest.raises(ConfigInvalid) as raised:
         config.resolved_dsn()
 
-    assert str(raised.value) == (
-        "ledger.dsn is not valid PostgreSQL connection information"
-    )
+    assert str(raised.value) == ("ledger.dsn is not valid PostgreSQL connection information")
     assert _SYNTHETIC_PASSWORD not in str(raised.value)
 
 
@@ -151,6 +147,45 @@ def test_init_treats_only_storage_unavailable_as_nonfatal(
     )
     assert captured.err == ""
     assert _SYNTHETIC_PASSWORD not in captured.out
+
+
+def test_init_bootstrap_guidance_preserves_an_existing_env(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.delenv("IRREVON_MIGRATION_DSN", raising=False)
+
+    rc = main(["init", "--dir", str(tmp_path / "output")])
+
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert "next (bootstrap; preserves an existing .env):" in captured.out
+    assert "test -e .env || cp .env.example .env" in captured.out
+    assert "\nnext: cp .env.example .env" not in captured.out
+    assert captured.err == ""
+
+
+def test_init_with_current_migrations_prints_only_doctor_next_step(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv(
+        "IRREVON_MIGRATION_DSN",
+        "postgresql://migration-role@127.0.0.1:5432/irrevon",
+    )
+    monkeypatch.setattr(ledger_db, "apply_migrations", lambda _dsn: [])
+
+    rc = main(["init", "--dir", str(tmp_path / "output")])
+
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert "migrations: applied none (all current)" in captured.out
+    next_step = captured.out.split("\nnext:", maxsplit=1)[1].strip()
+    assert next_step == "irrevon doctor"
+    assert ".env" not in next_step
+    assert captured.err == ""
 
 
 @pytest.mark.parametrize("as_json", [False, True], ids=["plain", "json"])

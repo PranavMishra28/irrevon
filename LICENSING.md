@@ -18,8 +18,9 @@ What this does **not** change:
   commit. No CLA or copyright assignment is required.
 - **Pre-release status.** Nothing is on any package index; packaged releases remain
   gated by the execution-plan public-release gate (clearances, counsel name screen,
-  sanitization review, human sign-off). Packaging license metadata (SPDX expression and
-  classifier) lands with the ADR-0018 M8 release mechanics.
+  sanitization review, human sign-off). Package metadata already carries the
+  `Apache-2.0` SPDX expression, license files, and the Alpha classifier; that
+  preparation does not publish a package or close any release gate.
 - **Trademarks.** Apache-2.0 §6 grants no rights to the "Irrevon" name or marks.
   No separate trademark registration or conformance program is claimed.
 

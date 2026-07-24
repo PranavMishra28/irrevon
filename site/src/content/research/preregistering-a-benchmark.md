@@ -21,7 +21,7 @@ sources:
 
 The preregistration this post describes is a **draft**. Nothing is frozen, no section
 carries integrity weight yet, and it is not pristine: synthetic S-REF harness and
-fault-smoke pilots have occurred, including ADR-0032's 488-effect attribution-hardening
+fault-smoke pilots have occurred, including a 488-effect attribution-hardening
 pilot. They are disclosed as permanently non-confirmatory engineering evidence. No
 live-sandbox observation or confirmatory run has occurred. Stage A must precede the former
 and Stage B the latter; each freeze is a deliberate, human act.

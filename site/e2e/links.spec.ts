@@ -40,16 +40,35 @@ test("internal links resolve and fragments exist", async ({ page, request }) => 
 
 test("nav lists exactly the built pages — no dead item", async ({ page }) => {
   await page.goto("/");
-  const hrefs = await page
+  const links = await page
     .locator("nav[aria-label='Primary'] a")
-    .evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-  expect(hrefs).toEqual([
+    .evaluateAll((as) =>
+      as.map((a) => ({
+        href: a.getAttribute("href"),
+        label: a.textContent?.trim(),
+      })),
+    );
+  const hrefs = links.map((link) => link.href);
+  expect(hrefs.slice(0, -1)).toEqual([
     "/platform/",
     "/how-it-works/",
     "/demo/",
     "/benchmark/",
     "/docs/",
-    "/research/",
     "/install/",
+    "/contributing/",
   ]);
+  expect(links.map((link) => link.label)).toEqual([
+    "Product",
+    "How it works",
+    "Demo",
+    "Benchmark",
+    "Docs",
+    "Install",
+    "Contribute",
+    "GitHub",
+  ]);
+  const repository = new URL(hrefs.at(-1)!);
+  expect(repository.protocol).toBe("https:");
+  expect(repository.hostname).toBe("github.com");
 });

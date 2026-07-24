@@ -55,9 +55,10 @@ repository, server-side rulesets/branch protection, and mirroring the deny hook 
 
 Repository-setting read-back on 2026-07-24 found secret scanning, push
 protection, CodeQL for Python and JavaScript/TypeScript, and the `ci-required`
-ruleset active. Non-provider-pattern scanning, platform Actions
-allowlisting/SHA-pin enforcement, and removal of the ruleset's repository-role
-bypass remain owner actions.
+ruleset active. The ruleset still has a repository-role bypass. Discussions,
+non-provider-pattern scanning, immutable releases, platform Actions
+allowlisting/SHA-pin enforcement, and the `release`, `sandbox`, and `benchmark`
+environments remain disabled or absent. All are owner actions.
 
 ## Fork pull requests and CI (public repo)
 
@@ -115,7 +116,11 @@ deliberate human act. This is policy, not repo-enforceable.
   semantic PII detectors and do not prove the absence of all historical PII.
   Pre-redaction personal prose remains reachable in the public Git history. No automated
   result should call that history PII-free; accepting that exposure or coordinating a
-  human-only history rewrite is an explicit owner decision.
+  human-only history rewrite is an explicit owner decision. A rewrite requires
+  coordinated replacement of every public ref and follow-up scanning; silently
+  rewriting one local branch would not remediate public history. Until the
+  owner chooses, every launch status must preserve this blocker without
+  reproducing the historical values.
 - Incident basics: on any suspected exposure — stop, preserve evidence, rotate the
   credential, record the incident. Rotation is never deferred to "after the task".
 
@@ -135,6 +140,11 @@ attempted injections. Never pipe downloaded content into a shell.
       `ci-required` ruleset are enabled (read back 2026-07-24).
 - [ ] Enable non-provider secret patterns and the Actions allowlist/SHA-pin
       setting; remove the active ruleset's repository-role bypass actor.
+- [ ] Enable immutable releases and create protected `release`, `sandbox`, and
+      `benchmark` environments before the corresponding workflow can be used.
+- [ ] Before exposing any Discussion link, enable Discussions; create or verify
+      `Announcements`, `Q&A`, `Ideas and feedback`, and `Show and tell`;
+      publish and pin a welcome post; and read back every category URL.
 - [ ] Mirror `deny.sh` registration in user-level `~/.cursor/hooks.json`.
 - [ ] `pre-commit install`; run `gitleaks git -v .` once after any scanner version bump.
 - [ ] 2FA + offline recovery codes on the GitHub account.

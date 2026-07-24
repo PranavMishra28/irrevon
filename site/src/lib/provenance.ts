@@ -10,7 +10,7 @@ import { execSync } from "node:child_process";
 
 function resolveCommit(): string | null {
   const fromVercel = process.env.VERCEL_GIT_COMMIT_SHA;
-  if (fromVercel && /^[0-9a-f]{7,40}$/.test(fromVercel)) return fromVercel;
+  if (fromVercel && /^[0-9a-f]{40}$/.test(fromVercel)) return fromVercel;
   try {
     const local = execSync("git rev-parse HEAD", {
       encoding: "utf8",

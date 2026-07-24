@@ -27,11 +27,17 @@ with Engine(dsn, {"refdest-c2": adapter}) as engine:
     registration = engine.register_intent({
         "schema_version": "1",
         "effect_type": "order.create",
-        "scope": "acme-store/prod",
-        "stable_ids": {"order_id": "...", "customer_ref": "..."},
+        "effect_class": "IRREVERSIBLE",
+        "scope": "customer:cust_771",
+        "stable_ids": {"order_id": "ord_9410", "workflow_command_id": "wf_cmd_00042"},
         "adapter_id": "refdest-c2",
-        "parameters": {...},         # validated, never part of identity
-        "event_time": "...",
+        "parameters": {              # validated, never part of identity
+            "line_items": [{"sku": "SKU-118", "quantity": 2}],
+            "shipping_method": "standard",
+        },
+        "event_time": "2026-07-20T18:04:09Z",
+        "authority_ref": "auth_approved_task_18",
+        "stamped_at": "2026-07-20T18:04:11Z",
     })
 
     report = engine.dispatch(registration.effect_id)

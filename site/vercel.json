@@ -28,6 +28,14 @@
       ]
     },
     {
+      "source": "/version.json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json; charset=utf-8" },
+        { "key": "X-Robots-Tag", "value": "noindex" },
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
       "source": "/indexnow-key.txt",
       "headers": [
         { "key": "Content-Type", "value": "text/plain; charset=utf-8" },

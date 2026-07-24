@@ -118,7 +118,7 @@ import { SITE_NAME, REPO_URL, repoDoc } from "../config";
             The engine and the workbench phone home to nothing; the workbench’s no-external-request and
             read-only properties are enforced by end-to-end tests. This site is static, self-hosts its
             fonts, and makes no third-party requests. Its only measurement is Vercel’s cookie-free,
-            same-origin Web Analytics and Speed Insights (owner-enabled, ADR-0029): query data is
+            same-origin Web Analytics and Speed Insights when the owner enables them: query data is
             redacted by default, visitors have a local opt-out, optional conversion events are
             allowlisted and plan-gated, and budget tests pin the fetched-script allowance to exactly
             those two first-party loaders.
@@ -188,7 +188,7 @@ import { SITE_NAME, REPO_URL, repoDoc } from "../config";
           Content-Security-Policy <code>&lt;meta&gt;</code> tag with build-computed script hashes (a static
           header cannot carry per-page hashes; the meta tag cannot carry <code>frame-ancestors</code> — the
           two together cover both). <code>script-src</code> carries <code>'self'</code> for the same-origin
-          Vercel telemetry loaders (ADR-0029); inline scripts still execute only with a computed hash. The
+          Vercel telemetry loaders; inline scripts still execute only with a computed hash. The
           full set with rationale is committed as a spec:{" "}
           <a href={repoDoc("site/docs/headers-spec.md")}>site/docs/headers-spec.md</a>.
         </p>

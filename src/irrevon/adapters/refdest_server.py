@@ -95,9 +95,7 @@ def _make_handler(refdest: RefDest) -> type[BaseHTTPRequestHandler]:
                     status, resp, _ = refdest.api_get(ref)
                     self._send(status, resp)
                 elif parsed.path == "/effects" and "client_ref" in query:
-                    status, resp, _ = refdest.api_query_client_ref(
-                        query["client_ref"][0]
-                    )
+                    status, resp, _ = refdest.api_query_client_ref(query["client_ref"][0])
                     self._send(status, resp)
                 elif parsed.path == "/effects":
                     status, resp, _ = refdest.api_list(
@@ -127,10 +125,16 @@ def main() -> None:
         default_filter_quirk=args.default_filter_quirk,
     )
     server = ThreadingHTTPServer(
-        ("127.0.0.1", args.port), _make_handler(refdest)  # loopback only
+        ("127.0.0.1", args.port),
+        _make_handler(refdest),  # loopback only
     )
     print(f"REFDEST READY {server.server_address[1]}", flush=True)
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass  # Ctrl-C is the documented clean shutdown path.
+    finally:
+        server.server_close()
 
 
 if __name__ == "__main__":

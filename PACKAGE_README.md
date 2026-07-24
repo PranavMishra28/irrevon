@@ -7,15 +7,16 @@ and queries destination evidence before any policy-controlled redispatch. It is
 designed for the failure where an external system commits an action but the
 response is lost, so a blind retry could duplicate the real-world effect.
 
-This package is an unpublished research preview. Development evidence is
+Version 0.1.0 is the initial Alpha release candidate. Development evidence is
 synthetic; the preregistration is not frozen, no confirmatory result exists,
 and the draft provider adapters have never been live-called. It does not claim
 universal exactly-once execution or production readiness.
 
-Full documentation, quickstart, security policy, limitations, and source:
+Documentation, quickstart, security policy, limitations, and source:
 
+- [Documentation](https://irrevon.vercel.app/docs/)
 - [Project overview and quickstart](https://github.com/PranavMishra28/irrevon#readme)
-- [Current project status](https://github.com/PranavMishra28/irrevon/blob/main/docs/project-status.md)
+- [Current project status](https://irrevon.vercel.app/status/)
 - [Security policy](https://github.com/PranavMishra28/irrevon/blob/main/SECURITY.md)
 - [Changelog](https://github.com/PranavMishra28/irrevon/blob/main/CHANGELOG.md)
 - [License](https://github.com/PranavMishra28/irrevon/blob/main/LICENSE)

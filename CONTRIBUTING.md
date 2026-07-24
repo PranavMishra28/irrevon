@@ -11,10 +11,18 @@ no CLA.
 2. For a new feature, trust-boundary change, schema change, or benchmark-design
    change, open a proposal issue first. These changes may require an ADR.
 3. For a vulnerability, do **not** open an issue. Use GitHub's private
-   vulnerability reporting flow described in [SECURITY.md](SECURITY.md).
+   [vulnerability reporting form](https://github.com/PranavMishra28/irrevon/security/advisories/new)
+   described in [SECURITY.md](SECURITY.md).
 4. For suspected benchmark leakage, oracle contamination, or misleading
    scientific evidence, use the benchmark-integrity issue form unless disclosure
    would expose a vulnerability.
+
+GitHub Discussions is currently disabled, and no Discussion link is exposed.
+Before exposing one, the owner must enable Discussions; create or verify
+`Announcements`, `Q&A`, `Ideas and feedback`, and `Show and tell`; publish and
+pin a welcome post; and read back every category URL. Bugs, documentation
+reports, benchmark-integrity concerns, and scoped proposals continue to use
+their public issue forms.
 
 The project is intentionally narrow: C2 reconciliation for irreversible
 external effects, a read-only local Workbench, and a falsifiable benchmark. A

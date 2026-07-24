@@ -34,9 +34,10 @@ The site never ships in the Python wheel (ADR-0018) and shares no build with `we
 | `/404` | Not-found page (Vercel serves `404.html` for unmatched routes) |
 
 Use Cases, About/Company, Contact, and any demo-request page remain **omitted, not
-stubbed**. Navigation: Engine · How it works · Demo · Benchmark · Docs · Research ·
-Install (7 slots); Status, Privacy, Contributing, Licensing, Security, Changelog, and
-Roadmap live in the footer.
+stubbed**. Navigation: Product · How it works · Demo · Benchmark · Docs · Install ·
+Community · GitHub. Research, Status, Privacy, Contributing, Licensing, Security,
+Changelog, and Roadmap remain reachable from the compact footer and documentation
+surfaces.
 
 ## Truth discipline
 
@@ -145,8 +146,8 @@ pnpm test               # Playwright checks: axe (every page × both themes incl
                         # /demo stepped states), keyboard, no-JS, links, budgets
                         # (two lanes), search, demo anti-fabrication, install
                         # honesty, SEO/CSP
-pnpm shots              # every page at 1440/768/375 × light/dark (+ /demo
-                        # reduced-motion beats) -> shots/
+pnpm shots              # every page at 1440/1024/768/390/320 × light/dark,
+                        # plus reduced-motion and forced-color evidence -> shots/
 pnpm sync:docs | sync:cli | sync:demo | og:build   # regenerate synced artifacts
 ```
 
@@ -163,7 +164,15 @@ platform serves files and headers, nothing builds or runs server-side
 owner-directed act, never CI-triggered:
 
 ```bash
-SITE_ORIGIN=https://<production-host> SITE_REPO_URL=<repo-url> pnpm build
+EXPECTED_COMMIT=<full-40-character-deployment-SHA>
+SITE_ORIGIN=https://<production-host> \
+  SITE_REPO_URL=<repo-url> \
+  VERCEL_ENV=production \
+  VERCEL_GIT_COMMIT_SHA="$EXPECTED_COMMIT" \
+  pnpm build
+SITE_EXPECT_COMMIT="$EXPECTED_COMMIT" \
+  SITE_EXPECT_ORIGIN=https://<production-host> \
+  make -C .. site-production-smoke
 # then upload dist/ (plus vercel.json at the upload root) as a Vercel
 # production deployment — e.g. `vercel deploy --prod` from a directory
 # containing exactly that tree, or the Vercel MCP/API equivalent.
@@ -188,6 +197,13 @@ the discoverability runbook; submission is never part of CI.
 ## Release gates
 
 - Build and type checks: `pnpm check && pnpm build`.
+- Production artifact provenance: `/version.json` records the release, exact
+  commit, build time, benchmark harness, schema, and environment. Production
+  builds require the deployment's full commit SHA. `make site-production-smoke`
+  also requires the caller to supply that exact SHA and canonical HTTPS origin;
+  it verifies the manifest and footer commit, canonical and Open Graph URLs,
+  sitemap, robots policy, required assets, launch navigation/footer wording,
+  and the Vercel security/cache contract without publishing anything.
 - Browser checks: `pnpm test`; review screenshots: `pnpm shots`.
 - JS weight: every page remains under the enforced ≤10 KB inline-script budget.
   All pages may fetch exactly the two permitted same-origin Vercel telemetry

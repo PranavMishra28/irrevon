@@ -1,10 +1,11 @@
 {
   "schema_version": "1",
-  "as_of": "2026-07-23",
+  "as_of": "2026-07-24",
   "license": "Apache-2.0",
   "repository_visibility": "public",
   "release_posture": "research-preview-unpublished",
   "prepared_version": "0.1.0",
+  "prepared_label": "v0.1.0-alpha-candidate",
   "contributions": {
     "open": true,
     "license": "Apache-2.0",
@@ -38,7 +39,56 @@
     "supported_production_topology": false,
     "multi_writer": false,
     "hosted_control_plane": false,
-    "workbench_network": "loopback-only"
+    "workbench_network": "loopback-only",
+    "public_site": {
+      "alias": "https://irrevon.vercel.app/",
+      "state": "stale-pre-main-build",
+      "observed_content": "matches-2026-07-22-pre-main-build",
+      "version_json": "absent",
+      "deployed_commit_proof": false
+    }
+  },
+  "community": {
+    "issues": [
+      "bugs",
+      "documentation",
+      "benchmark-integrity",
+      "scoped-proposals"
+    ],
+    "private_vulnerability_reporting": true,
+    "discussions": {
+      "enabled": false,
+      "public_links_exposed": false,
+      "intended_categories": [
+        "Announcements",
+        "Q&A",
+        "Ideas and feedback",
+        "Show and tell"
+      ],
+      "owner_gate": [
+        "enable-discussions",
+        "create-or-verify-categories",
+        "publish-and-pin-welcome-post",
+        "read-back-every-category-url"
+      ]
+    }
+  },
+  "public_history_privacy": {
+    "status": "known-history-only-exposure",
+    "automated_rewrite_allowed": false,
+    "owner_decision": "accept-exposure-or-coordinate-history-rewrite"
+  },
+  "owner_settings_readback": {
+    "as_of": "2026-07-24",
+    "ruleset": "active-with-repository-role-bypass",
+    "discussions": false,
+    "non_provider_secret_scanning": false,
+    "immutable_releases": false,
+    "actions_allowlist": false,
+    "actions_sha_pinning_enforcement": false,
+    "release_environment": false,
+    "sandbox_environment": false,
+    "benchmark_environment": false
   },
   "owner_gated": [
     "provider-sandbox-observations",

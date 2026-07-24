@@ -21,10 +21,15 @@ response-header CSP adds `frame-ancestors` — the one directive meta-CSP cannot
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), interest-cohort=()` | The site uses none of these; deny by default. |
 | `Cross-Origin-Opener-Policy` | `same-origin` | Severs window references from cross-origin openers. |
 | `X-Frame-Options` | `DENY` | Legacy agent belt-and-braces for `frame-ancestors 'none'`. |
-| `Cache-Control` | `public, max-age=600, stale-while-revalidate=86400` everywhere; `public, max-age=31536000, immutable` for `/_astro/*` | Only `/_astro/*` assets are content-hashed; everything else (HTML, fonts, OG images, Pagefind bundle) keeps a short TTL so a deploy propagates within minutes. |
+| `Cache-Control` | `public, max-age=600, stale-while-revalidate=86400` everywhere; `public, max-age=31536000, immutable` for `/_astro/*`; `public, max-age=0, must-revalidate` for `/version.json` | Only `/_astro/*` assets are content-hashed. The provenance manifest must revalidate so it cannot conceal a stale deployment. Everything else keeps a short TTL. |
+| `Content-Type` + `X-Robots-Tag` on `/version.json` | `application/json; charset=utf-8`; `noindex` | The machine-readable provenance endpoint is typed explicitly and is not a search destination. |
 
 ## Accepted risks / notes
 
+- The owner-run production smoke receives the intended full commit SHA and
+  canonical HTTPS origin explicitly. It checks this applied header configuration,
+  including the no-cache `/version.json` rule, alongside built canonical/OG,
+  sitemap, robots, asset, and provenance contracts before any upload.
 - `style-src 'unsafe-inline'` is required by Astro's scoped-style inlining and a few
   style attributes; CSS injection on a static, no-input site is a negligible surface.
   Recorded as accepted, revisit if the site ever takes user input.

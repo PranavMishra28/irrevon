@@ -1,6 +1,7 @@
 # Project status
 
-Irrevon is a public Apache-2.0 research preview. The source, deterministic
+Irrevon is a public Apache-2.0 research preview prepared as an unpublished
+`v0.1.0` alpha candidate. The source, deterministic
 synthetic demo, single-writer engine and worker, local read-only Workbench,
 benchmark development harness, and package build are implemented. Contributions
 are open under inbound-equals-outbound Apache-2.0 with mandatory DCO 1.1
@@ -18,6 +19,37 @@ fresh-cluster restore and catch-up behavior remain incomplete. The Workbench is
 a loopback-only read surface. Multi-writer operation, a hosted control plane,
 qualified live-provider behavior, production readiness, scientific validation,
 and production battle-testing are not claimed.
+
+## Public launch read-back
+
+The configured public alias, <https://irrevon.vercel.app/>, currently serves
+content matching the July 22 pre-main build and does not serve
+`/version.json`. That content comparison is operational evidence, not
+cryptographic proof of the deployed commit. The repository is the current
+source of truth until the owner deploys the reviewed production build and
+verifies its version document, origin, headers, canonical URLs, and commit.
+
+Public issue forms are ready for bugs, documentation, benchmark-integrity
+reports, and scoped proposals. GitHub Discussions is disabled and no Discussion
+link is exposed. Before exposing one, the owner must enable Discussions; create
+or verify `Announcements`, `Q&A`, `Ideas and feedback`, and `Show and tell`;
+publish and pin a welcome post; and read back every category URL. Private
+vulnerability reporting is enabled and remains the only vulnerability channel.
+
+The 2026-07-24 owner-settings read-back also found an active default-branch
+ruleset with a repository-role bypass, while non-provider secret scanning,
+immutable releases, the Actions allowlist, platform SHA-pin enforcement, and
+the `release`, `sandbox`, and `benchmark` environments remain absent or
+disabled. These are owner settings, not changes a pull request can make.
+
+## Public-history privacy boundary
+
+Secret scanning is clean, but the repository does not claim that public history
+is PII-free. Known pre-redaction personal prose and a pre-scrub environment
+record remain reachable in history. The owner must explicitly accept that
+exposure or coordinate a history rewrite and complete ref replacement; agents
+must not rewrite public history. No sensitive historical value is reproduced
+in launch documentation.
 
 ## Owner governance checklist
 

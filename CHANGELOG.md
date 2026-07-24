@@ -6,6 +6,10 @@ All notable changes are recorded here. The format follows
 
 ## [Unreleased]
 
+No changes yet.
+
+## [0.1.0] - pending publication
+
 ### Added
 
 - Continuous single-writer reconciliation worker and loopback read-only
@@ -21,8 +25,8 @@ All notable changes are recorded here. The format follows
 
 - Public documentation now distinguishes implemented behavior, synthetic
   evidence, unobserved provider assumptions, and owner-gated release steps.
-- Package and community metadata are prepared for a future human-approved
-  `0.1.0` release.
+- Package and community metadata prepare the human-approved `0.1.0` Alpha
+  release candidate without asserting that publication has occurred.
 
 ### Security
 
@@ -31,3 +35,4 @@ All notable changes are recorded here. The format follows
   role.
 
 [Unreleased]: https://github.com/PranavMishra28/irrevon/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/PranavMishra28/irrevon/releases/tag/v0.1.0

@@ -58,10 +58,11 @@ if (phases.length === 0) throw new Error("roadmap: could not parse roadmap items
       <div class="status-banner" role="note" style="margin-top: 24px; max-width: 76ch;">
         <span class="status-title">No dates are promised</span>
         <p>
-          Nothing on this page is a schedule or a commitment; order is load-bearing — the Stage-A
-          preregistration freeze precedes every live-sandbox observation and Stage B precedes confirmatory
-          execution. Synthetic S-REF development pilots already occurred and are disclosed as
-          non-confirmatory engineering exposure; the roadmap does not call Stage A pristine.
+          Nothing on this page is a schedule or a commitment; order is load-bearing — the design freeze
+          (Stage A) precedes every live-sandbox observation and the operational freeze (Stage B) precedes
+          confirmatory execution. Synthetic reference-destination development pilots (S-REF) already occurred
+          and are disclosed as non-confirmatory engineering exposure; the roadmap does not call the design
+          freeze pristine.
         </p>
         <Source id="roadmap-no-dates" />
       </div>
@@ -98,7 +99,7 @@ if (phases.length === 0) throw new Error("roadmap: could not parse roadmap items
       <p class="muted" style="margin-top: 20px; max-width: 70ch; font-size: var(--site-text-small);">
         Status chips appear only where the plan records them. Beyond these phases: live-provider
         qualification and frozen or confirmatory benchmark execution remain gated per the master document's
-        milestones; any packaged release waits behind the public-release gate below.
+        stages; any packaged release waits behind the public-release gate below.
       </p>
     </div>
   </section>
@@ -111,8 +112,8 @@ if (phases.length === 0) throw new Error("roadmap: could not parse roadmap items
         <p class="lead">
           Releasing anything beyond the readable repository — a package, a tag with artifacts, a preprint —
           requires all of: external clearances granted in writing, the counsel trademark screen of
-          “{SITE_NAME}”, a sanitization review, the distribution mechanics of ADR-0018, and human sign-off
-          (the licensing decision is already closed — Apache-2.0, ADR-0028). No agent ever performs a
+          “{SITE_NAME}”, a sanitization review, verified distribution mechanics, and human sign-off
+          (the licensing decision is already closed — Apache-2.0). No automated process ever performs a
           publication step.
         </p>
       </div>

@@ -1,9 +1,3 @@
----
-name: Nightly validation failure
-about: Filed automatically by the nightly workflow when the scheduled suite goes red.
-labels: ""
----
-
 ## Nightly validation failure
 
 - **Run:** {{RUN_URL}}
@@ -28,4 +22,5 @@ labels: ""
    a design gap.
 
 *Filed automatically by the nightly workflow. One open issue at a time; repeat
-failures comment here instead of filing duplicates.*
+failures comment here instead of filing duplicates. This body is workflow
+infrastructure, not a public issue-chooser template.*
