@@ -26,6 +26,7 @@ that date.
 | T1 backend unit+property | `py-test` (ci) | same | `make py-test` (≥1,000 Hypothesis cases/invariant — spec, never lowered) | active (same skip rule) |
 | F0 web static | `web-check` (ci) | `web/` paths changed AND `web/` exists | `make web-check` | active (workbench landed; skips cleanly on non-web PRs) |
 | F1/F2 web tests | `web-test` (ci) | same | `make web-test` | active (same skip rule) |
+| F3 web browser + accessibility | `web-e2e` (ci) | same | `make web-e2e` (built review app; full workflow matrix + route-wide axe in both themes, zero retries) | active (same skip rule; required through `ci-required`) |
 | workflow security | `workflow-security` (ci) | `.github/workflows/**` changed | actionlint + zizmor (online, pedantic) | active |
 | T2 integration | `py-test-integration` (ci) | backend changes | `make py-test-integration` vs the digest-pinned compose Postgres | active (wired at the rebuild consolidation, per this row's earlier "due" note) |
 | site static | `site-check` (ci) | `site/` changed | `make site-check` (astro check + every drift gate) | active (wired at the rebuild consolidation) |
@@ -37,7 +38,9 @@ that date.
 | T4 sandbox | `sandbox-contract` (sandbox) | human dispatch + env approval | M4: `make sandbox-contract` | skeleton |
 | benchmark | `bench` (benchmark) | human dispatch + env approval | M7: preregistered suites, cache-free, sanitized evidence (`irrevon bench run` — integrity refusal until the human Stage-B freeze) | skeleton |
 
-The bench foundation (ADR-0030, proposed) additionally added: `bench-integrity`
+The local `make check-all` ladder includes `web-check`, `web-test`, and `web-e2e`; F4
+pixel baselines remain the explicit container-only `make web-vrt` gate. The bench
+foundation (ADR-0030, proposed) additionally added: `bench-integrity`
 into `make check` (stdlib-only fixture/canary/holdout/freeze gate) and
 `bench-smoke` into `make check-all` (CLI end-to-end over two dev workloads,
 conventional arms, no database). The full harness suites run inside the

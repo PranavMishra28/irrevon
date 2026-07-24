@@ -163,7 +163,7 @@ tools-pinned:
 # `check` stays node-free by design (docs/ci.md tier table); `check-all` folds the
 # web gates in below. web-vrt is authoritative only inside the pinned container.
 .PHONY: web-check web-test web-e2e web-vrt
-check-all: web-check web-test
+check-all: web-check web-test web-e2e
 
 # F0 static: typecheck, lint, stylelint, format, codegen drift, fixture pins,
 # font drift, unit tests (the `check` script bundles the unit project).
@@ -181,7 +181,9 @@ web-test:
 
 # F3: Playwright workflows + a11y against the built review app.
 web-e2e:
-	cd web && pnpm install --frozen-lockfile && pnpm exec playwright test --project=e2e --project=a11y
+	cd web && pnpm install --frozen-lockfile \
+	  && pnpm exec playwright install chromium --only-shell \
+	  && pnpm exec playwright test --project=e2e --project=a11y
 
 # F4: pixel baselines — only meaningful inside the pinned Linux container
 # (see web/README.md); a bare local run skips the vrt project by design.

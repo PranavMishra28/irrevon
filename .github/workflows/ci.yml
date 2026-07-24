@@ -249,6 +249,25 @@ jobs:
       - run: corepack enable
       - run: make web-test
 
+  # F3 full browser workflows + route-wide axe scans against the built review
+  # app. This stays separate from the real-engine joint proof: it covers the
+  # complete fixture-backed route/workflow matrix, both themes, keyboard/reflow,
+  # the read-only network boundary, and zero-retry browser behavior.
+  web-e2e:
+    name: Frontend E2E + a11y (make web-e2e)
+    needs: [changes, web-test]
+    if: needs.changes.outputs.web_exists == 'true' && needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - run: make web-e2e
+
   # Site static gates — astro check + every drift gate (tokens, fonts, claims,
   # docs sync, CLI reference, demo artifacts, OG cards). Skips when site/ is
   # untouched; the aggregator verifies each skip.
@@ -352,6 +371,7 @@ jobs:
         py-test-integration,
         web-check,
         web-test,
+        web-e2e,
         site-check,
         site-test,
         web-e2e-live,
@@ -410,6 +430,7 @@ jobs:
           [ "$WEB_EXISTS" = "true" ] && [ "$WEB" = "true" ] && web_required=true
           conditional web-check "$web_required"
           conditional web-test "$web_required"
+          conditional web-e2e "$web_required"
 
           # Rule 4: site jobs must run iff site/ exists and changed.
           site_required=false
