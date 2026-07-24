@@ -11,23 +11,22 @@ import pytest
 from psycopg.conninfo import conninfo_to_dict
 
 from irrevon.cli import main
-from irrevon.cli.config import Config
+from irrevon.cli.config import DEFAULT_DSN, Config
 from irrevon.errors import ConfigInvalid, StorageUnavailable
 from irrevon.ledger import db as ledger_db
 
 _PASSWORD_ENV = "IRREVON_TEST_LEDGER_PASSWORD"
 _SYNTHETIC_PASSWORD = (
-    "not-a-real-secret ' \" \\\n"
-    " application_name=must-not-inject @:/?#&=%+"
+    "not-a-real-secret ' \" \\\n application_name=must-not-inject @:/?#&=%+"
 )
 
 
 def _write_config(tmp_path: Path) -> Path:
     config = tmp_path / "source-config.toml"
     config.write_text(
-        "schema_version = \"1\"\n\n"
+        'schema_version = "1"\n\n'
         "[ledger]\n"
-        "dsn = \"postgresql://irrevon@localhost:5432/irrevon\"\n"
+        'dsn = "postgresql://irrevon@localhost:5432/irrevon"\n'
         f'password_env = "{_PASSWORD_ENV}"\n',
         encoding="utf-8",
     )
@@ -72,6 +71,44 @@ def test_resolved_dsn_rejects_invalid_input_without_environment_value_leak(
     assert _SYNTHETIC_PASSWORD not in str(raised.value)
 
 
+def test_default_dsn_uses_the_scaffolded_runtime_role() -> None:
+    assert conninfo_to_dict(DEFAULT_DSN)["user"] == "irrevon_app"
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        'schema_version = "1"\nledger = 7\n',
+        'schema_version = "1"\ndemo = 7\n',
+        'schema_version = "1"\n[ledger]\ndsn = 7\n',
+        'schema_version = "1"\n[ledger]\npassword_env = 7\n',
+        'schema_version = "1"\n[ledger]\npassword_env = "BAD=NAME"\n',
+        'schema_version = "1"\n[demo]\nseed = "42"\n',
+        'schema_version = "1"\n[demo]\nseed = 4.9\n',
+        'schema_version = "1"\n[demo]\nseed = true\n',
+        ('schema_version = "1"\n[adapters.synthetic]\nkind = 7\n'),
+        (
+            'schema_version = "1"\n'
+            '[adapters.synthetic]\nkind = "refdest"\ncredentials = "BAD=NAME"\n'
+        ),
+    ],
+)
+def test_malformed_config_types_return_stable_cli_envelope(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    body: str,
+) -> None:
+    path = tmp_path / "invalid.toml"
+    path.write_text(body, encoding="utf-8")
+    rc = main(["doctor", "--config", str(path), "--json"])
+    captured = capsys.readouterr()
+    assert rc == 1
+    assert captured.out == ""
+    envelope = json.loads(captured.err)
+    assert envelope["error"]["code"] == "config_invalid"
+    assert "Traceback" not in captured.err
+
+
 def test_init_treats_only_storage_unavailable_as_nonfatal(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -79,12 +116,18 @@ def test_init_treats_only_storage_unavailable_as_nonfatal(
 ) -> None:
     config = _write_config(tmp_path)
     monkeypatch.setenv(_PASSWORD_ENV, _SYNTHETIC_PASSWORD)
+    monkeypatch.setenv(
+        "IRREVON_MIGRATION_DSN",
+        Config(
+            path=config,
+            dsn="postgresql://irrevon@localhost:5432/irrevon",
+            password_env=_PASSWORD_ENV,
+        ).resolved_dsn(),
+    )
 
     def unavailable(dsn: str) -> list[str]:
         assert conninfo_to_dict(dsn)["password"] == _SYNTHETIC_PASSWORD
-        raise StorageUnavailable(
-            f"synthetic unreachable detail {_SYNTHETIC_PASSWORD}"
-        )
+        raise StorageUnavailable(f"synthetic unreachable detail {_SYNTHETIC_PASSWORD}")
 
     monkeypatch.setattr(ledger_db, "apply_migrations", unavailable)
     rc = main(
@@ -129,6 +172,14 @@ def test_init_migration_failures_are_sanitized_and_fail_closed(
 ) -> None:
     config = _write_config(tmp_path)
     monkeypatch.setenv(_PASSWORD_ENV, _SYNTHETIC_PASSWORD)
+    monkeypatch.setenv(
+        "IRREVON_MIGRATION_DSN",
+        Config(
+            path=config,
+            dsn="postgresql://irrevon@localhost:5432/irrevon",
+            password_env=_PASSWORD_ENV,
+        ).resolved_dsn(),
+    )
 
     def fail_migration(dsn: str) -> list[str]:
         assert conninfo_to_dict(dsn)["password"] == _SYNTHETIC_PASSWORD

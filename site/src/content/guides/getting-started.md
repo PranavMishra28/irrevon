@@ -27,11 +27,13 @@ own Postgres: no telemetry, no crash reporting, no update checking.
 ## Clone and set up
 
 ```bash
-git clone <repository-url> && cd irrevon
+git clone https://github.com/PranavMishra28/irrevon.git
+cd irrevon
 
 uv sync --locked                # toolchain + deps, pinned by uv.lock
 uv run irrevon init             # writes irrevon.toml, compose.yaml, .env.example
-cp .env.example .env            # local placeholder password (never committed)
+cp .env.example .env            # local migration bootstrap; no credential
+set -a && . ./.env && set +a    # make the migration-only DSN available
 docker compose up -d --wait     # digest-pinned Postgres 17, loopback only
 uv run irrevon init             # now applies the plain-SQL migrations
 ```
@@ -58,9 +60,10 @@ uv run irrevon demo             # the two-leg flagship story
 ```
 
 The demo runs the same fault schedule twice — a lost dispatch response, a real SIGKILL,
-and a re-synthesized retry — once through the Irrevon engine and once through the B5
-baseline (durable runtime semantics, stable operation IDs, idempotency keys sent), both
-against the reference C2 destination.
+and a re-synthesized retry — once through the Irrevon engine and once through a
+developmental file-journal operationalization of B5 semantics (durable retry,
+stable operation IDs, idempotency keys sent), both against the reference C2
+destination. A real Temporal comparator remains a Stage-B prerequisite.
 
 ## What you should see
 

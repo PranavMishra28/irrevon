@@ -5,7 +5,6 @@
 // the install e2e enforces that no install command renders as available
 // today and that the old squatted package name never appears.
 import Base from "../layouts/Base.astro";
-import Badge from "../components/Badge.astro";
 import Source from "../components/Source.astro";
 import { SITE_NAME, REPO_URL } from "../config";
 import { href } from "../lib/url";
@@ -51,7 +50,8 @@ git clone {REPO_URL}.git && cd {packageName}
 
 uv sync --locked                # toolchain + deps, pinned by uv.lock
 uv run irrevon init             # writes irrevon.toml, compose.yaml, .env.example
-cp .env.example .env            # local placeholder password (never committed)
+cp .env.example .env            # local migration bootstrap; no credential
+set -a && . ./.env && set +a    # export the generated migration DSN
 docker compose up -d --wait     # digest-pinned Postgres 17, loopback only
 uv run irrevon init             # now applies the plain-SQL migrations
 uv run irrevon doctor           # read-only checks incl. the identity self-test

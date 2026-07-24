@@ -1,0 +1,43 @@
+---
+import Base from "../layouts/Base.astro";
+import { href } from "../lib/url";
+---
+
+<Base
+  title="Privacy — Irrevon"
+  description="Irrevon's local-first data boundary, identifier handling, telemetry, fixtures, and operator responsibilities."
+>
+  <section class="section">
+    <div class="container prose">
+      <span class="kicker">Privacy</span>
+      <h1>Local-first does not mean data-free.</h1>
+      <p class="lead">
+        The CLI has no telemetry, update checks, crash reporting, or hosted Irrevon service. Runtime
+        records stay in the operator's PostgreSQL deployment. The static project site may use
+        same-origin Vercel Web Analytics and Speed Insights when deployed.
+      </p>
+      <h2>Workbench boundary</h2>
+      <p>
+        <code>irrevon serve</code> binds only to <code>127.0.0.1</code>, validates the Host header,
+        accepts GET/HEAD only, and connects through a SELECT-only database role. Stable upstream
+        identifier keys remain visible, while values are represented as deterministic SHA-256
+        digests. Raw values require the explicit local CLI <code>inspect --reveal</code> option.
+      </p>
+      <h2>What the ledger stores</h2>
+      <p>
+        The ledger stores intent metadata, request parameters needed for recovery, digests,
+        transitions, receipts, probes, and findings. Request parameters can contain personal or
+        confidential data when an integrator puts it there. Digests are not anonymization, especially
+        for low-entropy values.
+      </p>
+      <h2>Operator responsibilities</h2>
+      <ul>
+        <li>Minimize provider payloads and keep credentials outside configuration files.</li>
+        <li>Set retention, backup, access-control, and deletion policy for the deployment.</li>
+        <li>Treat evidence exports, screenshots, logs, and backups as potentially sensitive.</li>
+        <li>Never submit production records, keys, or private identifiers to public issues.</li>
+      </ul>
+      <p>Security reports use the private path on the <a href={href("/security/")}>Security page</a>.</p>
+    </div>
+  </section>
+</Base>

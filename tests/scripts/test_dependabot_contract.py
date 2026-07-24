@@ -35,6 +35,7 @@ def test_every_dependency_tree_has_one_noise_contained_update_lane() -> None:
         ("uv", "/"): "deps",
         ("npm", "/web"): "deps",
         ("npm", "/site"): "deps",
+        ("docker", "/"): "deps",
     }
 
     assert set(blocks) == set(expected_prefixes)

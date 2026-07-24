@@ -1,0 +1,53 @@
+{
+  "schema_version": "1",
+  "as_of": "2026-07-23",
+  "license": "Apache-2.0",
+  "repository_visibility": "public",
+  "release_posture": "research-preview-unpublished",
+  "prepared_version": "0.1.0",
+  "contributions": {
+    "open": true,
+    "license": "Apache-2.0",
+    "dco": "1.1-required-every-commit",
+    "cla": false
+  },
+  "implemented": [
+    "single-writer-engine",
+    "continuous-worker",
+    "loopback-read-only-workbench",
+    "deterministic-synthetic-demo",
+    "benchmark-development-harness",
+    "wheel-and-sdist-build",
+    "static-marketing-site"
+  ],
+  "evidence": {
+    "development_fixtures": "synthetic",
+    "preregistration": "draft-unfrozen",
+    "confirmatory_results": false,
+    "independent_reproduction": false
+  },
+  "provider_adapters": {
+    "stripe_c1": "draft-never-live-called",
+    "easypost_c2": "draft-never-live-called",
+    "production_credentials_allowed": false
+  },
+  "deployment": {
+    "model": "evaluated-self-hosted-boundary",
+    "database": "PostgreSQL 17",
+    "active_writers": 1,
+    "supported_production_topology": false,
+    "multi_writer": false,
+    "hosted_control_plane": false,
+    "workbench_network": "loopback-only"
+  },
+  "owner_gated": [
+    "provider-sandbox-observations",
+    "preregistration-freeze",
+    "confirmatory-benchmark",
+    "package-publication",
+    "release-and-tag",
+    "vercel-deployment",
+    "repository-settings",
+    "external-legal-actions"
+  ]
+}

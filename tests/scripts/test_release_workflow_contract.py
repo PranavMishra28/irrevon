@@ -1,9 +1,4 @@
-"""Fail-closed contract for the dormant package-release workflow.
-
-This static orchestration test prevents a skipped or no-op dispatch from being
-misread as release readiness. Before human activation, the workflow must
-always reach one unconditional refusal and expose no publication capability.
-"""
+"""Fail-closed contract for the executable, owner-gated release workflow."""
 
 from __future__ import annotations
 
@@ -13,106 +8,91 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "release.yml"
 MAKEFILE = ROOT / "Makefile"
-ACTIONLINT_CONFIG = ROOT / ".github" / "actionlint.yaml"
 
 
-def _active_yaml(workflow: str) -> str:
-    """Discard the explicitly non-executable commented release outline."""
-    return "\n".join(line for line in workflow.splitlines() if not line.lstrip().startswith("#"))
-
-
-def _job_block(active_workflow: str, job: str) -> str:
+def _job(workflow: str, name: str, next_name: str | None = None) -> str:
+    boundary = rf"(?=^  {re.escape(next_name)}:\n)" if next_name else r"\Z"
     match = re.search(
-        rf"^  {re.escape(job)}:\n(?P<body>.*)\Z",
-        active_workflow,
+        rf"^  {re.escape(name)}:\n(?P<body>.*?){boundary}",
+        workflow,
         flags=re.MULTILINE | re.DOTALL,
     )
-    assert match is not None, f"{job} job block not found"
+    assert match is not None, f"{name} job block not found"
     return match.group("body")
 
 
-def _target_recipe(makefile: str, target: str) -> list[str]:
-    marker = f"\n{target}:\n"
-    assert marker in makefile, f"{target} target not found"
-    block = makefile.split(marker, 1)[1].split("\n\n", 1)[0]
-    return [line.strip() for line in block.splitlines() if line.startswith("\t")]
-
-
-def test_release_workflow_is_manual_only_unskippable_and_least_privilege() -> None:
-    workflow = WORKFLOW.read_text(encoding="utf-8")
-    active = _active_yaml(workflow)
-    header = active.split("\njobs:\n", 1)[0]
-    job = _job_block(active, "release-gate")
-
-    assert re.search(r"^on:\n  workflow_dispatch:\n", header, flags=re.MULTILINE)
-    assert not re.search(
-        r"^  (push|pull_request|schedule|workflow_call|release):",
-        header,
-        flags=re.MULTILINE,
-    )
-    assert "inputs:" not in header
+def test_pr_path_is_non_publishing_and_tag_path_is_canonical_only() -> None:
+    workflow = WORKFLOW.read_text()
+    header = workflow.split("\njobs:\n", 1)[0]
+    assert "pull_request:" in header
+    assert "workflow_dispatch:" in header
+    assert 'tags:\n      - "v[0-9]+.[0-9]+.[0-9]+"' in header
     assert "permissions: {}" in header
-    job_ids = re.findall(
-        r"^  ([A-Za-z0-9_-]+):\n",
-        active.split("\njobs:\n", 1)[1],
-        flags=re.MULTILINE,
-    )
-    assert job_ids == ["release-gate"]
-    assert job.count("permissions:\n      contents: read") == 1
-    assert "persist-credentials: false" in job
-    assert "if:" not in active
-    assert "continue-on-error:" not in active
-    assert "environment:" not in active
+
+    dry = _job(workflow, "dry-run", "validate-build")
+    assert "github.ref_type != 'tag'" in dry
+    assert "make release-dry-run" in dry
+    assert "contents: read" in dry
+    assert "id-token: write" not in dry
+    assert "contents: write" not in dry
+
+    for name, next_name in (
+        ("validate-build", "build-attest"),
+        ("build-attest", "publish-pypi"),
+        ("publish-pypi", "publish-github"),
+        ("publish-github", None),
+    ):
+        block = _job(workflow, name, next_name)
+        assert "github.ref_type == 'tag'" in block
+        assert "github.event_name == 'push'" in block
+        assert "github.repository == 'PranavMishra28/irrevon'" in block
 
 
-def test_only_checkout_and_the_inert_release_gate_are_active() -> None:
-    workflow = WORKFLOW.read_text(encoding="utf-8")
-    active = _active_yaml(workflow)
-    job = _job_block(active, "release-gate")
+def test_untrusted_build_is_separate_from_oidc_and_publication_permissions() -> None:
+    workflow = WORKFLOW.read_text()
+    build = _job(workflow, "validate-build", "build-attest")
+    attest = _job(workflow, "build-attest", "publish-pypi")
+    pypi = _job(workflow, "publish-pypi", "publish-github")
+    github_release = _job(workflow, "publish-github")
 
-    assert "${{" not in active
-    assert "secrets." not in active
-    assert "vars." not in active
-    assert "github." not in active
-    assert not re.search(r"^\s+env:", active, flags=re.MULTILINE)
-    assert not re.search(
-        r"^\s+(id-token|attestations|packages|actions):\s+write$",
-        active,
-        flags=re.MULTILINE,
-    )
-    assert "contents: write" not in active
+    assert "make launch-audit" in build
+    assert "id-token: write" not in build
+    assert "attestations: write" not in build
+    assert "contents: write" not in build
+    assert "enable-cache: false" in build
+    assert "package-manager-cache: false" in build
 
-    uses = re.findall(r"^\s+- uses:\s*(\S+)", job, flags=re.MULTILINE)
-    assert uses == ["actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"]
-    run_commands = re.findall(r"^\s+run:\s*(.+)$", job, flags=re.MULTILINE)
-    assert run_commands == ["make release-gate"]
+    assert "needs: validate-build" in attest
+    assert "actions/download-artifact@" in attest
+    assert "actions/checkout@" not in attest
+    assert "run:" not in attest
+    assert "id-token: write" in attest
+    assert "attestations: write" in attest
 
-    forbidden_active_steps = (
-        "upload-artifact",
-        "download-artifact",
-        "attest-build-provenance",
-        "gh-action-pypi-publish",
-        "gh release",
-        "git tag",
-        "uv build",
-        "make dist",
-    )
-    assert all(token not in active for token in forbidden_active_steps)
+    assert "environment: release" in pypi
+    assert "id-token: write" in pypi
+    assert "contents: write" not in pypi
+    assert "packages-dir: packages" in pypi
+
+    assert "needs: [build-attest, publish-pypi]" in github_release
+    assert "environment: release" in github_release
+    assert "contents: write" in github_release
+    assert "id-token: write" not in github_release
 
 
-def test_reserved_release_entrypoint_is_an_unconditional_refusal() -> None:
-    makefile = MAKEFILE.read_text(encoding="utf-8")
-    recipe = _target_recipe(makefile, "release-gate")
+def test_release_refuses_mismatched_versions_and_attests_every_evidence_file() -> None:
+    workflow = WORKFLOW.read_text()
+    build = _job(workflow, "validate-build", "build-attest")
+    attest = _job(workflow, "build-attest", "publish-pypi")
+    assert "tag is not exactly vMAJOR.MINOR.PATCH" in build
+    assert 'test "v$package_version" = "$TAG_NAME"' in build
+    assert "*dev*|*+*" in build
+    assert 'test -z "$(git status --porcelain)"' in build
+    for path in ("dist/*.whl", "dist/*.tar.gz", "dist/SHA256SUMS", "dist/irrevon.spdx.json"):
+        assert path in attest
 
-    assert recipe == [
-        '@echo "release-gate: REFUSED - distribution is a fail-closed skeleton." >&2',
-        '@echo "Every public-release gate item and a separate human activation are required." >&2',
-        "@exit 1",
-    ]
 
-
-def test_actionlint_has_no_stale_release_bypass() -> None:
-    config = ACTIONLINT_CONFIG.read_text(encoding="utf-8")
-    assert "release.yml" not in config
-    assert "constant expression" not in config
-    assert "ignore:" not in config
+def test_makefile_exposes_non_publishing_launch_and_release_dry_runs() -> None:
+    makefile = MAKEFILE.read_text()
+    assert "\nlaunch-audit:\n\tbash scripts/launch-audit.sh" in makefile
+    assert "\nrelease-dry-run:\n\tbash scripts/release-dry-run.sh" in makefile

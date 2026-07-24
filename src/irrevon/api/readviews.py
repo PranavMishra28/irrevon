@@ -61,6 +61,19 @@ def _rows(
     return [dict(r) for r in conn.execute(query, params).fetchall()]
 
 
+def _digest_stable_ids(stable_ids: dict[str, Any]) -> dict[str, str]:
+    """Preserve identity field names while removing upstream values.
+
+    The digest is deterministic so an operator can compare recorded views, but
+    it is not anonymization: low-entropy identifiers may be guessable. Raw
+    values are available only through local ``inspect --reveal`` (ADR-0036).
+    """
+    return {
+        key: f"sha256:{hashlib.sha256(str(value).encode('utf-8')).hexdigest()}"
+        for key, value in stable_ids.items()
+    }
+
+
 # ── inspect (the single producer behind CLI and serve) ────────────────────────
 
 
@@ -137,11 +150,7 @@ def inspect_payload(
     recomputed = hashlib.sha256(canonical).hexdigest()
 
     stable_ids = dict(record["stable_ids"])
-    shown_ids: dict[str, str] = (
-        stable_ids
-        if reveal
-        else dict.fromkeys(stable_ids, "<redacted; --reveal to show>")
-    )
+    shown_ids = stable_ids if reveal else _digest_stable_ids(stable_ids)
     classification = findings[-1]["classification"] if findings else "UNRECONCILED"
     frontier_rows = _rows(
         conn,
@@ -222,10 +231,9 @@ def _record_exchange(
         "effect_type": rec["effect_type"],
         "effect_class": rec["effect_class"],
         "scope": rec["scope"],
-        # Served as stored: the workbench is a loopback single-user evidence
-        # surface — redaction-by-default is a CLI-inspect affordance, not a
-        # trust boundary here (N2 §2.1 ruling; flagged in the serve ADR).
-        "stable_ids": dict(rec["stable_ids"]),
+        # Preserve field names for identity reasoning without returning
+        # upstream values from the HTTP surface (ADR-0036).
+        "stable_ids": _digest_stable_ids(dict(rec["stable_ids"])),
         "adapter_id": rec["adapter_id"],
         "declaration_digest": rec["declaration_digest"],
         "parameters_digest": rec["parameters_digest"],

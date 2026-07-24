@@ -162,7 +162,7 @@ export const b5Lane = [
   {
     event: events[7].event as string,
     detail: `transport_outcome ${events[7].transport_outcome}`,
-    caption: "The same fault against the strongest conventional stack: the response is lost.",
+    caption: "The same fault against a developmental file-journal B5 stand-in: the response is lost.",
   },
   {
     event: events[8].event as string,

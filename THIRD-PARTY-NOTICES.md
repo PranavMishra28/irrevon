@@ -13,10 +13,9 @@ build (`web/`), the marketing site build (`site/`), and the vendored fonts.
 project's own code and content are licensed under Apache-2.0 (ADR-0028; see
 LICENSE, NOTICE, and LICENSING.md). Third-party redistribution obligations remain
 separate from that project license and attach when covered artifacts are
-redistributed. At first project release this file gains the full license texts
-required by the MIT/ISC/BSD notice clauses; until then it is the committed,
-drift-gated inventory (the reviewable registry the release-time SBOM is checked
-against).
+redistributed. Exact upstream license files for every production package
+bundled into the Workbench are committed in `THIRD-PARTY-LICENSES.md` and
+regenerated from the frozen pnpm production graph during the release dry run.
 
 Dev/test dependencies (sections 5a/5b) are never distributed and appear for
 SBOM completeness only. MPL-2.0 items (hypothesis, pathspec, @axe-core/playwright)
@@ -46,7 +45,7 @@ ADR-0018 embeds the built workbench in the wheel and sdist — the wheel is a re
 | `@tanstack/react-table` | 8.21.3 | MIT | <https://tanstack.com/table> | shipped |
 | `@base-ui/react` | 1.6.0 | MIT | <https://base-ui.com> | shipped |
 | `lucide-react` | 1.24.0 | ISC | <https://lucide.dev> | attribution-preserving ISC terms; consumed as code via the internal icon registry — no committed icon files |
-| `tailwindcss (generated CSS)` | 4.3.2 | MIT | <https://tailwindcss.com> | the generated stylesheet ships; the tool itself is dev-only |
+| `tailwindcss (generated CSS)` | 4.3.3 | MIT | <https://tailwindcss.com> | the generated stylesheet ships; the tool itself is dev-only |
 
 ## 3. Fonts — IBM Plex Sans / IBM Plex Mono (OFL-1.1)
 Full license text: the `OFL.txt` adjacent to the font files (`web/public/fonts/OFL.txt`, `site/src/assets/fonts/OFL.txt`), copied into built output with them. Local re-subsetting is prohibited without a registry + counsel revisit (would create a Modified Version under the RFN clause).
@@ -61,7 +60,7 @@ Static HTML/CSS + self-hosted OFL fonts; never ships in the Python wheel.
 
 | Component | Version | License | Homepage | Notes |
 |---|---|---|---|---|
-| `astro` | 7.0.9 | MIT | <https://astro.build> | static output; runtime helpers in built HTML are MIT |
+| `astro` | 7.1.0 | MIT | <https://astro.build> | static output; runtime helpers in built HTML are MIT |
 | `@astrojs/sitemap` | 3.7.3 | MIT | <https://docs.astro.build> | — |
 | `@astrojs/rss` | 4.0.19 | MIT | <https://docs.astro.build> | — |
 | `@astrojs/markdown-satteri` | 0.3.4 | MIT | <https://docs.astro.build> | explicit pin of Astro 7's markdown processor (local plugins import a declared dependency) |

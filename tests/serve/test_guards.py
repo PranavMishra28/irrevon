@@ -54,6 +54,20 @@ def test_non_loopback_bind_is_refused(
         create_server(app, 0)
 
 
+@pytest.mark.parametrize("route", ["/", *ALL_API_ROUTES])
+def test_host_header_blocks_dns_rebinding(
+    local_server: RunningServer, route: str
+) -> None:
+    status, headers, body = local_server.request(
+        "GET", route, headers={"Host": "attacker.invalid"}
+    )
+    assert status == 421
+    assert headers["cross-origin-resource-policy"] == "same-origin"
+    import json
+
+    assert json.loads(body)["error"]["code"] == "host_rejected"
+
+
 def test_no_host_flag_exists(capsys: pytest.CaptureFixture[str]) -> None:
     """The option to bind elsewhere does not exist — stronger than validating
     it. argparse rejects --host as an unknown argument (usage error, exit 2)."""
@@ -116,7 +130,7 @@ def test_health_serves_the_doctor_document_even_without_db(
     local_server: RunningServer,
 ) -> None:
     status, headers, payload = local_server.get_json("/api/v1/health")
-    assert status == 200
+    assert status == 503
     assert headers["irrevon-schema-version"] == SCHEMA_VERSION
     assert payload["schema_version"] == SCHEMA_VERSION
     names = [c["name"] for c in payload["checks"]]
@@ -194,12 +208,29 @@ def test_demo_artifact_served_fresh_from_file(tmp_path: Path) -> None:
         status, _, _ = running.get_json("/api/v1/demo/artifact")
         assert status == 404
         # written while serve runs → served fresh, no restart, no caching
-        doc = {"schema_version": "1", "events": [{"event": "registered"}],
-               "summary": {"schema_version": "1", "contrast_holds": True}}
+        doc = {
+            "schema_version": "1",
+            "events": [{"event": "registered"}],
+            "summary": {
+                "schema_version": "1",
+                "seed": 1,
+                "irrevon_leg": {},
+                "b5_leg": {},
+                "contrast_holds": True,
+            },
+        }
         artifact.write_text(json.dumps(doc))
         status, _, payload = running.get_json("/api/v1/demo/artifact")
         assert status == 200
         assert payload == doc
+        # unknown/local fields never become an HTTP export
+        doc["summary"]["artifact_path"] = "/private/local/path"
+        doc["summary"]["stable_ids"] = {"customer": "raw"}
+        artifact.write_text(json.dumps(doc))
+        status, _, payload = running.get_json("/api/v1/demo/artifact")
+        assert status == 200
+        assert "artifact_path" not in payload["summary"]
+        assert "stable_ids" not in payload["summary"]
         # corrupted → honest 404, never a synthesized artifact
         artifact.write_text("{not json")
         status, _, payload = running.get_json("/api/v1/demo/artifact")

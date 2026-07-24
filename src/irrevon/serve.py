@@ -74,6 +74,14 @@ _BIND_HOST = "127.0.0.1"
 _HEALTH_CACHE_S = 5.0
 
 _EFFECT_ROUTE = re.compile(r"^/api/v1/effects/([0-9a-f]{64})(/inspect)?$")
+_KNOWN_API_ROUTES = {
+    "/api/v1/effects",
+    "/api/v1/findings",
+    "/api/v1/bench-runs",
+    "/api/v1/adapters",
+    "/api/v1/health",
+    "/api/v1/demo/artifact",
+}
 _INLINE_SCRIPT = re.compile(rb"<script(?:\s[^>]*)?>(.*?)</script\s*>", re.IGNORECASE | re.DOTALL)
 
 _MIME_TYPES: dict[str, str] = {
@@ -116,6 +124,95 @@ _DEGRADE_HTML = (
     "The API under <code>/api/v1/</code> is serving normally.</p>"
     "</body></html>"
 )
+
+_DEMO_EVENT_FIELDS: dict[str, tuple[str, ...]] = {
+    "registered": ("effect_id", "lifecycle"),
+    "dispatch_response_lost": ("effect_id", "fault", "lifecycle"),
+    "crash": ("exit_status",),
+    "recovered": ("recovery",),
+    "settled_confirmed_unique": ("lifecycle", "classification"),
+    "resynthesis_collapsed": ("effect_id", "replayed", "parameter_variant"),
+    "duplicate_rejected": ("outcome", "deny_check", "decision_id"),
+    "b5_response_lost": ("transport_outcome",),
+    "b5_restart": (),
+    "b5_retried": ("retried",),
+    "b5_duplicate": ("destination_effects",),
+}
+_DEMO_LEG_FIELDS = {
+    "irrevon_leg": (
+        "destination_effects",
+        "duplicate_rejected",
+        "reconciled",
+        "effect_id",
+    ),
+    "b5_leg": ("destination_effects", "duplicate_created"),
+}
+
+
+def _safe_demo_value(value: Any) -> Any | None:
+    """Return a bounded JSON scalar/list/small recovery object, else ``None``."""
+    if value is None or isinstance(value, bool) or type(value) is int:
+        return value
+    if isinstance(value, str) and len(value.encode("utf-8", errors="strict")) <= 1024:
+        return value
+    if isinstance(value, list) and len(value) <= 16:
+        projected = [_safe_demo_value(item) for item in value]
+        return projected if all(item is not None for item in projected) else None
+    if isinstance(value, dict) and set(value) <= {"scanned", "adjudicated"}:
+        if all(type(item) is int and item >= 0 for item in value.values()):
+            return dict(value)
+    return None
+
+
+def _project_demo_artifact(loaded: Any) -> dict[str, Any] | None:
+    """Project the local demo artifact onto the public, non-sensitive shape.
+
+    In particular, generated ``artifact_path`` and ``workbench_url`` values are
+    intentionally omitted, and unknown keys can never become an HTTP export.
+    """
+    if not isinstance(loaded, dict) or loaded.get("schema_version") != "1":
+        return None
+    events = loaded.get("events")
+    summary = loaded.get("summary")
+    if not isinstance(events, list) or len(events) > 64 or not isinstance(summary, dict):
+        return None
+    safe_events: list[dict[str, Any]] = []
+    for raw in events:
+        if not isinstance(raw, dict) or not isinstance(raw.get("event"), str):
+            return None
+        event_name = raw["event"]
+        fields = _DEMO_EVENT_FIELDS.get(event_name)
+        if fields is None:
+            return None
+        event: dict[str, Any] = {"event": event_name}
+        for field_name in fields:
+            if field_name not in raw:
+                continue
+            value = _safe_demo_value(raw[field_name])
+            if value is None:
+                return None
+            event[field_name] = value
+        safe_events.append(event)
+    safe_summary: dict[str, Any] = {"schema_version": "1"}
+    for field_name in ("seed", "contrast_holds"):
+        value = _safe_demo_value(summary.get(field_name))
+        if value is None:
+            return None
+        safe_summary[field_name] = value
+    for leg_name, fields in _DEMO_LEG_FIELDS.items():
+        raw_leg = summary.get(leg_name)
+        if not isinstance(raw_leg, dict):
+            return None
+        leg: dict[str, Any] = {}
+        for field_name in fields:
+            if field_name not in raw_leg:
+                continue
+            value = _safe_demo_value(raw_leg[field_name])
+            if value is None:
+                return None
+            leg[field_name] = value
+        safe_summary[leg_name] = leg
+    return {"schema_version": "1", "events": safe_events, "summary": safe_summary}
 
 
 def _html_csp(body: bytes) -> str:
@@ -196,7 +293,23 @@ class ServeApp:
             now = time.monotonic()
             if self._health_cache and now - self._health_cache[0] < _HEALTH_CACHE_S:
                 return self._health_cache[1]
-            payload = doctor_payload(self.config, read_only=True)
+            raw = doctor_payload(self.config, read_only=True)
+            # The browser needs names and verdicts, not local paths, DSNs, or
+            # database diagnostic text. Full detail remains in the explicit
+            # local `irrevon doctor` command.
+            payload = {
+                "schema_version": raw["schema_version"],
+                "ok": raw["ok"],
+                "checks": [
+                    {
+                        "name": check["name"],
+                        "status": check["status"],
+                        "message": f"check {check['status']}",
+                        "hint": None,
+                    }
+                    for check in raw["checks"]
+                ],
+            }
             self._health_cache = (now, payload)
             return payload
 
@@ -231,6 +344,9 @@ class _Handler(BaseHTTPRequestHandler):
         raise AttributeError(name)
 
     def _method_not_allowed(self) -> None:
+        if not self._host_is_valid():
+            self._reject_host(include_body=True)
+            return
         body = json.dumps(
             _error_envelope(
                 "method_not_allowed",
@@ -256,6 +372,12 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _handle(self, *, include_body: bool) -> None:
         started = time.monotonic()
+        if not self._host_is_valid():
+            status = self._reject_host(include_body=include_body)
+            self._log_request(
+                status, duration_ms=(time.monotonic() - started) * 1000.0
+            )
+            return
         split = urlsplit(self.path)
         path = unquote(split.path)
         try:
@@ -273,15 +395,44 @@ class _Handler(BaseHTTPRequestHandler):
             )
         self._log_request(status, duration_ms=(time.monotonic() - started) * 1000.0)
 
+    def _host_is_valid(self) -> bool:
+        values = self.headers.get_all("Host", failobj=[])
+        server = self.server
+        assert isinstance(server, _ServeServer)
+        expected = f"127.0.0.1:{server.server_address[1]}"
+        return len(values) == 1 and values[0] == expected
+
+    def _reject_host(self, *, include_body: bool) -> int:
+        return self._send_json(
+            421,
+            _error_envelope(
+                "host_rejected",
+                "request Host does not match the loopback listener",
+            ),
+            include_body=include_body,
+        )
+
     def _log_request(self, status: int, duration_ms: float | None = None) -> None:
         if self._app().quiet:
             return
-        # Identifier privacy (RFC-002 §11): the path carries only
-        # Irrevon-minted ids; query VALUES are never logged.
+        raw_path = unquote(urlsplit(self.path).path)
+        effect_match = _EFFECT_ROUTE.match(raw_path)
+        if effect_match is not None:
+            logged_path = "/api/v1/effects/:effect_id"
+            if effect_match.group(2):
+                logged_path += "/inspect"
+        elif raw_path in _KNOWN_API_ROUTES:
+            logged_path = raw_path
+        elif raw_path.startswith("/api"):
+            logged_path = "/api/unknown"
+        else:
+            logged_path = "/static"
+        # Query values, caller-controlled unknown paths, and minted identifiers
+        # are never logged.
         emit(
             "serve.request",
             method=self.command,
-            path=urlsplit(self.path).path,
+            path=logged_path,
             status=status,
             duration_ms=round(duration_ms, 2) if duration_ms is not None else None,
         )
@@ -303,6 +454,7 @@ class _Handler(BaseHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("Cross-Origin-Resource-Policy", "same-origin")
         self.send_header("Permissions-Policy", _PERMISSIONS_POLICY)
         self.send_header("Cache-Control", cache)
         if api:
@@ -353,7 +505,7 @@ class _Handler(BaseHTTPRequestHandler):
             if match.group(2):  # /inspect — the shared single producer
                 return self._db_json(
                     lambda conn: readviews.inspect_payload(
-                        conn, effect_id, reveal=True
+                        conn, effect_id, reveal=False
                     ),
                     include_body,
                 )
@@ -393,7 +545,12 @@ class _Handler(BaseHTTPRequestHandler):
         if path == "/api/v1/adapters":
             return self._adapters(include_body)
         if path == "/api/v1/health":
-            return self._send_json(200, app.health_payload(), include_body=include_body)
+            health = app.health_payload()
+            return self._send_json(
+                200 if health.get("ok") is True else 503,
+                health,
+                include_body=include_body,
+            )
         if path == "/api/v1/demo/artifact":
             return self._demo_artifact(include_body)
         return self._send_json(
@@ -416,12 +573,12 @@ class _Handler(BaseHTTPRequestHandler):
                 _error_envelope("query_invalid", str(err)),
                 include_body=include_body,
             )
-        except psycopg.OperationalError as err:
+        except psycopg.OperationalError:
             return self._send_json(
                 503,
                 _error_envelope(
                     "storage_unavailable",
-                    f"ledger unreachable: {err}",
+                    "ledger is unavailable",
                     retryable=True,
                 ),
                 include_body=include_body,
@@ -457,7 +614,8 @@ class _Handler(BaseHTTPRequestHandler):
             loaded = json.loads(self._app().artifact_path.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             loaded = None
-        if not isinstance(loaded, dict):
+        projected = _project_demo_artifact(loaded)
+        if projected is None:
             return self._send_json(
                 404,
                 _error_envelope(
@@ -467,7 +625,7 @@ class _Handler(BaseHTTPRequestHandler):
                 ),
                 include_body=include_body,
             )
-        return self._send_json(200, loaded, include_body=include_body)
+        return self._send_json(200, projected, include_body=include_body)
 
     # ── static workbench serving (ADR-0018 mechanics) ─────────────────────────
 

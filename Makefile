@@ -12,9 +12,9 @@ LYCHEE_VERSION := 0.24.2
 CHECK_JSONSCHEMA_VERSION := 0.37.4
 GITLEAKS_VERSION := 8.30.1
 
-.PHONY: check links links-online schemas secrets integrity tools tools-check
+.PHONY: check links links-online schemas secrets integrity tools tools-check dco public-truth public-data launch-audit
 
-check: links schemas secrets integrity
+check: links schemas secrets integrity public-truth
 	@echo "OK: all validation gates passed"
 
 # Internal links + heading anchors across tracked markdown. --offline checks only
@@ -73,7 +73,7 @@ schemas:
 # Rules/allowlist live in .gitleaks.toml (generic rules only).
 secrets:
 	gitleaks dir --no-banner --redact .
-	@if [ -d .git ]; then gitleaks git --no-banner --redact .; \
+	@if git rev-parse --git-dir >/dev/null 2>&1; then gitleaks git --no-banner --redact .; \
 	else echo "secrets: no .git yet - history scan skipped"; fi
 
 # Master-doc hash pin, ADR id uniqueness, .cursor JSON syntax, optional local
@@ -97,6 +97,23 @@ tools-check:
 	v=$$(gitleaks version 2>/dev/null); \
 	[ "$$v" = "$(GITLEAKS_VERSION)" ] || { echo "tools-check: gitleaks $$v != tested $(GITLEAKS_VERSION)"; fail=1; }; \
 	[ "$$fail" -eq 0 ] && echo "tools-check: all tool versions match the tested set" || exit 1
+
+# DCO 1.1 contribution check (ADR-0035). CI passes the pull-request merge
+# base; the default self-test proves the matcher itself without guessing a
+# local contributor's intended range.
+dco:
+	@if [ -n "$${DCO_BASE_REF:-}" ]; then \
+	  bash scripts/check-dco.sh "$$DCO_BASE_REF" "$${DCO_HEAD_REF:-HEAD}"; \
+	else bash scripts/check-dco.sh --self-test; fi
+
+public-truth:
+	python3 scripts/check-public-truth.py
+
+public-data:
+	python3 scripts/check-public-data.py
+
+launch-audit:
+	bash scripts/launch-audit.sh
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Python engine targets (appended by T-101..T-104; taxonomy per ADR-0017).
@@ -197,7 +214,7 @@ web-vrt:
 # ── Marketing site gates (appended by the site/ task; see site/README.md) ─────
 # Self-contained Node package, same corepack/pnpm pattern as web/. Deploys are
 # owner-directed Vercel static uploads of site/dist (ADR-0027), never CI-triggered.
-.PHONY: site-check site-build site-test
+.PHONY: site-check site-build site-test site-vrt
 
 # Static gates: astro check + vendored token/font drift + claims-registry drift.
 site-check:
@@ -213,13 +230,21 @@ site-test:
 	  && pnpm exec playwright install chromium --only-shell \
 	  && pnpm run build && pnpm test
 
+# Review screenshots at desktop/tablet/mobile in both themes. This produces
+# local, gitignored evidence under site/shots/ and never deploys anything.
+site-vrt:
+	cd site && pnpm install --frozen-lockfile \
+	  && pnpm exec playwright install chromium --only-shell \
+	  && pnpm run build \
+	  && pnpm exec playwright test --project=shots
+
 # ── Serve + distribution targets (appended by the BE serve task; ADR-0024 ─────
 # proposed). `make dist` is THE ordering ADR-0018 requires: web assets are
 # built FIRST (the only step that touches Node), staged into the package, and
 # the honesty hook (hatch_build.py, IRREVON_REQUIRE_WEB=1) fails the build if
 # they are missing or were never staged. dist-smoke proves the whole no-Node
 # chain inside python:3.13-slim (scripts/dist-smoke.sh).
-.PHONY: web-build dist-stage dist dist-smoke py-test-serve serve-live web-e2e-live
+.PHONY: web-build dist-stage dist dist-smoke py-test-serve serve-live web-e2e-live release-dry-run
 
 web-build:
 	cd web && pnpm install --frozen-lockfile && pnpm run build
@@ -233,6 +258,9 @@ dist: web-build dist-stage
 
 dist-smoke: dist py-db-up
 	bash scripts/dist-smoke.sh
+
+release-dry-run:
+	bash scripts/release-dry-run.sh
 
 # Serve-layer suite only (unit + integration; the full ladder already includes
 # it via py-test / py-test-integration).

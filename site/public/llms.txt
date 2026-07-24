@@ -1,6 +1,6 @@
 # Irrevon
 
-> A preregistered benchmark (IrrevonBench) and reference reconciliation
+> A benchmark drafted for preregistration (IrrevonBench) and reference reconciliation
 > engine for irreversible AI-agent actions. Pre-release; no benchmark
 > results exist; confirmatory runs are mechanically refused before the
 > human preregistration freeze.
@@ -60,5 +60,8 @@
 - [Causal effect histories, capability conformance verification, and oracle attribution hardening](/docs/reference/adr-0032-causal-histories-and-conformance/): source docs/decisions/0032-causal-histories-and-conformance.md
 - [Machine-verifiable freeze registrations + adapter attribution declarations + site build provenance](/docs/reference/adr-0033-verifiable-freeze-and-attribution-declarations/): source docs/decisions/0033-verifiable-freeze-and-attribution-declarations.md
 - [Continuous worker service, provider-adapter framework (Stripe C1 / EasyPost C2 drafts), and the multi-worker + independent-baseline designs](/docs/reference/adr-0034-continuous-worker-and-provider-adapters/): source docs/decisions/0034-continuous-worker-and-provider-adapters.md
+- [External contributions use Apache-2.0 inbound=outbound with mandatory DCO](/docs/reference/adr-0035-external-contributions/): source docs/decisions/0035-external-contributions.md
+- [Loopback evidence privacy digests stable identifier values by default](/docs/reference/adr-0036-loopback-evidence-privacy/): source docs/decisions/0036-loopback-evidence-privacy.md
+- [Intent validation refuses inputs outside bounded JSON and JCS domains](/docs/reference/adr-0037-intent-resource-bounds/): source docs/decisions/0037-intent-resource-bounds.md
 - [Operations — running Irrevon as a service](/docs/reference/operations/): source docs/operations.md
 - [Worked example — incident replay to permanent regression](/docs/reference/incident-replay-example/): source docs/incident-replay-example.md

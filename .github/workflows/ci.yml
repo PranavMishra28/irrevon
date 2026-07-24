@@ -81,7 +81,7 @@ jobs:
           code=false; web=false; site=false; live=false; workflows=false
           # schemas/ and Makefile are the cross-cutting inputs: they appear in
           # every code slice's filter (build-orchestration design, docs/ci.md).
-          printf '%s\n' "$CHANGED" | grep -qE '^(src/|tests/|migrations/|pyproject\.toml$|uv\.lock$|\.python-version$|schemas/|Makefile$)' && code=true
+          printf '%s\n' "$CHANGED" | grep -qE '^(src/|tests/|migrations/|schemas/|scripts/|deploy/|pyproject\.toml$|hatch_build\.py$|uv\.lock$|\.python-version$|docker-compose\.yml$|Dockerfile$|Makefile$)' && code=true
           printf '%s\n' "$CHANGED" | grep -qE '^(web/|schemas/|Makefile$)' && web=true
           printf '%s\n' "$CHANGED" | grep -qE '^(site/|Makefile$)' && site=true
           # The serve↔workbench joint proof runs when either side of the
@@ -146,6 +146,34 @@ jobs:
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           fail-on-severity: low
+
+  # DCO verification reads commit messages only; it never executes contributor
+  # code and needs no token beyond read-only checkout access. On branch pushes
+  # it runs the deterministic matcher self-test; pull requests verify every
+  # commit not reachable from the base branch.
+  dco:
+    name: DCO sign-off
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify DCO 1.1 trailers
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            make dco DCO_BASE_REF="$BASE_SHA" DCO_HEAD_REF="$HEAD_SHA"
+          else
+            make dco
+          fi
 
   # T0 backend lint/format/type — skips when the backend slice is untouched;
   # the aggregator verifies each skip against the change detection.
@@ -384,6 +412,8 @@ jobs:
       [
         changes,
         docs,
+        dco,
+        dependency-review,
         py-check,
         py-test,
         py-test-integration,
@@ -411,6 +441,7 @@ jobs:
           PY_EXISTS: ${{ needs.changes.outputs.py_exists }}
           WEB_EXISTS: ${{ needs.changes.outputs.web_exists }}
           SITE_EXISTS: ${{ needs.changes.outputs.site_exists }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
           echo "$NEEDS" | jq .
@@ -435,6 +466,10 @@ jobs:
           # Rule 1: unconditional jobs. If `changes` itself broke, fail closed.
           must_succeed changes
           must_succeed docs
+          must_succeed dco
+          dependency_required=false
+          [ "$EVENT_NAME" = "pull_request" ] && dependency_required=true
+          conditional dependency-review "$dependency_required"
 
           # Rule 2: backend jobs must run iff Python code exists and changed.
           py_required=false

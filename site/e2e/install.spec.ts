@@ -75,4 +75,5 @@ test("/install/ labels the planned block and lists the gates", async ({ page }) 
   // The works-today section leads the page.
   const sections = page.locator("main section");
   await expect(sections.nth(1)).toContainText("Install from source");
+  await expect(sections.nth(1)).toContainText("set -a && . ./.env && set +a");
 });

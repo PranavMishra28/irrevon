@@ -6,7 +6,10 @@ export const SITE_NAME = "Irrevon";
 export const BENCH_NAME = `${SITE_NAME}Bench`;
 
 declare const __REPO_URL__: string;
+declare const __BUILD_COMMIT__: string;
 export const REPO_URL = __REPO_URL__;
+export const BUILD_SOURCE_COMMIT = __BUILD_COMMIT__;
 
-/** Link to a repository file on the default branch without pinning a branch name. */
-export const repoDoc = (path: string): string => `${REPO_URL}/blob/HEAD/${path}`;
+/** Secondary provenance link pinned to the exact site build commit. */
+export const repoDoc = (path: string): string =>
+  `${REPO_URL}/blob/${BUILD_SOURCE_COMMIT}/${path}`;

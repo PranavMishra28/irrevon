@@ -1,7 +1,7 @@
 """Irrevon — reference reconciliation engine for irreversible AI-agent actions.
 
-First-slice implementation of docs/rfc-002-engine-design.md. The package is a
-library plus a CLI; it is not yet released software (see LICENSING.md).
+Implementation of docs/rfc-002-engine-design.md. The package is a library plus
+a CLI; it has not yet been published to a package index.
 """
 
 __version__ = "0.1.0.dev0"

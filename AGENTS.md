@@ -2,9 +2,10 @@
 
 Irrevon is a planned benchmark (IrrevonBench, preregistration drafted but not frozen) +
 reference reconciliation engine for irreversible AI-agent actions, benchmark-first and
-C2-scoped. Current status: see [README §What is implemented](README.md#what-is-implemented).
-The source tree is licensed Apache-2.0 (LICENSE + NOTICE; ADR-0028) and still accepts no contributions
-(ADR-0014's contributor-governance half remains open).
+C2-scoped. Current status: see [README §What exists today](README.md#what-exists-today).
+The source tree is licensed Apache-2.0 (LICENSE + NOTICE; ADR-0028). External
+contributions use inbound-equals-outbound Apache-2.0 with DCO sign-off and no
+CLA (ADR-0035; see `CONTRIBUTING.md`).
 
 This file is the map. Read the canonical file for a concern instead of guessing; link to it
 instead of restating it.
@@ -33,10 +34,10 @@ instead of restating it.
 | Test architecture (template-DB-per-test, crash/sync points, auditor) | `tests/` — process harness in `tests/process/`, flagship E2E in `tests/e2e/` |
 | Bounded-task process and template | [tasks/README.md](tasks/README.md) |
 | Licensing posture | [LICENSING.md](LICENSING.md) |
-| Validation commands | [Makefile](Makefile) (`make check`; full ladder `make check-all`) |
+| Validation commands | [Makefile](Makefile) (`make check`; full ladder `make check-all`; non-publishing launch gate `make launch-audit`) |
 
 **Finding a decision:** check [docs/decisions/README.md](docs/decisions/README.md) first — its
-index covers every ADR id 0000–0026, including the rows whose full text lives in master doc
+index covers every ADR id 0000–0037, including the rows whose full text lives in master doc
 §11. If a decision is not in the index, it has not been made; treat it as open.
 
 ## Working protocol
@@ -66,7 +67,7 @@ index covers every ADR id 0000–0026, including the rows whose full text lives 
 - Anything touches the §13 blockers (see master doc §13: external clearances, independent
   reviewers, name screen, preregistration stamping, C2 sandbox choice, Stripe version pin).
 - An action would change repository visibility or settings, publish anything anywhere, spend
-  money, or add a license/contribution mechanism.
+  money, or change the ratified license/contribution mechanism.
 - A frozen or append-only artifact appears wrong: propose an amendment in the review queue
   instead of editing.
 

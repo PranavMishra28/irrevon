@@ -1,7 +1,7 @@
 ---
 id: ADR-0014
 title: Outbound license and contributor-governance posture
-status: open (contributor-governance half only); license choice resolved by ADR-0028 — Apache-2.0, Candidate A, owner ratification 2026-07-21
+status: superseded in full — license choice by ADR-0028; contributor governance by ADR-0035
 date: 2026-07-20 (analysis refreshed 2026-07-21 from the LIC-2 deep research)
 supersedes: —
 ---

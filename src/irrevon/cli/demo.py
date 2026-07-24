@@ -8,7 +8,7 @@ Fixture-driven, two legs, one identical fault schedule:
   CONFIRMED_UNIQUE → a re-synthesized retry (different model arguments, SAME
   stable ids) collapses to the same effect_id and is rejected by the gate with
   evidence. One destination effect.
-- **B5 contrast leg**: the strongest conventional baseline (durable runtime,
+- **B5 contrast leg**: a developmental file-journal B5 stand-in (durable retry,
   stable op-IDs, native idempotency keys SENT) under the identical schedule
   retries on restart; the C2 destination ignores the key. Two destination
   effects, proven by read-back.
@@ -22,15 +22,19 @@ from __future__ import annotations
 
 import json
 import os
+import queue
+import select
+import shlex
 import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, TextIO
+from typing import Any, TextIO, cast
 
 import psycopg
 from psycopg import sql
@@ -40,6 +44,7 @@ from irrevon.adapters.base import declarations_dir, load_declaration
 from irrevon.adapters.refdest import RefdestAdapter
 from irrevon.api.baselines import B5DurableRuntime
 from irrevon.cli.config import Config
+from irrevon.errors import ConfigInvalid
 from irrevon.ledger.db import apply_migrations
 
 # ── The frozen demo fixture (fixture-driven; not generated at run time) ───────
@@ -101,27 +106,44 @@ class _Worker:
 
     def __init__(self, dsn: str, refdest_url: str) -> None:
         self.proc = subprocess.Popen(
-            [sys.executable, "-m", "irrevon.api.worker"],
+            [sys.executable, "-I", "-m", "irrevon.api.worker"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
             env={
-                **os.environ,
                 "IRREVON_DSN": dsn,
                 "IRREVON_REFDEST_URL": refdest_url,
                 "IRREVON_REREAD_GAP_S": "0",
             },
+            cwd=tempfile.gettempdir(),
         )
-        self.recovery = self._wait("RECOVERY DONE")
-        self._wait("READY")
+        _ACTIVE_DEMO_WORKERS.append(self)
+        self._lines: queue.Queue[str | None] = queue.Queue()
+        self._reader = threading.Thread(target=self._pump_stdout, daemon=True)
+        self._reader.start()
+        try:
+            self.recovery = self._wait("RECOVERY DONE")
+            self._wait("READY")
+        except BaseException:
+            self.close()
+            raise
+
+    def _pump_stdout(self) -> None:
+        assert self.proc.stdout is not None
+        for line in self.proc.stdout:
+            self._lines.put(line)
+        self._lines.put(None)
 
     def _wait(self, prefix: str, timeout_s: float = 60.0) -> str:
-        assert self.proc.stdout is not None
         deadline = time.monotonic() + timeout_s
         while time.monotonic() < deadline:
-            line = self.proc.stdout.readline()
-            if not line:
+            remaining = max(0.0, deadline - time.monotonic())
+            try:
+                line = self._lines.get(timeout=remaining)
+            except queue.Empty:
+                break
+            if line is None:
                 raise RuntimeError(f"engine worker died waiting for {prefix!r}")
             if line.startswith(prefix):
                 return str(line.strip())
@@ -146,6 +168,50 @@ class _Worker:
             self.proc.stdin.flush()
             self.proc.wait(timeout=10)
 
+    def close(self) -> None:
+        if self.proc.poll() is None:
+            self.proc.terminate()
+            try:
+                self.proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.proc.kill()
+                self.proc.wait(timeout=5)
+        if self.proc.stdin is not None:
+            self.proc.stdin.close()
+        if self.proc.stdout is not None:
+            self.proc.stdout.close()
+        if hasattr(self, "_reader"):
+            self._reader.join(timeout=1)
+        if self in _ACTIVE_DEMO_WORKERS:
+            _ACTIVE_DEMO_WORKERS.remove(self)
+
+
+_ACTIVE_DEMO_WORKERS: list[_Worker] = []
+
+
+def _read_process_line(proc: subprocess.Popen[str], *, timeout_s: float) -> str:
+    if proc.stdout is None:
+        raise RuntimeError("child process has no stdout")
+    readable, _, _ = select.select([proc.stdout], [], [], timeout_s)
+    if not readable:
+        raise TimeoutError("child process did not become ready")
+    line = proc.stdout.readline()
+    if not line:
+        raise RuntimeError("child process exited before readiness")
+    return cast(str, line.strip())
+
+
+def _close_process(proc: subprocess.Popen[str]) -> None:
+    if proc.poll() is None:
+        proc.terminate()
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait(timeout=5)
+    if proc.stdout is not None:
+        proc.stdout.close()
+
 
 def _control(base_url: str, path: str, body: dict[str, Any] | None = None) -> Any:
     if body is None:
@@ -165,6 +231,19 @@ def _demo_dsn(config: Config, seed: int) -> tuple[str, str]:
     base = config.resolved_dsn()
     demo_db = f"irrevon_demo_s{seed}"
     return psycopg.conninfo.make_conninfo(base, dbname=demo_db), demo_db
+
+
+def _display_demo_dsn(config: Config, demo_db: str) -> str:
+    """Secret-free DSN for copy/paste output.
+
+    Authentication remains available through the configured environment or
+    libpq mechanisms; terminal output never receives a password.
+    """
+    params = psycopg.conninfo.conninfo_to_dict(config.dsn)
+    params.pop("password", None)
+    params["dbname"] = demo_db
+    safe_params = {key: str(value) for key, value in params.items() if value is not None}
+    return psycopg.conninfo.make_conninfo("", **safe_params)
 
 
 def _reset_demo_database(config: Config, seed: int) -> str:
@@ -199,22 +278,24 @@ def run_demo(
     jsonl: bool,
     artifact: Path | None = None,
 ) -> int:
+    if seed < 0 or seed > 2_147_483_647:
+        raise ConfigInvalid("demo seed must be between 0 and 2147483647")
     emit = _Emitter(jsonl, sys.stdout)
     refdest_proc = subprocess.Popen(
-        [sys.executable, "-m", "irrevon.adapters.refdest_server", "--port", "0",
+        [sys.executable, "-I", "-m", "irrevon.adapters.refdest_server", "--port", "0",
          "--seed", str(seed)],
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
         text=True,
+        env={},
+        cwd=tempfile.gettempdir(),
     )
-    assert refdest_proc.stdout is not None
-    ready = refdest_proc.stdout.readline().strip()
-    base_url = f"http://127.0.0.1:{int(ready.rsplit(' ', 1)[1])}"
-
     irrevon_leg: dict[str, Any] = {}
     b5_leg: dict[str, Any] = {}
     demo_dsn = ""
     try:
+        ready = _read_process_line(refdest_proc, timeout_s=30)
+        base_url = f"http://127.0.0.1:{int(ready.rsplit(' ', 1)[1])}"
         if leg in ("irrevon", "both"):
             demo_dsn = _reset_demo_database(config, seed)
             irrevon_leg = _run_irrevon_leg(emit, demo_dsn, base_url)
@@ -222,8 +303,9 @@ def run_demo(
             _control(base_url, "/control/reset", {"seed": seed})
             b5_leg = _run_b5_leg(emit, base_url)
     finally:
-        refdest_proc.kill()
-        refdest_proc.wait(timeout=10)
+        for worker in tuple(_ACTIVE_DEMO_WORKERS):
+            worker.close()
+        _close_process(refdest_proc)
         if not keep and demo_dsn:
             with psycopg.connect(config.resolved_dsn(), autocommit=True) as admin:
                 admin.execute(
@@ -286,12 +368,17 @@ def run_demo(
             f"\n  contrast holds: {contrast_holds}"
         )
         if effect_id and keep:
+            _, demo_db = _demo_dsn(config, seed)
+            display_dsn = _display_demo_dsn(config, demo_db)
             artifact_flag = (
-                f" --demo-artifact '{artifact}'" if artifact is not None else ""
+                f" --demo-artifact {shlex.quote(str(artifact))}"
+                if artifact is not None
+                else ""
             )
             print(
-                f"\n  inspect it: irrevon inspect {effect_id} --dsn '{demo_dsn}'\n"
-                f"  see it live: irrevon serve --dsn '{demo_dsn}'{artifact_flag} --open\n"
+                f"\n  inspect it: irrevon inspect {effect_id} --dsn {shlex.quote(display_dsn)}\n"
+                f"  see it live: irrevon serve --dsn {shlex.quote(display_dsn)}"
+                f"{artifact_flag} --open\n"
                 f"               → {workbench_url}"
             )
     return 0 if contrast_holds else 3

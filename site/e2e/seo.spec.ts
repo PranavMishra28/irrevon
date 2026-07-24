@@ -86,7 +86,8 @@ test("JSON-LD: home is SoftwareSourceCode + WebSite/SearchAction; honesty holds 
   expect(types).not.toContain("SoftwareApplication");
   const source = blocks.find((b) => b["@type"] === "SoftwareSourceCode");
   expect(source).toBeTruthy();
-  expect(source!.license).toBe(`${source!.codeRepository}/blob/HEAD/LICENSE`);
+  expect(source!.license).toContain(`${source!.codeRepository}/blob/`);
+  expect(source!.license).toMatch(/\/LICENSE$/);
   const site = blocks.find((b) => b["@type"] === "WebSite");
   expect(JSON.stringify(site)).toContain("q={search_term_string}");
 });

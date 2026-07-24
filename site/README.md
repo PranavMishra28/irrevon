@@ -21,22 +21,24 @@ The site never ships in the Python wheel (ADR-0018) and shares no build with `we
 | `/demo` | **The One-Way Seat** — the recorded flagship run as a step-driven 12-beat sequence + B5 contrast lane (anti-fabrication-gated) |
 | `/docs/` | Docs landing — guides, rendered reference library, search box, canonical link-only block (master doc + pinned hash) |
 | `/docs/<guide>/` | Six guides: getting-started, cli-reference (generated from `--help`), integration, adapter-development, benchmark-reproduction (NO RESULTS YET), architecture |
-| `/docs/reference/<slug>/` | 23 rendered repository documents (RFCs, preregistration, execution plan, CI, security policy, schemas, licensing, ADR index + 14 ADRs) |
+| `/docs/reference/<slug>/` | Manifest-selected, provenance-stamped repository documents (RFCs, benchmark and operations guides, contracts, governance, and ADRs) |
 | `/docs/search/` | Pagefind search (docs-scoped, loads on gesture, no-JS fallback) |
 | `/research/` (+2 posts, `/research/rss.xml`) | Preregistration story + prior-art credit; explicit no-preprint statement |
 | `/changelog` | Computed from `git tag --list` at build — honest empty state (zero tags) |
 | `/roadmap` | Phases parsed from the rendered execution plan; no-dates banner |
 | `/install` | Works-today from source; planned distribution future-tense in a PLANNED block |
+| `/status`, `/privacy`, `/contributing`, `/licensing` | Launch status, data posture, contribution path, and legal/attribution guidance |
 | `/404` | Not-found page (Vercel serves `404.html` for unmatched routes) |
 
 Use Cases, About/Company, Contact, and any demo-request page remain **omitted, not
 stubbed**. Navigation: Engine · How it works · Demo · Benchmark · Docs · Research ·
-Install (7 slots); Security/Changelog/Roadmap live in the footer.
+Install (7 slots); Status, Privacy, Contributing, Licensing, Security, Changelog, and
+Roadmap live in the footer.
 
 ## Truth discipline
 
 - **Claims registry:** every key claim lives in
-  [`src/data/claims.ts`](src/data/claims.ts) (53 claims); pages cite by id via the
+  [`src/data/claims.ts`](src/data/claims.ts); pages cite by id via the
   `Source` component; [`CLAIMS.md`](CLAIMS.md) is generated (`pnpm claims:md`,
   `--check` gates drift). Guide/research frontmatter `claims` arrays are
   zod-validated against the registry — an unknown id fails the build.
@@ -159,15 +161,16 @@ Vercel project equivalently builds on the platform via a small deployment-side s
 that clones the repository with owner-provided access and runs the same `pnpm build`; that script lives
 in the deployment, not the repo, because it must carry the deploy-provided values.)
 
-## Measured at last audit (2026-07-21)
+## Release gates
 
-- Build: 44 pages green; `astro check` 0 errors / 0 warnings.
-- Playwright: 248 checks green.
+- Build and type checks: `pnpm check && pnpm build`.
+- Browser checks: `pnpm test`; review screenshots: `pnpm shots`.
 - JS weight: non-docs pages ~1 KB inline, zero fetched; `/demo` 4.4 KB inline
   total (island 3,396 B source vs ≤8 KB budget); docs pages zero-fetch until a
   search gesture, then same-origin `/pagefind/` only. Global gate: ≤10 KB inline,
   zero fetched scripts (docs lane excepted post-gesture) — unchanged, un-weakened.
-- Claims registry: 53 claims, all source-mapped; CLAIMS.md generated + drift-gated.
+- Claims registry: every entry is source-mapped; `CLAIMS.md` is generated and
+  drift-gated.
 
 ## Maintenance
 

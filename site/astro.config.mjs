@@ -33,6 +33,18 @@ function resolveRepoUrl() {
 }
 
 const repoUrl = resolveRepoUrl();
+function resolveBuildCommit() {
+  const candidate = process.env.VERCEL_GIT_COMMIT_SHA;
+  if (candidate && /^[0-9a-f]{40}$/.test(candidate)) return candidate;
+  try {
+    const local = execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
+    if (/^[0-9a-f]{40}$/.test(local)) return local;
+  } catch {
+    // handled below
+  }
+  throw new Error("irrevon-site: exact 40-character build commit is required");
+}
+const buildCommit = resolveBuildCommit();
 // The site serves at the origin root (Vercel deploy, ADR-0027); no base path.
 const base = "/";
 
@@ -71,6 +83,7 @@ export default defineConfig({
         repoLinksPlugin({
           manifestPath: fileURLToPath(new URL("./docs-manifest.json", import.meta.url)),
           repoUrl,
+          buildCommit,
           base,
         }),
       ],
@@ -80,6 +93,7 @@ export default defineConfig({
   vite: {
     define: {
       __REPO_URL__: JSON.stringify(repoUrl),
+      __BUILD_COMMIT__: JSON.stringify(buildCommit),
     },
   },
 });

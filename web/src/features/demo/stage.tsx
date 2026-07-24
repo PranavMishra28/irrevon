@@ -58,7 +58,7 @@ const NARRATION: Record<string, { title: string; body: string }> = {
     body: "Deduplication cites the settled execution, its receipts, its finding, and the recorded parameter variant. A denial is an evidenced outcome, not an error.",
   },
   b5_response_lost: {
-    title: "B5 baseline: same fault, strongest conventional stack",
+    title: "B5 baseline: same fault, developmental file-journal stand-in",
     body: "A durable runtime with stable operation ids AND idempotency keys dispatches; the destination commits; the response is lost on the same cue.",
   },
   b5_restart: {

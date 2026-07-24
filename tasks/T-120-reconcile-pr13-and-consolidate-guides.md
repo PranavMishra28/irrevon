@@ -35,8 +35,8 @@ the public documentation entry surfaces (`README.md`, `SECURITY.md`, `CONTRIBUTI
 `web/` documentation files); `AGENTS.md` for factual source-map alignment; an optional
 repository-owned showcase video asset only after
 size, provenance, and packaging checks;
-the private `/Users/pranav/Desktop/IRREVON_BEGINNER_GUIDE.md`; and removal of the redundant
-private `/Users/pranav/Desktop/Irrevon-Complete-Guide.md`.
+the owner's private beginner guide outside the repository; and removal of a redundant
+private guide outside the repository.
 
 **Forbidden:** `docs/master-doc.md`; accepted ADR decision text; frozen preregistration
 sections; unrelated repository files; live provider calls; credentials; deployment,

@@ -42,15 +42,22 @@ const nav = [
   { label: "Install", path: "/install/" },
 ];
 const footerPages = [
-  ...nav,
+  { label: "Status", path: "/status/" },
   { label: "Security", path: "/security/" },
+  { label: "Privacy", path: "/privacy/" },
+  { label: "Contributing", path: "/contributing/" },
+  { label: "License", path: "/licensing/" },
   { label: "Changelog", path: "/changelog/" },
   { label: "Roadmap", path: "/roadmap/" },
 ];
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const current = Astro.url.pathname.replace(/index\.html$/, "");
-const isCurrent = (path: string) => current === href(path) || current === href(path).replace(/\/$/, "");
+const isCurrent = (path: string) => {
+  const target = href(path).replace(/\/$/, "");
+  const normalized = current.replace(/\/$/, "");
+  return normalized === target || (target !== "" && normalized.startsWith(`${target}/`));
+};
 ---
 
 <!doctype html>
@@ -184,6 +191,11 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
             btn.hidden = false;
             const systemDark = matchMedia("(prefers-color-scheme: dark)");
             const effective = () => document.documentElement.dataset.theme ?? (systemDark.matches ? "dark" : "light");
+            const updateLabel = () => {
+              const target = effective() === "dark" ? "light" : "dark";
+              btn.setAttribute("aria-label", `Switch to ${target} theme`);
+            };
+            updateLabel();
             btn.addEventListener("click", () => {
               const next = effective() === "dark" ? "light" : "dark";
               document.documentElement.dataset.theme = next;
@@ -192,7 +204,9 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
               } catch {
                 /* persistence unavailable; the in-page toggle still applies */
               }
+              updateLabel();
             });
+            systemDark.addEventListener("change", updateLabel);
           })();
         </script>
       </div>
@@ -208,31 +222,21 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
           <div class="footer-brand">
             <span class="footer-lockup"><Mark size={18} /><span>{SITE_NAME.toLowerCase()}</span></span>
             <p class="footer-tag">
-              A reference reconciliation engine and benchmark drafted for preregistration for irreversible
-              AI-agent actions.
-              Benchmark-first, C2-scoped, pre-release.
+              Evidence-first reconciliation for irreversible AI-agent actions.
+              Open source, synthetic-evidence research preview.
             </p>
           </div>
-          <nav aria-label="Source of truth">
-            <h2 class="footer-head">Source of truth</h2>
+          <nav aria-label="Project links">
+            <h2 class="footer-head">Project</h2>
             <ul>
               <li><a href={REPO_URL}>Repository</a></li>
-              <li><a href={repoDoc("docs/master-doc.md")}>Master document</a></li>
-              <li><a href={repoDoc("docs/rfc-002-engine-design.md")}>RFC-002 · engine design</a></li>
-              <li><a href={repoDoc("docs/benchmark-preregistration.md")}>Benchmark preregistration (draft)</a></li>
+              <li><a href={href("/docs/")}>Documentation</a></li>
+              <li><a href={href("/demo/")}>Recorded demo</a></li>
+              <li><a href={repoDoc("LICENSE")}>Apache-2.0 source</a></li>
             </ul>
           </nav>
-          <nav aria-label="Project governance">
-            <h2 class="footer-head">Governance</h2>
-            <ul>
-              <li><a href={repoDoc("docs/security-policy.md")}>Security policy</a></li>
-              <li><a href={repoDoc("docs/execution-plan.md")}>Execution plan</a></li>
-              <li><a href={repoDoc("docs/decisions/README.md")}>Decision records</a></li>
-              <li><a href={repoDoc("LICENSING.md")}>Licensing status</a></li>
-            </ul>
-          </nav>
-          <nav aria-label="Site pages">
-            <h2 class="footer-head">Site</h2>
+          <nav aria-label="Project policies">
+            <h2 class="footer-head">Policies</h2>
             <ul>
               {
                 footerPages.map((item) => (
@@ -246,17 +250,12 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
         </div>
         <div class="footer-status">
           <p>
-            © 2026 Irrevon contributors. Licensed under Apache-2.0 (ADR-0028). Contributions are not yet accepted —
-            inbound governance (ADR-0014’s remaining half) is still open. “{SITE_NAME}” is a working name; the
-            counsel name screen is pending.
-          </p>
-          <p>
-            Pre-release software: not on any package index. This site is static — no cookies, no third-party
-            requests; measurement is limited to Vercel’s same-origin, cookieless Web Analytics and Speed Insights
-            (ADR-0029).
+            © 2026 Irrevon contributors · Apache-2.0 ·
+            <a href={href("/security/")}>Security</a> ·
+            <a href={href("/status/")}>Research-preview status</a>
           </p>
           <p class="footer-provenance" data-provenance>
-            Build provenance: {
+            Build {
               BUILD_COMMIT_SHORT ? (
                 <>
                   commit <a href={`${REPO_URL}/commit/${BUILD_COMMIT}`}><code>{BUILD_COMMIT_SHORT}</code></a>
@@ -264,8 +263,7 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
               ) : (
                 <>commit unknown (built outside git)</>
               )
-            } · built {BUILT_AT}. A static build cannot know whether it still matches the current default
-            branch — compare the commit against the repository before relying on this copy.
+            } · {BUILT_AT}
           </p>
         </div>
       </div>
@@ -372,7 +370,7 @@ const isCurrent = (path: string) => current === href(path) || current === href(p
   }
   .footer-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr;
     gap: 32px;
   }
   @media (max-width: 900px) {

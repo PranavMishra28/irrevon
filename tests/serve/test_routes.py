@@ -59,8 +59,11 @@ def test_q1_item_shape_and_schema_conformance(
     assert set(item) == {"record", "classification", "finding"}
     assert item["classification"] == "CONFIRMED_UNIQUE"
     assert item["record"]["lifecycle"] == "SETTLED_COMMITTED"
-    # stable_ids served as stored (loopback trust domain, N2 §2.1 ruling)
-    assert item["record"]["stable_ids"] == {"order_id": "serve-9410"}
+    # Keys remain useful evidence; upstream values never cross HTTP (ADR-0036).
+    stable_ids = item["record"]["stable_ids"]
+    assert set(stable_ids) == {"order_id"}
+    assert stable_ids["order_id"].startswith("sha256:")
+    assert "serve-9410" not in json.dumps(item)
 
     Draft202012Validator(load_schema("effect-record.schema.json")).validate(
         item["record"]
@@ -215,7 +218,7 @@ def test_inspect_route_is_byte_identical_to_cli_inspect_json(
     assert status == 200
 
     rc = main([
-        "inspect", effect_id, "--dsn", server.app.dsn, "--json", "--reveal",
+        "inspect", effect_id, "--dsn", server.app.dsn, "--json",
     ])
     assert rc == 0
     cli_bytes = capsys.readouterr().out.strip().encode("utf-8")
@@ -224,7 +227,8 @@ def test_inspect_route_is_byte_identical_to_cli_inspect_json(
     payload = json.loads(body)
     assert payload["integrity"]["matches"] is True
     assert [d["outcome"] for d in payload["gate_decisions"]] == ["ALLOW", "DENY"]
-    assert payload["record"]["stable_ids"] == {"order_id": "serve-9410"}
+    assert payload["record"]["stable_ids"]["order_id"].startswith("sha256:")
+    assert "serve-9410" not in body.decode("utf-8")
 
 
 def test_inspect_unknown_id_is_404(
@@ -295,7 +299,7 @@ def test_health_is_green_with_a_real_db(
     # The write probe is a CLI-doctor affordance; the served payload reports
     # the read-only serve context honestly instead of running it.
     assert by_name["ledger_write"]["status"] == "skipped"
-    assert by_name["ledger_write"]["message"] == "not probed (read-only serve context)"
+    assert by_name["ledger_write"]["message"] == "check skipped"
     assert payload["ok"] is True
 
 

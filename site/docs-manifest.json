@@ -48,14 +48,14 @@
       "source": "schemas/README.md",
       "slug": "schemas",
       "section": "Contracts",
-      "description": "The machine-readable contract map: five shipped JSON Schemas, their example suites, and what is deliberately deferred.",
+      "description": "The machine-readable contract map: thirteen shipped JSON Schemas, their example suites, and what is deliberately deferred.",
       "title": "Schemas — machine-readable contracts"
     },
     {
       "source": "LICENSING.md",
       "slug": "licensing",
       "section": "Governance",
-      "description": "Apache-2.0 (ADR-0028): the grant, the NOTICE attribution, and what stays closed — contributions, trademarks, and release mechanics.",
+      "description": "Apache-2.0 licensing and contribution posture: inbound=outbound, mandatory DCO 1.1 sign-off, no CLA, and the remaining trademark and release gates.",
       "title": "Licensing status"
     },
     {
@@ -202,6 +202,21 @@
     {
       "source": "docs/decisions/0034-continuous-worker-and-provider-adapters.md",
       "slug": "adr-0034-continuous-worker-and-provider-adapters",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0035-external-contributions.md",
+      "slug": "adr-0035-external-contributions",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0036-loopback-evidence-privacy.md",
+      "slug": "adr-0036-loopback-evidence-privacy",
+      "section": "Decisions"
+    },
+    {
+      "source": "docs/decisions/0037-intent-resource-bounds.md",
+      "slug": "adr-0037-intent-resource-bounds",
       "section": "Decisions"
     },
     {

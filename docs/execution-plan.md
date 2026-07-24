@@ -1,78 +1,115 @@
-# Execution plan — pre-implementation phases
+# Project status and release roadmap
 
-The single roadmap home. Phases P0–P8 cover everything that can happen before implementation;
-they feed the master doc's milestones M1–M10 ([master-doc.md](master-doc.md) §15), which remain
-canonical for the implementation era. Owner "human" means the step cannot be delegated to an
-agent; "agent" means an agent executes it as a bounded task from `tasks/` with human review.
+This is the current roadmap for users, contributors, and release reviewers.
+Historical implementation phases are archived in
+[history/execution-plan-pre-implementation.md](history/execution-plan-pre-implementation.md).
+The machine-readable status is [project-status.json](project-status.json) and
+`make public-truth` checks the primary public surfaces against it.
 
-Ordering rationale: **Stage-A preregistration freeze (P3) comes before any
-live-sandbox spike (P4/P5).** Synthetic S-REF engineering pilots have already occurred and
-are disclosed in preregistration §0.2, so Stage A is not represented as preceding every
-observation or as pristine. The remaining order is still load-bearing: hypotheses, metrics,
-and the falsification criterion must predate every live-provider observation, and test-mode
-API pokes are observations. Stage B must predate every confirmatory observation. Whether the
-disclosed design-stage exposure requires a reset or independent review before Stage A is an
-open human ruling in the review queue.
+## Current release posture
 
-| # | Phase | Gate (must hold before starting) | Exit criterion | Owner |
-|---|---|---|---|---|
-| P0 | Scaffold (this commit) | — | Tree in place; `make check` green; master doc moved byte-identical and hash-pinned | agent |
-| P1 | Clearances + environment migration | — | (a) external clearances requested in writing (master doc §13; details tracked privately); (b) development-environment review item DE-1 closed (review-queue §3); (c) repo-scoped fine-grained PAT in use | human |
-| P2 | Name screen ("Irrevon") | — | Registry screen recorded and name adopted 2026-07-21 ([ADR-0023](decisions/0023-rename-to-irrevon.md), superseding ADR-011); the counsel trademark clearance remains open pre-release | human (agent-assisted searches) |
-| P3 | Preregistration Stage-A freeze | P1(b) complete; review-queue amendments affecting §8 ratified or rejected | Stage-A sections of [benchmark-preregistration.md](benchmark-preregistration.md) frozen: signed tag + external timestamp; freeze recorded in the document's §0 | human (agent drafts) |
-| P4 | C2 sandbox spike | P3 done (spike generates observations) | [ADR-0012](decisions/0012-c2-sandbox.md) closed: sandbox chosen after Twilio-persistence and Amadeus-list checks | agent + human ratify |
-| P5 | Stripe API version spike | P3 done | [ADR-0010](decisions/0010-stripe-api-version.md) closed: v1/v2 semantics pinned for the endpoints the adapter touches | agent + human ratify |
-| P6 | Language/stack spike (T-000) | — (parallel with P4/P5) | **Done 2026-07-21:** [ADR-0013](decisions/0013-implementation-language.md) ratified from [tasks/T-000](../tasks/T-000-language-stack-spike.md)'s proposal | agent + human ratify |
-| P7 | Preregistration Stage-B additions | P4, P5 done; fixtures/artifacts exist and are hashed | Stage-B sections frozen (adapters, baseline operationalization, artifact hashes, sealed holdout hash) before any confirmatory run | human (agent drafts) |
-| P8 | Hand-off to implementation (M2+) | P1 fully complete (hard gate: **P1 blocks all implementation**); ADR-0013 ratified | First code task (toolchain bootstrap) opened per master doc M2/M3 | human opens; agents execute |
+Irrevon is a public, Apache-2.0-licensed **research preview**. Source builds,
+the deterministic flagship demo, the single-writer engine and worker, the
+loopback read-only Workbench, synthetic provider-contract tests, the benchmark
+development harness, and wheel/sdist construction are implemented.
 
-## Gate notes
+No package, tag, release, confirmatory benchmark result, preregistration freeze,
+or live-provider observation exists. The Stripe and EasyPost adapters are
+credential-gated drafts and have never been live-called. The evaluated runtime
+boundary is self-hosted and single-writer, but it is not yet a supported
+production topology; multi-writer leasing is not implemented.
+The website is prepared as a static build, while deployment remains
+owner-controlled.
 
-- **P1 is the true critical path.** No product code is written anywhere, and nothing is
-  published from anywhere, until the environment is personal and the clearances are at least
-  requested (publication additionally requires them granted — master doc §13). Details and
-  status live in [review-queue.md](review-queue.md) section 3.
-- **P3 before P4/P5** is deliberate and load-bearing (see rationale above). Developmental
-  S-REF pilots do not waive this gate and cannot support scientific claims. If a live spike must
-  run early for a hard external reason, Stage-A must freeze first anyway; record the deviation
-  in the preregistration's amendment log.
-- **P4 → P7 ordering:** Stage-B names concrete adapters, so it cannot freeze before the C2
-  sandbox is chosen.
-- ADR ratification is always human. Agents produce recommendation text and evidence; the
-  status flip to `accepted` is the human's act.
+## What a source user can do now
 
-## Mapping to master-doc milestones
+- Clone the public repository and reproduce the deterministic PostgreSQL demo.
+- Run unit, property, process-kill, integration, browser, accessibility, and
+  benchmark known-answer tests.
+- Inspect synthetic evidence in the Workbench or connect it to the local
+  loopback read surface.
+- Build and inspect the unpublished wheel and sdist.
+- Exercise the reference destination and synthetic Stripe/EasyPost transports.
+- Contribute through pull requests under Apache-2.0 with DCO 1.1 sign-off.
 
-- **M1 Freeze** = P2 + P3 (+ ADR-0000, already accepted) — with one amendment: the master
-  doc's "benchmark plan preregistered and hash-stamped" at M1 is satisfied by the **Stage-A**
-  freeze; the full execution registration is Stage-B (P7, before M7 runs). This two-stage
-  resolution is amendment AM-13 in [review-queue.md](review-queue.md).
-- **M2 Env** = P8 plus the master doc's M2 items (CI, local database, sandbox projects,
-  runbook). CI design and workflows are in ([ci.md](ci.md) + `.github/workflows/`); the
-  repo being public makes rulesets/branch protection, secret scanning + push protection,
-  and CodeQL available at no cost — enabling them is a human settings act (owner checklist
-  in [ci.md](ci.md)). Local `make check` + pre-commit remains the enforcement layer until
-  required checks are configured.
-- **M3–M10** proceed per master doc §15; P4/P5/P6 will already have closed the decisions M4
-  depends on.
+## Supported and unsupported boundaries
 
-## Public-release gate (last, listed once)
+| Area | Supported now | Not claimed |
+|---|---|---|
+| Runtime | Evaluated boundary: at most one active writer, PostgreSQL 17, continuous reconciliation worker | Supported production ingress/topology, multi-writer HA, hosted control plane, production readiness |
+| Evidence UI | Loopback-only, GET/HEAD-only, SELECT-only Workbench with digested upstream identifiers | Remote administrative console, browser-side mutation, authenticated multi-user service |
+| Destinations | Deterministic reference destination; draft sandbox-only Stripe C1/EasyPost C2 code under synthetic tests | Qualified live provider semantics, production credentials, provider conformance evidence |
+| Benchmark | Public synthetic development fixtures, harness, causal-history and metric cross-checks | Frozen registration, sealed confirmatory run, independent reproduction, scientific validation |
+| Distribution | Local wheel/sdist build, content inspection, clean-install smoke test, release dry run | Published PyPI package, GitHub release, release attestation already issued |
 
-The repository itself is public (owner decision 2026-07-21, final), after a ratified
-sanitization pass over the tracked tree (amendment AM-16 in the review queue;
-pre-sanitization wording persists in git history — the history question is a recorded,
-owner-deferred item). **Releasing anything beyond the readable repository** — a package, a
-release/tag with artifacts, a preprint, a demo, Pages — requires ALL of:
+## Repository-local launch gates
 
-1. External clearances **granted in writing** (master doc §13).
-2. Counsel trademark clearance of "Irrevon" completed (the registry screen is recorded and
-   the name adopted per [ADR-0023](decisions/0023-rename-to-irrevon.md); counsel screening
-   is the remaining half).
-3. Licensing decision closed ([ADR-0014](decisions/0014-licensing.md)) with LICENSE/NOTICE
-   and inbound policy in place.
-4. Sanitization review of the release artifacts: tripword scan
-   (`scripts/check-integrity.sh` with the local `.tripwords` list) plus a human read of
-   every released artifact for personal or third-party-sensitive material.
-5. Distribution mechanics per [ADR-0018](decisions/0018-distribution-model.md) (trusted
-   publishing, immutable releases, signed tag).
-6. Human sign-off. No agent ever performs a publication step.
+These are enforced by `make launch-audit` and CI:
+
+1. public-status, documentation, community, DCO, legal, and claims consistency;
+2. secret/history scanning plus targeted current-tree privacy checks;
+3. schema, ADR, generated-document, asset, and dependency-notice integrity;
+4. strict Python, package-content, provider-transport, and security tests;
+5. Workbench and site lint, browser, accessibility, responsive, link, and
+   no-external-request tests;
+6. deterministic benchmark integrity and known-answer checks;
+7. non-publishing release dry run, checksums, SBOM, and provenance configuration;
+8. explicit refusal to claim a production profile until topology, fresh-cluster
+   restore, catch-up sweeps, and supervisor/container evidence exist.
+
+## Owner-only release gates
+
+Repository automation deliberately cannot complete these actions:
+
+- obtain any required external clearance or legal/trademark review;
+- choose and provision a real PostgreSQL deployment and secret manager;
+- review current provider terms, complete ADR-0010/ADR-0012 spikes, and authorize
+  sandbox observations;
+- freeze Stage A or Stage B, timestamp registrations, or run confirmatory work;
+- enable/verify repository rulesets, secret scanning, private vulnerability
+  reporting, CodeQL/default setup, release-environment protection, and immutable
+  releases;
+- create the PyPI project and configure its GitHub OIDC trusted publisher;
+- create a signed version tag, approve the protected release environment, and
+  publish `0.1.0`;
+- deploy or unpause the owner-controlled Vercel project.
+
+Every item is independent: source users do not need a hosted account or hosted
+PostgreSQL service to run the demo.
+
+## Roadmap
+
+### R1 — source launch
+
+Complete the repository-local gates, accept outside contributions, and keep
+claims aligned with synthetic evidence. This does not publish a package or
+generate scientific results.
+
+### R2 — provider qualification
+
+After owner authorization, run bounded sandbox spikes, record sanitized
+provider fixtures, ratify ADR-0010/ADR-0012, and update declarations only from
+observed evidence. Draft adapters remain drafts until this closes.
+
+### R3 — benchmark freeze and execution
+
+Independent reviewers assess the Stage-A package; the owner freezes and
+timestamps registrations before any confirmatory observation. Stage B then
+pins provider artifacts and holdout commitments. Results are published whether
+they favor Irrevon or falsify it.
+
+### R4 — distribution
+
+The owner creates the PyPI trusted-publisher binding and protected GitHub
+release environment, pushes a version-matching tag, reviews the dry-run
+artifacts, and authorizes publication. The workflow then produces checksums,
+SBOM, attestations, GitHub assets, and PyPI artifacts without a long-lived
+publishing token.
+
+## Version and compatibility
+
+The prepared launch version is `0.1.0`: an initial public alpha whose
+interfaces are explicitly pre-1.0. Compatibility, deprecation, migration, and
+rollback rules are in [operations.md](operations.md#compatibility-versioning-and-deprecation).
+Release procedure and verification are in
+[release-process.md](release-process.md).

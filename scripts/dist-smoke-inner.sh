@@ -40,7 +40,10 @@ dsn = "${SMOKE_DSN}"
 [demo]
 seed = 42
 EOF
-"$IRV" init --dir . --json >init2.json   # re-run applies migrations (idempotent)
+# Migration authority is deliberately separate from the runtime config. Exercise
+# that explicit boundary in the packaged-artifact journey.
+IRREVON_MIGRATION_DSN="$SMOKE_DSN" \
+  "$IRV" init --dir . --json >init2.json
 python3 -c "import json; d=json.load(open('init2.json')); assert d['migrations_applied'], d"
 
 echo "== journey: doctor --json (proves _migrations/_schemas/_web resolve from the wheel)"

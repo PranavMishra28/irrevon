@@ -1,7 +1,7 @@
 ---
 title: "Prior art: what we did not invent"
 date: "2026-07-21"
-summary: "Irrevon stands on decades of work — the outbox pattern, idempotency keys, sagas, durable execution, staged commit for agents, record-and-replay, financial reconciliation. The credit table, and the narrow thing that is actually new."
+summary: "Irrevon stands on decades of work — outboxes, idempotency, sagas, durable execution, agent-effect staging, replay, and reconciliation. This is the dated survey and its narrow inference."
 badges: ["conceptual"]
 claims:
   - prior-art-credited
@@ -35,8 +35,9 @@ version.
   distributed rollback is a fiction and compensation is a new forward action. Irrevon's
   compensation-is-not-rollback stance is that result, restated with measurement.
 - **Durable execution** — Temporal, DBOS, Restate, Inngest: journal the workflow so a
-  crash resumes instead of restarts. The recorded B5 baseline leg *is* this stack at its
-  strongest, which is why it is the primary comparator.
+  crash resumes instead of restarts. The recorded demo uses a developmental
+  file-journal operationalization of those retry semantics. It is not evidence
+  about Temporal; a real Temporal comparator remains a Stage-B prerequisite.
 - **Staged commit for agents** — Cordon and Atomix stage an agent's effects and gate
   their release; Atomix also ships an evaluation. Closest neighbors, credited as such.
 - **Record-and-replay for agent calls** — ACRFence intercepts and replays tool calls;
@@ -46,20 +47,32 @@ version.
 - **Financial reconciliation** — Formance, Modern Treasury: the mature practice of
   pairing internal ledgers against external statements. Irrevon's orphan sweep is that
   practice, generalized to agent effects.
+- **Tool-fault benchmarks** — ToolMaze and Self-Healing Agentic Orchestrators
+  evaluate replanning, timeouts, malformed arguments, retry loops, and verification
+  under tool perturbations. They do not perform destination effect accounting, but
+  they make broad claims that tool-failure benchmarking is absent untenable.
 
 ## Two impossibility results set the ceiling
 
-No universal exactly-once delivery exists — Two Generals and FLP settled that. The
-achievable target is at-least-once delivery plus idempotent *or reconciled* processing.
-Anyone claiming more is selling something; the tier table exists to say precisely which
-guarantee each destination class supports.
+A client cannot guarantee exactly-once external effects against an arbitrary
+destination when the request outcome can be lost and the destination exposes
+neither dependable deduplication nor authoritative read-back. The tier table
+states which narrower guarantee each destination class supports. FLP is relevant
+distributed-systems context, not itself an exactly-once-delivery theorem.
 
 ## The narrow novelty claim
 
-What is defensibly new is a combination and its measurement, not a mechanism: a
-fault-injection benchmark drafted for preregistration for irreversible agent effects against real API
-contracts with a destination read-back oracle — and reconciliation keyed on the
-destination's authoritative-status query for C2 destinations. Even that claim is
-deliberately narrowed in the master document's amendment log, because MAS-FIRE and
-Atomix's evaluation exist. If the benchmark shows the conventional composite matches
-the engine, the pre-committed conclusion is that the combination was unnecessary too.
+As of this documented July 2026 survey, we did not identify a standalone,
+preregistered benchmark that jointly evaluates irreversible agent effects across
+destination capability tiers using destination-authoritative read-back and a
+precommitted duplicate, orphan, lost, contradicted, and false-suppression
+analysis. That is a literature-search inference, not a priority, patentability,
+or scientific-result claim. Irrevon is a pre-freeze attempt to build the
+combination; real-provider and confirmatory work has not occurred.
+
+Primary adjacent sources include
+[Atomix](https://arxiv.org/abs/2602.14849),
+[ACRFence](https://arxiv.org/abs/2603.20625),
+[Cordon](https://arxiv.org/abs/2606.17573),
+[ToolMaze](https://arxiv.org/abs/2606.05806), and
+[Self-Healing Agentic Orchestrators](https://arxiv.org/abs/2606.01416).

@@ -92,9 +92,10 @@ const metrics = [
         <article class="panel-subtle discipline">
           <h3>Sealed private holdout</h3>
           <p>
-            The held-out fault-seed split is sealed as complete, labeled artifacts — both ciphertext and
-            plaintext root hashes committed — and never enters the repository or any agent context. The
-            holdout split governs the publish threshold and the kill criterion.
+            The Stage-B design requires the held-out fault-seed split to be sealed as complete, labeled
+            artifacts, with ciphertext and plaintext root hashes committed before confirmatory execution.
+            That human-gated sealing act has not occurred. Once sealed, the split will govern the publish
+            threshold and kill criterion without entering the repository or an agent context.
           </p>
           <div class="badge-row"><Badge kind="preregistered" /></div>
         </article>

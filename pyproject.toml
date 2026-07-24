@@ -1,21 +1,40 @@
-# Irrevon — reference reconciliation engine (first slice).
+# Irrevon — reference reconciliation engine.
 # Stack per ADR-0013 (Python 3.13, uv, pytest+Hypothesis, psycopg 3, rfc8785 pinned);
 # packaging per ADR-0018 (single `irrevon` package, src layout, hatchling).
-# License: Apache-2.0 (ADR-0028, owner-ratified 2026-07-21). The SPDX license
-# expression + classifier land with the release mechanics (ADR-0018 M8, human-gated);
-# the repository-level grant is the root LICENSE + NOTICE pair.
+# License: Apache-2.0 (ADR-0028, owner-ratified 2026-07-21).
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling==1.31.0"]
 build-backend = "hatchling.build"
 
 [project]
 name = "irrevon"
 # Single version source: src/irrevon/__init__.py __version__ (hatch dynamic).
 dynamic = ["version"]
-description = "Reference reconciliation engine for irreversible AI-agent actions (IrrevonBench companion). Not yet released; Apache-2.0 (see LICENSING.md)."
-readme = "README.md"
+description = "Evidence-first reconciliation for irreversible AI-agent actions"
+readme = "PACKAGE_README.md"
 requires-python = ">=3.13"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+keywords = [
+    "ai-agents",
+    "distributed-systems",
+    "idempotency",
+    "reconciliation",
+    "reliability",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Distributed Computing",
+]
 dependencies = [
     # RFC 8785 (JCS) encoder — version-pinned per ADR-0013; guarded by the committed
     # cross-implementation conformance vectors in tests/identity/vectors/.
@@ -25,6 +44,13 @@ dependencies = [
     # Postgres driver (sync — single-writer POC per ADR-0013/ADR-002).
     "psycopg[binary]>=3.3.4",
 ]
+
+[project.urls]
+Homepage = "https://github.com/PranavMishra28/irrevon"
+Documentation = "https://github.com/PranavMishra28/irrevon#readme"
+Repository = "https://github.com/PranavMishra28/irrevon"
+Issues = "https://github.com/PranavMishra28/irrevon/issues"
+Changelog = "https://github.com/PranavMishra28/irrevon/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
@@ -57,6 +83,9 @@ artifacts = ["src/irrevon/_web/**"]
 [tool.hatch.build.targets.wheel.force-include]
 "schemas" = "irrevon/_schemas"
 "migrations" = "irrevon/_migrations"
+"THIRD-PARTY-NOTICES.md" = "irrevon/_legal/THIRD-PARTY-NOTICES.md"
+"THIRD-PARTY-LICENSES.md" = "irrevon/_legal/THIRD-PARTY-LICENSES.md"
+"ASSETS.md" = "irrevon/_legal/ASSETS.md"
 
 # The sdist is wheel-buildable with NO Node: it carries the prebuilt workbench
 # assets alongside the sources (ADR-0018: prebuilt assets in wheel AND sdist).
@@ -70,9 +99,14 @@ only-include = [
     "schemas",
     "migrations",
     "README.md",
+    "PACKAGE_README.md",
     "LICENSING.md",
     "LICENSE",
     "NOTICE",
+    "THIRD-PARTY-NOTICES.md",
+    "THIRD-PARTY-LICENSES.md",
+    "ASSETS.md",
+    "CHANGELOG.md",
     "pyproject.toml",
     "hatch_build.py",
 ]

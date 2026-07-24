@@ -2,7 +2,7 @@
 title: "CI — how this repository builds"
 description: "The CI workflow map: tiers, required checks, owner settings checklist, and local parity via make targets."
 sourcePath: "docs/ci.md"
-sourceSha256: "d7ff6b3dc5d3758a197e05278c2697504974a30ed9a4246eacab3c226bf01551"
+sourceSha256: "1e8086a2afcc7a32c3558ed7d799fd316caf13b4e4f19c5ef35eccd9fa53da2d"
 syncedAt: "2026-07-24"
 section: "Governance"
 renderTitle: false
@@ -24,8 +24,10 @@ that date.
 | [`nightly.yml`](../.github/workflows/nightly.yml) | cron 09:17 UTC + dispatch | Full local gate on a clean machine + online audits (external links, networked zizmor); grows the T3 suites at M3+; files/updates one title-deduplicated nightly-failure issue on red | active |
 | [`sandbox.yml`](../.github/workflows/sandbox.yml) | `workflow_dispatch` only | T4 sandbox contracts — fail-closed skeleton, gated by the `sandbox` environment; every dispatch is deliberately red until human M4 activation | skeleton (always refuses) |
 | [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | IrrevonBench preregistered runs — fail-closed skeleton, gated by the `benchmark` environment; every dispatch is deliberately red until human Stage-B activation | skeleton (always refuses) |
-| [`release.yml`](../.github/workflows/release.yml) | `workflow_dispatch` only | Package-release fail-closed skeleton; every dispatch runs an unconditional refusal and is deliberately red until a separate human activation after every public-release gate item | skeleton (always refuses) |
-| [`dependabot.yml`](../.github/dependabot.yml) | monthly | Four noise-contained update lanes (actions / uv / web npm / site npm): at most one grouped version-update PR per lane (≤4/month), 7-day cooldowns (30-day uv majors; npm majors ignored for deliberate human migrations), current owner auto-assigned; uv/npm security updates are separately grouped and all security updates bypass schedule and cooldown | active |
+| [`release.yml`](../.github/workflows/release.yml) | PR + manual dry run; canonical `vMAJOR.MINOR.PATCH` tag | Non-publishing artifact dry run on PRs; clean tagged build, exact version/content/smoke gates, checksums, lock-aware SPDX SBOM, artifact attestation, then protected-environment PyPI/GitHub publication | prepared; no release exists |
+| [`codeql.yml`](../.github/workflows/codeql.yml) | main push/PR + weekly | Python and JavaScript/TypeScript CodeQL analysis with SARIF upload | active |
+| [`scorecard.yml`](../.github/workflows/scorecard.yml) | main/protection change + weekly | OpenSSF Scorecard evidence and SARIF upload | active |
+| [`dependabot.yml`](../.github/dependabot.yml) | monthly | Five noise-contained update lanes (actions / uv / web npm / site npm / Docker), one PR per lane, with release-age cooldowns and grouped updates | active |
 
 ## Tier table — what runs when
 
@@ -47,7 +49,7 @@ that date.
 | wheel smoke | `wheel-smoke` (nightly) | cron | `make dist-smoke` (= `make dist` + the Node-less container smoke; ADR-0018 chain, wheel + sdist legs) | active — nightly, not PR: needs docker + a second full web build + wheel build; the PR-side integration truth is `web-e2e-live` |
 | T4 sandbox | `sandbox-contract` (sandbox) | human dispatch + env approval | Today: exactly `make sandbox-stage-m4`, whose reserved recipe unconditionally refuses. M4 activation must replace it with the reviewed credentialed contract recipe | skeleton (always refuses) |
 | benchmark | `bench` (benchmark) | human dispatch + env approval | Today: exactly `make benchmark-stage-b`, whose reserved recipe unconditionally refuses. M7 activation must replace it with the complete preregistered, cache-free, sanitized-evidence recipe | skeleton (always refuses) |
-| package release | `release-gate` (release) | human dispatch | Today: exactly `make release-gate`, whose reserved recipe unconditionally refuses. A separate human activation may replace it only after every public-release gate item closes | skeleton (always refuses) |
+| package release | `dry-run` / `validate-build` / `build-attest` / publish jobs (release) | PR/manual is non-publishing; canonical version tag only for publication | `make launch-audit` + release dry run; privileged attestation/publish jobs download validated artifacts and never execute repository code | prepared; protected `release` environment and publisher binding are owner gates |
 
 The local `make check-all` ladder includes `web-check`, `web-test`, and `web-e2e`; F4
 pixel baselines remain the explicit container-only `make web-vrt` gate. The bench
@@ -102,22 +104,17 @@ the manual trigger and environment approval, and replace the static refusal cont
 tests of the real target. A green pre-activation dispatch is a workflow integrity failure,
 not a successful benchmark.
 
-### Fail-closed package-release skeleton
+### Prepared package release
 
-`[DD]` The `release` workflow cannot be used as release-readiness evidence today. Manual
-dispatch has no inputs and cannot be skipped by a condition: after credential-free checkout,
-its sole executable body is `make release-gate`. That reserved target unconditionally exits
-nonzero without reading a secret, checking for a file, building a distribution, creating an
-artifact, requesting OIDC, or publishing anything. Every pre-activation dispatch must
-therefore finish red; a skipped or green result is a workflow integrity failure.
-
-Activation is a separate human-reviewed change only after **every** item in
-[`docs/execution-plan.md`'s public-release gate](execution-plan.md#public-release-gate-last-listed-once)
-is complete. That change must replace the refusal with the complete release procedure,
-establish the approved trigger and environment, grant only the permissions each reviewed
-step needs, and replace the static refusal contract with tests of the activated workflow.
-The commented outline in `release.yml` is non-executable design context, not an activation
-checklist or a claim that the release mechanics are ready.
+`[DD]` Pull requests and manual dispatches can only run the non-publishing dry
+run. Publication requires a canonical-repository tag that exactly matches a
+non-development package version. Repository code runs only in an unprivileged
+validation job; a separate job downloads those artifacts to request GitHub
+attestations. PyPI and GitHub publication are separate least-privilege jobs
+behind the owner-created and protected `release` environment. No long-lived
+publishing token is accepted. The workflow is prepared but has never produced a
+release or attestation; setup and execution remain the owner actions in
+[release-process.md](release-process.md).
 
 ## Local parity
 

@@ -7,8 +7,8 @@ vulnerability", use that private vulnerability reporting form. It is the only
 ratified private reporting channel. If the option is not visible, do not open a
 public issue or discussion: no fallback private channel is currently published.
 
-- Acknowledgement target: 7 days. Triage/assessment target: 30 days.
-- Solo-maintained project: there is no bug bounty and no SLA; reports are
+- This is a solo-maintained project: there is no bug bounty or response-time
+  SLA. Reports are
   prioritized by severity and exploitability.
 - Scope: this repository — engine (`src/irrevon/`), migrations, workbench (`web/`),
   site (`site/`), CI workflows. Benchmark-integrity issues (oracle manipulation,
@@ -16,7 +16,8 @@ public issue or discussion: no fallback private channel is currently published.
 - Out of scope: vulnerabilities in third-party dependencies without an
   Irrevon-specific exploit path (report upstream); the deliberately-unreleased
   status of the package.
-- The static marketing site is publicly hosted under ADR-0027. It does not run the
+- The static marketing site has an owner-controlled deployment design under
+  ADR-0027. When deployed, it does not run the
   Irrevon engine or expose an Irrevon API, workbench, or production ledger, and it is
   not an authorized penetration-testing target. No hosted product service or live
   engine target currently exists. Do not test against anyone's production

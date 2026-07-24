@@ -146,8 +146,8 @@ export const claims = {
   },
   "implemented-first-slice": {
     claim:
-      "Implemented today (first slice, M3 core): identity, append-only ledger with locked transition functions in plain SQL, commit gate, dispatcher, reconciliation, crash recovery, orphan sweep, reference destinations, the CLI, and the read-only workbench. Real destination adapters (M4), the benchmark harness (M5+), and any packaged release remain gated.",
-    source: "README.md status + RFC-002 + migrations/",
+      "Implemented today: identity, append-oriented ledger with locked transition functions, commit gate, dispatcher, reconciliation, crash recovery, orphan sweep, continuous worker, reference destinations, read-only Workbench, benchmark development harness, and local package build. Stripe/EasyPost are never-live-called drafts; no package or result has been published.",
+    source: "docs/project-status.json + README.md + RFC-002 + migrations/",
     label: "VF",
   },
   "single-writer-scope": {
@@ -257,8 +257,8 @@ export const claims = {
   },
   "novelty-boundary": {
     claim:
-      "What is defensibly novel is the planned combination and its measurement: a fault-injection benchmark drafted for preregistration for irreversible agent effects against real API contracts with a destination read-back oracle, and reconciliation keyed on the destination's authoritative-status query for C2 (narrowed per AM-1: MAS-FIRE and Atomix's eval exist).",
-    source: "master doc §4.1 + review queue AM-1",
+      "As of the documented July 2026 survey, we did not identify a standalone preregistered benchmark jointly evaluating irreversible agent effects across destination capability tiers with destination read-back and a precommitted duplicate/orphan/lost/contradicted/false-suppression analysis. Irrevon is a pre-freeze attempt to build it; no priority, patentability, or scientific-result claim is made.",
+    source: "site research/prior-art survey + master doc §4.1 + review queue AM-1",
     label: "EI",
   },
   "epistemic-labels": {
@@ -351,8 +351,9 @@ export const claims = {
   },
   "license-apache2": {
     claim:
-      "Licensed under Apache-2.0 (owner ratification 2026-07-21; ADR-0028 resolves ADR-0014's license half; LICENSE + NOTICE at the repository root). Contributions remain closed while inbound governance — ADR-0014's contributor-governance half (DCO, engine contribution policy) — stays open.",
-    source: "LICENSE + LICENSING.md + docs/decisions/0028-apache-2-license.md",
+      "Licensed under Apache-2.0 (owner ratification 2026-07-21; ADR-0028 resolves ADR-0014's license half; LICENSE + NOTICE at the repository root). Outside contributions are open under inbound=outbound Apache-2.0 with mandatory DCO 1.1 sign-off and no CLA (ADR-0035).",
+    source:
+      "LICENSE + LICENSING.md + CONTRIBUTING.md + docs/decisions/0028-apache-2-license.md + docs/decisions/0035-external-contributions.md",
     label: "VF",
   },
   "thirty-min-target": {

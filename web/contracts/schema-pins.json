@@ -3,7 +3,7 @@
   "generated_by": "scripts/codegen.mjs",
   "sources": {
     "schemas/intent-contract.schema.json": {
-      "sha256": "ed0ab134bad204e2bd5521605ba56c92e3c96a78ca4d0333a27d61d188608699",
+      "sha256": "9efa5a65192eb6b15db89472bc6b83e3093afb329a0f461f36cb0ae8a73ef7ca",
       "role": "intentContract"
     },
     "schemas/capability-declaration.schema.json": {

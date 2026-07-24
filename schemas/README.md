@@ -11,7 +11,7 @@ require an ADR (`.cursor/rules/contracts.mdc`); the current shapes were set by
 **placeholder**: the name is decided (ADR-0023) but the domain is not yet purchased
 (owner spend decision, launch checklist). URIs become locators only after that purchase.
 
-## Shipped now (12)
+## Shipped now (13)
 
 | Schema | Why now |
 |---|---|
@@ -22,6 +22,7 @@ require an ADR (`.cursor/rules/contracts.mdc`); the current shapes were set by
 | [reconciliation-finding.schema.json](reconciliation-finding.schema.json) | Same admission; strict `oneOf` subject (destination-keyed ORPHANED per master doc §7.1), AM-18 classification enum (DUPLICATE n>1 + CONTRADICTED), digest-only evidence until the redaction pipeline exists. |
 | [bench-workload.schema.json](bench-workload.schema.json) · [bench-variants.schema.json](bench-variants.schema.json) · [bench-fault-schedule.schema.json](bench-fault-schedule.schema.json) · [bench-manifest.schema.json](bench-manifest.schema.json) | The IrrevonBench fixture contracts (`irrevonbench/{workload,variants,fault-schedule,manifest}/v1`, preregistration §3.1) — admitted by [ADR-0030](../docs/decisions/0030-bench-harness-contracts.md) (proposed). Freeze honesty, the §3.2 spot-check gate, holdout sealing commitments, and the contamination canary are encoded as schema constraints, not conventions. DRAFT shapes until the human Stage-B freeze pins them. |
 | [bench-run-manifest.schema.json](bench-run-manifest.schema.json) · [bench-result.schema.json](bench-result.schema.json) · [bench-environment.schema.json](bench-environment.schema.json) | The IrrevonBench execution contracts (`irrevonbench/{run-manifest,result,environment}/v1`, preregistration §8): write-ahead registration, §6 invalid-run classes, oracle-fixed metric cells with pre-specified marks, mandatory `non-confirmatory` labeling pre-freeze, per-run environment capture. Same ADR-0030 admission. |
+| [bench-freeze-registration.schema.json](bench-freeze-registration.schema.json) | Machine-verifiable Stage-A/Stage-B freeze-registration shape proposed by ADR-0033. Drafts contain human-required sentinels and cannot unlock confirmatory mode; only the owner-controlled freeze act may create a verifying registration. |
 
 Record-schema enums are **generated from the ratified state table** (RFC-002 §3 via
 `src/irrevon/statetable.py`) and mechanically checked by `tests/schemas/test_enum_sync.py`

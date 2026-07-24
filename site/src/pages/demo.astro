@@ -14,14 +14,14 @@ import Badge from "../components/Badge.astro";
 import Source from "../components/Source.astro";
 import Icon from "../components/Icon.astro";
 import OneWayStage from "../components/OneWayStage.astro";
-import { SITE_NAME, REPO_URL } from "../config";
+import { SITE_NAME, REPO_URL, BUILD_SOURCE_COMMIT } from "../config";
 import { href } from "../lib/url";
 import { beats, b5Lane, contrast, effectShort, seed, engineCommit, adapterId } from "../lib/demo-beats";
 ---
 
 <Base
   title={`Demo — the One-Way Seat, recorded — ${SITE_NAME}`}
-  description="Step through the recorded flagship run: a lost response, a real SIGKILL, recovery by asking the destination, and a re-synthesized retry refused with citations — versus the strongest conventional baseline creating a duplicate."
+  description="Step through the recorded synthetic flagship run: a lost response, real SIGKILL, destination read-back, and duplicate refusal — versus a developmental file-journal B5 stand-in."
   ogImage="/og/og-demo.png"
 >
   <section class="section demo-head-section">
@@ -186,10 +186,11 @@ import { beats, b5Lane, contrast, effectShort, seed, engineCommit, adapterId } f
     <div class="container">
       <div class="section-head">
         <span class="kicker">The contrast lane</span>
-        <h2 id="b5-head">The same faults against the strongest conventional stack</h2>
+        <h2 id="b5-head">The same faults against a developmental B5 stand-in</h2>
         <p class="lead">
-          The recorded B5 baseline leg: a durable runtime, stable operation IDs, idempotency keys sent — the
-          identical fault schedule. Four recorded events; a different ending. The twelve-beat stage above
+          The recorded developmental B5 leg: file-journal durable retry semantics, stable operation IDs,
+          idempotency keys sent — the identical fault schedule. A real Temporal arm remains a Stage-B
+          prerequisite. Four recorded events; a different ending. The twelve-beat stage above
           deliberately does not drive these — they are the control, not the story.
         </p>
         <div class="badge-row"><Badge kind="recorded" /></div>
@@ -236,7 +237,7 @@ import { beats, b5Lane, contrast, effectShort, seed, engineCommit, adapterId } f
       <p style="margin-top: 24px;">
         The <a href={href("/") + "#recorded"}>full eleven-event transcript</a> is on the home page;{" "}
         <a href={href("/how-it-works/")}>how it works</a> explains the mechanism behind each beat. The raw
-        artifact lives in the repository: <a href={`${REPO_URL}/blob/HEAD/web/fixtures/canonical/demo-artifact.json`}
+        artifact lives in the repository: <a href={`${REPO_URL}/blob/${BUILD_SOURCE_COMMIT}/web/fixtures/canonical/demo-artifact.json`}
           ><code>web/fixtures/canonical/demo-artifact.json</code></a
         >.
       </p>

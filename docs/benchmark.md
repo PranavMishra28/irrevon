@@ -88,18 +88,18 @@ oracle.
 | FORGE/PCAS (arXiv [2602.16708](https://arxiv.org/abs/2602.16708)) `[VF]` | Datalog reference monitor over a causal dependency graph of agent tool calls (2026) | Runtime client-side enforcement, not benchmark-time measurement; no destination-authoritative ground truth |
 | Agent-Diff (arXiv [2602.11224](https://arxiv.org/abs/2602.11224)) `[VF]` | Canonical state-diff scoring with a closed-world invariant catching unintended side effects | End-state only: cannot distinguish one effect from two that net out, nor check authority-at-dispatch or cancellation ordering |
 
-**Genuinely uncovered as of this survey** `[EI]`: (1) authoritative
+**Not identified in this dated survey as one combined benchmark** `[EI]`: (1) authoritative
 **destination read-back as the oracle** (every surveyed eval scores its own
 sandbox state or trajectory); (2) the **C1/C2/C3 capability-tier axis**;
 (3) the full outcome taxonomy (duplicate counting exists in Atomix; orphaned /
 contradicted / false-suppression outcomes are nowhere measured); (4) stable
 **business-intent identity** as a measured construct; (5) **retry storms** as
-a graded condition; (6) **real, never-weakened conventional baselines**
-(durable execution + native idempotency, operationalized rather than
-emulated); (7) **preregistered, falsifiable reporting** with a sealed holdout.
-This matches ratified amendment AM-1's narrowed wording: "no standalone,
-preregistered benchmark against real production API contracts with a
-destination read-back oracle."
+a graded condition; (6) a preselected conventional composite whose real
+Temporal arm remains a Stage-B prerequisite; and (7) **preregistered,
+falsifiable reporting** with a future sealed holdout. The current harness is
+synthetic and pre-freeze; no live-provider qualification or scientific result
+exists. This is a literature-search inference, not a priority or patentability
+claim.
 
 ## 3. What the authoritative oracle is
 
