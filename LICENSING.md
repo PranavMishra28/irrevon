@@ -5,8 +5,9 @@
 Copyright 2026 Irrevon contributors"). The decision record is
 [ADR-0028](docs/decisions/0028-apache-2-license.md), ratified by the owner in writing on
 2026-07-21; it resolves the license half of
-[ADR-0014](docs/decisions/0014-licensing.md). Since the repository is public, the grant
-is effective immediately.
+[ADR-0014](docs/decisions/0014-licensing.md). The license grant applies to every copy of
+the covered source that is distributed; repository visibility is an owner-controlled
+hosting setting and does not change the license text committed here.
 
 What this does **not** change:
 

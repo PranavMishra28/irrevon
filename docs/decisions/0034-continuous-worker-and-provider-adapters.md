@@ -59,7 +59,9 @@ queue).
    NAME from config, value from environment only; sandbox/test key prefixes
    enforced — a live-mode key is refused at construction), version-pinned
    headers, declaration drafts with citations and `evidence_quality: EI`,
-   synthetic-transport test suites (28 tests), and explicit DRAFT wording:
+   synthetic-transport test suites, fail-closed effect-type and payload validation,
+   allowlisted response evidence, conservative header-aware rate-limit handling,
+   explicit unpurchased-shipment enumeration for EasyPost, and explicit DRAFT wording:
    **no live call has ever been made**. Live use waits on ADR-0010
    (Stripe pin — research recommends a full dated version), ADR-0012 (C2
    selection — EasyPost implemented as the recorded fallback; Shopify's

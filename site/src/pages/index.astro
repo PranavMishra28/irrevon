@@ -15,7 +15,7 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
 
 <Base
   title={`${SITE_NAME} — honest handling of irreversible AI-agent actions`}
-  description="A preregistered benchmark and reference reconciliation engine for irreversible AI-agent actions. Identity from stable business identifiers, persist-before-dispatch, reconcile-by-query. Pre-release, open research."
+  description="A reference reconciliation engine and draft preregistration for benchmarking irreversible AI-agent actions. Identity from stable business identifiers, persist-before-dispatch, reconcile-by-query. Pre-release, open research."
   jsonLd={[softwareSourceCode(siteUrl), webSite(siteUrl, searchUrl)]}
 >
   <!-- ── Hero ─────────────────────────────────────────────────────────── -->
@@ -27,7 +27,7 @@ const searchUrl = new URL(href("/docs/search/"), Astro.site);
         <p class="lead hero-lead">
           An agent that crashes mid-call, retries a timeout, or re-synthesizes its arguments can charge a card
           twice, book the wrong slot, or leave an orphaned order no process reconciles. {SITE_NAME} is an
-          open-source reference engine — and a preregistered benchmark — for exactly that failure.
+          open-source reference engine — and a benchmark drafted for preregistration — for exactly that failure.
         </p>
         <Source id="problem-ambiguous-outcome" also={["resynthesis-defeats-keys"]} />
         <div class="hero-ctas">

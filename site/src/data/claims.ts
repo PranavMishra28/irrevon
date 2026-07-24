@@ -194,7 +194,7 @@ export const claims = {
   },
   "baseline-ladder": {
     claim:
-      "The baseline ladder B0–B7 plus R is preregistered and never weakened so the proposed system wins; the preselected primary comparator is the composite B5+B3+B6, with B5 reported alongside — superiority must reject against both.",
+      "The draft preregistration pre-specifies the baseline ladder B0–B7 plus R and forbids weakening it so the proposed system wins; the preselected primary comparator is the composite B5+B3+B6, with B5 reported alongside — superiority must reject against both.",
     source: "master doc §8.3 + preregistration §1 (AM-7 as ratified)",
     label: "DD",
     badge: "preregistered",
@@ -257,7 +257,7 @@ export const claims = {
   },
   "novelty-boundary": {
     claim:
-      "What is defensibly novel is the combination and its measurement: a preregistered fault-injection benchmark for irreversible agent effects against real API contracts with a destination read-back oracle, and reconciliation keyed on the destination's authoritative-status query for C2 (narrowed per AM-1: MAS-FIRE and Atomix's eval exist).",
+      "What is defensibly novel is the planned combination and its measurement: a fault-injection benchmark drafted for preregistration for irreversible agent effects against real API contracts with a destination read-back oracle, and reconciliation keyed on the destination's authoritative-status query for C2 (narrowed per AM-1: MAS-FIRE and Atomix's eval exist).",
     source: "master doc §4.1 + review queue AM-1",
     label: "EI",
   },
@@ -289,7 +289,7 @@ export const claims = {
   },
   "supply-chain": {
     claim:
-      "Supply-chain posture as practiced: pnpm with lifecycle scripts blocked, a 7-day publish-to-installable delay, provenance no-downgrade, exotic-subdep blocking, exact pins and frozen lockfiles; CI actions SHA-pinned; secret scanning on every commit. Verifiable in the public repository.",
+      "Supply-chain posture as practiced: pnpm with lifecycle scripts blocked, a 7-day publish-to-installable delay, provenance no-downgrade, exotic-subdep blocking, exact pins and frozen lockfiles; CI actions SHA-pinned; secret scanning on every commit. Verifiable in the repository source.",
     source: "web/pnpm-workspace.yaml + docs/ci.md + Makefile",
     label: "VF",
   },

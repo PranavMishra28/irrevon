@@ -1,6 +1,6 @@
 ---
 title: "Adapter development"
-description: "What a destination adapter is, why every adapter ships a machine-readable capability declaration, and what exists today (reference destinations only)."
+description: "What a destination adapter is, why every adapter ships a machine-readable capability declaration, and the boundary between verified reference adapters and provider drafts."
 order: 4
 claims:
   - capability-declaration
@@ -15,11 +15,16 @@ declaration.
 
 ## Status, plainly
 
-Only the in-repo **reference destinations** exist today (the flagship demo runs against
-`refdest-c2`). Real-sandbox adapters are gated behind milestone M4, and the adapter
-Python interface is deliberately not frozen yet — per-effect-type parameter schemas and
-the adapter interface schema are deferred with it. What is frozen enough to build
-against is the exchange format below.
+The in-repo **reference destinations** are the only verified adapters today (the flagship
+demo runs against `refdest-c2`). Credential-gated **DRAFT** adapters for Stripe
+PaymentIntents (C1) and EasyPost Shipments (C2) are implemented with synthetic transports,
+sandbox-key enforcement, conservative response classification, and machine-readable
+declarations. They have never been live-called and are not provider-qualified.
+
+Live-sandbox qualification remains gated by milestone M4, ADR-0010/0012, credentials,
+provider terms review, and contract tests. The adapter Python interface is deliberately not
+frozen yet; per-effect-type parameter schemas and the adapter interface schema remain
+deferred. The exchange format below is the stable contract available for development.
 
 ## The capability declaration
 
@@ -48,11 +53,15 @@ differently — the declaration must be updated, the adapter retested, and a dev
 recorded as a decision record. An adapter whose declaration is wrong is worse than no
 adapter: the engine calibrates recovery behavior from those fields.
 
-## Writing one (when M4 opens)
+## Writing and qualifying one
 
-The reference destinations in `src/irrevon/adapters/` are the working template: wire
+The reference destinations in `src/irrevon/adapters/` are the verified working template;
+the Stripe and EasyPost drafts demonstrate fail-closed provider I/O without implying live
+qualification. Wire
 I/O lives only in the adapter module, the declaration is loaded and digest-pinned at
 registration time (every record carries the declaration digest that governed it), and
 the adapter exposes dispatch, status query, and — where `list_queryable` — windowed
-listing for the sweep. Follow the schema's example suite: the `valid-*.json` examples
-are executable documentation, and the `invalid-*.json` suite is the rejection contract.
+listing for the sweep. Unsupported effect types and authority-sensitive payload overrides
+must be rejected before network I/O; ambiguous transport/provider outcomes stay ambiguous.
+Follow the schema's example suite: the `valid-*.json` examples are executable
+documentation, and the `invalid-*.json` suite is the rejection contract.

@@ -1,7 +1,7 @@
 ---
 title: "IrrevonBench foundation — benchmark contracts, harness architecture, and integrity gates"
 sourcePath: "docs/decisions/0030-bench-harness-contracts.md"
-sourceSha256: "b0f01330a0f2311202f07817c11ffd0bda9d876f9ef22d5d3f2fabea5db60f5b"
+sourceSha256: "e34c75a3292e3e316a58823d532cf77b381cf55dac53ed9702aa29167bc44e1a"
 syncedAt: "2026-07-22"
 section: "Decisions"
 renderTitle: true
@@ -40,6 +40,14 @@ Schema admission requires an ADR (contracts rule; ADR-0019/0021 precedent).
    requires one of the three §6 harness-invalid classes; structurally
    undefined metric cells carry marks (`N/A`, `N/A-by-arm`,
    `NOT-DETECTABLE`, `expected-null`, `fixture-truth-only`), never zeros.
+   The Extended track's LLM-embedded subjects additionally get a per-trial
+   `refused` arm outcome (subject declined ≠ system suppressed: a refusal on
+   a legitimate eligible trial reads back as a lost legitimate effect and is
+   NEVER counted as false suppression) and an optional per-run
+   `subject_accounting` block (refusals, verbalized eval-awareness,
+   suspected sandbagging — descriptive diagnostics reported alongside
+   results, never pooled into §4 metrics; evaluation-awareness posture in
+   docs/benchmark.md §10).
 2. **Byte-level pinnings** left open by the preregistration are fixed here:
    (a) §3.4 seed derivation concatenation uses UTF-8 fields joined by the
    ASCII unit separator 0x1F (removes cross-field ambiguity; pinned vectors

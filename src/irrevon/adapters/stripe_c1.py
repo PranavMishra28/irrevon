@@ -28,7 +28,7 @@ import os
 from typing import Any
 
 from irrevon.adapters.base import Adapter, DispatchOrder, DispatchResult, StatusAnswer
-from irrevon.adapters.httpapi import Transport, urllib_transport
+from irrevon.adapters.httpapi import HttpResponse, Transport, urllib_transport
 from irrevon.adapters.refdest import WireDropped
 from irrevon.errors import CapabilityUnsupported, ConfigInvalid
 from irrevon.identity import canonical_digest
@@ -39,6 +39,20 @@ _BASE = "https://api.stripe.com"
 # Provider-documented, side-effect-free error types (citations in the
 # declaration). Anything else — incl. api_error 5xx — is AMBIGUOUS territory.
 _TERMINAL_ERROR_TYPES = {"invalid_request_error", "card_error", "idempotency_error"}
+_EFFECT_TYPE = "payment_intent.create"
+_RESERVED_EXTRA_KEYS = {
+    "amount",
+    "capture_method",
+    "confirmation_method",
+    "confirmation_token",
+    "confirm",
+    "currency",
+    "mandate",
+    "mandate_data",
+    "off_session",
+    "payment_method",
+    "payment_method_data",
+}
 
 
 class StripeC1Adapter(Adapter):
@@ -102,12 +116,42 @@ class StripeC1Adapter(Adapter):
     # ── protocol operations ────────────────────────────────────────────────────
 
     def dispatch(self, order: DispatchOrder, deadline_s: float) -> DispatchResult:
+        if order.effect_type != _EFFECT_TYPE:
+            raise CapabilityUnsupported(
+                f"adapter {self.adapter_id} supports {_EFFECT_TYPE!r}, not "
+                f"{order.effect_type!r}"
+            )
+        amount = order.payload.get("amount")
+        currency = order.payload.get("currency")
+        if isinstance(amount, bool) or not isinstance(amount, int) or amount <= 0:
+            raise CapabilityUnsupported("Stripe amount must be a positive integer")
+        if (
+            not isinstance(currency, str)
+            or len(currency) != 3
+            or not currency.isascii()
+            or not currency.isalpha()
+        ):
+            raise CapabilityUnsupported("Stripe currency must be a three-letter code")
+        extra = order.payload.get("extra", {})
+        if not isinstance(extra, dict):
+            raise CapabilityUnsupported("Stripe extra parameters must be an object")
+        for raw_key in extra:
+            key = str(raw_key)
+            if (
+                key in _RESERVED_EXTRA_KEYS
+                or key == "metadata"
+                or key.startswith("metadata[irrevon_ref]")
+            ):
+                raise CapabilityUnsupported(
+                    f"Stripe extra parameter {key!r} is authority-sensitive or "
+                    "identity-reserved"
+                )
         form = {
-            "amount": str(order.payload.get("amount", 0)),
-            "currency": str(order.payload.get("currency", "usd")),
+            "amount": str(amount),
+            "currency": currency.lower(),
             "metadata[irrevon_ref]": order.client_ref,
         }
-        for key, value in order.payload.get("extra", {}).items():
+        for key, value in extra.items():
             form[str(key)] = str(value)
         evidence: dict[str, Any] = {
             "adapter_id": self.adapter_id,
@@ -117,7 +161,7 @@ class StripeC1Adapter(Adapter):
             ),
         }
         try:
-            status, body = self._transport(
+            response = self._transport(
                 "POST",
                 f"{self._base}/v1/payment_intents",
                 form,
@@ -132,37 +176,66 @@ class StripeC1Adapter(Adapter):
             return DispatchResult(
                 "TIMEOUT", evidence={**evidence, "deadline_s": deadline_s}
             )
-        return self._classify(status, body, evidence)
+        return self._classify(response, evidence)
 
     def _classify(
-        self, status: int, body: dict[str, Any], evidence: dict[str, Any]
+        self, response: HttpResponse, evidence: dict[str, Any]
     ) -> DispatchResult:
+        status = response.status
+        body = response.body
         digest = canonical_digest(body)
+        response_headers = response.selected_headers(
+            "Idempotent-Replayed",
+            "Request-Id",
+            "Retry-After",
+            "Stripe-Rate-Limited-Reason",
+            "Stripe-Should-Retry",
+        )
+        header_evidence = (
+            {"response_headers": response_headers} if response_headers else {}
+        )
         if status == 200 and isinstance(body.get("id"), str):
             return DispatchResult(
                 "OK",
                 destination_ref=body["id"],
                 response_digest=digest,
-                evidence={**evidence, "status": status},
+                evidence={**evidence, "status": status, **header_evidence},
             )
         error = body.get("error", {}) if isinstance(body.get("error"), dict) else {}
         error_type = error.get("type")
-        if status == 429:
-            # Documented rate limiting: the request was not executed.
+        if status == 429 and "stripe-rate-limited-reason" in response_headers:
+            # Stripe documents this header as the discriminator for a true
+            # limiter response. A headerless 429 can be a different condition
+            # (for example a lock timeout) and therefore remains ambiguous.
             return DispatchResult(
                 "FAILED", failure_kind="RETRYABLE", response_digest=digest,
-                evidence={**evidence, "status": status, "throttled": True},
+                evidence={
+                    **evidence,
+                    "status": status,
+                    "throttled": True,
+                    **header_evidence,
+                },
             )
         if status in (400, 402, 409) and error_type in _TERMINAL_ERROR_TYPES:
             # Declaration-cited recognized rejections (side-effect-free).
             return DispatchResult(
                 "FAILED", failure_kind="TERMINAL", response_digest=digest,
-                evidence={**evidence, "status": status, "error_type": error_type},
+                evidence={
+                    **evidence,
+                    "status": status,
+                    "error_type": error_type,
+                    **header_evidence,
+                },
             )
         # 5xx, unknown shapes, unexpected statuses: never optimistically FAILED.
         return DispatchResult(
             "LOST", response_digest=digest,
-            evidence={**evidence, "status": status, "unrecognized": True},
+            evidence={
+                **evidence,
+                "status": status,
+                "unrecognized": True,
+                **header_evidence,
+            },
         )
 
     def status_query(
@@ -174,11 +247,12 @@ class StripeC1Adapter(Adapter):
     ) -> StatusAnswer:
         try:
             if destination_ref is not None:
-                status, body = self._transport(
+                response = self._transport(
                     "GET",
                     f"{self._base}/v1/payment_intents/{destination_ref}",
                     None, self._headers(), deadline_s,
                 )
+                status, body = response.status, response.body
                 if status == 200 and isinstance(body.get("id"), str):
                     return StatusAnswer(
                         "PRESENT", 1, (body["id"],),
@@ -193,12 +267,13 @@ class StripeC1Adapter(Adapter):
                 # Search is the ONLY metadata query; it is not read-after-write
                 # safe — the declaration's settlement lag calibrates absence.
                 query = f'metadata["irrevon_ref"]:"{client_ref}"'
-                status, body = self._transport(
+                response = self._transport(
                     "GET",
                     f"{self._base}/v1/payment_intents/search?"
                     + f"query={query}".replace('"', "%22").replace(" ", "%20"),
                     None, self._headers(), deadline_s,
                 )
+                status, body = response.status, response.body
                 if status != 200 or not isinstance(body.get("data"), list):
                     return StatusAnswer("INDETERMINATE", None, (), {"status": status})
                 refs = tuple(
@@ -238,7 +313,8 @@ class StripeC1Adapter(Adapter):
             )
             if starting_after:
                 url += f"&starting_after={starting_after}"
-            status, body = self._transport("GET", url, None, self._headers(), deadline_s)
+            response = self._transport("GET", url, None, self._headers(), deadline_s)
+            status, body = response.status, response.body
             if status != 200 or not isinstance(body.get("data"), list):
                 raise CapabilityUnsupported(f"list failed with status {status}")
             for item in body["data"]:

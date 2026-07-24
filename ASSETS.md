@@ -122,3 +122,11 @@ Design references (screenshots of third-party marketing/product sites, studied d
 - **provenance:** Generated verbatim by the msw CLI; never part of a live/production bundle (mock mode is refused in production builds). Recorded here because it is a committed third-party file under web/public/.
 - **files (sha256):**
   - `web/public/mockServiceWorker.js` — `26171599d94d5445297303f3a1f1cedec26835ea3d0057dcfa92ec520cb35cca`
+
+## 9. llms.txt machine-readable docs index
+
+- **type:** text · **origin:** first-party-generated · **license:** Apache-2.0 (repository license, ADR-0028) · **date:** 2026-07-22
+- **source:** site/scripts/sync-docs.mjs (generated from site/docs-manifest.json + guides frontmatter)
+- **provenance:** Generated and drift-gated by sync-docs.mjs (--check fails on divergence); root-relative links only, no embedded origin; regenerated whenever the docs manifest or guides change.
+- **files (sha256):**
+  - `site/public/llms.txt` — `4492d2634099fc2616a90f1f0be51f361fe30d5dc2f4b065194a6750d7d3d904`

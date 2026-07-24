@@ -27,6 +27,6 @@
   "attribution": {
     "modes": ["stable-id-projection", "temporal-window"],
     "fields": ["reference", "id", "created_at"],
-    "notes": "DRAFT (2026-07-22 research pass; no live call has ever been made): shipment creation documents NO request idempotency key (C2 fit); `reference` is caller-set and echoed on read-back but NOT unique and NOT a list filter — queries are by destination id only, and reconciliation coverage runs through windowed enumeration (page_size ≤ 100, before_id paging, ~5 req/s list budget). Test objects retained 30 days — the enumeration/audit horizon. No consistency SLA is documented (null lags ⇒ confirmed-absence escalates to humans, never auto-redispatch, RFC-002 §6.2). evidence_quality EI until the P4 spike contract-tests every claim."
+    "notes": "DRAFT (2026-07-22 research pass; no live call has ever been made): shipment creation documents NO request idempotency key (C2 fit); `reference` is caller-set and echoed on read-back but NOT unique and NOT a list filter — queries are by destination id only, and reconciliation coverage runs through windowed enumeration (purchased=false so unpurchased creates are included, page_size ≤ 100, before_id paging, ~5 req/s list budget). Test objects retained 30 days — the enumeration/audit horizon. No consistency SLA is documented (null lags ⇒ confirmed-absence escalates to humans, never auto-redispatch, RFC-002 §6.2). evidence_quality EI until the P4 spike contract-tests every claim."
   }
 }

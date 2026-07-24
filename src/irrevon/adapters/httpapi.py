@@ -25,14 +25,38 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections.abc import Callable
+from dataclasses import dataclass, field
 from typing import Any
 
 from irrevon.adapters.refdest import WireDropped
 
 __all__ = ["HttpResponse", "Transport", "urllib_transport"]
 
-HttpResponse = tuple[int, dict[str, Any]]
-# (method, url, form_or_json_body, headers, deadline_s) -> (status, body)
+
+@dataclass(frozen=True, slots=True)
+class HttpResponse:
+    """One complete HTTP response with case-insensitive, evidence-selectable headers.
+
+    Adapters retain only an explicit header allowlist in ledger evidence. Keeping
+    headers available here is nevertheless required to distinguish, for example,
+    a Stripe rate-limit 429 from another 429 shape without logging credentials or
+    the full response envelope.
+    """
+
+    status: int
+    body: dict[str, Any]
+    headers: dict[str, str] = field(default_factory=dict)
+
+    def selected_headers(self, *names: str) -> dict[str, str]:
+        normalized = {key.lower(): value for key, value in self.headers.items()}
+        return {
+            name.lower(): normalized[name.lower()]
+            for name in names
+            if name.lower() in normalized
+        }
+
+
+# (method, url, form_or_json_body, headers, deadline_s) -> complete response
 Transport = Callable[[str, str, dict[str, Any] | None, dict[str, str], float], HttpResponse]
 
 
@@ -56,14 +80,18 @@ def urllib_transport(
     try:
         with urllib.request.urlopen(request, timeout=deadline_s) as response:
             payload = response.read()
-            return response.status, json.loads(payload) if payload else {}
+            return HttpResponse(
+                response.status,
+                json.loads(payload) if payload else {},
+                dict(response.headers.items()),
+            )
     except urllib.error.HTTPError as err:
         raw = err.read()
         try:
             parsed = json.loads(raw) if raw else {}
         except json.JSONDecodeError:
             parsed = {"unparseable_body": True}
-        return err.code, parsed
+        return HttpResponse(err.code, parsed, dict(err.headers.items()))
     except TimeoutError:
         raise
     except (urllib.error.URLError, ConnectionError, OSError) as err:

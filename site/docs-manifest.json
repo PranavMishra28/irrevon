@@ -210,6 +210,13 @@
       "section": "Governance",
       "description": "Operator documentation: deployment shape, probes, shutdown and upgrades, the ten operator questions, SLO guidance, backup/restore, incident containment.",
       "title": "Operations — running Irrevon as a service"
+    },
+    {
+      "source": "docs/incident-replay-example.md",
+      "slug": "incident-replay-example",
+      "section": "Benchmark",
+      "description": "A complete synthetic walkthrough: compile a payments double-charge incident into a private, drift-gated regression suite; reproduce it against the baseline ladder; keep it permanent in CI; export sanitized evidence.",
+      "title": "Worked example — incident replay to permanent regression"
     }
   ],
   "linkOnly": [

@@ -1,0 +1,64 @@
+# Irrevon
+
+> A preregistered benchmark (IrrevonBench) and reference reconciliation
+> engine for irreversible AI-agent actions. Pre-release; no benchmark
+> results exist; confirmatory runs are mechanically refused before the
+> human preregistration freeze.
+
+## Product
+
+- [How it works](/how-it-works/): the mental model — read first
+- [Engine](/platform/): what runs today
+- [Benchmark](/benchmark/): the measurement method and its status
+- [Demo](/demo/): the recorded flagship contrast run
+- [Install](/install/): local quickstart
+
+## Guides
+
+- [Adapter development](/docs/adapter-development/)
+- [Architecture](/docs/architecture/)
+- [Benchmark reproduction](/docs/benchmark-reproduction/)
+- [CLI reference](/docs/cli-reference/)
+- [Getting started](/docs/getting-started/)
+- [Integration guide](/docs/integration/)
+
+## Reference (rendered repository documents)
+
+- [RFC-001 — the first vertical slice](/docs/reference/rfc-001/): source docs/rfc-001-first-slice.md
+- [RFC-002 — engine design](/docs/reference/rfc-002/): source docs/rfc-002-engine-design.md
+- [IrrevonBench preregistration (DRAFT)](/docs/reference/benchmark-preregistration/): source docs/benchmark-preregistration.md
+- [Execution plan — phases and gates](/docs/reference/execution-plan/): source docs/execution-plan.md
+- [CI — how this repository builds](/docs/reference/ci/): source docs/ci.md
+- [Security policy — development process](/docs/reference/security-policy/): source docs/security-policy.md
+- [Schemas — machine-readable contracts](/docs/reference/schemas/): source schemas/README.md
+- [Licensing status](/docs/reference/licensing/): source LICENSING.md
+- [Decision records — index and policy](/docs/reference/decisions/): source docs/decisions/README.md
+- [Freeze project scope — benchmark-first, C2-scoped, with binding non-goals](/docs/reference/adr-0000-scope-freeze/): source docs/decisions/0000-scope-freeze.md
+- [Pin the Stripe API version and idempotency semantics for the C1 adapter](/docs/reference/adr-0010-stripe-api-version/): source docs/decisions/0010-stripe-api-version.md
+- [Select the C2 sandbox destination for the POC adapter](/docs/reference/adr-0012-c2-sandbox/): source docs/decisions/0012-c2-sandbox.md
+- [Choose the implementation language and core stack](/docs/reference/adr-0013-implementation-language/): source docs/decisions/0013-implementation-language.md
+- [Outbound license and contributor-governance posture](/docs/reference/adr-0014-licensing/): source docs/decisions/0014-licensing.md
+- [JSON Schema 2020-12 + check-jsonschema/lychee/gitleaks orchestrated by Make](/docs/reference/adr-0015-schema-validation-tooling/): source docs/decisions/0015-schema-validation-tooling.md
+- [Frontend workbench stack — Vite SPA + TanStack, schema-derived types, pnpm-hardened](/docs/reference/adr-0016-frontend-workbench-stack/): source docs/decisions/0016-frontend-workbench-stack.md
+- [Build orchestration — plain Make over uv/pnpm native layers, with measured adoption triggers for graph-based build systems](/docs/reference/adr-0017-build-orchestration/): source docs/decisions/0017-build-orchestration.md
+- [Distribution model — single PyPI package with embedded workbench assets, GitHub-and-Zenodo-only infrastructure, zero recurring cost](/docs/reference/adr-0018-distribution-model/): source docs/decisions/0018-distribution-model.md
+- [Record schemas and API contracts — dispatchable request model, calibrated absence bounds, payload versioning; record schemas deferred to M3](/docs/reference/adr-0019-record-schemas-and-api-contracts/): source docs/decisions/0019-record-schemas-and-api-contracts.md
+- [Ratify the byte-level identity procedure — JCS (RFC 8785) canonical form + SHA-256, operation_id concatenation, key derivation](/docs/reference/adr-0020-identity-procedure/): source docs/decisions/0020-identity-procedure.md
+- [Admit the three record schemas (EffectRecord, DispatchReceipt, ReconciliationFinding) at M3 per the ADR-0019 criteria](/docs/reference/adr-0021-record-schemas-admission/): source docs/decisions/0021-record-schemas-admission.md
+- [Migration runner — minimal in-package plain-SQL runner with a content-hash journal](/docs/reference/adr-0022-migration-runner/): source docs/decisions/0022-migration-runner.md
+- [Rename the project — Detent → Irrevon (engine), DetentBench → IrrevonBench (benchmark)](/docs/reference/adr-0023-rename-to-irrevon/): source docs/decisions/0023-rename-to-irrevon.md
+- [IrrevonBench guide — measurement, governance, adoption](/docs/reference/benchmark-guide/): source docs/benchmark.md
+- [Effect-semantics mappings — declarations over existing protocols](/docs/reference/effect-semantics-mappings/): source docs/effect-semantics-mappings.md
+- ["`irrevon serve` — the loopback read-only workbench surface"](/docs/reference/adr-0024-serve-read-surface/): source docs/decisions/0024-serve-read-surface.md
+- [Marketing site + discovery surface (`site/`) — public pages, gated deploy](/docs/reference/adr-0025-site-discovery-surface/): source docs/decisions/0025-site-discovery-surface.md
+- [Sanitization supersession of ADR-0000's non-goals wording (decision content unchanged)](/docs/reference/adr-0026-scope-freeze-wording-sanitization/): source docs/decisions/0026-scope-freeze-wording-sanitization.md
+- [Site hosting — deploy `site/` to Vercel at the origin root, retiring the GitHub Pages plan](/docs/reference/adr-0027-site-vercel-deploy/): source docs/decisions/0027-site-vercel-deploy.md
+- [Outbound license — Apache-2.0 for the whole repository (resolves the license half of ADR-0014)](/docs/reference/adr-0028-apache-2-license/): source docs/decisions/0028-apache-2-license.md
+- [Site telemetry — first-party Vercel Web Analytics + Speed Insights (amends the site's zero-telemetry posture)](/docs/reference/adr-0029-site-vercel-analytics/): source docs/decisions/0029-site-vercel-analytics.md
+- [IrrevonBench foundation — benchmark contracts, harness architecture, and integrity gates](/docs/reference/adr-0030-bench-harness-contracts/): source docs/decisions/0030-bench-harness-contracts.md
+- [Benchmark ecosystem posture — native core; Inspect optional later; NeMo patterns only; no Toxiproxy; HF prepared not published](/docs/reference/adr-0031-bench-ecosystem-interop/): source docs/decisions/0031-bench-ecosystem-interop.md
+- [Causal effect histories, capability conformance verification, and oracle attribution hardening](/docs/reference/adr-0032-causal-histories-and-conformance/): source docs/decisions/0032-causal-histories-and-conformance.md
+- [Machine-verifiable freeze registrations + adapter attribution declarations + site build provenance](/docs/reference/adr-0033-verifiable-freeze-and-attribution-declarations/): source docs/decisions/0033-verifiable-freeze-and-attribution-declarations.md
+- [Continuous worker service, provider-adapter framework (Stripe C1 / EasyPost C2 drafts), and the multi-worker + independent-baseline designs](/docs/reference/adr-0034-continuous-worker-and-provider-adapters/): source docs/decisions/0034-continuous-worker-and-provider-adapters.md
+- [Operations — running Irrevon as a service](/docs/reference/operations/): source docs/operations.md
+- [Worked example — incident replay to permanent regression](/docs/reference/incident-replay-example/): source docs/incident-replay-example.md

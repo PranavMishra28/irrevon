@@ -126,9 +126,65 @@ for (const f of readdirSync(outDir)) {
   }
 }
 
+// llms.txt (Answer.AI convention; Antithesis-style machine-readable docs
+// index) — generated from the same manifest + guides, drift-gated like the
+// rendered docs. Root-relative links only: nothing committed embeds an origin.
+function renderLlmsTxt() {
+  const lines = [
+    "# Irrevon",
+    "",
+    "> A preregistered benchmark (IrrevonBench) and reference reconciliation",
+    "> engine for irreversible AI-agent actions. Pre-release; no benchmark",
+    "> results exist; confirmatory runs are mechanically refused before the",
+    "> human preregistration freeze.",
+    "",
+    "## Product",
+    "",
+    "- [How it works](/how-it-works/): the mental model — read first",
+    "- [Engine](/platform/): what runs today",
+    "- [Benchmark](/benchmark/): the measurement method and its status",
+    "- [Demo](/demo/): the recorded flagship contrast run",
+    "- [Install](/install/): local quickstart",
+    "",
+    "## Guides",
+    "",
+  ];
+  for (const f of readdirSync(join(siteRoot, "src", "content", "guides")).sort()) {
+    if (!f.endsWith(".md")) continue;
+    const raw = readFileSync(join(siteRoot, "src", "content", "guides", f), "utf8");
+    const title = raw.match(/^title:\s*"?([^"\n]+)"?$/m)?.[1] ?? f.replace(/\.md$/, "");
+    lines.push(`- [${title}](/docs/${f.replace(/\.md$/, "")}/)`);
+  }
+  lines.push("", "## Reference (rendered repository documents)", "");
+  for (const entry of manifest.render) {
+    const raw = readFileSync(join(repoRoot, entry.source), "utf8");
+    const title =
+      entry.title ??
+      splitFrontmatter(raw).meta.title ??
+      raw.match(/^#\s+(.+)$/m)?.[1]?.trim() ??
+      entry.slug;
+    lines.push(`- [${title}](/docs/reference/${entry.slug}/): source ${entry.source}`);
+  }
+  lines.push("");
+  return lines.join("\n");
+}
+
+const llmsPath = join(siteRoot, "public", "llms.txt");
+const llmsExpected = renderLlmsTxt();
+const llmsExisting = existsSync(llmsPath) ? readFileSync(llmsPath, "utf8") : null;
+if (check) {
+  if (llmsExisting !== llmsExpected) {
+    console.error("sync-docs: DRIFT in public/llms.txt — run `pnpm sync:docs`");
+    failed = true;
+  }
+} else if (llmsExisting !== llmsExpected) {
+  writeFileSync(llmsPath, llmsExpected);
+  console.log("sync-docs: wrote public/llms.txt");
+}
+
 if (check) {
   if (failed) process.exit(1);
-  console.log(`sync-docs: ${manifest.render.length} rendered docs match their repository sources`);
+  console.log(`sync-docs: ${manifest.render.length} rendered docs match their repository sources (+ llms.txt)`);
 } else {
-  console.log(`sync-docs: ${manifest.render.length} docs in sync`);
+  console.log(`sync-docs: ${manifest.render.length} docs in sync (+ llms.txt)`);
 }

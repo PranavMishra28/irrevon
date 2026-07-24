@@ -16,7 +16,6 @@
 > holdout commitment; drafts carry `REQUIRED-HUMAN` sentinels and can never
 > verify). Every result the harness can currently produce is labeled
 > `non-confirmatory` at the schema level.
-
 **Developmental-observation record** `[VF]`: harness/CLI smoke pilots have
 exercised public dev fixtures and injected fault schedules against the
 synthetic refdest. ADR-0032 additionally records a full-matrix

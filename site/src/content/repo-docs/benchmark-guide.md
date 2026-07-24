@@ -2,7 +2,7 @@
 title: "IrrevonBench guide — measurement, governance, adoption"
 description: "The benchmark guide: exact measurement boundary, oracle and causal-history checking, tracks and anti-cheating rules, governance, adoption path, and the BetterBench self-assessment."
 sourcePath: "docs/benchmark.md"
-sourceSha256: "e27f656ca3e3d7e459c0f527b159f7714378ff6ca43a65d6005487199a16350c"
+sourceSha256: "bc134b0dea88d25d97204a4a234c77e5acd0d3657fca242bfedec1cbea65d2e8"
 syncedAt: "2026-07-24"
 section: "Benchmark"
 renderTitle: false
@@ -26,7 +26,6 @@ renderTitle: false
 > holdout commitment; drafts carry `REQUIRED-HUMAN` sentinels and can never
 > verify). Every result the harness can currently produce is labeled
 > `non-confirmatory` at the schema level.
-
 **Developmental-observation record** `[VF]`: harness/CLI smoke pilots have
 exercised public dev fixtures and injected fault schedules against the
 synthetic refdest. ADR-0032 additionally records a full-matrix

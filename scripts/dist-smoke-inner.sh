@@ -113,6 +113,30 @@ PY
 kill -TERM "$SERVE_PID"
 wait "$SERVE_PID" || { echo "FAIL: serve did not exit 0 on SIGTERM"; exit 1; }
 
+echo "== journey: worker --max-cycles 2 (continuous service from the wheel)"
+venv-wheel/bin/python -m irrevon.adapters.refdest_server --port 0 --seed 7 \
+  >refdest-ready.txt 2>/dev/null &
+REFDEST_PID=$!
+for _ in $(seq 1 50); do grep -q "REFDEST READY" refdest-ready.txt 2>/dev/null && break; sleep 0.2; done
+REFDEST_PORT=$(awk '{print $3}' refdest-ready.txt)
+cat >>irrevon.toml <<EOF
+
+[adapters.refdest-c2]
+kind = "refdest"
+EOF
+IRREVON_REFDEST_URL="http://127.0.0.1:${REFDEST_PORT}" \
+  "$IRV" worker --config ./irrevon.toml --dsn "$DEMO_DSN" \
+  --interval 0.2 --sweep-interval 0.2 --max-cycles 2 \
+  --health-file ./worker-health.json 2>worker.log \
+  || { echo "FAIL: worker exited non-zero"; cat worker.log; exit 1; }
+python3 - <<'PY'
+import json
+health = json.load(open("worker-health.json"))
+assert health["cycle"] == 2, health
+assert health["open_executions"] == 0, health  # demo DB is fully settled
+PY
+kill "$REFDEST_PID" 2>/dev/null || true
+
 echo "== wheel file audit"
 venv-wheel/bin/pip show -f irrevon >files.txt
 grep -q "_web/index.html" files.txt
