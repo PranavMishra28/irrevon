@@ -34,7 +34,9 @@ reproduced.
 
 **Allowed to write:** `tasks/T-106-repair-nightly-reliability.md`, `.github/workflows/nightly.yml`,
 `.github/ISSUE_TEMPLATE/nightly-failure.md`, `Makefile`, `scripts/dist-smoke.sh`,
-`docs/benchmark.md`, `docs/ci.md`, and a narrowly scoped test under `tests/scripts/`.
+`docs/benchmark.md`, `docs/ci.md`, their mechanically generated site mirrors
+(`site/src/content/repo-docs/benchmark-guide.md` and
+`site/src/content/repo-docs/ci.md`), and a narrowly scoped test under `tests/scripts/`.
 
 **Forbidden:** product runtime code; schemas; benchmark fixtures, metrics, baselines, or
 freeze controls; repository settings or labels; workflow triggers; publication; weakening
@@ -90,5 +92,6 @@ Completed 2026-07-23. Validation:
 - `uv run pytest tests/scripts -p no:cacheprovider` — 8 passed.
 - `make links-online` — 340 links considered, 339 OK, one exact SEC exclusion, zero errors.
 - `make dist-smoke` — wheel and sdist legs passed in a Node-less Python 3.13 container.
+- `make site-check` — passed after regenerating the two declared documentation mirrors.
 - `actionlint .github/workflows/nightly.yml` — passed.
 - `zizmor --offline --persona=pedantic .github/workflows/nightly.yml` — no findings.

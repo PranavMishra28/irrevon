@@ -2,8 +2,8 @@
 title: "IrrevonBench guide — measurement, governance, adoption"
 description: "The benchmark guide: exact measurement boundary, oracle and causal-history checking, tracks and anti-cheating rules, governance, adoption path, and the BetterBench self-assessment."
 sourcePath: "docs/benchmark.md"
-sourceSha256: "fb62b25e6cd210dbb3a770adbb3d1973ab6005205391af4a8aca25f9b917d091"
-syncedAt: "2026-07-22"
+sourceSha256: "5f3acf8d19565477aa89bfec41bb40c3330688eb37e2d78c22fa62ccbdd2efcd"
+syncedAt: "2026-07-24"
 section: "Benchmark"
 renderTitle: false
 ---
@@ -38,7 +38,7 @@ were "final and complete, not subject to revocation"
 ([SDNY](https://www.nysd.uscourts.gov/sites/default/files/2021-02/20cv6539%20Citibank%20Opinion.pdf));
 in 2025, agents deleted a production database during an explicit freeze and
 misreported their own recovery options (Replit,
-[The Register](https://www.theregister.com/software/2025/07/21/vibe_coding_replit_database/))
+[The Register](https://www.theregister.com/software/2025/07/21/vibe-coding-service-replit-deleted-production-database/719783?td=amp-keepreading))
 and destroyed user files after acting on hallucinated state (Gemini CLI,
 [Ars Technica](https://arstechnica.com/information-technology/2025/07/ai-coding-assistants-chase-phantoms-destroy-real-user-data/)).
 Honest boundary `[EI]`: no public case yet documents an LLM agent causing
