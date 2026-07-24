@@ -12,7 +12,7 @@ LYCHEE_VERSION := 0.24.2
 CHECK_JSONSCHEMA_VERSION := 0.37.4
 GITLEAKS_VERSION := 8.30.1
 
-.PHONY: check links schemas secrets integrity tools tools-check
+.PHONY: check links links-online schemas secrets integrity tools tools-check
 
 check: links schemas secrets integrity
 	@echo "OK: all validation gates passed"
@@ -29,6 +29,13 @@ links:
 	  --remap "file://$(CURDIR)/fonts/ file://$(CURDIR)/web/public/fonts/" \
 	  --remap "file://$(CURDIR)/brand/ file://$(CURDIR)/web/public/brand/" .
 
+links-online:
+	lychee --include-fragments --no-progress --root-dir "$(CURDIR)" \
+	  $(LYCHEE_EXCLUDES) \
+	  $(LYCHEE_ONLINE_EXCLUDES) \
+	  --remap "file://$(CURDIR)/fonts/ file://$(CURDIR)/web/public/fonts/" \
+	  --remap "file://$(CURDIR)/brand/ file://$(CURDIR)/web/public/brand/" .
+
 # site/src/content/ is excluded as a SOURCE only: it holds byte-synced mirrors of
 # repository docs (drift-gated by scripts/sync-docs.mjs --check) plus site-authored
 # markdown whose repo-relative links are resolved at build time by
@@ -37,6 +44,14 @@ links:
 # paths, and the BUILT site's links are checked by the site Playwright link suite
 # (make site-test). Nothing is exempted twice-unchecked.
 links: LYCHEE_EXCLUDES := --exclude-path site/src/content
+links-online: LYCHEE_EXCLUDES := --exclude-path site/src/content
+# Placeholder hosts are deliberately non-resolving. The SEC order is an
+# authoritative primary source that returns 403 to automated clients; exclude
+# that exact resource rather than teaching the checker to accept arbitrary 4xx.
+links-online: LYCHEE_ONLINE_EXCLUDES := \
+	--exclude 'https://irrevon\.dev' \
+	--exclude 'https://example\.com' \
+	--exclude 'https://www\.sec\.gov/files/litigation/admin/2013/34-70694\.pdf'
 
 # Every schema must be valid against its declared metaschema; every valid-*.json
 # example must pass; every invalid-*.json example must be REJECTED (the invalid

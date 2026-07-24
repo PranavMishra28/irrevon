@@ -11,7 +11,7 @@ that date.
 | Workflow | Trigger | Purpose | State |
 |---|---|---|---|
 | [`ci.yml`](../.github/workflows/ci.yml) | every push + PR | The required PR gate: change detection → conditional jobs → the `ci-required` aggregator | active |
-| [`nightly.yml`](../.github/workflows/nightly.yml) | cron 09:17 UTC + dispatch | Full local gate on a clean machine + online audits (external links, networked zizmor); grows the T3 suites at M3+; files/updates one dedup'd `nightly-failure` issue on red | active |
+| [`nightly.yml`](../.github/workflows/nightly.yml) | cron 09:17 UTC + dispatch | Full local gate on a clean machine + online audits (external links, networked zizmor); grows the T3 suites at M3+; files/updates one title-deduplicated nightly-failure issue on red | active |
 | [`sandbox.yml`](../.github/workflows/sandbox.yml) | `workflow_dispatch` only | T4 credentialed sandbox contract tests — skeleton, activates at M4; gated by the `sandbox` environment | skeleton |
 | [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | IrrevonBench preregistered runs — skeleton, activates at M7; gated by the `benchmark` environment | skeleton |
 | [`release.yml`](../.github/workflows/release.yml) | disabled (`if: false` guard) | Prepared release pipeline (version check, deterministic build, checksums, SBOM, attestation, human approval, OIDC publish) — enabled only at the public-release gate | disabled |
@@ -85,20 +85,18 @@ Now (with this branch's merge):
 4. **Ruleset phase 1** — Settings → Rules → Rulesets → New branch ruleset on the default
    branch: `deletion`, `non_fast_forward`, `pull_request` (0 required approvals — a solo
    owner cannot approve their own PR), `bypass_actors: []`.
-5. **Create the `nightly-failure` label** (used by the nightly dedup job).
-
 After `ci-required` has reported on at least one PR (order matters — see traps below):
 
-6. **Ruleset phase 2** — add `required_status_checks` with the single context
+5. **Ruleset phase 2** — add `required_status_checks` with the single context
    `ci-required`. Never list individual jobs.
-7. **CodeQL default setup** — Settings → Advanced Security → CodeQL → Default. Idle (no
+6. **CodeQL default setup** — Settings → Advanced Security → CodeQL → Default. Idle (no
    supported language yet) but free and safe to enable `[VF]`.
-8. Retention stays 90 days (public max). **Private vulnerability reporting**: verified
+7. Retention stays 90 days (public max). **Private vulnerability reporting**: verified
    enabled (API read, 2026-07-21) — see [SECURITY.md](../SECURITY.md).
 
 Site deploys (not a workflow):
 
-9. **The site deploys to Vercel, not from CI** ([ADR-0027](decisions/0027-site-vercel-deploy.md);
+8. **The site deploys to Vercel, not from CI** ([ADR-0027](decisions/0027-site-vercel-deploy.md);
    the former dispatch-only `site-deploy.yml` Pages workflow is deleted). A deploy is an
    owner-directed act: build `site/dist` with the deploy-provided `SITE_ORIGIN` /
    `SITE_REPO_URL` (`astro.config.mjs` embeds both at build time) and upload the static
@@ -110,7 +108,7 @@ Site deploys (not a workflow):
 
 Before the first M4/M7 dispatch:
 
-10. **Environments** — Settings → Environments → create `sandbox` and `benchmark`, each
+9. **Environments** — Settings → Environments → create `sandbox` and `benchmark`, each
    with *Required reviewers* = owner, *Prevent self-review* UNCHECKED (checking it
    deadlocks a solo owner), deployment branches = `main` only; put sandbox-only secrets
    there — **no repo-level secrets, ever** `[DD]`. Create the environments BEFORE any
@@ -179,6 +177,12 @@ design.
   it requires a `CURSOR_API_KEY` secret — which violates the no-repo-level-secrets rule
   until an owner-created environment holds it — and the vendor installer has no published
   stable checksum to pin. Revisit when both close.
-- **`nightly-failure` template placement**: lives in `.github/ISSUE_TEMPLATE/` with
-  frontmatter so the same file serves manual filing; the workflow strips frontmatter and
-  fills placeholders from trusted context only.
+- **Nightly link parity:** `make links-online` shares the offline gate's source exclusions
+  and Vite public-directory remaps, then adds external requests. Exact bot-blocked primary
+  sources may be excluded individually; broad 4xx acceptance is forbidden.
+- **Wheel-smoke network:** Postgres remains host-loopback-only. The Node-less smoke
+  container joins the compose network and reaches the `ledger-db-test` service by its
+  internal DNS name, which works on Linux without widening the host port binding.
+- **Nightly-failure template placement:** lives in `.github/ISSUE_TEMPLATE/` with
+  frontmatter so the same file serves manual filing; the workflow strips frontmatter,
+  fills placeholders from trusted context only, and deduplicates by the fixed issue title.

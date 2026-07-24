@@ -1,7 +1,7 @@
 ---
 name: Nightly validation failure
 about: Filed automatically by the nightly workflow when the scheduled suite goes red.
-labels: nightly-failure
+labels: ""
 ---
 
 ## Nightly validation failure

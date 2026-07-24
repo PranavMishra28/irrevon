@@ -57,14 +57,7 @@ jobs:
         env:
           # lychee uses the read-only token for github.com URLs to avoid rate limits
           GITHUB_TOKEN: ${{ github.token }}
-        # Placeholder domains are excluded by design: schema $id values use
-        # irrevon.dev as a placeholder until the domain purchase closes
-        # (ADR-0023; owner spend decision), and examples use example.com.
-        run: |
-          lychee --no-progress --include-fragments --root-dir "$PWD" \
-            --exclude 'https://irrevon\.dev' \
-            --exclude 'https://example\.com' \
-            .
+        run: make links-online
       - name: zizmor (online, pedantic)
         env:
           GH_TOKEN: ${{ github.token }}
@@ -113,8 +106,8 @@ jobs:
       - run: make dist-smoke
 
   # A red night on a cron workflow is silent by default; this files or updates
-  # exactly ONE issue (dedup by label). Prerequisite, owner, one-time: create the
-  # `nightly-failure` label. Uses only trusted workflow context — no event text.
+  # exactly ONE issue, deduplicated by a fixed title. Uses only trusted workflow
+  # context — no event text and no repository-label prerequisite.
   report-failure:
     name: File or update failure issue
     needs: [validate, t3-backend, wheel-smoke]
@@ -128,7 +121,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: File or update the nightly-failure issue (dedup by label)
+      - name: File or update the nightly failure issue (dedup by fixed title)
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -136,8 +129,10 @@ jobs:
         run: |
           set -euo pipefail
           RUN_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          existing=$(gh issue list --label nightly-failure --state open \
-            --json number --jq '.[0].number // empty')
+          ISSUE_TITLE="Nightly validation failure"
+          existing=$(gh issue list --state open --search "\"${ISSUE_TITLE}\" in:title" \
+            --json number,title \
+            --jq 'map(select(.title == "Nightly validation failure")) | .[0].number // empty')
           # Strip the issue-template frontmatter, then fill placeholders from
           # trusted workflow context only.
           body=$(awk 'BEGIN{fm=0} NR==1 && /^---$/{fm=1; next} fm==1 && /^---$/{fm=2; next} fm!=1{print}' \
@@ -149,7 +144,6 @@ jobs:
             gh issue comment "$existing" --body "$body"
           else
             gh issue create \
-              --title "Nightly validation failure ($(date -u +%F))" \
-              --label nightly-failure \
+              --title "$ISSUE_TITLE" \
               --body "$body"
           fi
