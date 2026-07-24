@@ -6,6 +6,7 @@ import { PAGES } from "./pages";
 
 test("internal links resolve and fragments exist", async ({ page, request }) => {
   const seen = new Set<string>();
+  const seenFragments = new Set<string>();
   const failures: string[] = [];
 
   for (const path of PAGES) {
@@ -28,6 +29,9 @@ test("internal links resolve and fragments exist", async ({ page, request }) => 
       }
       if (fragment) {
         const base = target || path;
+        const fragmentTarget = `${base}#${fragment}`;
+        if (seenFragments.has(fragmentTarget)) continue;
+        seenFragments.add(fragmentTarget);
         await page.goto(base);
         const found = await page.evaluate((id) => document.getElementById(id) !== null, fragment);
         if (!found) failures.push(`${path}: missing fragment #${fragment} on ${base}`);
