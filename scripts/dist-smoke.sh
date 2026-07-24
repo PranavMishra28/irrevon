@@ -27,33 +27,10 @@ ls dist/irrevon-*.whl dist/irrevon-*.tar.gz >/dev/null || {
   exit 1
 }
 
-# Stale-tree guard (ADR-0023): the pre-rename `detent` package must never ship.
-# The sdist includes all of src/, so a resurrected legacy tree would ride along
-# silently — assert both artifacts carry exactly one top-level package (irrevon)
-# and zero `detent` path segments.
-echo "== stale-tree guard: single-package audit of sdist + wheel"
-python3 - dist/irrevon-*.tar.gz dist/irrevon-*.whl <<'PY'
-import sys, tarfile, zipfile
-
-sdist_path, wheel_path = sys.argv[1], sys.argv[2]
-
-with tarfile.open(sdist_path) as tf:
-    names = tf.getnames()
-stale = [n for n in names if "detent" in {seg.lower() for seg in n.split("/")}]
-assert not stale, f"sdist carries stale detent paths: {stale[:10]}"
-src_pkgs = {n.split("/")[2] for n in names
-            if len(n.split("/")) > 3 and n.split("/")[1] == "src"}
-assert src_pkgs == {"irrevon"}, f"sdist src/ packages must be exactly {{'irrevon'}}: {src_pkgs}"
-
-with zipfile.ZipFile(wheel_path) as zf:
-    wnames = zf.namelist()
-stale = [n for n in wnames if "detent" in {seg.lower() for seg in n.split("/")}]
-assert not stale, f"wheel carries stale detent paths: {stale[:10]}"
-top = {n.split("/")[0] for n in wnames if not n.split("/")[0].endswith(".dist-info")}
-assert top == {"irrevon"}, f"wheel top-level packages must be exactly {{'irrevon'}}: {top}"
-
-print(f"stale-tree guard OK: sdist src/ packages={sorted(src_pkgs)}, wheel top-level={sorted(top)}")
-PY
+# Fail closed over the complete artifact surface, including ADR-0023's stale
+# package-name guard. The sdist is a build input, not a repository snapshot.
+echo "== artifact-content contract: sdist + wheel"
+python3 scripts/check-dist-contents.py dist/irrevon-*.tar.gz dist/irrevon-*.whl
 
 DB_CONTAINER=$(docker compose ps -q ledger-db-test)
 if [ -z "$DB_CONTAINER" ]; then

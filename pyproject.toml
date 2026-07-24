@@ -61,12 +61,19 @@ artifacts = ["src/irrevon/_web/**"]
 # The sdist is wheel-buildable with NO Node: it carries the prebuilt workbench
 # assets alongside the sources (ADR-0018: prebuilt assets in wheel AND sdist).
 [tool.hatch.build.targets.sdist]
-include = [
+# `only-include` is load-bearing: unlike pattern-based `include`, it selects
+# these exact project-root paths and cannot recursively match unrelated
+# repository surfaces that happen to contain src/, README.md, etc.
+# Hatch additionally force-includes the root .gitignore as a build-system input.
+only-include = [
     "src",
     "schemas",
     "migrations",
     "README.md",
     "LICENSING.md",
+    "LICENSE",
+    "NOTICE",
+    "pyproject.toml",
     "hatch_build.py",
 ]
 artifacts = ["src/irrevon/_web/**"]
