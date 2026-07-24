@@ -220,6 +220,11 @@
       "section": "Decisions"
     },
     {
+      "source": "docs/decisions/0038-main-vercel-auto-deploy.md",
+      "slug": "adr-0038-main-vercel-auto-deploy",
+      "section": "Decisions"
+    },
+    {
       "source": "docs/operations.md",
       "slug": "operations",
       "section": "Governance",

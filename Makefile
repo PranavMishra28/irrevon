@@ -213,8 +213,8 @@ web-vrt:
 	            IRREVON_VRT_CONTAINER=1 pnpm exec playwright test --project=vrt'
 
 # ── Marketing site gates (appended by the site/ task; see site/README.md) ─────
-# Self-contained Node package, same corepack/pnpm pattern as web/. Deploys are
-# owner-directed Vercel static uploads of site/dist (ADR-0027), never CI-triggered.
+# Self-contained Node package, same corepack/pnpm pattern as web/. Vercel builds
+# site/dist only from protected main after merge (ADR-0038), never from CI.
 .PHONY: site-check site-build site-test site-vrt site-production-smoke
 
 # Static gates: astro check + vendored token/font drift + claims-registry drift.
@@ -246,7 +246,7 @@ site-production-smoke:
 	@: "$${SITE_EXPECT_ORIGIN:?set SITE_EXPECT_ORIGIN to the exact canonical HTTPS origin}"
 	python3 scripts/site-production-smoke.py \
 	  --dist site/dist \
-	  --vercel-config site/vercel.json \
+	  --vercel-config vercel.json \
 	  --expect-environment production \
 	  --expect-commit "$$SITE_EXPECT_COMMIT" \
 	  --expect-origin "$$SITE_EXPECT_ORIGIN"

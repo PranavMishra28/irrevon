@@ -219,22 +219,27 @@ After `ci-required` has reported on at least one PR (order matters — see traps
    each workflow environment before its first use; never rely on GitHub's
    silent auto-creation behavior.
 
-Site deploys (not a workflow):
+Site deploys (not a GitHub Actions workflow):
 
-8. **The site deploys to Vercel, not from CI** ([ADR-0027](decisions/0027-site-vercel-deploy.md);
-   the former dispatch-only `site-deploy.yml` Pages workflow is deleted). A deploy is an
-   owner-directed act: build `site/dist` with the deploy-provided `SITE_ORIGIN` /
-   `SITE_REPO_URL` (`astro.config.mjs` embeds both at build time) and upload the static
-   output; response headers come from `site/vercel.json`. Details in
-   [site/README.md](../site/README.md). The repo-root `vercel.json` sets
-   `git.deploymentEnabled: false` so the Vercel GitHub integration never deploys on push
-   (push-triggered deploys are policy-forbidden, and the git-connected project's
-   auto-deploys were failing on every push as a red `Vercel` commit status).
+8. **Vercel deploys the site automatically from protected `main`**
+   ([ADR-0038](decisions/0038-main-vercel-auto-deploy.md), superseding
+   ADR-0027's manual-upload mechanic). Pull requests first pass `ci-required`;
+   after the owner merges one, Vercel's Git integration builds that exact
+   `main` commit. The root [`vercel.json`](../vercel.json) overrides the
+   project's stale Python autodetection, installs the locked `site/` pnpm
+   graph, invokes `scripts/vercel-build.sh`, serves `site/dist`, and carries
+   the response-header contract. Its branch map disables every automatic
+   deployment except `main`; the wrapper independently refuses a non-production
+   environment, non-`main` ref, or non-full commit SHA. Root `vercel.json`
+   changes select the complete site CI slice. This path deploys only the
+   marketing/docs site—it cannot merge code or publish Python packages,
+   GitHub Releases, benchmarks, or provider activity. Details in
+   [site/README.md](../site/README.md).
    **Production read-back 2026-07-24:** the public alias serves content matching
    the July 22 pre-main build and `/version.json` is absent. This content
    comparison is not cryptographic proof of a deployed commit. Treat the alias
-   as stale until the owner deploys the reviewed artifact and verifies its
-   version document and intended commit.
+   as stale until the reviewed auto-deployment reaches `main` and the owner
+   verifies its version document and intended commit.
 
 Before the first M4/M7 dispatch:
 

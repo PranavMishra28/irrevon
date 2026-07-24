@@ -3,7 +3,8 @@
 Site operational material (not `docs/` — this is the site package's artifact).
 
 **Why this file exists.** The site deploys to Vercel (ADR-0027), which serves real
-response headers from [`../vercel.json`](../vercel.json) — that file is the applied form
+response headers from the repository-root
+[`vercel.json`](../../vercel.json) — that file is the applied form
 of this spec; keep the two in sync (this file carries the rationale JSON cannot). The
 per-page CSP still ships as a `<meta>` tag with build-computed script hashes
 (`scripts/inject-csp.mjs`) because a static header cannot carry per-page hashes; the

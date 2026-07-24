@@ -83,7 +83,7 @@ jobs:
           # every code slice's filter (build-orchestration design, docs/ci.md).
           printf '%s\n' "$CHANGED" | grep -qE '^(src/|tests/|migrations/|schemas/|scripts/|deploy/|pyproject\.toml$|hatch_build\.py$|uv\.lock$|\.python-version$|docker-compose\.yml$|Dockerfile$|Makefile$)' && code=true
           printf '%s\n' "$CHANGED" | grep -qE '^(web/|schemas/|Makefile$)' && web=true
-          printf '%s\n' "$CHANGED" | grep -qE '^(site/|Makefile$)' && site=true
+          printf '%s\n' "$CHANGED" | grep -qE '^(site/|vercel\.json$|Makefile$)' && site=true
           # The serve↔workbench joint proof runs when either side of the
           # integration surface moved (engine/serve code or the web client).
           { [ "$code" = "true" ] || [ "$web" = "true" ]; } && live=true

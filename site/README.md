@@ -5,8 +5,9 @@ the site-expansion cycle (docs section with drift-gated rendered repository docu
 searchable via self-hosted Pagefind; the interactive recorded demo; research,
 changelog, roadmap, install; full SEO/metadata). **Configured for Vercel at the origin
 root** by owner directive ([ADR-0027](../docs/decisions/0027-site-vercel-deploy.md));
-deploys remain human-gated acts, never CI-triggered (see [Deploy](#deploy) below; the
-gate-reconciliation record lives in [docs/review-queue.md](../docs/review-queue.md)).
+validated commits merged to protected `main` deploy automatically through
+Vercel's Git integration ([ADR-0038](../docs/decisions/0038-main-vercel-auto-deploy.md);
+see [Deploy](#deploy) below).
 The configured production deployment was paused when checked on 2026-07-24 and
 must not be described as live until the owner restores it and verifies the
 launch checklist in `docs/discoverability.md`.
@@ -96,7 +97,7 @@ surfaces.
   Search crawlers are allowed while named training crawlers follow the reviewed
   separate policy. Vercel previews are `noindex,nofollow` with a disallow-all
   `robots.txt`; production verification values are environment-provided.
-- **Security headers:** real response headers ship from [`vercel.json`](vercel.json)
+- **Security headers:** real response headers ship from [`vercel.json`](../vercel.json)
   (frame-ancestors, HSTS, nosniff, permissions/referrer policy, COOP, cache rules) —
   the applied form of [`docs/headers-spec.md`](docs/headers-spec.md), which keeps the
   rationale. `scripts/inject-csp.mjs` additionally injects a per-page meta CSP with
@@ -158,10 +159,15 @@ optional navigation aid only; it is not a ranking, crawler, or licensing control
 
 ## Deploy
 
-The site deploys to Vercel as a **static upload of the built `dist/` output** — the
-platform serves files and headers, nothing builds or runs server-side
-([ADR-0027](../docs/decisions/0027-site-vercel-deploy.md)). A deploy is an
-owner-directed act, never CI-triggered:
+Vercel's Git integration automatically builds a production deployment for
+each commit that reaches protected `main`. Every other branch is disabled by
+the branch map in the repository-root [`vercel.json`](../vercel.json), and
+[`scripts/vercel-build.sh`](../scripts/vercel-build.sh) independently refuses
+non-production, non-`main`, or malformed-provenance Git builds. Vercel serves
+only the resulting static `site/dist` files; Irrevon has no site runtime or
+server function.
+
+The equivalent local production rehearsal is:
 
 ```bash
 EXPECTED_COMMIT=<full-40-character-deployment-SHA>
@@ -169,22 +175,20 @@ SITE_ORIGIN=https://<production-host> \
   SITE_REPO_URL=<repo-url> \
   VERCEL_ENV=production \
   VERCEL_GIT_COMMIT_SHA="$EXPECTED_COMMIT" \
-  pnpm build
+  bash ../scripts/vercel-build.sh
 SITE_EXPECT_COMMIT="$EXPECTED_COMMIT" \
   SITE_EXPECT_ORIGIN=https://<production-host> \
   make -C .. site-production-smoke
-# then upload dist/ (plus vercel.json at the upload root) as a Vercel
-# production deployment — e.g. `vercel deploy --prod` from a directory
-# containing exactly that tree, or the Vercel MCP/API equivalent.
 ```
 
-`vercel.json` carries the response headers and cache rules (the applied form of
+The root `vercel.json` pins the Astro build command, locked install, static
+output directory, deployment branches, response headers, and cache rules (the applied form of
 [`docs/headers-spec.md`](docs/headers-spec.md)) and `trailingSlash: true` (canonical
 URLs end in `/`, matching the sitemap). The origin and repository URL are
-deployment-provided at build time — committed files never carry either. (The current
-Vercel project equivalently builds on the platform via a small deployment-side script
-that clones the repository with owner-provided access and runs the same `pnpm build`; that script lives
-in the deployment, not the repo, because it must carry the deploy-provided values.)
+deployment-provided at build time—committed files never carry either. Vercel
+read-back on 2026-07-24 confirmed the existing project and Node 24 runtime; the
+committed configuration overrides its stale root-level Python framework
+autodetection.
 Google/Bing verification values and the optional IndexNow key belong in protected
 production build variables, never a committed file or pasted command history.
 
@@ -192,7 +196,8 @@ production build variables, never a committed file or pasted command history.
 Enterprise. `SITE_ENABLE_UTM_ANALYTICS=1` is separate and only appropriate with
 Web Analytics Plus or Enterprise. Omitting either value is the safe functional
 fallback. A deploy should be followed by the dry-run-first IndexNow procedure in
-the discoverability runbook; submission is never part of CI.
+the discoverability runbook; submission is never part of CI or the automatic
+deployment.
 
 ## Release gates
 

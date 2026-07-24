@@ -1,13 +1,13 @@
 ---
 title: "Site hosting — deploy `site/` to Vercel at the origin root, retiring the GitHub Pages plan"
 sourcePath: "docs/decisions/0027-site-vercel-deploy.md"
-sourceSha256: "4c9bf0087e0202ee7a85199605ad24d8fe61ab2f90af37ce4dbec7fe3b02011a"
-syncedAt: "2026-07-22"
+sourceSha256: "66883b9406fd81c1d22595aeef583ca7723105365ed7ffc387a779a6158bf618"
+syncedAt: "2026-07-24"
 section: "Decisions"
 renderTitle: true
 adr:
   id: "ADR-0027"
-  status: "accepted (owner deploy directive, 2026-07-21)"
+  status: "accepted; human-upload deployment mechanic superseded by ADR-0038"
   date: "2026-07-21"
   supersedes: "ADR-0025 decision items 4–5 (gated Pages deploy mechanics + Pages slot layout); amends ADR-0018's GitHub-Pages-only hosting ruling for the site surface (its $0-recurring-cost and no-SaaS rulings stand)"
 ---
@@ -26,7 +26,7 @@ intact, and — unlike GitHub Pages — sets real response headers, which conver
 
 The public site deploys to Vercel as a static deployment of the built `site/dist` output,
 served at the **origin root** (base `/` — the GitHub Pages `/<repo>/` project base path is
-retired along with the `site-deploy.yml` workflow). [`site/vercel.json`](../../site/vercel.json)
+retired along with the `site-deploy.yml` workflow). [`vercel.json`](../../vercel.json)
 is the applied form of the header spec: CSP `frame-ancestors 'none'`, HSTS, nosniff,
 Referrer-Policy, Permissions-Policy, COOP, X-Frame-Options, and the cache rules
 (`/_astro/*` immutable; everything else short-TTL). The per-page meta-CSP with
