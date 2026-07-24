@@ -38,6 +38,7 @@ const { title, description, jsonLd = [] } = Astro.props;
     gap: clamp(28px, 4vw, 56px);
     padding-block: clamp(32px, 5vw, 56px);
     align-items: start;
+    min-width: 0;
   }
   .docs-side {
     position: sticky;
@@ -49,6 +50,7 @@ const { title, description, jsonLd = [] } = Astro.props;
   }
   .docs-main {
     min-width: 0;
+    width: 100%;
   }
   .docs-main :global(.doc-article) {
     grid-template-columns: minmax(0, 1fr);

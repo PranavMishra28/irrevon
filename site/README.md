@@ -20,7 +20,7 @@ The site never ships in the Python wheel (ADR-0018) and shares no build with `we
 | `/security` | Security & trust — trust boundary, data posture, supply chain, non-claims, this site's own headers (+ headers-spec link) |
 | `/demo` | **The One-Way Seat** — the recorded flagship run as a step-driven 12-beat sequence + B5 contrast lane (anti-fabrication-gated) |
 | `/docs/` | Docs landing — guides, rendered reference library, search box, canonical link-only block (master doc + pinned hash) |
-| `/docs/<guide>/` | Six guides: getting-started, cli-reference (generated from `--help`), integration, adapter-development, benchmark-reproduction (NO RESULTS YET), architecture |
+| `/docs/<guide>/` | Nine guides: getting-started, CLI reference (generated from `--help`), integration, adapter development, benchmark reproduction (NO RESULTS YET), architecture, ambiguous API outcomes, idempotency versus reconciliation, and workflow/outbox/saga boundaries |
 | `/docs/reference/<slug>/` | Manifest-selected, provenance-stamped repository documents (RFCs, benchmark and operations guides, contracts, governance, and ADRs) |
 | `/docs/search/` | Pagefind search (docs-scoped, loads on gesture, no-JS fallback) |
 | `/research/` (+2 posts, `/research/rss.xml`) | Preregistration story + prior-art credit; explicit no-preprint statement |
@@ -72,19 +72,26 @@ Roadmap live in the footer.
 - **JS discipline.** No fetched scripts on any page except two documented lanes: the
   same-origin Vercel Web Analytics + Speed Insights loaders on every page
   (`/_vercel/…/script.js` — owner-enabled, [ADR-0029](../docs/decisions/0029-site-vercel-analytics.md);
-  cookieless, first-party, beacons ride the same origin) and the docs-after-gesture
+  cookie-free, same-origin transport to a Vercel processor) and the docs-after-gesture
   Pagefind bundle (`dist/pagefind/`, built post-build, loads only on focus/input).
-  Everything else is inline: the theme boot/toggle (~1 KB) everywhere; the `/demo`
-  island (3.4 KB source, ≤8 KB budget) on the demo page. Budget e2e runs two lanes
-  over a dist-derived page inventory and pins the telemetry allowance to exactly
-  those two loader paths.
+  The shared inline code covers theme behavior, query redaction, a local telemetry
+  opt-out, and an optional fixed event/placement allowlist; conversion events and
+  UTM retention are disabled unless the owner enables their separate plan-aware
+  build gates. The `/demo` island remains ≤8 KB. Budget e2e runs two lanes over a
+  dist-derived page inventory and pins fetched scripts to exactly those two
+  telemetry paths plus gesture-loaded Pagefind.
 - **SEO/metadata:** `@astrojs/sitemap` (+`sitemap-index.xml`), `robots.txt` endpoint,
   canonical + OG/Twitter cards per page (committed OG PNGs rendered from
   `og/template.svg` by `scripts/build-og.mjs`, drift-gated via `og/manifest.json`),
-  JSON-LD (`SoftwareSourceCode`/`WebSite`+SearchAction on Home, `Article` on
+  JSON-LD (`SoftwareSourceCode`/`WebSite` on Home, `Article` on
   research, `TechArticle`+`BreadcrumbList` on docs — never `SoftwareApplication`,
-  never offers/ratings). The site serves at the origin root, so `robots.txt` is
-  authoritative (RFC 9309).
+  never offers/ratings). `search-intents.json` assigns every indexable route a
+  human intent; browser gates enforce unique metadata/H1s, exact sitemap and
+  `lastmod`, structured-data/visible-content parity, no thin/orphan/duplicate
+  pages, crawler policy, social cards, and the absence of stale video markup.
+  Search crawlers are allowed while named training crawlers follow the reviewed
+  separate policy. Vercel previews are `noindex,nofollow` with a disallow-all
+  `robots.txt`; production verification values are environment-provided.
 - **Security headers:** real response headers ship from [`vercel.json`](vercel.json)
   (frame-ancestors, HSTS, nosniff, permissions/referrer policy, COOP, cache rules) —
   the applied form of [`docs/headers-spec.md`](docs/headers-spec.md), which keeps the
@@ -129,7 +136,8 @@ pnpm install            # Node 24 (.nvmrc), pnpm 11
 pnpm dev                # local dev (search + CSP exist only in built output)
 pnpm check              # astro check + every drift gate: tokens, fonts, claims,
                         # docs sync, CLI reference, demo artifacts, OG cards
-pnpm build              # astro build && pagefind --site dist && inject-csp
+pnpm build              # astro build && pagefind && inject-csp; writes the
+                        # deploy-only IndexNow key file only when INDEXNOW_KEY exists
 pnpm test               # Playwright checks: axe (every page × both themes incl.
                         # /demo stepped states), keyboard, no-JS, links, budgets
                         # (two lanes), search, demo anti-fabrication, install
@@ -138,6 +146,11 @@ pnpm shots              # every page at 1440/768/375 × light/dark (+ /demo
                         # reduced-motion beats) -> shots/
 pnpm sync:docs | sync:cli | sync:demo | og:build   # regenerate synced artifacts
 ```
+
+The owner-operated search, crawler, campaign, IndexNow, webmaster, analytics,
+GitHub-traffic, and video-publication procedure is
+[`docs/discoverability.md`](../docs/discoverability.md). `public/llms.txt` is an
+optional navigation aid only; it is not a ranking, crawler, or licensing control.
 
 ## Deploy
 
@@ -160,6 +173,14 @@ deployment-provided at build time — committed files never carry either. (The c
 Vercel project equivalently builds on the platform via a small deployment-side script
 that clones the repository with owner-provided access and runs the same `pnpm build`; that script lives
 in the deployment, not the repo, because it must carry the deploy-provided values.)
+Google/Bing verification values and the optional IndexNow key belong in protected
+production build variables, never a committed file or pasted command history.
+
+`SITE_ENABLE_CUSTOM_EVENTS=1` is optional and only appropriate on Vercel Pro or
+Enterprise. `SITE_ENABLE_UTM_ANALYTICS=1` is separate and only appropriate with
+Web Analytics Plus or Enterprise. Omitting either value is the safe functional
+fallback. A deploy should be followed by the dry-run-first IndexNow procedure in
+the discoverability runbook; submission is never part of CI.
 
 ## Release gates
 

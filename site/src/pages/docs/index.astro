@@ -33,7 +33,7 @@ const withDescription = (section: string) =>
     <span class="kicker">Docs</span>
     <h1>Documentation</h1>
     <p class="lead">
-      Six written guides, and the repository's canonical documents rendered in place — mechanically synced,
+      Nine written guides, and the repository's canonical documents rendered in place — mechanically synced,
       drift-gated, and searchable. The repository copy always wins.
     </p>
     <p class="muted docs-block-note">
@@ -54,7 +54,11 @@ const withDescription = (section: string) =>
       {
         guides.map((g) => (
           <li>
-            <a href={href(`/docs/${g.id}/`)}>{g.data.title}</a>
+            <a
+              href={href(`/docs/${g.id}/`)}
+              data-analytics-event={g.id === "adapter-development" ? "adapter_guide_visit" : "documentation_entry"}
+              data-analytics-placement="docs">{g.data.title}</a
+            >
             <p>{g.data.description}</p>
           </li>
         ))
@@ -119,7 +123,9 @@ const withDescription = (section: string) =>
 <style>
   .docs-hero {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 14px;
+    min-width: 0;
     margin-bottom: clamp(28px, 4vw, 44px);
   }
   .docs-block {
@@ -128,6 +134,8 @@ const withDescription = (section: string) =>
     margin-top: clamp(24px, 3vw, 36px);
     display: grid;
     gap: 16px;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
   }
   .docs-block-note {
     font-size: var(--site-text-small);

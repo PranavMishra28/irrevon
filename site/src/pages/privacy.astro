@@ -12,10 +12,87 @@ import { href } from "../lib/url";
       <span class="kicker">Privacy</span>
       <h1>Local-first does not mean data-free.</h1>
       <p class="lead">
-        The CLI has no telemetry, update checks, crash reporting, or hosted Irrevon service. Runtime
-        records stay in the operator's PostgreSQL deployment. The static project site may use
-        same-origin Vercel Web Analytics and Speed Insights when deployed.
+        The CLI, engine, worker, and Workbench have no telemetry, update checks, crash reporting, or
+        hosted Irrevon service. Runtime records stay in the operator's PostgreSQL deployment. This
+        static website has a separate, disclosed measurement boundary.
       </p>
+
+      <h2>Website measurement</h2>
+      <p>
+        When the owner enables them on a Vercel production deployment, this site loads Vercel Web
+        Analytics and Speed Insights from same-origin paths. They are cookie-free, aggregated
+        telemetry, but Vercel still processes the measurements. Depending on the product, that can
+        include a timestamp, cleaned page URL, referrer, coarse geography, browser, device and
+        operating-system information, plus Web Vitals. See Vercel's{" "}
+        <a href="https://vercel.com/docs/analytics/privacy-policy">Web Analytics privacy documentation</a>
+        and <a href="https://vercel.com/docs/speed-insights">Speed Insights documentation</a>.
+      </p>
+      <p>
+        By default, the site removes every query parameter before both telemetry streams send an
+        event. A separately gated build may retain only the five validated lowercase UTM parameters.
+        Custom conversion events are also disabled by default; when explicitly enabled on a
+        compatible plan, they carry only a fixed event name and fixed placement value. No event
+        includes effect IDs, stable IDs, API payloads, search text, email addresses, credentials,
+        user IDs, or free text.
+      </p>
+
+      <div class="panel-subtle analytics-choice" aria-labelledby="analytics-choice-title">
+        <h3 id="analytics-choice-title">Measurement preference on this browser</h3>
+        <p>
+          This local preference blocks future Web Analytics and Speed Insights events from this
+          browser. It cannot retract a pageview or performance event sent before you changed it, and
+          it does not alter runtime Irrevon data because runtime components never use this telemetry.
+        </p>
+        <button class="btn btn-secondary" type="button" id="analytics-choice">
+          Disable future site measurement
+        </button>
+        <p class="muted" id="analytics-choice-status" role="status" aria-live="polite">
+          Reading this browser's preference…
+        </p>
+      </div>
+      <script is:inline>
+        (() => {
+          const key = "irrevon-analytics-opt-out";
+          const button = document.getElementById("analytics-choice");
+          const status = document.getElementById("analytics-choice-status");
+          if (!button || !status) return;
+          const read = () => {
+            try {
+              return localStorage.getItem(key) === "1";
+            } catch {
+              return null;
+            }
+          };
+          const render = (disabled) => {
+            if (disabled === null) {
+              button.hidden = true;
+              status.textContent =
+                "Browser storage is unavailable. Use browser blocking controls if you want to block these requests.";
+              return;
+            }
+            button.hidden = false;
+            button.textContent = disabled
+              ? "Enable site measurement"
+              : "Disable future site measurement";
+            status.textContent = disabled
+              ? "Future site measurement is disabled in this browser."
+              : "Site measurement is allowed in this browser when the deployment enables it.";
+          };
+          render(read());
+          button.addEventListener("click", () => {
+            const disabled = read();
+            if (disabled === null) return;
+            try {
+              if (disabled) localStorage.removeItem(key);
+              else localStorage.setItem(key, "1");
+              render(!disabled);
+            } catch {
+              render(null);
+            }
+          });
+        })();
+      </script>
+
       <h2>Workbench boundary</h2>
       <p>
         <code>irrevon serve</code> binds only to <code>127.0.0.1</code>, validates the Host header,
@@ -41,3 +118,16 @@ import { href } from "../lib/url";
     </div>
   </section>
 </Base>
+
+<style>
+  .analytics-choice {
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+    margin-block: 24px;
+    max-width: 72ch;
+  }
+  .analytics-choice p {
+    margin: 0;
+  }
+</style>

@@ -1,0 +1,96 @@
+{
+  "schema_version": "1",
+  "updated": "2026-07-24",
+  "privacy_rules": {
+    "forbidden_dimensions": [
+      "effect_id",
+      "stable_id",
+      "api_payload",
+      "search_text",
+      "email",
+      "credential",
+      "ip_identity",
+      "free_text",
+      "user_id"
+    ],
+    "utm_convention": "lowercase letters, digits, dots, and hyphens; at most 64 characters"
+  },
+  "metrics": [
+    {
+      "id": "google_web_visibility",
+      "source": "google_search_console",
+      "measures": ["impressions", "clicks", "ctr", "average_position"],
+      "segments": ["page", "query", "country", "device", "branded_vs_nonbranded"],
+      "caveat": "Search Console aggregation and privacy thresholds apply."
+    },
+    {
+      "id": "google_generative_visibility",
+      "source": "google_search_console",
+      "measures": ["impressions"],
+      "segments": ["available_report_dimensions"],
+      "caveat": "Use only when the rolling Generative AI report is available for the property; availability and dimensions may vary."
+    },
+    {
+      "id": "bing_visibility",
+      "source": "bing_webmaster_tools",
+      "measures": ["impressions", "clicks", "queries", "indexed_urls", "crawl_errors"],
+      "segments": ["page", "query"],
+      "caveat": "Submission, crawling, indexing, and ranking are separate states."
+    },
+    {
+      "id": "site_acquisition",
+      "source": "vercel_web_analytics",
+      "measures": ["pageviews", "visitors", "referrers", "geography"],
+      "segments": ["landing_page", "referrer", "approved_utm_when_plan_enabled"],
+      "caveat": "Plan reporting windows and aggregate privacy behavior apply."
+    },
+    {
+      "id": "site_experience",
+      "source": "vercel_speed_insights",
+      "measures": ["lcp", "inp", "cls", "ttfb", "fcp"],
+      "segments": ["route", "device", "country"],
+      "targets": {
+        "lcp_p75_ms_max": 2500,
+        "inp_p75_ms_max": 200,
+        "cls_p75_max": 0.1
+      },
+      "caveat": "Field thresholds are evaluated at p75 separately for mobile and desktop; lab tests are regression proxies."
+    },
+    {
+      "id": "answer_engine_referrals",
+      "source": "vercel_web_analytics",
+      "measures": ["visits", "landing_pages", "downstream_pageviews"],
+      "segments": ["chatgpt_referrer_or_utm", "perplexity_referrer"],
+      "caveat": "Referral and UTM availability depends on browser policy and Vercel plan."
+    },
+    {
+      "id": "github_traffic",
+      "source": "github_traffic_api",
+      "measures": ["views", "clones", "popular_paths", "referrers"],
+      "segments": ["utc_day"],
+      "caveat": "Only the last 14 days are available; uniques are not additive across windows and popular lists are top-ten samples."
+    },
+    {
+      "id": "launch_conversion",
+      "source": "vercel_web_analytics",
+      "measures": [
+        "repository_click",
+        "clone_command_copy",
+        "install_command_copy",
+        "demo_start",
+        "demo_complete",
+        "video_start",
+        "video_complete",
+        "workbench_exploration",
+        "documentation_entry",
+        "benchmark_methodology_visit",
+        "adapter_guide_visit",
+        "contribution_click",
+        "security_report_click",
+        "launch_cta"
+      ],
+      "segments": ["approved_utm_campaign", "fixed_placement"],
+      "caveat": "Custom events are disabled unless the production plan supports them and the owner enables the build gate. Video events remain inactive until an approved public video surface exists."
+    }
+  ]
+}

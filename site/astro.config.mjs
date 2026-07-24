@@ -1,10 +1,12 @@
 // @ts-check
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { defineConfig, passthroughImageService } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import { satteri } from "@astrojs/markdown-satteri";
 import { repoLinksPlugin, scrollableFocusPlugin } from "./scripts/satteri-repo-links.mjs";
+import { isIndexablePath } from "./search-policy.mjs";
 
 /**
  * Repository URL is deployment-provided, never committed (DIST §1: nothing may
@@ -48,12 +50,89 @@ const buildCommit = resolveBuildCommit();
 // The site serves at the origin root (Vercel deploy, ADR-0027); no base path.
 const base = "/";
 
+const sharedPageSources = [
+  "site/src/layouts/Base.astro",
+  "site/src/lib/jsonld.ts",
+];
+const routeSources = new Map([
+  ["/", "site/src/pages/index.astro"],
+  ["/benchmark/", "site/src/pages/benchmark.astro"],
+  ["/changelog/", "site/src/pages/changelog.astro"],
+  ["/contributing/", "site/src/pages/contributing.astro"],
+  ["/demo/", "site/src/pages/demo.astro"],
+  ["/docs/", "site/src/pages/docs/index.astro"],
+  ["/how-it-works/", "site/src/pages/how-it-works.astro"],
+  ["/install/", "site/src/pages/install.astro"],
+  ["/licensing/", "site/src/pages/licensing.astro"],
+  ["/platform/", "site/src/pages/platform.astro"],
+  ["/privacy/", "site/src/pages/privacy.astro"],
+  ["/research/", "site/src/pages/research/index.astro"],
+  ["/roadmap/", "site/src/pages/roadmap.astro"],
+  ["/security/", "site/src/pages/security.astro"],
+  ["/status/", "site/src/pages/status.astro"],
+]);
+
+function routeSource(pathname) {
+  if (routeSources.has(pathname)) return routeSources.get(pathname);
+  const guide = pathname.match(/^\/docs\/([^/]+)\/$/)?.[1];
+  if (guide && guide !== "reference" && guide !== "search") return `site/src/content/guides/${guide}.md`;
+  const reference = pathname.match(/^\/docs\/reference\/([^/]+)\/$/)?.[1];
+  if (reference) {
+    try {
+      const manifest = JSON.parse(
+        readFileSync(new URL("./docs-manifest.json", import.meta.url), "utf8"),
+      );
+      return manifest.render.find((entry) => entry.slug === reference)?.source;
+    } catch {
+      return undefined;
+    }
+  }
+  const research = pathname.match(/^\/research\/([^/]+)\/$/)?.[1];
+  if (research) return `site/src/content/research/${research}.md`;
+  return undefined;
+}
+
+function lastSignificantUpdate(pageUrl) {
+  const pathname = new URL(pageUrl).pathname;
+  const sources = [routeSource(pathname), ...sharedPageSources].filter(Boolean);
+  const dates = sources.flatMap((source) => {
+    try {
+      const value = execFileSync("git", ["log", "-1", "--format=%cs", "--", `:(top)${source}`], {
+        encoding: "utf8",
+      }).trim();
+      return /^\d{4}-\d{2}-\d{2}$/.test(value) ? [value] : [];
+    } catch {
+      return [];
+    }
+  });
+  return dates.sort().at(-1);
+}
+
 /** Origin for canonical/sitemap/OG URLs: deploy-provided, with the Vercel
  * production URL as fallback for platform builds; local builds use localhost. */
+function productionOrigin(raw, source) {
+  const parsed = new URL(raw);
+  if (
+    parsed.protocol !== "https:" ||
+    parsed.username ||
+    parsed.password ||
+    parsed.port ||
+    parsed.pathname !== "/" ||
+    parsed.search ||
+    parsed.hash
+  ) {
+    throw new Error(`irrevon-site: ${source} must be a credential-free HTTPS origin with no path`);
+  }
+  return parsed.origin;
+}
+
 function resolveOrigin() {
-  if (process.env.SITE_ORIGIN) return process.env.SITE_ORIGIN.replace(/\/$/, "");
+  if (process.env.SITE_ORIGIN) return productionOrigin(process.env.SITE_ORIGIN, "SITE_ORIGIN");
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+    return productionOrigin(
+      `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
+      "VERCEL_PROJECT_PRODUCTION_URL",
+    );
   }
   return "http://localhost:4977";
 }
@@ -63,12 +142,18 @@ export default defineConfig({
   output: "static",
   site: resolveOrigin(),
   base,
-  trailingSlash: "ignore",
+  trailingSlash: "always",
   image: { service: passthroughImageService() },
-  // sitemap-index.xml + sitemap-0.xml; URLs derive from `site`, so the
-  // deploy-provided origin/base flow through with zero new code. /404 is
-  // excluded (an error page is not a destination).
-  integrations: [sitemap({ filter: (page) => !page.includes("/404") })],
+  // Sitemap entries are canonical, indexable HTML destinations only.
+  integrations: [
+    sitemap({
+      filter: (page) => isIndexablePath(new URL(page).pathname),
+      serialize: (item) => {
+        const lastmod = lastSignificantUpdate(item.url);
+        return lastmod ? { ...item, lastmod: new Date(`${lastmod}T00:00:00Z`) } : item;
+      },
+    }),
+  ],
   markdown: {
     // Plain code blocks, no syntax highlighting: the hand-authored pages set
     // that register (structural ink, mono on sunken panel), theme-pair

@@ -16,11 +16,14 @@
 ## Guides
 
 - [Adapter development](/docs/adapter-development/)
+- [What happens when an API commits but its response is lost?](/docs/ambiguous-api-outcomes/)
 - [Architecture](/docs/architecture/)
 - [Benchmark reproduction](/docs/benchmark-reproduction/)
 - [CLI reference](/docs/cli-reference/)
 - [Getting started](/docs/getting-started/)
+- [Idempotency keys versus destination reconciliation](/docs/idempotency-vs-reconciliation/)
 - [Integration guide](/docs/integration/)
+- [Durable workflows, transactional outbox, sagas, and reconciliation](/docs/workflows-outbox-sagas/)
 
 ## Reference (rendered repository documents)
 

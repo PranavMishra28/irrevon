@@ -129,4 +129,4 @@ Design references (screenshots of third-party marketing/product sites, studied d
 - **source:** site/scripts/sync-docs.mjs (generated from site/docs-manifest.json + guides frontmatter)
 - **provenance:** Generated and drift-gated by sync-docs.mjs (--check fails on divergence); root-relative links only, no embedded origin; regenerated whenever the docs manifest or guides change.
 - **files (sha256):**
-  - `site/public/llms.txt` — `89687d7b91889a5213ebb4ba0b5499d8ec8a4fa00687bb65962307d27f48ebe2`
+  - `site/public/llms.txt` — `67d0df2c97bfc52203ab3d7a9afe08559b38dd56035f263614a2199e9995c7ae`

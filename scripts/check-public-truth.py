@@ -110,6 +110,20 @@ if any(value != "draft-never-live-called" for value in STATUS["provider_adapters
        if isinstance(value, str)):
     fail("provider adapters must remain draft-never-live-called")
 
+citation = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
+for expected in (
+    'repository-code: "https://github.com/PranavMishra28/irrevon"',
+    'license: "Apache-2.0"',
+    "confirmatory benchmark result or package-index release exists yet.",
+    "exact version or commit",
+):
+    if expected not in citation:
+        fail(f"CITATION.cff is missing truthful citation marker {expected!r}")
+if STATUS["release_posture"] == "research-preview-unpublished":
+    for forbidden in ("\nversion:", "\ndate-released:"):
+        if forbidden in citation:
+            fail(f"CITATION.cff must not imply an unpublished release with {forbidden.strip()!r}")
+
 schema_count = len(list((ROOT / "schemas").glob("*.schema.json")))
 if schema_count != 13:
     fail(f"schema inventory expected 13, found {schema_count}")

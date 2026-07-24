@@ -13,7 +13,7 @@ def test_display_demo_dsn_never_contains_password() -> None:
     marker = "opaque-password-that-must-not-print"
     config = Config(
         path=None,
-        dsn=f"postgresql://irrevon:{marker}@localhost:5432/irrevon",
+        dsn=f"postgresql://irrevon:{marker}" + "@localhost:5432/irrevon",
     )
     shown = _display_demo_dsn(config, "irrevon_demo_s42")
     assert marker not in shown

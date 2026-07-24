@@ -111,6 +111,7 @@ import { beats, b5Lane, contrast, effectShort, seed, engineCommit, adapterId } f
       const reduced = matchMedia("(prefers-reduced-motion: reduce)");
       let beat = 0;
       let clicked = false; // the one-time CLICK latch — an irreversible crossing does not re-perform
+      let completionMeasured = false;
 
       const boundaryClick = () => {
         if (clicked || reduced.matches || !stage.animate) return;
@@ -144,6 +145,10 @@ import { beats, b5Lane, contrast, effectShort, seed, engineCommit, adapterId } f
         const active = sections[n - 1];
         announce.textContent = `Beat ${n} of 12. ${active.querySelector("h2").textContent.trim()} ${active.querySelector(".beat-caption").textContent.trim()}`;
         if (fromUser) history.replaceState(null, "", `#beat-${String(n).padStart(2, "0")}`);
+        if (fromUser && n === 12 && !completionMeasured) {
+          completionMeasured = true;
+          window.irrevonMeasure?.("demo_complete", "demo");
+        }
       };
 
       // First act: collapse the linear document into stepper mode.

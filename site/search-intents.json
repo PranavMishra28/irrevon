@@ -1,0 +1,92 @@
+{
+  "schema_version": "1",
+  "updated": "2026-07-24",
+  "principles": [
+    "One human task per canonical page; supporting concepts are natural language, not repeated keyword blocks.",
+    "Search and answer-engine visibility follows ordinary crawlability, useful text, evidence, and page experience.",
+    "No page claims scientific results, production operation, customers, adoption, or universal exactly-once execution."
+  ],
+  "pages": {
+    "/": {
+      "primary_intent": "understand Irrevon and the ambiguous external-effect problem",
+      "supporting_concepts": ["irreversible AI-agent actions", "ambiguous API outcomes", "destination reconciliation"]
+    },
+    "/platform/": {
+      "primary_intent": "inspect the current Irrevon engine and workbench capabilities",
+      "supporting_concepts": ["effect ledger", "single-writer worker", "read-only workbench"]
+    },
+    "/how-it-works/": {
+      "primary_intent": "learn the reconciliation mechanism from intent through settlement",
+      "supporting_concepts": ["stable operation identity", "persist before dispatch", "destination-authoritative read-back"]
+    },
+    "/demo/": {
+      "primary_intent": "inspect and reproduce the recorded synthetic response-loss demo",
+      "supporting_concepts": ["crash recovery", "duplicate retry refusal", "development evidence"]
+    },
+    "/benchmark/": {
+      "primary_intent": "understand the draft IrrevonBench methodology and falsification rule",
+      "supporting_concepts": ["AI-agent fault injection", "external-effect metrics", "preregistration"]
+    },
+    "/install/": {
+      "primary_intent": "install and run Irrevon from source",
+      "supporting_concepts": ["Python CLI", "PostgreSQL", "local quickstart"]
+    },
+    "/docs/": {
+      "primary_intent": "navigate Irrevon guides and canonical technical references",
+      "supporting_concepts": ["integration guides", "engine design", "benchmark governance"]
+    },
+    "/research/": {
+      "primary_intent": "read Irrevon research notes and evidence boundaries",
+      "supporting_concepts": ["prior art", "benchmark integrity", "scientific status"]
+    },
+    "/status/": {
+      "primary_intent": "verify what Irrevon has and has not implemented or evidenced",
+      "supporting_concepts": ["research preview", "release status", "open gates"]
+    },
+    "/security/": {
+      "primary_intent": "understand Irrevon security boundaries and report a vulnerability",
+      "supporting_concepts": ["threat model", "private reporting", "supply-chain controls"]
+    },
+    "/privacy/": {
+      "primary_intent": "understand runtime and website data handling",
+      "supporting_concepts": ["local-first ledger", "identifier digests", "privacy-safe analytics"]
+    },
+    "/contributing/": {
+      "primary_intent": "contribute to Irrevon under DCO and Apache-2.0",
+      "supporting_concepts": ["developer certificate of origin", "adapter contribution", "governance"]
+    },
+    "/licensing/": {
+      "primary_intent": "understand Irrevon licensing and attribution",
+      "supporting_concepts": ["Apache-2.0", "NOTICE", "inbound equals outbound"]
+    },
+    "/roadmap/": {
+      "primary_intent": "understand Irrevon release gates and remaining work",
+      "supporting_concepts": ["provider validation", "benchmark freeze", "owner-controlled release"]
+    },
+    "/changelog/": {
+      "primary_intent": "review Irrevon tagged release history",
+      "supporting_concepts": ["release metadata", "source provenance", "version history"]
+    }
+  },
+  "patterns": [
+    {
+      "prefix": "/docs/reference/",
+      "primary_intent": "read a canonical Irrevon design, governance, contract, or operations reference",
+      "supporting_concepts": ["source provenance", "technical decision", "repository truth"]
+    },
+    {
+      "prefix": "/docs/",
+      "primary_intent": "complete a specific Irrevon engineering or conceptual task",
+      "supporting_concepts": ["AI-agent reliability", "external-effect integrity", "reconciliation"]
+    },
+    {
+      "prefix": "/research/",
+      "primary_intent": "understand a specific Irrevon research claim, source, or limitation",
+      "supporting_concepts": ["primary sources", "prior art", "evidence status"]
+    }
+  ],
+  "noindex": {
+    "/404.html": "error document, not a destination",
+    "/docs/search/": "internal search-result surface; canonical documentation remains crawlable"
+  }
+}

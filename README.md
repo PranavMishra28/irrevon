@@ -66,7 +66,8 @@ explicit local `irrevon inspect --reveal` option.
 [Recorded interactive demo](https://github.com/PranavMishra28/irrevon/tree/main/site/src/data/demo) ·
 [Getting started](site/src/content/guides/getting-started.md) ·
 [Operations](docs/operations.md) ·
-[Current status](docs/project-status.md)
+[Current status](docs/project-status.md) ·
+[Discoverability and launch measurement](docs/discoverability.md)
 
 ![Irrevon Workbench showing synthetic effect evidence](site/public/images/workbench-inspect-dark.png)
 

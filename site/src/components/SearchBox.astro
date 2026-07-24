@@ -83,7 +83,14 @@ const pagefindBase = href("/pagefind/");
 <style>
   .docs-search {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
+    min-width: 0;
+  }
+  .docs-search-form,
+  .docs-search-row {
+    min-width: 0;
+    max-width: 100%;
   }
   .docs-search-label {
     font-family: var(--font-mono);
