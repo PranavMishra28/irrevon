@@ -6,7 +6,6 @@ import json
 import subprocess
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 HOOK = ROOT / ".cursor" / "hooks" / "deny.sh"
 REPO = "PranavMishra28/irrevon"
@@ -26,13 +25,25 @@ def decision(command: str) -> str:
 def test_exact_launch_api_surfaces_are_allowed() -> None:
     allowed = (
         f"IRREVON_V010_LAUNCH=1 gh api -X PUT repos/{REPO}/rulesets/123 --input /tmp/ruleset.json",
-        f"IRREVON_V010_LAUNCH=1 gh api --method=PUT repos/{REPO}/actions/permissions -f enabled_repositories=selected",
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api --method=PUT "
+            f"repos/{REPO}/actions/permissions -f enabled_repositories=selected"
+        ),
         f"IRREVON_V010_LAUNCH=1 gh api -XPUT repos/{REPO}/private-vulnerability-reporting",
-        f"IRREVON_V010_LAUNCH=1 gh api -X PUT repos/{REPO}/environments/release --input /tmp/environment.json",
-        f"IRREVON_V010_LAUNCH=1 gh api -X POST repos/{REPO}/actions/runs/456/pending_deployments --input /tmp/review.json",
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X PUT "
+            f"repos/{REPO}/environments/release --input /tmp/environment.json"
+        ),
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X POST "
+            f"repos/{REPO}/actions/runs/456/pending_deployments --input /tmp/review.json"
+        ),
         f"IRREVON_V010_LAUNCH=1 gh api -X POST repos/{REPO}/discussions -f title=Welcome",
         f"IRREVON_V010_LAUNCH=1 gh api -X PATCH repos/{REPO} -f has_discussions=true",
-        f"IRREVON_V010_LAUNCH=1 gh api -X PATCH repos/{REPO} -f 'security_and_analysis[secret_scanning][status]=enabled'",
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X PATCH repos/{REPO} "
+            "-f 'security_and_analysis[secret_scanning][status]=enabled'"
+        ),
     )
     for command in allowed:
         assert decision(command) == "allow", command
@@ -49,8 +60,14 @@ def test_neighboring_api_mutations_remain_denied() -> None:
         f"IRREVON_V010_LAUNCH=1 gh api -X POST repos/{REPO}/releases -f has_discussions=true",
         f"gh api --method=PATCH repos/{REPO} -f has_discussions=true",
         f"gh api -XPATCH repos/{REPO} -f has_discussions=true",
-        f"IRREVON_V010_LAUNCH=1 gh api -X PATCH repos/{REPO} -f has_discussions=true -f visibility=private",
-        f"IRREVON_V010_LAUNCH=1 gh api -X PUT repos/{REPO}/rulesets/123 --input /tmp/ruleset.json; gh repo delete {REPO}",
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X PATCH repos/{REPO} "
+            "-f has_discussions=true -f visibility=private"
+        ),
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X PUT repos/{REPO}/rulesets/123 "
+            f"--input /tmp/ruleset.json; gh repo delete {REPO}"
+        ),
         "gh api graphql -f 'query=mutation { deleteRepository(input: {}) { clientMutationId } }'",
     )
     for command in denied:
