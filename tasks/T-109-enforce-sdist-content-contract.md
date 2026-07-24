@@ -34,6 +34,10 @@ working data into the artifact.
 `scripts/dist-smoke.sh`, `scripts/check-dist-contents.py`, and
 `tests/scripts/test_dist_content_contract.py`.
 
+**Follow-up integration-correction scope:** `tests/bench/test_contamination.py` may also be
+updated solely to make its pre-existing packaging-contamination assertion enforce the
+ratified `only-include` contract above. The task file itself may record this correction.
+
 **Forbidden:** license policy or third-party notice contents; package metadata authorship;
 release workflows; dependencies; product runtime; schemas or migrations; benchmark data or
 controls; `docs/master-doc.md`; accepted ADRs; generated workbench assets; publication.
@@ -94,3 +98,11 @@ set to `done`.
 - `uvx twine check dist/*` — both artifacts passed.
 - `uvx check-wheel-contents dist/irrevon-*.whl` — wheel passed.
 - `make check` — all repository validation gates passed.
+
+## Follow-up integration correction — 2026-07-23
+
+The full Python suite exposed one stale assertion in
+`tests/bench/test_contamination.py`: it still read Hatch's removed, pattern-based `include`
+key. The assertion now checks the exact project-root `only-include` inputs that produce the
+sdist allowlist, rejects a simultaneous legacy `include` key, and retains the direct
+benchmark-data exclusion checks. No production or benchmark data changed.
