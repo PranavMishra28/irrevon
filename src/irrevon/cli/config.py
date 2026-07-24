@@ -15,6 +15,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from psycopg import ProgrammingError
+from psycopg.conninfo import make_conninfo
+
 from irrevon.errors import ConfigInvalid
 
 __all__ = ["Config", "load_config"]
@@ -38,14 +41,22 @@ class Config:
     def resolved_dsn(self) -> str:
         """DSN with the password injected from the named env var (values live
         only in the environment — 12factor)."""
-        if self.password_env:
-            password = os.environ.get(self.password_env)
-            if password and "password=" not in self.dsn and "@" in self.dsn:
-                scheme, _, rest = self.dsn.partition("://")
-                userinfo, _, hostpart = rest.rpartition("@")
-                if userinfo and ":" not in userinfo:
-                    return f"{scheme}://{userinfo}:{password}@{hostpart}"
-        return self.dsn
+        password = (
+            os.environ.get(self.password_env) if self.password_env else None
+        )
+        try:
+            # Let libpq's parser and escaper merge connection parameters. Raw
+            # string interpolation here would let URI delimiters or
+            # connection-option-looking password text change DSN semantics.
+            if password:
+                return make_conninfo(self.dsn, password=password)
+            return make_conninfo(self.dsn)
+        except ProgrammingError as err:
+            # Neither the configured DSN nor the environment value belongs in
+            # an error envelope: either may contain a credential.
+            raise ConfigInvalid(
+                "ledger.dsn is not valid PostgreSQL connection information"
+            ) from err
 
 
 def _find_config(explicit: str | None) -> Path | None:

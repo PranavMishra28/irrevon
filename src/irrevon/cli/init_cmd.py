@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 
 from irrevon.cli.config import Config
+from irrevon.errors import IrrevonError, StorageUnavailable
 
 IRREVON_TOML = """\
 # irrevon.toml — local configuration. NO SECRETS IN THIS FILE, EVER.
@@ -96,11 +97,22 @@ def run_init(
         from irrevon.ledger.db import apply_migrations
 
         migrations_applied = apply_migrations(config.resolved_dsn())
-    except Exception as err:  # DB not up yet — expected on first run
+    except StorageUnavailable:  # DB not up yet — expected on first run
         db_note = (
             "ledger DB not reachable yet — start it (docker compose up -d --wait) "
-            f"and re-run `irrevon init` to apply migrations ({type(err).__name__})"
+            "and re-run `irrevon init` to apply migrations"
         )
+    except IrrevonError:
+        # Preserve any existing typed error and its stable envelope.
+        raise
+    except Exception as err:
+        # SQL, migration-integrity, and programming failures are never a
+        # successful first run. Keep the public result stable and sanitized;
+        # exception chaining retains local debugger context without rendering
+        # the possibly credential-bearing exception text in the CLI envelope.
+        raise IrrevonError(
+            "ledger migration failed; initialization did not complete"
+        ) from err
 
     if as_json:
         print(
