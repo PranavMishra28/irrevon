@@ -20,7 +20,7 @@ intact, and — unlike GitHub Pages — sets real response headers, which conver
 
 The public site deploys to Vercel as a static deployment of the built `site/dist` output,
 served at the **origin root** (base `/` — the GitHub Pages `/<repo>/` project base path is
-retired along with the `site-deploy.yml` workflow). [`vercel.json`](../../vercel.json)
+retired along with the `site-deploy.yml` workflow). [`site/vercel.json`](../../site/vercel.json)
 is the applied form of the header spec: CSP `frame-ancestors 'none'`, HSTS, nosniff,
 Referrer-Policy, Permissions-Policy, COOP, X-Frame-Options, and the cache rules
 (`/_astro/*` immutable; everything else short-TTL). The per-page meta-CSP with
