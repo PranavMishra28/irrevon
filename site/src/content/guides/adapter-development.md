@@ -21,8 +21,8 @@ PaymentIntents (C1) and EasyPost Shipments (C2) are implemented with synthetic t
 sandbox-key enforcement, conservative response classification, and machine-readable
 declarations. They have never been live-called and are not provider-qualified.
 
-Live-sandbox qualification remains gated by milestone M4, ADR-0010/0012, credentials,
-provider terms review, and contract tests. The adapter Python interface is deliberately not
+Live-sandbox qualification remains gated by provider selection, pinned API semantics,
+credentials, provider terms review, and contract tests. The adapter Python interface is deliberately not
 frozen yet; per-effect-type parameter schemas and the adapter interface schema remain
 deferred. The exchange format below is the stable contract available for development.
 

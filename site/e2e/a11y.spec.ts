@@ -3,7 +3,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
-import { ALL_PAGES, DOCS_PAGES } from "./pages";
+import { ALL_PAGES } from "./pages";
 
 for (const path of ALL_PAGES) {
   for (const theme of ["light", "dark"] as const) {
@@ -123,6 +123,8 @@ test("forced colors: critical controls retain boundaries, state, and focus", asy
 test("keyboard: nav links and theme toggle are reachable and operable", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
+  await expect(page.locator("nav[aria-label='Primary']")).toBeVisible();
+  await expect(page.locator("nav[aria-label='Primary'] a").first()).toBeVisible();
   const toggle = page.locator("#theme-toggle");
   await expect(toggle).toBeVisible();
   await expect(toggle).toHaveAttribute("aria-label", "Switch to dark theme");
@@ -132,22 +134,62 @@ test("keyboard: nav links and theme toggle are reachable and operable", async ({
   await expect(toggle).toHaveAttribute("aria-label", "Switch to light theme");
 });
 
-test("responsive: docs never widen the page at the minimum supported viewport", async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 800 });
-  for (const path of DOCS_PAGES) {
-    await page.goto(path);
-    const viewport = await page.evaluate(() => ({
-      clientWidth: document.documentElement.clientWidth,
-      scrollWidth: document.documentElement.scrollWidth,
-    }));
-    expect(viewport.scrollWidth, `${path} widened the 320px viewport`).toBeLessThanOrEqual(viewport.clientWidth);
+test("responsive: phone navigation is compact and keyboard-operable", async ({ page }) => {
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto("/");
+    const button = page.locator("#menu-toggle");
+    await expect(button).toBeVisible();
+    await expect(button).toHaveAttribute("aria-expanded", "false");
+    await expect(page.locator("nav[aria-label='Primary']")).toBeHidden();
+    expect(await page.locator(".site-header").evaluate((header) => header.getBoundingClientRect().height)).toBeLessThan(120);
+    await button.focus();
+    await page.keyboard.press("Enter");
+    await expect(button).toHaveAttribute("aria-expanded", "true");
+    await expect(page.locator("nav[aria-label='Primary'] a")).toHaveCount(8);
+    await expect(page.locator("nav[aria-label='Primary'] a").first()).toBeVisible();
+    await page.keyboard.press("Enter");
+    await expect(button).toHaveAttribute("aria-expanded", "false");
   }
 });
 
-test("reduced motion: pages render with reduce preference", async ({ page }) => {
+test("responsive: every page avoids viewport-level horizontal overflow", async ({ page }) => {
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 800 });
+    for (const theme of ["light", "dark"] as const) {
+      await page.emulateMedia({ colorScheme: theme });
+      for (const path of ALL_PAGES) {
+        await page.goto(path);
+        const viewport = await page.evaluate(() => ({
+          clientWidth: document.documentElement.clientWidth,
+          scrollWidth: document.documentElement.scrollWidth,
+        }));
+        expect(
+          viewport.scrollWidth,
+          `${path} widened the ${width}px ${theme} viewport`,
+        ).toBeLessThanOrEqual(viewport.clientWidth);
+      }
+    }
+  }
+});
+
+test("reduced motion: representative product surfaces render with reduce preference", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  await expect(page.locator("h1")).toBeVisible();
+  for (const path of ["/", "/how-it-works/", "/demo/", "/benchmark/", "/docs/", "/install/"]) {
+    await page.goto(path);
+    await expect(page.locator("h1")).toBeVisible();
+    const activeAnimations = await page.locator("*").evaluateAll((elements) =>
+      elements.reduce(
+        (count, element) =>
+          count +
+          element.getAnimations().filter(
+            (animation) => animation.playState === "running" && animation.effect?.getTiming().duration !== 0,
+          ).length,
+        0,
+      ),
+    );
+    expect(activeAnimations, `${path} retains motion under reduce`).toBe(0);
+  }
 });
 
 test("no-JS: content and nav render without JavaScript", async ({ browser }) => {
@@ -155,7 +197,7 @@ test("no-JS: content and nav render without JavaScript", async ({ browser }) => 
   const page = await context.newPage();
   await page.goto("/");
   await expect(page.locator("h1")).toBeVisible();
-  await expect(page.locator("nav[aria-label='Primary'] a")).toHaveCount(7);
+  await expect(page.locator("nav[aria-label='Primary'] a")).toHaveCount(8);
   // The theme toggle is JS-only and must stay hidden without it.
   await expect(page.locator("#theme-toggle")).toBeHidden();
   await context.close();

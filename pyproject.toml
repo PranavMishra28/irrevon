@@ -46,13 +46,22 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/PranavMishra28/irrevon"
-Documentation = "https://github.com/PranavMishra28/irrevon#readme"
+Homepage = "https://irrevon.vercel.app/"
+Documentation = "https://irrevon.vercel.app/docs/"
 Repository = "https://github.com/PranavMishra28/irrevon"
 Issues = "https://github.com/PranavMishra28/irrevon/issues"
 Changelog = "https://github.com/PranavMishra28/irrevon/blob/main/CHANGELOG.md"
 
 [dependency-groups]
+# Release-path Python validators are isolated here, exact-constrained, and
+# resolved transitively by uv.lock. The release workflow invokes this group only
+# through `uv run --locked`; never replace it with uvx/pip dynamic resolution.
+release-validation = [
+    "check-jsonschema==0.37.4",
+    "pip-audit==2.10.1",
+    "spdx-tools==0.8.3",
+    "twine==6.2.0",
+]
 dev = [
     "pytest>=8.4",
     "pytest-xdist>=3.8",
@@ -61,7 +70,11 @@ dev = [
     "types-jsonschema>=4.25",
     "ruff>=0.14",
     "import-linter>=2.5",
-    # Official SPDX parser/validator used by the release dry run.
+    # Also listed in release-validation: audits use the exact locked PyPA
+    # client against a hash-bearing frozen export of production dependencies.
+    "pip-audit==2.10.1",
+    # Also listed in release-validation: local development uses the same exact
+    # official SPDX parser/validator as the locked release dry run.
     "spdx-tools==0.8.3",
 ]
 

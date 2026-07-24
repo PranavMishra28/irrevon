@@ -9,6 +9,16 @@ on:
     paths:
       - ".github/workflows/release.yml"
       - "pyproject.toml"
+      - "hatch_build.py"
+      - "PACKAGE_README.md"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "CITATION.cff"
+      - "LICENSE"
+      - "NOTICE"
+      - "THIRD-PARTY-NOTICES.md"
+      - "THIRD-PARTY-LICENSES.md"
+      - "ASSETS.md"
       - "src/**"
       - "web/**"
       - "migrations/**"
@@ -49,12 +59,18 @@ jobs:
           node-version-file: web/.nvmrc
           package-manager-cache: false
       - run: corepack enable
-      - name: Install checksum-pinned validation tools
+      - name: Install checksum-pinned binaries and locked Python validators
+        env:
+          IRREVON_LOCKED_RELEASE_VALIDATION: "1"
         run: bash scripts/bootstrap-tools.sh
       - name: Validate source and build release candidates
+        env:
+          # A final-version candidate is validated on PR/manual runs, but this
+          # script has no upload path and the job has no publishing permission.
+          IRREVON_ALLOW_RELEASE_VERSION: "1"
         run: |
           set -euo pipefail
-          make check py-check py-test
+          uv run --locked --group release-validation make check py-check py-test
           make release-dry-run
           test -z "$(git status --porcelain --untracked-files=no)"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -93,7 +109,9 @@ jobs:
           node-version-file: web/.nvmrc
           package-manager-cache: false
       - run: corepack enable
-      - name: Install checksum-pinned validation tools
+      - name: Install checksum-pinned binaries and locked Python validators
+        env:
+          IRREVON_LOCKED_RELEASE_VALIDATION: "1"
         run: bash scripts/bootstrap-tools.sh
       - name: Refuse a mismatched or dirty tag
         env:
@@ -109,11 +127,15 @@ jobs:
             echo "::error::release tags must be annotated, not lightweight"
             exit 1
           }
-          git merge-base --is-ancestor "$TAG_NAME^{}" origin/main || {
-            echo "::error::tagged commit is not reachable from origin/main"
+          tagged_commit=$(git rev-parse "$TAG_NAME^{}")
+          reviewed_main=$(git rev-parse origin/main)
+          checked_out_commit=$(git rev-parse HEAD)
+          if ! test "$checked_out_commit" = "$tagged_commit" ||
+            ! test "$checked_out_commit" = "$reviewed_main"; then
+            echo "::error::HEAD, annotated tag, and current origin/main must be identical"
             exit 1
-          }
-          package_version=$(uv run python -c 'import irrevon; print(irrevon.__version__)')
+          fi
+          package_version=$(uv run --locked python -c 'import irrevon; print(irrevon.__version__)')
           test "v$package_version" = "$TAG_NAME" || {
             echo "::error::tag $TAG_NAME does not match package $package_version"
             exit 1
@@ -126,7 +148,7 @@ jobs:
           IRREVON_ALLOW_RELEASE_VERSION: "1"
         run: |
           set -euo pipefail
-          make launch-audit
+          uv run --locked --group release-validation make launch-audit
           test -z "$(git status --porcelain --untracked-files=no)"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

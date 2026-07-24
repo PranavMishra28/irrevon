@@ -1,8 +1,8 @@
 #!/bin/bash
-# Exact-version, checksum-verified install of Irrevon's validation tools.
-# This is the ONE pin table — consumed by `make tools-pinned`, every CI job, and
-# cloud-agent environments (.cursor/environment.json). Update pins deliberately and
-# in one commit together with the Makefile header and any CI references.
+# Checksum-verified native validation binaries plus release-lock-aware Python
+# validation. This is the native-binary pin table consumed by
+# `make tools-pinned`, CI, and cloud-agent environments; the release workflow
+# additionally uses pyproject.toml's `release-validation` group and uv.lock.
 #
 # Versions + SHA-256 pins resolved from official release assets on 2026-07-21.
 # zizmor upstream publishes no checksum manifest; its hashes were computed from the
@@ -20,6 +20,7 @@ GITLEAKS_VERSION="8.30.1"
 ACTIONLINT_VERSION="1.7.12"
 ZIZMOR_VERSION="1.27.0"
 CHECK_JSONSCHEMA_VERSION="0.37.4"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 case "$(uname -s)-$(uname -m)" in
   Linux-x86_64)
@@ -105,9 +106,29 @@ install_binary zizmor "$ZIZMOR_VERSION" \
   "https://github.com/zizmorcore/zizmor/releases/download/v${ZIZMOR_VERSION}/${ZIZMOR_ASSET}" \
   "$ZIZMOR_SHA256" zizmor
 
-# check-jsonschema is a Python CLI: version-pinned (not hash-pinned) install, acceptable
-# for a linter that only consumes repo files (see the CI design notes in docs/ci.md).
-if have_version check-jsonschema "$CHECK_JSONSCHEMA_VERSION"; then
+# Release validation never uses the standalone fallback below: the workflow sets
+# IRREVON_LOCKED_RELEASE_VALIDATION=1, which resolves this CLI, Twine, and SPDX
+# Tools from the exact-constrained release-validation group in uv.lock.
+if [ "${IRREVON_LOCKED_RELEASE_VALIDATION:-0}" = "1" ]; then
+  command -v uv >/dev/null 2>&1 || {
+    echo "bootstrap-tools: locked release validation requires uv" >&2
+    exit 1
+  }
+  (
+    cd "$PROJECT_ROOT"
+    uv sync --locked --group release-validation --quiet
+  )
+  LOCKED_CHECK_JSONSCHEMA="$PROJECT_ROOT/.venv/bin/check-jsonschema"
+  "$LOCKED_CHECK_JSONSCHEMA" --version 2>/dev/null | head -n 1 |
+    grep -qF "$CHECK_JSONSCHEMA_VERSION" || {
+    echo "bootstrap-tools: locked check-jsonschema version mismatch" >&2
+    exit 1
+  }
+  echo "bootstrap-tools: check-jsonschema $CHECK_JSONSCHEMA_VERSION resolved from uv.lock"
+  if [ -n "${GITHUB_PATH:-}" ]; then
+    echo "$PROJECT_ROOT/.venv/bin" >> "$GITHUB_PATH"
+  fi
+elif have_version check-jsonschema "$CHECK_JSONSCHEMA_VERSION"; then
   echo "bootstrap-tools: check-jsonschema $CHECK_JSONSCHEMA_VERSION already present - skipped"
 elif command -v pipx >/dev/null 2>&1; then
   pipx install --force "check-jsonschema==${CHECK_JSONSCHEMA_VERSION}" >/dev/null

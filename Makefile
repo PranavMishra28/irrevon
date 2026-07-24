@@ -205,7 +205,8 @@ web-e2e:
 # F4: pixel baselines — only meaningful inside the pinned Linux container
 # (see web/README.md); a bare local run skips the vrt project by design.
 web-vrt:
-	cd web && docker run --rm --ipc=host -e CI=1 -v "$$PWD":/work -w /work \
+	cd web && docker run --rm --ipc=host -e CI=1 \
+	  -v "$$PWD":/work -v /work/node_modules -w /work \
 	  mcr.microsoft.com/playwright:v1.61.1-noble \
 	  bash -lc 'corepack enable && \
 	            pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store && \
@@ -214,7 +215,7 @@ web-vrt:
 # ── Marketing site gates (appended by the site/ task; see site/README.md) ─────
 # Self-contained Node package, same corepack/pnpm pattern as web/. Deploys are
 # owner-directed Vercel static uploads of site/dist (ADR-0027), never CI-triggered.
-.PHONY: site-check site-build site-test site-vrt
+.PHONY: site-check site-build site-test site-vrt site-production-smoke
 
 # Static gates: astro check + vendored token/font drift + claims-registry drift.
 site-check:
@@ -237,6 +238,18 @@ site-vrt:
 	  && pnpm exec playwright install chromium --only-shell \
 	  && pnpm run build \
 	  && pnpm exec playwright test --project=shots
+
+# Read-only check of a production-built static artifact. Build with exact
+# deployment provenance first; this target never uploads or publishes.
+site-production-smoke:
+	@: "$${SITE_EXPECT_COMMIT:?set SITE_EXPECT_COMMIT to the intended full deployment SHA}"
+	@: "$${SITE_EXPECT_ORIGIN:?set SITE_EXPECT_ORIGIN to the exact canonical HTTPS origin}"
+	python3 scripts/site-production-smoke.py \
+	  --dist site/dist \
+	  --vercel-config site/vercel.json \
+	  --expect-environment production \
+	  --expect-commit "$$SITE_EXPECT_COMMIT" \
+	  --expect-origin "$$SITE_EXPECT_ORIGIN"
 
 # ── Serve + distribution targets (appended by the BE serve task; ADR-0024 ─────
 # proposed). `make dist` is THE ordering ADR-0018 requires: web assets are

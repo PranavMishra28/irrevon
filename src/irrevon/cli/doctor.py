@@ -106,7 +106,9 @@ def _check_ledger(config: Config, *, read_only: bool = False) -> list[CheckResul
     except psycopg.OperationalError as err:
         # A missing role/database on a reachable server is the signature of a
         # database created before the Irrevon rename (ADR-0023).
-        hint = "docker compose up -d --wait && irrevon doctor"
+        hint = (
+            "docker compose up -d --wait && irrevon init && irrevon doctor"
+        )
         if 'role "irrevon' in str(err) or 'database "irrevon' in str(err):
             hint = (
                 "stale pre-rename database? recreate it: "

@@ -6,9 +6,13 @@ report=".scratch/launch-audit.json"
 mkdir -p .scratch
 started=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 stage="startup"
+audit_requirements=""
 
 finish() {
   code=$?
+  if [ -n "$audit_requirements" ]; then
+    rm -f -- "$audit_requirements"
+  fi
   finished=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
   status="passed"
   if [ "$code" -ne 0 ]; then status="failed"; fi
@@ -34,7 +38,7 @@ stage="python-unit-and-integration"
 make py-check py-test py-test-integration
 
 stage="workbench"
-make web-check web-test web-e2e web-e2e-live
+make web-check web-test web-e2e web-e2e-live web-vrt
 
 stage="marketing-site"
 make site-check site-test site-vrt
@@ -44,6 +48,15 @@ make bench-smoke
 
 stage="package-clean-install"
 make dist-smoke
+
+stage="python-production-dependencies"
+audit_requirements=$(mktemp)
+uv export --frozen --no-dev --no-emit-project --format requirements-txt \
+  > "$audit_requirements"
+uv run --locked --group release-validation pip-audit \
+  --require-hashes --disable-pip --requirement "$audit_requirements"
+rm -f -- "$audit_requirements"
+audit_requirements=""
 
 stage="release-dry-run"
 make release-dry-run

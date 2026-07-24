@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "vite --mode development",
     "dev:live": "VITE_IRREVON_DATA_MODE=live vite --mode development",
+    "prebuild": "node -e \"const major=Number(process.versions.node.split('.')[0]); if(major!==24){console.error('release web builds require Node 24.x');process.exit(1)}\"",
     "build": "vite build",
     "build:review": "vite build --mode review",
     "preview": "vite preview",

@@ -1,8 +1,8 @@
 ---
-// Renders a claim's source line from the registry: the visible,
-// per-claim citation in the mono evidence voice, e.g.
-//   Source: master doc §7.5 · [DD]
+// The public citation stays readable while the linked registry retains the
+// exact file/section and epistemic label for technical review.
 import { claims, type ClaimId } from "../data/claims";
+import { repoDoc } from "../config";
 
 interface Props {
   id: ClaimId;
@@ -11,12 +11,22 @@ interface Props {
 }
 const { id, also = [] } = Astro.props;
 const entries = [id, ...also].map((cid) => claims[cid]);
-const parts = entries.map((e) => `${e.source} · [${e.label}]`);
-// De-duplicate identical source strings when claims share one.
-const line = [...new Set(parts)].join(" · ");
+const labelNames = {
+  VF: "Verified evidence",
+  EI: "Evidence-backed analysis",
+  TH: "Testable hypothesis",
+  DD: "Design specification",
+  OQ: "Open question",
+} as const;
+const labels = [...new Set(entries.map((entry) => labelNames[entry.label]))];
+const registryUrl = `${repoDoc("site/CLAIMS.md")}#claim-${id}`;
 ---
 
-<p class="claim-source">Source: {line}</p>
+<p class="claim-source">
+  <span>Evidence: {labels.join(" · ")}</span>
+  <span aria-hidden="true"> · </span>
+  <a href={registryUrl}>Technical provenance</a>
+</p>
 
 <style>
   .claim-source {

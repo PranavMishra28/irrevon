@@ -32,8 +32,8 @@ pre-committed falsification criterion.
 ## The intended reproduction contract
 
 When a benchmark run is published, reproducing it is committed to work through **both**
-of these legs (per the distribution decision record,
-[ADR-0018](/docs/reference/adr-0018-distribution-model/)):
+of these legs (per the
+[distribution design record](/docs/reference/adr-0018-distribution-model/)):
 
 1. **Locked toolchain from an annotated release tag.** Check out the annotated
    release tag, verify the GitHub artifact attestation, and `uv sync --locked` —

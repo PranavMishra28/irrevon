@@ -177,7 +177,7 @@ const declaration = `{
         <span class="kicker">Implemented today</span>
         <h2>The first slice is code, not slideware</h2>
         <p class="lead">
-          The M3 core is implemented and tested: identity derivation, the append-only ledger with locked
+          The engine core is implemented and tested: identity derivation, the append-oriented ledger with locked
           transition functions in plain SQL, the commit gate, dispatch and receipts, reconciliation with
           confirmed-absence, crash recovery, and the orphan sweep — plus reference destinations, the CLI, and
           the read-only workbench.
@@ -295,24 +295,24 @@ const declaration = `{
           </thead>
           <tbody>
             <tr>
-              <td><strong>M3 core</strong></td>
+              <td><strong>Engine core</strong></td>
               <td>Identity, ledger, gate, dispatcher, reconciliation, recovery, sweep, reference destinations, CLI, workbench</td>
               <td><strong>Implemented</strong></td>
             </tr>
             <tr>
-              <td>M4 adapters</td>
+              <td>Provider adapters</td>
               <td>Real sandbox adapters (C1 Stripe test mode; one C2 sandbox) with cited capability declarations</td>
-              <td>Gated — sandbox selection and API-version pins are open decision records</td>
+              <td>Gated — sandbox selection and API-version pins require human review</td>
             </tr>
             <tr>
-              <td>M5+ benchmark harness</td>
+              <td>Benchmark harness</td>
               <td>Seeded workloads, fault schedules, oracle, the full baseline ladder</td>
               <td>Developmental S-REF pilots only; live and confirmatory runs remain freeze-gated</td>
             </tr>
             <tr>
               <td>Release</td>
               <td>Package publication, preprint</td>
-              <td>Gated — human-only publish gate; the license itself is decided (Apache-2.0, ADR-0028)</td>
+              <td>Gated — publication requires human approval; the source license is Apache-2.0</td>
             </tr>
           </tbody>
         </table>

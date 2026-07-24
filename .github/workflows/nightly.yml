@@ -136,13 +136,13 @@ jobs:
           existing=$(gh issue list --state open --search "\"${ISSUE_TITLE}\" in:title" \
             --json number,title \
             --jq 'map(select(.title == "Nightly validation failure")) | .[0].number // empty')
-          # Strip the issue-template frontmatter, then fill placeholders from
-          # trusted workflow context only.
-          body=$(awk 'BEGIN{fm=0} NR==1 && /^---$/{fm=1; next} fm==1 && /^---$/{fm=2; next} fm!=1{print}' \
-                   .github/ISSUE_TEMPLATE/nightly-failure.md \
-                 | sed -e "s|{{RUN_URL}}|${RUN_URL}|g" \
-                       -e "s|{{RUN_DATE}}|${RUN_DATE}|g" \
-                       -e "s|{{SHA}}|${SHA}|g")
+          # The body lives outside ISSUE_TEMPLATE so internal CI triage never
+          # appears in the public issue chooser. Fill placeholders only from
+          # trusted workflow context.
+          body=$(sed -e "s|{{RUN_URL}}|${RUN_URL}|g" \
+                     -e "s|{{RUN_DATE}}|${RUN_DATE}|g" \
+                     -e "s|{{SHA}}|${SHA}|g" \
+                     .github/nightly-failure-body.md)
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --body "$body"
           else

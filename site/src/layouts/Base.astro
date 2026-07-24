@@ -35,16 +35,14 @@ const {
 } = Astro.props;
 const ogImageAbs = new URL(href(ogImage), Astro.site);
 
-// Seven top slots is the ceiling; Security, Changelog, and Roadmap stay
-// reachable from the footer.
 const nav = [
-  { label: "Engine", path: "/platform/" },
+  { label: "Product", path: "/platform/" },
   { label: "How it works", path: "/how-it-works/" },
   { label: "Demo", path: "/demo/" },
   { label: "Benchmark", path: "/benchmark/" },
   { label: "Docs", path: "/docs/" },
-  { label: "Research", path: "/research/" },
   { label: "Install", path: "/install/" },
+  { label: "Contribute", path: "/contributing/" },
 ];
 const footerPages = [
   { label: "Status", path: "/status/" },
@@ -189,19 +187,49 @@ const isCurrent = (path: string) => {
           <Mark size={22} />
           <span class="wordmark-text">{SITE_NAME.toLowerCase()}</span>
         </a>
-        <nav aria-label="Primary">
-          <ul class="nav-list">
-            {
-              nav.map((item) => (
-                <li>
-                  <a href={href(item.path)} aria-current={isCurrent(item.path) ? "page" : undefined}>
-                    {item.label}
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
-        </nav>
+        <div class="primary-menu">
+          <button
+            id="menu-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="primary-navigation"
+            hidden
+          >
+            <span>Menu</span>
+            <svg
+              class="menu-chevron"
+              viewBox="0 0 16 16"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              aria-hidden="true"
+            >
+              <path d="m4 6 4 4 4-4"></path>
+            </svg>
+          </button>
+          <nav id="primary-navigation" aria-label="Primary">
+            <ul class="nav-list">
+              {
+                nav.map((item) => (
+                  <li>
+                    <a href={href(item.path)} aria-current={isCurrent(item.path) ? "page" : undefined}>
+                      {item.label}
+                    </a>
+                  </li>
+                ))
+              }
+              <li>
+                <a
+                  href={REPO_URL}
+                  data-analytics-event="repository_click"
+                  data-analytics-placement="header">GitHub</a
+                >
+              </li>
+            </ul>
+          </nav>
+        </div>
         <button id="theme-toggle" type="button" aria-label="Toggle color theme" hidden>
           <svg
             class="icon-sun"
@@ -258,6 +286,31 @@ const isCurrent = (path: string) => {
               updateLabel();
             });
             systemDark.addEventListener("change", updateLabel);
+          })();
+        </script>
+        <script is:inline>
+          (() => {
+            const button = document.getElementById("menu-toggle");
+            const navigation = document.getElementById("primary-navigation");
+            if (!button || !navigation) return;
+            const narrow = matchMedia("(max-width: 640px)");
+            const applyMode = () => {
+              if (narrow.matches) {
+                button.hidden = false;
+                navigation.hidden = button.getAttribute("aria-expanded") !== "true";
+              } else {
+                button.hidden = true;
+                button.setAttribute("aria-expanded", "false");
+                navigation.hidden = false;
+              }
+            };
+            button.addEventListener("click", () => {
+              const expanded = button.getAttribute("aria-expanded") === "true";
+              button.setAttribute("aria-expanded", String(!expanded));
+              navigation.hidden = expanded;
+            });
+            narrow.addEventListener("change", applyMode);
+            applyMode();
           })();
         </script>
       </div>
@@ -333,17 +386,17 @@ const isCurrent = (path: string) => {
             <span class="footer-lockup"><Mark size={18} /><span>{SITE_NAME.toLowerCase()}</span></span>
             <p class="footer-tag">
               Evidence-first reconciliation for irreversible AI-agent actions.
-              Open source, synthetic-evidence research preview.
+              Open source. Local-first. Scientific results are not claimed.
             </p>
           </div>
           <nav aria-label="Project links">
-            <h2 class="footer-head">Project</h2>
+            <h2 class="footer-head">Explore</h2>
             <ul>
               <li>
                 <a
                   href={REPO_URL}
                   data-analytics-event="repository_click"
-                  data-analytics-placement="footer">Repository</a
+                  data-analytics-placement="footer">GitHub</a
                 >
               </li>
               <li>
@@ -364,7 +417,7 @@ const isCurrent = (path: string) => {
             </ul>
           </nav>
           <nav aria-label="Project policies">
-            <h2 class="footer-head">Policies</h2>
+            <h2 class="footer-head">Project</h2>
             <ul>
               {
                 footerPages.map((item) => (
@@ -429,6 +482,16 @@ const isCurrent = (path: string) => {
   .wordmark:hover {
     color: var(--ref-ink-1);
   }
+  .primary-menu {
+    flex: 1;
+    min-width: 0;
+  }
+  #menu-toggle {
+    display: none;
+  }
+  .primary-menu > nav {
+    display: block;
+  }
   .nav-list {
     display: flex;
     flex-wrap: wrap;
@@ -471,8 +534,51 @@ const isCurrent = (path: string) => {
     color: var(--ref-ink-1);
     border-color: var(--ref-border-strong);
   }
+  @media (max-width: 640px) {
+    .header-inner {
+      gap: 8px 14px;
+    }
+    .primary-menu {
+      order: 3;
+      flex-basis: 100%;
+    }
+    #menu-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--ref-border);
+      border-radius: 4px;
+      color: var(--ref-ink-2);
+      background: var(--ref-layer-panel);
+      font-size: var(--site-text-small);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #menu-toggle:hover {
+      color: var(--ref-ink-1);
+      border-color: var(--ref-border-strong);
+    }
+    .primary-menu > nav:not([hidden]) {
+      padding-top: 8px;
+    }
+    #menu-toggle[aria-expanded="true"] .menu-chevron {
+      transform: rotate(180deg);
+    }
+    .nav-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 2px 10px;
+    }
+    .nav-list a {
+      width: 100%;
+    }
+  }
   /* The display rule above must not defeat the no-JS hidden attribute. */
-  #theme-toggle[hidden] {
+  #theme-toggle[hidden],
+  #menu-toggle[hidden],
+  #primary-navigation[hidden] {
     display: none;
   }
   /* Show the icon for the theme you would switch TO. */
@@ -497,12 +603,12 @@ const isCurrent = (path: string) => {
   .site-footer {
     border-top: 1px solid var(--ref-border);
     background: var(--ref-layer-panel);
-    padding-block: clamp(36px, 6vw, 64px) 28px;
+    padding-block: 36px 24px;
     margin-top: var(--site-section-gap);
   }
   .footer-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: minmax(240px, 2fr) repeat(2, minmax(120px, 1fr));
     gap: 32px;
   }
   @media (max-width: 900px) {

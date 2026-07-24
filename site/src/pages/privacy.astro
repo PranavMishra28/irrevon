@@ -19,6 +19,12 @@ import { href } from "../lib/url";
 
       <h2>Website measurement</h2>
       <p>
+        Two separate data paths exist. First, requesting any hosted page necessarily sends
+        connection and request metadata to the hosting provider, such as an IP address, requested
+        path, user agent, and timing data. Browser-side query scrubbing cannot prevent or erase
+        that hosting request.
+      </p>
+      <p>
         When the owner enables them on a Vercel production deployment, this site loads Vercel Web
         Analytics and Speed Insights from same-origin paths. They are cookie-free, aggregated
         telemetry, but Vercel still processes the measurements. Depending on the product, that can
@@ -28,8 +34,10 @@ import { href } from "../lib/url";
         and <a href="https://vercel.com/docs/speed-insights">Speed Insights documentation</a>.
       </p>
       <p>
-        By default, the site removes every query parameter before both telemetry streams send an
-        event. A separately gated build may retain only the five validated lowercase UTM parameters.
+        Separately, before optional browser telemetry sends an event, the site removes every query
+        parameter from the event URL. This protects the telemetry payload; it does not scrub the
+        original request already received by the host. A separately gated build may retain only the
+        five validated lowercase UTM parameters.
         Custom conversion events are also disabled by default; when explicitly enabled on a
         compatible plan, they carry only a fixed event name and fixed placement value. No event
         includes effect IDs, stable IDs, API payloads, search text, email addresses, credentials,

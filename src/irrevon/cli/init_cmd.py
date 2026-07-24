@@ -72,9 +72,7 @@ FILES = {
 }
 
 
-def run_init(
-    directory: Path, config: Config, *, force: bool, as_json: bool
-) -> int:
+def run_init(directory: Path, config: Config, *, force: bool, as_json: bool) -> int:
     written: list[str] = []
     skipped: list[str] = []
     directory.mkdir(parents=True, exist_ok=True)
@@ -118,9 +116,7 @@ def run_init(
         # successful first run. Keep the public result stable and sanitized;
         # exception chaining retains local debugger context without rendering
         # the possibly credential-bearing exception text in the CLI envelope.
-        raise IrrevonError(
-            "ledger migration failed; initialization did not complete"
-        ) from err
+        raise IrrevonError("ledger migration failed; initialization did not complete") from err
 
     if as_json:
         print(
@@ -141,13 +137,16 @@ def run_init(
         for name in skipped:
             print(f"skipped {name} (exists; use --force to overwrite)")
         if migrations_applied is not None:
-            print(
-                f"migrations: applied {migrations_applied or 'none (all current)'}"
-            )
+            print(f"migrations: applied {migrations_applied or 'none (all current)'}")
+            print("\nnext: irrevon doctor")
         elif db_note:
             print(f"note: {db_note}")
-        print(
-            "\nnext: cp .env.example .env && set -a && . ./.env && set +a "
-            "&& docker compose up -d --wait && irrevon init && irrevon doctor"
-        )
+            print(
+                "\nnext (bootstrap; preserves an existing .env):\n"
+                "  test -e .env || cp .env.example .env\n"
+                "  set -a && . ./.env && set +a\n"
+                "  docker compose up -d --wait\n"
+                "  irrevon init\n"
+                "  irrevon doctor"
+            )
     return 0

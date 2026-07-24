@@ -35,14 +35,26 @@ def add_bench_parser(
     p_bench = sub.add_parser(
         "bench",
         help="IrrevonBench harness (fixtures, validation, non-confirmatory smoke)",
+        description=(
+            "Develop, validate, and analyze IrrevonBench artifacts. Confirmatory "
+            "execution remains refused until the required human freeze verifies."
+        ),
         parents=[common],
     )
     bench_sub = p_bench.add_subparsers(dest="bench_command")
 
     p_fixtures = bench_sub.add_parser(
-        "fixtures", help="regenerate or verify the committed public dev split"
+        "fixtures",
+        help="regenerate or verify the committed public dev split",
+        description=(
+            "Write or deterministically verify a development fixture split."
+        ),
     )
-    p_fixtures.add_argument("--dir", default="bench/fixtures/dev")
+    p_fixtures.add_argument(
+        "--dir",
+        default="bench/fixtures/dev",
+        help="fixture-set directory (default: bench/fixtures/dev)",
+    )
     p_fixtures.add_argument(
         "--master-seed", default=None,
         help="64-hex master seed for a PRIVATE workload set (company adoption "
@@ -50,19 +62,43 @@ def add_bench_parser(
              "never committed here). Default: the public dev seed.",
     )
     mode = p_fixtures.add_mutually_exclusive_group(required=True)
-    mode.add_argument("--write", action="store_true")
-    mode.add_argument("--verify", action="store_true")
+    mode.add_argument(
+        "--write", action="store_true", help="write the deterministic fixture set"
+    )
+    mode.add_argument(
+        "--verify",
+        action="store_true",
+        help="verify the fixture set against deterministic regeneration",
+    )
 
     p_validate = bench_sub.add_parser(
-        "validate", help="schema + digest verification of a fixture set"
+        "validate",
+        help="schema + digest verification of a fixture set",
+        description="Validate fixture schemas, manifests, and content digests.",
     )
-    p_validate.add_argument("--dir", default="bench/fixtures/dev")
+    p_validate.add_argument(
+        "--dir",
+        default="bench/fixtures/dev",
+        help="fixture-set directory (default: bench/fixtures/dev)",
+    )
 
     p_smoke = bench_sub.add_parser(
-        "smoke", help="non-confirmatory mechanism run against the dev split"
+        "smoke",
+        help="non-confirmatory mechanism run against the dev split",
+        description=(
+            "Run a non-confirmatory mechanism check against development fixtures."
+        ),
     )
-    p_smoke.add_argument("--fixtures", default="bench/fixtures/dev")
-    p_smoke.add_argument("--out", default=".bench-smoke-runs")
+    p_smoke.add_argument(
+        "--fixtures",
+        default="bench/fixtures/dev",
+        help="fixture-set directory (default: bench/fixtures/dev)",
+    )
+    p_smoke.add_argument(
+        "--out",
+        default=".bench-smoke-runs",
+        help="run-output directory (default: .bench-smoke-runs)",
+    )
     p_smoke.add_argument(
         "--arms",
         default="B0,B1,B2,B3,B5,B6,B5+B3+B6",
@@ -74,13 +110,19 @@ def add_bench_parser(
                          help="Postgres admin DSN (required for arm R)")
     p_smoke.add_argument("--enrichment-quirk", action="store_true",
                          help="destination stores normalized/enriched payloads "
-                              "(attribution-hardening exercise; ADR-0032)")
-    p_smoke.add_argument("--json", action="store_true")
+                              "(attribution-hardening exercise)")
+    p_smoke.add_argument(
+        "--json", action="store_true", help="emit the comparison as JSON"
+    )
 
     p_conform = bench_sub.add_parser(
         "conform",
         help="declared-vs-observed capability conformance probes (public "
              "adapter surface only)",
+        description=(
+            "Compare a capability declaration with synthetic reference-destination "
+            "observations."
+        ),
     )
     p_conform.add_argument("--tier", choices=("C1", "C2", "C3"), default="C2",
                            help="reference-destination profile to probe")
@@ -90,41 +132,81 @@ def add_bench_parser(
     p_conform.add_argument("--declared-tier", default=None,
                            help="probe with the declaration of a DIFFERENT tier "
                                 "(drift demonstration)")
-    p_conform.add_argument("--json", action="store_true")
+    p_conform.add_argument(
+        "--json", action="store_true", help="emit the conformance report as JSON"
+    )
 
     p_analyze = bench_sub.add_parser(
-        "analyze", help="descriptive comparison over completed runs"
+        "analyze",
+        help="descriptive comparison over completed runs",
+        description=(
+            "Build a descriptive comparison from completed run artifacts."
+        ),
     )
-    p_analyze.add_argument("--runs", required=True)
-    p_analyze.add_argument("--json", action="store_true")
+    p_analyze.add_argument(
+        "--runs", required=True, help="directory containing completed benchmark runs"
+    )
+    p_analyze.add_argument(
+        "--json", action="store_true", help="emit the comparison as JSON"
+    )
     p_analyze.add_argument(
         "--verdict", action="store_true",
-        help="additionally run the §5 verdict machinery (synthetic/mechanism "
+        help="additionally run the registered verdict machinery (synthetic/mechanism "
              "data only pre-freeze; requires explicit --margin and --worst-cell-gate)",
     )
     p_analyze.add_argument("--margin", type=float, default=None,
-                           help="TOST equivalence margin δ (§0.1 human parameter — no default)")
+                           help="TOST equivalence margin δ (human parameter; no default)")
     p_analyze.add_argument("--worst-cell-gate", type=float, default=None,
-                           help="worst-cell gate in absolute rate points (§0.1 — no default)")
-    p_analyze.add_argument("--reference-arm", default="R")
-    p_analyze.add_argument("--composite-arm", default="B5+B3+B6")
-    p_analyze.add_argument("--b5-arm", default="B5")
+                           help="worst-cell gate in absolute rate points (no default)")
+    p_analyze.add_argument(
+        "--reference-arm", default="R", help="reference arm id (default: R)"
+    )
+    p_analyze.add_argument(
+        "--composite-arm",
+        default="B5+B3+B6",
+        help="composite comparator arm id (default: B5+B3+B6)",
+    )
+    p_analyze.add_argument(
+        "--b5-arm", default="B5", help="durable-runtime comparator arm id (default: B5)"
+    )
 
     p_run = bench_sub.add_parser(
-        "run", help="confirmatory benchmark run (M7; refused pre-freeze)"
+        "run",
+        help="confirmatory benchmark run (refused pre-freeze)",
+        description=(
+            "Attempt a confirmatory run; refuse unless the human-controlled "
+            "freeze registration verifies."
+        ),
     )
-    p_run.add_argument("--fixtures", required=True)
-    p_run.add_argument("--out", default="bench/runs")
-    p_run.add_argument("--arms", default=None)
-    p_run.add_argument("--dsn", default=None)
+    p_run.add_argument(
+        "--fixtures", required=True, help="frozen fixture-set directory"
+    )
+    p_run.add_argument(
+        "--out", default="bench/runs", help="run-output directory (default: bench/runs)"
+    )
+    p_run.add_argument(
+        "--arms", default=None, help="comma-separated arm ids (default: registered arms)"
+    )
+    p_run.add_argument(
+        "--dsn", default=None, help="Postgres admin DSN when a selected arm requires it"
+    )
 
     p_freeze = bench_sub.add_parser(
         "freeze",
         help="freeze-registration tooling: draft the machine-verifiable "
              "package or verify an existing registration (the freeze act "
              "itself is human-only)",
+        description=(
+            "Draft freeze bindings or verify an existing human-created "
+            "registration. This command never performs the freeze act."
+        ),
     )
-    p_freeze.add_argument("--stage", choices=("A", "B"), required=True)
+    p_freeze.add_argument(
+        "--stage",
+        choices=("A", "B"),
+        required=True,
+        help="registration stage to draft or verify",
+    )
     mode_f = p_freeze.add_mutually_exclusive_group(required=True)
     mode_f.add_argument("--draft-out", default=None,
                         help="write registration.draft.json (bindings filled, "

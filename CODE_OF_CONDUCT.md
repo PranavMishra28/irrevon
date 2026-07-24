@@ -75,12 +75,13 @@ of Conduct reinforces encouraged behaviors and norms that can help avoid conflic
 and minimize harm.
 
 When an incident does occur, it is important to report it promptly. For GitHub
-content, use GitHub's own reporting and blocking tools. If a report can safely be
-public, open an issue using the question form and ask the repository owner to follow
-up. Do **not** use the private vulnerability-reporting form for conduct reports:
-that channel is reserved for security vulnerabilities. A project-specific
-confidential conduct-reporting channel is not currently available; this is a
-documented solo-maintainer limitation, not an implied private contact.
+content, use GitHub's own reporting and blocking tools. If a report can safely
+be public, note that Discussions is currently disabled and the project exposes
+no public Discussion channel. Do **not** use the private
+vulnerability-reporting form for conduct reports: that channel is reserved for
+security vulnerabilities. A project-specific confidential conduct-reporting
+channel is not currently available; this is a documented solo-maintainer
+limitation, not an implied private contact.
 
 Community Moderators take reports of violations seriously and will make every effort
 to respond in a timely manner. They will investigate all reports of code of conduct

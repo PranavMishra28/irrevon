@@ -38,6 +38,13 @@ const repoUrl = resolveRepoUrl();
 function resolveBuildCommit() {
   const candidate = process.env.VERCEL_GIT_COMMIT_SHA;
   if (candidate && /^[0-9a-f]{40}$/.test(candidate)) return candidate;
+  const productionBuild =
+    process.env.VERCEL_ENV === "production" || process.env.SITE_ENVIRONMENT === "production";
+  if (productionBuild) {
+    throw new Error(
+      "irrevon-site: production builds require VERCEL_GIT_COMMIT_SHA as an exact 40-character commit",
+    );
+  }
   try {
     const local = execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
     if (/^[0-9a-f]{40}$/.test(local)) return local;

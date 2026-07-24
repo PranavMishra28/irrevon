@@ -41,7 +41,7 @@ const description =
           <a class="btn btn-secondary" href={href("/how-it-works/")}>How it works</a>
         </div>
         <p class="hero-note">
-          Pre-release · not on any package index · benchmark draft, S-REF pilots disclosed
+          Pre-release · not on any package index · benchmark draft, synthetic development pilots disclosed
         </p>
       </div>
       <aside class="hero-proof" aria-label="Recorded demo outcome">
@@ -77,7 +77,7 @@ const description =
             <dd class="hero-proof-note">duplicate rejected, with evidence</dd>
           </div>
           <div>
-            <dt>B5 baseline leg</dt>
+            <dt>Durable-runtime baseline leg (B5)</dt>
             <dd><strong>2</strong> destination effects</dd>
             <dd class="hero-proof-note">idempotency key sent — and ignored</dd>
           </div>
@@ -97,8 +97,8 @@ const description =
         <p class="lead">
           The flagship demo persists an intent, loses the dispatch response on cue, is really SIGKILLed, and
           recovers by asking the destination — then rejects the agent’s re-worded retry as a duplicate of the
-          same stable identity. A developmental file-journal B5 stand-in, under the identical fault schedule,
-          creates the duplicate.
+          same stable identity. A developmental file-journal durable-runtime comparison (benchmark arm B5),
+          under the identical fault schedule, creates the duplicate.
         </p>
       </div>
       <DemoTranscript />
@@ -175,7 +175,7 @@ const description =
           <Source id="compensation-not-rollback" />
         </article>
         <article class="panel cannot">
-          <h3>No advantage on C1 — expected, and pre-committed</h3>
+          <h3>No advantage on destinations with native idempotency (tier C1)</h3>
           <p>
             Destinations with dependable native idempotency already prevent duplicates. {SITE_NAME} expects to
             add nothing there, and the benchmark pre-commits to reporting that null as prominently as any win.
@@ -183,7 +183,7 @@ const description =
           <Source id="c1-null-precommit" />
         </article>
         <article class="panel cannot">
-          <h3>C3 is an impossibility boundary</h3>
+          <h3>Opaque destinations are an impossibility boundary (tier C3)</h3>
           <p>
             Opaque destinations — no key, no query, no stable ID — make lost and orphaned effects undetectable
             for every method. The benchmark demonstrates that boundary instead of hiding it.
@@ -251,10 +251,11 @@ const description =
       <div class="status-banner" role="note">
         <span class="status-title">Draft methodology — no scientific results yet</span>
         <p>
-          The preregistration is a <strong>draft</strong>; nothing is frozen. Synthetic S-REF development
-          pilots have occurred and are disclosed, but no live-sandbox observation or confirmatory run has
-          occurred. If the preselected composite comparator matches {SITE_NAME} on C2 destinations, the
-          pre-committed falsification criterion fires: {SITE_NAME} is unnecessary, and the project says so.
+          The preregistration is a <strong>draft</strong>; nothing is frozen. Synthetic reference-destination
+          development pilots (S-REF) have occurred and are disclosed, but no live-sandbox observation or
+          confirmatory run has occurred. If the preselected composite comparator matches {SITE_NAME} on
+          queryable destinations (tier C2), the pre-committed falsification criterion fires: {SITE_NAME} is
+          unnecessary, and the project says so.
         </p>
         <Source id="prereg-draft-status" also={["developmental-pilot-disclosure", "kill-criterion"]} />
       </div>
@@ -275,17 +276,19 @@ const description =
         <span class="kicker">Get started</span>
         <h2>Clone it and run the flagship demo</h2>
         <p class="lead">
-          Pre-release: nothing is on a package index; the repository is Apache-2.0-licensed (ADR-0028). The
-          demo runs locally against a deterministic reference destination — about five minutes with uv and
-          Docker.
+          Pre-release: nothing is on a package index; the repository is Apache-2.0-licensed. The
+          demo runs locally against a deterministic reference destination with uv and Docker.
         </p>
       </div>
       <pre data-analytics-copy-event="clone_command_copy" data-analytics-placement="body"><code>git clone {REPO_URL}.git && cd irrevon
-uv sync --locked        # toolchain + deps, pinned by uv.lock
-uv run irrevon init      # config, compose file, then migrations
-docker compose up -d --wait
-uv run irrevon doctor    # read-only checks incl. the identity self-test
-uv run irrevon demo      # the two-leg flagship story</code></pre>
+uv sync --locked                # toolchain + deps, pinned by uv.lock
+uv run irrevon init             # writes config, compose.yaml, and .env.example
+cp .env.example .env            # local migration bootstrap; no credential
+set -a && . ./.env && set +a    # export the generated migration DSN
+docker compose up -d --wait     # digest-pinned Postgres 17, loopback only
+uv run irrevon init             # now applies the plain-SQL migrations
+uv run irrevon doctor           # checks, including a rolled-back write probe
+uv run irrevon demo             # the two-leg flagship story</code></pre>
       <div style="margin-top: 14px;">
         <Source id="quickstart-real" also={["not-published", "license-apache2"]} />
       </div>

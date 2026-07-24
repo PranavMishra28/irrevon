@@ -109,6 +109,10 @@ def test_doctor_fails_cleanly_when_db_unreachable(
     out = json.loads(capsys.readouterr().out)
     assert rc == 3  # declared outcome, not a crash
     assert out["ok"] is False
+    ledger = next(check for check in out["checks"] if check["name"] == "ledger_db")
+    assert ledger["hint"] == (
+        "docker compose up -d --wait && irrevon init && irrevon doctor"
+    )
 
 
 def test_config_unknown_keys_rejected(tmp_path: Path, capsys: Any) -> None:
@@ -125,12 +129,22 @@ def test_config_unknown_keys_rejected(tmp_path: Path, capsys: Any) -> None:
 
 
 def test_demo_exits_zero_with_the_contrast(
-    template_db: str, tmp_path: Path
+    template_db: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """T-104 acceptance: `irrevon demo` exits 0 with the Irrevon leg at 1
     destination effect + reconciled SETTLED_COMMITTED + evidenced dedup deny,
     and the B5 leg at 2 destination effects, proven by read-back."""
-    _write_config(tmp_path, ADMIN_DSN)
+    # The generated scaffold separates the runtime role from migration
+    # authority. Reproduce that boundary exactly: the demo engine connects as
+    # irrevon_app, while only the explicitly exported migration DSN may create,
+    # migrate, and later remove the disposable demo database.
+    runtime_dsn = psycopg.conninfo.make_conninfo(
+        ADMIN_DSN, user="irrevon_app"
+    )
+    _write_config(tmp_path, runtime_dsn)
+    monkeypatch.setenv("IRREVON_MIGRATION_DSN", ADMIN_DSN)
     artifact = tmp_path / "irrevon-demo-artifact.json"
     proc = subprocess.run(
         [sys.executable, "-m", "irrevon.cli", "demo", "--jsonl", "--no-keep",

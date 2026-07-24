@@ -1,115 +1,119 @@
-# Irrevon — Dependabot: noise-contained configuration (rationale: docs/ci.md workflow map, dependabot row).
-# Target steady state: at most one grouped version PR per configured lane per month (≤4/month),
-# plus rare security PRs (which bypass schedule and cooldown by design).
-# github-actions cooldown is the tag-hijack shield: action compromises have historically
-# been detected within days, and security updates bypass cooldown by design.
-# Owner prerequisite (Settings -> Advanced Security): Dependabot alerts +
-# security updates ON — see docs/ci.md.
+# Irrevon dependency policy: one monthly routine pull request across every
+# supported ecosystem, plus prompt per-ecosystem security remediation.
+#
+# GitHub does not combine security updates across ecosystems. Each update entry
+# therefore keeps an explicit security group while routine version updates join
+# `monthly-routine`. No auto-merge is configured. Frontend/site majors are
+# intentionally excluded from routine automation and reviewed quarterly.
+#
+# Owner prerequisite (Settings -> Advanced Security): Dependabot alerts,
+# security updates, and repository-level grouped security updates ON.
 version: 2
+
+multi-ecosystem-groups:
+  monthly-routine:
+    schedule:
+      interval: "monthly"
+    assignees:
+      - "PranavMishra28"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
-    schedule:
-      interval: "monthly"
+    patterns: ["*"]
+    multi-ecosystem-group: "monthly-routine"
     cooldown:
       default-days: 7
     groups:
-      actions-all:
+      actions-security:
+        applies-to: security-updates
         patterns: ["*"]
-    commit-message:
-      prefix: "ci"
     open-pull-requests-limit: 1
     assignees:
       - "PranavMishra28"
+    labels:
+      - "dependencies"
 
-  # Backend (Python/uv per ADR-0013). Single rolled-up PR covering all update types;
-  # majors are slowed (not blocked) by the 30-day major cooldown — pyproject uses
-  # ranged requirements, so majors are lower-risk than in the exact-pinned frontend.
+  # Backend (Python/uv per ADR-0013). Majors retain a longer cooldown; every
+  # routine version remains part of the one cross-ecosystem monthly PR.
   - package-ecosystem: "uv"
     directory: "/"
-    schedule:
-      interval: "monthly"
+    patterns: ["*"]
+    multi-ecosystem-group: "monthly-routine"
     cooldown:
       default-days: 7
       semver-major-days: 30
     groups:
-      python-all:
-        patterns: ["*"]
       python-security:
         applies-to: security-updates
         patterns: ["*"]
-    commit-message:
-      prefix: "deps"
     open-pull-requests-limit: 1
     assignees:
       - "PranavMishra28"
+    labels:
+      - "dependencies"
 
-  # Frontend (pnpm via the npm ecosystem). Exact-pinned stack per ADR-0016: major
-  # bumps are ignored here and arrive only via deliberate, human-scheduled upgrades.
-  # cooldown default-days: 7 is deliberately aligned with pnpm-workspace.yaml's
-  # minimumReleaseAge: 10080 (7 days) so Dependabot never proposes a version too
-  # young for pnpm to install (see rationale §5).
+  # Exact-pinned Workbench stack. Major upgrades are a quarterly, manual
+  # compatibility exercise; security updates are never suppressed by this
+  # version-update-only ignore rule.
   - package-ecosystem: "npm"
     directory: "/web"
-    schedule:
-      interval: "monthly"
+    patterns: ["*"]
+    multi-ecosystem-group: "monthly-routine"
     cooldown:
       default-days: 7
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
     groups:
-      web-minor-patch:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
       web-security:
         applies-to: security-updates
         patterns: ["*"]
-    commit-message:
-      prefix: "deps"
     open-pull-requests-limit: 1
     assignees:
       - "PranavMishra28"
+    labels:
+      - "dependencies"
 
-  # Runtime/reproducibility containers. Digests stay authoritative; Dependabot
-  # proposes reviewed digest refreshes rather than allowing mutable tags.
+  # Runtime/reproducibility container digests remain authoritative. Dependabot
+  # proposes reviewed digest refreshes without allowing mutable runtime tags.
   - package-ecosystem: "docker"
     directory: "/"
-    schedule:
-      interval: "monthly"
+    patterns: ["*"]
+    multi-ecosystem-group: "monthly-routine"
     cooldown:
       default-days: 7
     groups:
-      containers-all:
+      containers-security:
+        applies-to: security-updates
         patterns: ["*"]
-    commit-message:
-      prefix: "deps"
     open-pull-requests-limit: 1
     assignees:
       - "PranavMishra28"
+    labels:
+      - "dependencies"
 
-  # Marketing/docs site (pnpm via the npm ecosystem). This is an independent
-  # package.json + pnpm-lock.yaml tree, so it needs its own update lane. Match
-  # the exact-pinned frontend posture: human-reviewed majors, grouped minor/
-  # patch versions, grouped security updates, and the 7-day release-age gate.
+  # Exact-pinned marketing/docs stack, with the same routine-major boundary as
+  # the Workbench and its own prompt security-remediation group.
   - package-ecosystem: "npm"
     directory: "/site"
-    schedule:
-      interval: "monthly"
+    patterns: ["*"]
+    multi-ecosystem-group: "monthly-routine"
     cooldown:
       default-days: 7
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
     groups:
-      site-minor-patch:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
       site-security:
         applies-to: security-updates
         patterns: ["*"]
-    commit-message:
-      prefix: "deps"
     open-pull-requests-limit: 1
     assignees:
       - "PranavMishra28"
+    labels:
+      - "dependencies"

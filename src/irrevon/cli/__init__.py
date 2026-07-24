@@ -38,35 +38,82 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--version", action="version", version=f"irrevon {__version__}")
     common = argparse.ArgumentParser(add_help=False)
-    common.add_argument("--config", help="path to irrevon.toml", default=None)
-    common.add_argument("-q", "--quiet", action="store_true")
-    common.add_argument("--no-color", action="store_true")
+    common.add_argument(
+        "--config",
+        help="path to irrevon.toml (default: search the current directory and parents)",
+        default=None,
+    )
     sub = parser.add_subparsers(dest="command")
 
     p_init = sub.add_parser(
         "init",
         help="scaffold irrevon.toml, compose.yaml, .env.example",
+        description=(
+            "Scaffold local configuration and apply migrations when explicit "
+            "IRREVON_MIGRATION_DSN authority is available."
+        ),
         parents=[common],
     )
-    p_init.add_argument("--force", action="store_true")
-    p_init.add_argument("--dir", default=".")
-    p_init.add_argument("--json", action="store_true")
+    p_init.add_argument(
+        "--force",
+        action="store_true",
+        help="overwrite scaffold files that already exist",
+    )
+    p_init.add_argument(
+        "--dir",
+        default=".",
+        help="directory to scaffold (default: current directory)",
+    )
+    p_init.add_argument(
+        "--json", action="store_true", help="emit one machine-readable result document"
+    )
 
     p_doctor = sub.add_parser(
-        "doctor", help="read-only environment validation", parents=[common]
+        "doctor",
+        help="read-only environment validation",
+        description=(
+            "Validate configuration, identity conformance, ledger readiness, "
+            "adapter declarations, and credential presence without dispatching."
+        ),
+        parents=[common],
     )
     p_doctor.add_argument("--probe", action="store_true",
                           help="opt into declared read-only liveness calls")
-    p_doctor.add_argument("--json", action="store_true")
+    p_doctor.add_argument(
+        "--json", action="store_true", help="emit one machine-readable check document"
+    )
 
     p_demo = sub.add_parser(
-        "demo", help="the flagship demo incl. the B5 contrast leg", parents=[common]
+        "demo",
+        help="deterministic lost-response demo with a durable-retry contrast",
+        description=(
+            "Run the deterministic lost-response demonstration and compare "
+            "reconcile-before-retry with a conventional durable retry."
+        ),
+        parents=[common],
     )
-    p_demo.add_argument("--seed", type=int, default=None)
-    p_demo.add_argument("--leg", choices=("irrevon", "b5", "both"), default="both")
+    p_demo.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="deterministic demo seed (default: irrevon.toml [demo].seed or 42)",
+    )
+    p_demo.add_argument(
+        "--leg",
+        choices=("irrevon", "b5", "both"),
+        default="both",
+        help=(
+            "run the Irrevon leg, durable-retry contrast leg (`b5`), "
+            "or both (default: both)"
+        ),
+    )
     p_demo.add_argument("--keep", action=argparse.BooleanOptionalAction, default=True,
                         help="retain the demo database for `irrevon inspect`")
-    p_demo.add_argument("--jsonl", action="store_true")
+    p_demo.add_argument(
+        "--jsonl",
+        action="store_true",
+        help="emit events followed by the summary as JSON Lines",
+    )
     p_demo.add_argument("--artifact", default="./irrevon-demo-artifact.json",
                         help="write the demo events + summary here on completion "
                              "(`irrevon serve` exposes it at /api/v1/demo/artifact)")
@@ -76,6 +123,10 @@ def _build_parser() -> argparse.ArgumentParser:
     p_serve = sub.add_parser(
         "serve",
         help="loopback read-only workbench server (127.0.0.1 only; GET/HEAD only)",
+        description=(
+            "Serve the read-only Workbench and evidence API on 127.0.0.1. "
+            "Only GET and HEAD requests are accepted."
+        ),
         parents=[common],
     )
     p_serve.add_argument(
@@ -89,6 +140,12 @@ def _build_parser() -> argparse.ArgumentParser:
                          help="file backing /api/v1/demo/artifact")
     p_serve.add_argument("--open", action="store_true",
                          help="open the workbench in the default browser")
+    p_serve.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        help="suppress HTTP request logs (the ready line is still emitted)",
+    )
     p_serve.add_argument("--json", action="store_true",
                          help="print the ready line as one JSON document on stdout")
 
@@ -98,7 +155,10 @@ def _build_parser() -> argparse.ArgumentParser:
 
     p_worker = sub.add_parser(
         "worker",
-        help="continuous reconciliation service (single-writer; ADR-0034 proposed)",
+        help="continuous single-writer reconciliation service",
+        description=(
+            "Run the single-writer recovery, reconciliation, and orphan-sweep loop."
+        ),
         parents=[common],
     )
     p_worker.add_argument("--dsn", default=None,
@@ -115,12 +175,21 @@ def _build_parser() -> argparse.ArgumentParser:
                                "default: run until SIGTERM/SIGINT)")
 
     p_inspect = sub.add_parser(
-        "inspect", help="the ledger-only evidence view", parents=[common]
+        "inspect",
+        help="the ledger-only evidence view",
+        description=(
+            "Inspect ledger evidence for one effect without contacting a destination."
+        ),
+        parents=[common],
     )
-    p_inspect.add_argument("identifier")
+    p_inspect.add_argument(
+        "identifier", help="effect id or stable upstream identifier to inspect"
+    )
     p_inspect.add_argument("--reveal", action="store_true",
                            help="show stable-id values (redacted by default)")
-    p_inspect.add_argument("--json", action="store_true")
+    p_inspect.add_argument(
+        "--json", action="store_true", help="emit one machine-readable evidence view"
+    )
     p_inspect.add_argument("--dsn", default=None,
                            help="override the ledger DSN (e.g. a kept demo database)")
 

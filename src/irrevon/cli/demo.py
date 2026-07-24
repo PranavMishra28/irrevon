@@ -44,7 +44,7 @@ from irrevon.adapters.base import declarations_dir, load_declaration
 from irrevon.adapters.refdest import RefdestAdapter
 from irrevon.api.baselines import B5DurableRuntime
 from irrevon.cli.config import Config
-from irrevon.errors import ConfigInvalid
+from irrevon.errors import ConfigInvalid, StorageUnavailable
 from irrevon.ledger.db import apply_migrations
 
 # ── The frozen demo fixture (fixture-driven; not generated at run time) ───────
@@ -233,6 +233,29 @@ def _demo_dsn(config: Config, seed: int) -> tuple[str, str]:
     return psycopg.conninfo.make_conninfo(base, dbname=demo_db), demo_db
 
 
+def _demo_migration_dsn() -> str:
+    """Return the explicitly delegated database-administration connection.
+
+    The normal runtime role is intentionally unable to create or drop
+    databases. Demo lifecycle operations therefore use the same explicit
+    migration authority as ``irrevon init`` instead of silently escalating the
+    configured runtime DSN.
+    """
+    raw = os.environ.get("IRREVON_MIGRATION_DSN")
+    if not raw:
+        raise ConfigInvalid(
+            "the Irrevon demo requires IRREVON_MIGRATION_DSN for its disposable "
+            "demo database; export it directly, or copy .env.example to .env "
+            "and source .env as shown in the README quickstart"
+        )
+    try:
+        return psycopg.conninfo.make_conninfo(raw)
+    except psycopg.ProgrammingError as err:
+        raise ConfigInvalid(
+            "IRREVON_MIGRATION_DSN is not valid PostgreSQL connection information"
+        ) from err
+
+
 def _display_demo_dsn(config: Config, demo_db: str) -> str:
     """Secret-free DSN for copy/paste output.
 
@@ -246,22 +269,46 @@ def _display_demo_dsn(config: Config, demo_db: str) -> str:
     return psycopg.conninfo.make_conninfo("", **safe_params)
 
 
-def _reset_demo_database(config: Config, seed: int) -> str:
+def _reset_demo_database(config: Config, seed: int, migration_dsn: str) -> str:
     demo_dsn, demo_db = _demo_dsn(config, seed)
-    with psycopg.connect(config.resolved_dsn(), autocommit=True) as admin:
-        admin.execute(
-            """
-            SELECT pg_terminate_backend(pid) FROM pg_stat_activity
-            WHERE datname = %s AND pid <> pg_backend_pid()
-            """,
-            (demo_db,),
-        )
-        admin.execute(
-            sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(demo_db))
-        )
-        admin.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(demo_db)))
-    apply_migrations(demo_dsn)
+    migration_demo_dsn = psycopg.conninfo.make_conninfo(migration_dsn, dbname=demo_db)
+    try:
+        with psycopg.connect(migration_dsn, autocommit=True) as admin:
+            admin.execute(
+                """
+                SELECT pg_terminate_backend(pid) FROM pg_stat_activity
+                WHERE datname = %s AND pid <> pg_backend_pid()
+                """,
+                (demo_db,),
+            )
+            admin.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(demo_db)))
+            admin.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(demo_db)))
+        apply_migrations(migration_demo_dsn)
+    except (psycopg.Error, StorageUnavailable) as err:
+        raise ConfigInvalid(
+            "demo database setup failed using IRREVON_MIGRATION_DSN; verify that "
+            "Postgres is reachable and the delegated role can create databases"
+        ) from err
     return demo_dsn
+
+
+def _drop_demo_database(seed: int, migration_dsn: str) -> None:
+    demo_db = f"irrevon_demo_s{seed}"
+    try:
+        with psycopg.connect(migration_dsn, autocommit=True) as admin:
+            admin.execute(
+                """
+                SELECT pg_terminate_backend(pid) FROM pg_stat_activity
+                WHERE datname = %s AND pid <> pg_backend_pid()
+                """,
+                (demo_db,),
+            )
+            admin.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(demo_db)))
+    except psycopg.Error as err:
+        raise ConfigInvalid(
+            "demo database cleanup failed using IRREVON_MIGRATION_DSN; verify "
+            "that Postgres is reachable and the delegated role can drop databases"
+        ) from err
 
 
 def _sql(dsn: str, query: str, params: tuple[Any, ...] = ()) -> list[dict[str, Any]]:
@@ -280,10 +327,19 @@ def run_demo(
 ) -> int:
     if seed < 0 or seed > 2_147_483_647:
         raise ConfigInvalid("demo seed must be between 0 and 2147483647")
+    migration_dsn = _demo_migration_dsn() if leg in ("irrevon", "both") else None
     emit = _Emitter(jsonl, sys.stdout)
     refdest_proc = subprocess.Popen(
-        [sys.executable, "-I", "-m", "irrevon.adapters.refdest_server", "--port", "0",
-         "--seed", str(seed)],
+        [
+            sys.executable,
+            "-I",
+            "-m",
+            "irrevon.adapters.refdest_server",
+            "--port",
+            "0",
+            "--seed",
+            str(seed),
+        ],
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
         text=True,
@@ -297,7 +353,8 @@ def run_demo(
         ready = _read_process_line(refdest_proc, timeout_s=30)
         base_url = f"http://127.0.0.1:{int(ready.rsplit(' ', 1)[1])}"
         if leg in ("irrevon", "both"):
-            demo_dsn = _reset_demo_database(config, seed)
+            assert migration_dsn is not None
+            demo_dsn = _reset_demo_database(config, seed, migration_dsn)
             irrevon_leg = _run_irrevon_leg(emit, demo_dsn, base_url)
         if leg in ("b5", "both"):
             _control(base_url, "/control/reset", {"seed": seed})
@@ -307,12 +364,8 @@ def run_demo(
             worker.close()
         _close_process(refdest_proc)
         if not keep and demo_dsn:
-            with psycopg.connect(config.resolved_dsn(), autocommit=True) as admin:
-                admin.execute(
-                    sql.SQL("DROP DATABASE IF EXISTS {}").format(
-                        sql.Identifier(f"irrevon_demo_s{seed}")
-                    )
-                )
+            assert migration_dsn is not None
+            _drop_demo_database(seed, migration_dsn)
 
     # The contrast: Irrevon leg clean AND B5 leg duplicates. NEVER weakened to
     # force exit 0 (§8.3/§8.6): if B5 stops duplicating, the premise is wrong
@@ -326,14 +379,11 @@ def run_demo(
         )
     if leg in ("b5", "both"):
         contrast_holds &= (
-            b5_leg.get("destination_effects") == 2
-            and b5_leg.get("duplicate_created") is True
+            b5_leg.get("destination_effects") == 2 and b5_leg.get("duplicate_created") is True
         )
 
     effect_id = irrevon_leg.get("effect_id")
-    workbench_url = (
-        f"http://127.0.0.1:5180/effects/{effect_id}" if effect_id else None
-    )
+    workbench_url = f"http://127.0.0.1:5180/effects/{effect_id}" if effect_id else None
     summary = {
         "schema_version": "1",
         "seed": seed,
@@ -371,9 +421,7 @@ def run_demo(
             _, demo_db = _demo_dsn(config, seed)
             display_dsn = _display_demo_dsn(config, demo_db)
             artifact_flag = (
-                f" --demo-artifact {shlex.quote(str(artifact))}"
-                if artifact is not None
-                else ""
+                f" --demo-artifact {shlex.quote(str(artifact))}" if artifact is not None else ""
             )
             print(
                 f"\n  inspect it: irrevon inspect {effect_id} --dsn {shlex.quote(display_dsn)}\n"
@@ -384,9 +432,7 @@ def run_demo(
     return 0 if contrast_holds else 3
 
 
-def _run_irrevon_leg(
-    emit: _Emitter, demo_dsn: str, base_url: str
-) -> dict[str, Any]:
+def _run_irrevon_leg(emit: _Emitter, demo_dsn: str, base_url: str) -> dict[str, Any]:
     emit.section("Leg 1 — Irrevon")
     worker = _Worker(demo_dsn, base_url)
     reg = worker.send(
@@ -400,9 +446,11 @@ def _run_irrevon_leg(
         lifecycle=reg["lifecycle"],
     )
 
-    _control(base_url, "/control/schedule", {
-        "entries": [{"match": {"op": "create"}, "fault": "DROP_RESPONSE_AFTER_COMMIT"}]
-    })
+    _control(
+        base_url,
+        "/control/schedule",
+        {"entries": [{"match": {"op": "create"}, "fault": "DROP_RESPONSE_AFTER_COMMIT"}]},
+    )
     result = worker.send("DISPATCH " + effect_id)
     emit.event(
         "dispatch_response_lost",
@@ -428,11 +476,13 @@ def _run_irrevon_leg(
         recovery=json.loads(worker2.recovery.removeprefix("RECOVERY DONE ")),
     )
     frontier = _sql(
-        demo_dsn, "SELECT frontier FROM effect_frontiers WHERE effect_id = %s",
+        demo_dsn,
+        "SELECT frontier FROM effect_frontiers WHERE effect_id = %s",
         (effect_id,),
     )[0]["frontier"]
     findings = _sql(
-        demo_dsn, "SELECT classification FROM findings WHERE effect_id = %s",
+        demo_dsn,
+        "SELECT classification FROM findings WHERE effect_id = %s",
         (effect_id,),
     )
     emit.event(
@@ -444,8 +494,7 @@ def _run_irrevon_leg(
     )
 
     retry = worker2.send(
-        "REGISTER "
-        + json.dumps(_contract(DEMO_PARAMETERS_RESYNTHESIZED, "auth_approved_task_22"))
+        "REGISTER " + json.dumps(_contract(DEMO_PARAMETERS_RESYNTHESIZED, "auth_approved_task_22"))
     )
     emit.event(
         "resynthesis_collapsed",
@@ -470,22 +519,21 @@ def _run_irrevon_leg(
     effects = list(_control(base_url, "/control/state")["effects"])
     return {
         "destination_effects": len(effects),
-        "duplicate_rejected": deny["outcome"] == "denied"
-        and deny["deny_check"] == "dedup",
+        "duplicate_rejected": deny["outcome"] == "denied" and deny["deny_check"] == "dedup",
         "reconciled": frontier,
         "effect_id": effect_id,
     }
 
 
 def _run_b5_leg(emit: _Emitter, base_url: str) -> dict[str, Any]:
-    emit.section(
-        "Leg 2 — B5 baseline (durable runtime + stable op-IDs + idempotency keys)"
-    )
+    emit.section("Leg 2 — B5 baseline (durable runtime + stable op-IDs + idempotency keys)")
     declaration = load_declaration(declarations_dir() / "refdest-c2.capability.json")
     adapter = RefdestAdapter("refdest-c2", declaration, base_url=base_url)
-    _control(base_url, "/control/schedule", {
-        "entries": [{"match": {"op": "create"}, "fault": "DROP_RESPONSE_AFTER_COMMIT"}]
-    })
+    _control(
+        base_url,
+        "/control/schedule",
+        {"entries": [{"match": {"op": "create"}, "fault": "DROP_RESPONSE_AFTER_COMMIT"}]},
+    )
 
     with tempfile.TemporaryDirectory() as tmp:
         journal = Path(tmp) / "b5-journal.json"

@@ -2,11 +2,15 @@
 # Build and verify release artifacts without publishing, tagging, or signing.
 set -euo pipefail
 
-version=$(uv run python -c 'import irrevon; print(irrevon.__version__)')
+version=$(uv run --locked python -c 'import irrevon; print(irrevon.__version__)')
 if [ "${IRREVON_ALLOW_RELEASE_VERSION:-0}" != "1" ]; then
   case "$version" in
     *dev*) ;;
-    *) echo "release-dry-run: expected an unpublished development version, got $version" >&2; exit 1 ;;
+    *)
+      echo "release-dry-run: refusing non-development version $version without" >&2
+      echo "IRREVON_ALLOW_RELEASE_VERSION=1 (candidate validation only; never publishes)" >&2
+      exit 1
+      ;;
   esac
 fi
 
@@ -16,9 +20,22 @@ sdist=$(find dist -maxdepth 1 -type f -name '*.tar.gz' -print -quit)
 wheel=$(find dist -maxdepth 1 -type f -name '*.whl' -print -quit)
 [ -n "$sdist" ] && [ -n "$wheel" ]
 python3 scripts/check-dist-contents.py "$sdist" "$wheel"
+# Twine delegates to the same readme-renderer stack PyPI uses. Its direct and
+# transitive dependencies are resolved by uv.lock; --strict turns every
+# rendering warning into a release-gate failure. Hash the inputs before and
+# after so this validator cannot silently change the artifacts that are later
+# checksummed, attested, and published.
+hashes_before=$(sha256sum -- "$sdist" "$wheel")
+uv run --locked --group release-validation twine check --strict "$sdist" "$wheel"
+hashes_after=$(sha256sum -- "$sdist" "$wheel")
+test "$hashes_before" = "$hashes_after" || {
+  echo "release-dry-run: Twine changed a candidate artifact" >&2
+  exit 1
+}
+python3 scripts/check-dist-contents.py "$sdist" "$wheel"
 
 python3 scripts/build-sbom.py --version "$version" --output dist/irrevon.spdx.json
-uv run pyspdxtools -i dist/irrevon.spdx.json
+uv run --locked --group release-validation pyspdxtools -i dist/irrevon.spdx.json
 (
   cd dist
   sha256sum -- *.tar.gz *.whl irrevon.spdx.json > SHA256SUMS

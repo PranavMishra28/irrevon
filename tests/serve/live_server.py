@@ -52,6 +52,7 @@ def main() -> int:
                 "--jsonl", "--keep", "--seed", str(SEED),
                 "--artifact", artifact, "--config", str(config_path),
             ],
+            env={**os.environ, "IRREVON_MIGRATION_DSN": admin_dsn},
             stdout=sys.stderr,  # stdout is reserved for the serve ready line
             timeout=300,
             check=False,

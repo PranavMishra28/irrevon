@@ -213,11 +213,13 @@ On the default branch, GitHub will surface “Cite this repository.”
 Owner-only settings:
 
 1. Keep the repository description accurate. The configured homepage is
-   `https://irrevon.vercel.app/`, but on 2026-07-24 it returned Vercel
-   `DEPLOYMENT_PAUSED` rather than the site. Before launch, the owner must
-   unpause or redeploy it and verify a final 200 response, expected security
-   headers, canonical URLs, and production crawler policy. Until then, do not
-   describe the site as live.
+   `https://irrevon.vercel.app/`. The 2026-07-24 read-back served content
+   matching the July 22 pre-main build, while `/version.json` was absent. That
+   comparison is not cryptographic proof of the deployed commit. Before launch,
+   the owner must deploy the reviewed production artifact and verify a final
+   200 response, `/version.json`, intended commit/version, expected security
+   headers, canonical URLs, and production crawler policy. Until then, the
+   repository is the current source of truth and the alias is stale.
 2. Add no more than 20 natural lowercase topics. Suggested set:
    `ai-agents`, `agent-reliability`, `distributed-systems`, `reconciliation`,
    `idempotency`, `fault-injection`, `benchmark`, `python`, `postgresql`,
@@ -229,6 +231,13 @@ Owner-only settings:
    active workflow.
 5. Review whether an empty Wiki should remain enabled. Do not open a new
    feedback/governance channel without an owner policy for moderation.
+6. GitHub Discussions is currently disabled and no Discussion link is
+   exposed. Before exposing one, enable Discussions; create or verify
+   `Announcements`, `Q&A`, `Ideas and feedback`, and `Show and tell`; publish
+   and pin a welcome post; and read back every category URL. Issues remain
+   authoritative for bugs, documentation, benchmark-integrity reports, and
+   scoped proposals; private vulnerability reporting remains the only
+   security-report path.
 
 ## Measurement cadence and interpretation
 
