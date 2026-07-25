@@ -3,8 +3,9 @@ message: "If you use Irrevon or IrrevonBench, cite this software and the exact v
 title: "Irrevon: evidence-first reconciliation for irreversible AI-agent actions"
 type: software
 version: "0.1.0"
+date-released: 2026-07-25
 abstract: >-
-  An Apache-2.0 research-preview reconciliation engine and draft benchmark for
+  An Apache-2.0 Alpha reconciliation engine and draft benchmark for
   ambiguous outcomes at irreversible AI-agent action boundaries. The software
   persists intent before dispatch, preserves uncertainty after lost responses,
   and uses capability-bounded destination evidence during recovery. Development

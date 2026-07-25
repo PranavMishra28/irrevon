@@ -79,28 +79,20 @@ future version, another package or repository, direct local package upload, forc
 history rewrite, secret access, live-provider activation, benchmark freeze, false claims,
 or spending.
 
-The shell allowlist additionally requires `IRREVON_V010_LAUNCH=1` on each permitted
-mutating REST or tag command. That marker records deliberate entry into the scoped path;
-it does not replace authentication, endpoint checks, the protected PR path, environment
-review, workflow guards, or post-mutation read-back. Package publication and the GitHub
-Release remain owned by the protected tag-triggered workflow. The authorization expires
-on the completion conditions in `AGENTS.md`, after which these operations return to
-human-only status `[VF]`.
+The shell allowlist required `IRREVON_V010_LAUNCH=1` on each permitted
+mutating REST or tag command. Both recovery exceptions were consumed and the
+software publication completed. The hook now makes that marker fail closed;
+repository settings, publication, releases, tags, and production deployment are
+human-only unless a later committed owner authorization establishes a new
+reviewed allowlist `[VF]`.
 
-One recovery exception is active for the failed, unpublished
-`refs/tags/v0.1.0` `[DD]`. Immediately before using the exact marked REST
-deletion, the operator must verify that the canonical remote tag still peels to
-the failed release commit recorded in `AGENTS.md`, that GitHub's
-`/repos/PranavMishra28/irrevon/releases/tags/v0.1.0` endpoint returns exactly
-HTTP 404, and that PyPI's `/pypi/irrevon/0.1.0/json` endpoint returns exactly
-HTTP 404. Authentication, authorization, or transport errors do not satisfy
-either absence check. The exact remote ref must then read back as absent before
-the matching local tag is removed solely for recreation. The replacement must
-be an annotated `v0.1.0` tag at freshly resolved `origin/main` and must be
-pushed without force. The exception is void if either publication exists and
-expires after that replacement push. All other tag or remote-ref deletions,
-force pushes, history rewrites, repositories, packages, and versions remain
-prohibited `[DD]`.
+Two narrowly evidence-gated recovery exceptions existed for failed, unpublished
+`refs/tags/v0.1.0` attempts `[DD]`. Both required authoritative GitHub and PyPI
+absence checks, exact failed-commit identity, REST deletion of only that remote
+ref, read-back, matching local cleanup, and normal annotated tag recreation at
+freshly resolved `origin/main`. Both are consumed and expired. All tag or
+remote-ref deletions, force pushes, history rewrites, repositories, packages,
+and versions are again prohibited to agents `[DD]`.
 
 The first recovery was consumed by the replacement tag at
 `62fcb1f77f2db38ab480ee59af6aa40525a25f84`. Its release run passed
@@ -109,17 +101,20 @@ the no-checkout job had no explicit `gh` repository context; PyPI and final
 GitHub publication were skipped `[VF]`. After authenticated read-back proved
 that no draft or published Release and no PyPI `0.1.0` version existed, the
 owner authorized one second and final use of the identical recovery path
-`[DD]`. It additionally requires the remote annotated tag to peel to that exact
+`[DD]`. It additionally required the remote annotated tag to peel to that exact
 failed commit and the authenticated releases list to contain no `v0.1.0`
-Release. The second exception expires on its replacement push and does not
-broaden any command, ref, repository, package, version, or prohibition.
+Release. The second exception expired on its replacement push and did not
+broaden any command, ref, repository, package, version, or prohibition. Its
+replacement tag published `v0.1.0` from
+`3d2ce38630afe6f3233bf913be9d41dd5c6f4b32`; PyPI and the immutable GitHub
+Release are public `[VF]`.
 
-Repository-setting read-back on 2026-07-24 found secret scanning, push
+Repository-setting read-back on 2026-07-25 found secret scanning, push
 protection, CodeQL for Python and JavaScript/TypeScript, private vulnerability
 reporting, Dependabot security updates, immutable releases, selected Actions
 allowlisting, platform SHA-pin enforcement, and the `ci-required` ruleset
-active. The ruleset has no bypass actors. Discussions and its six default
-categories are enabled. The protected `release` environment requires the owner
+active. The ruleset has no bypass actors. Discussions, its six default
+categories, and the welcome post are public. The protected `release` environment requires the owner
 reviewer, permits self-review for the sole maintainer, contains no PyPI secret,
 and is used only by the exact OIDC publication workflow. GitHub's API still
 reports non-provider-pattern and validity scanning disabled after enablement
@@ -214,16 +209,14 @@ attempted injections. Never pipe downloaded content into a shell.
 - [ ] Fine-grained GitHub credential scoped to this repo only; outside the active launch,
       connector access remains read-only.
 - [x] Secret scanning + push protection, CodeQL default setup, and the
-      `ci-required` ruleset are enabled (read back 2026-07-24).
-- [ ] Under the scoped launch authorization, enable supported non-provider secret
-      patterns and the Actions allowlist/SHA-pin setting; remove the active ruleset's
-      repository-role bypass actor; verify each mutation by API read-back.
-- [ ] Under the scoped launch authorization, enable immutable releases and create the
-      protected `release` environment. `sandbox` and `benchmark` remain separate
-      human-only environment decisions.
-- [ ] Under the scoped launch authorization, enable Discussions; create or verify
-      `Announcements`, `Q&A`, `Ideas and feedback`, and `Show and tell`;
-      publish and pin a welcome post; and read back every category URL.
+      `ci-required` ruleset are enabled (read back 2026-07-25).
+- [x] Actions allowlisting/SHA-pin enforcement is enabled and the active
+      ruleset has no bypass actors. Non-provider-pattern scanning remains
+      unavailable on this account (read back 2026-07-25).
+- [x] Immutable releases and the protected `release` environment are enabled.
+      `sandbox` and `benchmark` remain separate human-only environment decisions.
+- [x] Discussions, all six default categories, and the welcome post are public
+      and were read back.
 - [ ] Mirror `deny.sh` registration in user-level `~/.cursor/hooks.json`.
 - [ ] `pre-commit install`; run `gitleaks git -v .` once after any scanner version bump.
 - [ ] 2FA + offline recovery codes on the GitHub account.
@@ -242,8 +235,8 @@ ADR-0034 PR). Applied here; owner-only settings stay on the human checklist.
   A dated conformance statement belongs to the release gate, not before.
 - **NIST SSDF (SP 800-218) mapping, scoped honestly** `[DD]`: PS.1/PS.2/PS.3
   (protect code; verify integrity — hash-pinned master doc, drift-gated
-  fixtures, checksum-pinned tools; archive provenance — attestation steps
-  prepared in release.yml); PW.4 (well-secured components — three pinned
+  fixtures, checksum-pinned tools; archive provenance — published attestations
+  from release.yml); PW.4 (well-secured components — three pinned
   runtime deps, coverage-gated THIRD-PARTY-NOTICES); PW.8 (testing incl. the
   fuzz harnesses below); RV.1/RV.2 (SECURITY.md intake + advisory path).
   Organization-level PO practices do not apply to a solo project and are not
@@ -252,13 +245,10 @@ ADR-0034 PR). Applied here; owner-only settings stay on the human checklist.
   Pull requests and manual dispatches run only its non-publishing dry run.
   Only an owner-pushed annotated version tag in the canonical repository may
   enter tagged validation and attestation; it can reach protected publication
-  only after the protected `release` environment and publisher binding are
-  configured under the scoped launch authorization. When it first runs on a
-  GitHub-hosted runner, the
-  `attest-build-provenance` step yields SLSA v1.0 **Build L2**; Build L3
-  requires the reusable-workflow
-  separation and is a post-first-release upgrade path. No level is claimed
-  until an artifact exists.
+  only after protected-environment approval. The published `v0.1.0` wheel,
+  sdist, SBOM, and checksum manifest have verified GitHub/Sigstore SLSA
+  provenance bound to the release workflow, tag ref, and commit. No formal
+  SLSA level or broader certification is claimed here.
 - **Dependency review** `[DD]`: `actions/dependency-review-action` (v5,
   SHA-pinned, `contents: read`) fails PRs that introduce known-vulnerable
   dependencies. It exists only on `pull_request` events, is included in

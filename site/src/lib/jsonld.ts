@@ -1,9 +1,13 @@
-// JSON-LD builders. Deliberate rulings: the project is a repository, not an
-// installable app, so Home is SoftwareSourceCode (SoftwareApplication implies
-// offers/ratings this site must not fabricate — revisit at first release).
+// JSON-LD builders. Deliberate ruling: Home remains SoftwareSourceCode;
+// SoftwareApplication commonly invites offers/ratings this site must not fabricate.
 // Nothing anywhere gets aggregateRating, offers, review, or an organization
 // entity (none exists).
 import { SITE_NAME, REPO_URL, repoDoc } from "../config";
+import {
+  PYPI_PROJECT_URL,
+  RELEASED_AT,
+  RELEASE_VERSION,
+} from "./release-provenance";
 
 type JsonLd = Record<string, unknown>;
 
@@ -15,6 +19,9 @@ export const softwareSourceCode = (siteUrl: URL, description: string): JsonLd =>
   codeRepository: REPO_URL,
   license: repoDoc("LICENSE"),
   programmingLanguage: "Python",
+  softwareVersion: RELEASE_VERSION,
+  datePublished: RELEASED_AT?.slice(0, 10),
+  downloadUrl: PYPI_PROJECT_URL,
   url: siteUrl.toString(),
 });
 

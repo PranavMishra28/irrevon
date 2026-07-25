@@ -107,10 +107,10 @@ deleting the matching local tag solely to permit recreation. Fetch and resolve
 `origin/main` again, create a new annotated `v0.1.0` tag at that exact commit,
 and push it normally through the already authorized release path.
 
-This one-time exception authorizes no force push, tag update, history rewrite,
+This one-time exception authorized no force push, tag update, history rewrite,
 other remote or local ref deletion, other repository, other package, or other
-version. It is void if either publication exists and expires as soon as the
-replacement `refs/tags/v0.1.0` is successfully pushed.
+version. It was void if either publication existed and expired as soon as the
+replacement `refs/tags/v0.1.0` was successfully pushed.
 
 The first recovery was consumed when the replacement tag was pushed at
 `62fcb1f77f2db38ab480ee59af6aa40525a25f84`. Release run `30136377469`
@@ -120,15 +120,15 @@ explicit repository. Its PyPI and final GitHub Release jobs were skipped.
 Authenticated read-back found no draft or published GitHub Release, and PyPI
 returned HTTP 404 for `irrevon==0.1.0`.
 
-One second and final recovery is authorized for that exact failed commit and
-run. Immediately before deletion, repeat every authoritative check above,
-require the authenticated GitHub releases list to contain no draft or published
-`v0.1.0` Release, and require the remote annotated tag to peel exactly to
+One second and final recovery was authorized for that exact failed commit and
+run. Immediately before deletion, every authoritative check above was repeated,
+the authenticated GitHub releases list contained no draft or published
+`v0.1.0` Release, and the remote annotated tag peeled exactly to
 `62fcb1f77f2db38ab480ee59af6aa40525a25f84`. Only the same marked REST
-deletion and matching local `v0.1.0` cleanup are permitted. Recreate the
-annotated tag only at freshly resolved `origin/main` after the repository-context
-fix passes required CI and merges normally. This second exception has the same
-prohibitions and expires on the replacement push.
+deletion and matching local `v0.1.0` cleanup were used. The annotated tag was
+recreated at freshly resolved `origin/main` after the repository-context fix
+passed required CI and merged normally. This second exception expired on the
+replacement push. No future tag deletion, recreation, or push is authorized.
 
 The owner accepts proceeding with the software release without representing
 that trademark counsel, scientific validation, live-provider qualification, or
@@ -169,9 +169,11 @@ true:
 - `/version.json` reports that final commit and version `0.1.0`
 - no launch PR remains open
 
-After expiration, repository settings, publication, releases, tags, and
-production deployment return to human-only status unless a later committed
-owner authorization explicitly permits another operation.
+The publication, artifact verification, and recovery conditions are complete.
+Only the post-publication truth PR merge and exact final Vercel read-back remain
+in scope. After that read-back, repository settings, publication, releases,
+tags, and production deployment are human-only unless a later committed owner
+authorization explicitly permits another operation.
 
 ## Source-of-truth table
 

@@ -14,4 +14,6 @@ def test_changelog_uses_verified_release_state_not_checkout_tags() -> None:
     assert "RELEASE_COMMIT" in page
     assert "git tag --list" not in page
     assert "No releases yet" not in page
-    assert "Package release in progress" in page
+    assert "Released software" in page
+    assert "PyPI package" in page
+    assert "GitHub Release and artifacts" in page

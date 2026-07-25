@@ -64,16 +64,18 @@ api_method() {
   matches "(-X[[:space:]]*$1|-X$1|--method(=|[[:space:]])$1)([[:space:]]|$)"
 }
 launch_marker() {
-  matches '(^|[[:space:]])IRREVON_V010_LAUNCH=1([[:space:]]|$)'
+  # v0.1.0 was published and both failed-tag recoveries were consumed.
+  # Retain the historical narrow matchers below for auditability, but make the
+  # launch marker permanently fail closed. A future launch requires a new,
+  # committed owner authorization and a separately reviewed allowlist.
+  return 1
 }
 exact_input() {
   matches "(^|[[:space:]])--input(=|[[:space:]])$1([[:space:]]|$)"
 }
 
-# The owner-authorized v0.1.0 launch is deliberately narrower than a general
-# administrative bypass. Mutating GitHub API commands must be one command (no
-# chaining or shell indirection), name the canonical repository in the REST
-# endpoint, and target one of the launch surfaces ratified in AGENTS.md.
+# Historical v0.1.0 allowlist, now unreachable because launch_marker fails
+# closed. It is retained to preserve the exact reviewed launch record.
 scoped_launch_api_mutation() {
   launch_marker || return 1
   matches '[;&|`]|[$][(]|(^|[[:space:]])(>|<)' && return 1

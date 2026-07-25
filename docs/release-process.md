@@ -1,8 +1,8 @@
 # Release process and artifact verification
 
-This guide covers the protected `0.1.0` Alpha release. The machine-readable
-[`project-status.json`](project-status.json) distinguishes a candidate from a
-verified publication. Running the dry run never creates a tag, release,
+This guide covers the protected release process and the published `0.1.0`
+Alpha. The machine-readable [`project-status.json`](project-status.json)
+records verified publication evidence. Running the dry run never creates a tag, release,
 attestation, deployment, or package-index upload.
 
 ## Local dry run
@@ -30,28 +30,27 @@ The explicit environment flag permits validation of the final `0.1.0` version.
 It does not enable a publishing command: the dry-run script has no upload,
 release, tag, signing, or deployment path.
 
-## Human one-time setup
+## Completed first-release setup
 
-Before the first release, the repository owner must verify:
+For `v0.1.0`, the repository owner completed and read back:
 
-1. register a **pending Trusted Publisher** for the not-yet-created PyPI
+1. a **pending Trusted Publisher** for the then-not-yet-created PyPI
    `irrevon` project, bound to this repository,
    `.github/workflows/release.yml`, and the `release` environment; the first
-   trusted publication creates the project, and the pending publisher does not
-   reserve the name beforehand;
+   trusted publication created the project;
 2. the `release` environment requires the owner reviewer, permits self-review
    for the sole maintainer, and contains no PyPI secret;
 3. immutable releases and the repository security settings in
    [docs/ci.md](ci.md) remain enabled;
-4. the reviewed tag commit is exactly current `main`;
-5. review the prepared `0.1.0` package metadata, changelog, and citation file,
-   then merge a green release PR.
+4. the reviewed tag commit was exactly current `main`;
+5. the `0.1.0` package metadata, changelog, and citation file were reviewed
+   before publication.
 
 No PyPI API token or long-lived signing key is used.
 
 ## Release execution
 
-The owner creates and pushes an annotated `v0.1.0` tag from the reviewed
+For `v0.1.0`, the owner created and pushed an annotated tag from the reviewed
 default-branch commit. Only an annotated, version-shaped tag whose peeled
 commit, checked-out `HEAD`, and current `origin/main` are identical can enter
 the publish job; an older commit that is merely reachable from `main` is
@@ -70,7 +69,8 @@ non-publishing dry-run job.
 
 ## User verification
 
-Download release artifacts and `SHA256SUMS` from the same GitHub release:
+Download release artifacts and `SHA256SUMS` from the
+[`v0.1.0` GitHub Release](https://github.com/PranavMishra28/irrevon/releases/tag/v0.1.0):
 
 ```bash
 sha256sum --check SHA256SUMS
@@ -86,17 +86,19 @@ Inspect the SBOM before installation:
 python -m json.tool irrevon.spdx.json >/dev/null
 ```
 
-Install into a clean environment and verify the reported version:
+Install the exact public package into a clean environment and verify the
+reported version:
 
 ```bash
 python -m venv verify-env
-verify-env/bin/pip install ./irrevon-0.1.0-py3-none-any.whl
+verify-env/bin/pip install irrevon==0.1.0
 verify-env/bin/irrevon --version
 ```
 
 GitHub artifact attestations provide cryptographically signed provenance in the
 public Sigstore transparency log. This is distinct from claiming that the Git
 tag itself has a cryptographic signature: the required tag is annotated, while
-the release artifacts are attested. The project will describe the achieved SLSA
-posture only after a real release produces verifiable provenance; this
-preparation alone does not claim a SLSA level.
+the release artifacts are attested. The `v0.1.0` wheel, sdist, SBOM, and
+checksum manifest have verified GitHub/Sigstore SLSA provenance bound to the
+release workflow, exact tag ref, and release commit. This does not claim a
+formal SLSA level or a broader security certification.

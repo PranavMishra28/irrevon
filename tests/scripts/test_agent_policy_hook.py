@@ -1,4 +1,4 @@
-"""Fail-closed contract for the scoped v0.1.0 agent launch authorization."""
+"""Fail-closed contract after the scoped v0.1.0 launch authorization expired."""
 
 from __future__ import annotations
 
@@ -66,8 +66,8 @@ def welcome_decision(payload: dict[str, object]) -> str:
             WELCOME_PAYLOAD.write_bytes(previous)
 
 
-def test_only_exact_welcome_discussion_graphql_payload_is_allowed() -> None:
-    assert welcome_decision(welcome_payload()) == "allow"
+def test_expired_welcome_discussion_mutation_is_denied() -> None:
+    assert welcome_decision(welcome_payload()) == "deny"
 
     invalid_payloads = (
         welcome_payload(variables={"repositoryId": "R_wrong"}),
@@ -93,8 +93,8 @@ def test_only_exact_welcome_discussion_graphql_payload_is_allowed() -> None:
     )
 
 
-def test_exact_launch_api_surfaces_are_allowed() -> None:
-    allowed = (
+def test_expired_launch_api_surfaces_are_denied() -> None:
+    expired = (
         (
             f"IRREVON_V010_LAUNCH=1 gh api -X DELETE "
             f"repos/{REPO}/git/refs/tags/v0.1.0"
@@ -130,8 +130,8 @@ def test_exact_launch_api_surfaces_are_allowed() -> None:
             "-f security_and_analysis[secret_scanning_non_provider_patterns][status]=enabled"
         ),
     )
-    for command in allowed:
-        assert decision(command) == "allow", command
+    for command in expired:
+        assert decision(command) == "deny", command
 
 
 def test_neighboring_api_mutations_remain_denied() -> None:
@@ -206,7 +206,7 @@ def test_tags_and_direct_publication_remain_fail_closed() -> None:
         f"IRREVON_V010_LAUNCH=1 gh api -X DELETE "
         f"repos/{REPO}/git/refs/tags/v0.1.0"
     )
-    assert decision(recovery_delete) == "allow"
+    assert decision(recovery_delete) == "deny"
     recovery_neighbors = (
         f"gh api -X DELETE repos/{REPO}/git/refs/tags/v0.1.0",
         (
@@ -234,13 +234,13 @@ def test_tags_and_direct_publication_remain_fail_closed() -> None:
     for command in recovery_neighbors:
         assert decision(command) == "deny", command
 
-    assert decision("IRREVON_V010_LAUNCH=1 git tag -d v0.1.0") == "allow"
+    assert decision("IRREVON_V010_LAUNCH=1 git tag -d v0.1.0") == "deny"
     assert decision("git tag -d v0.1.0") == "deny"
     assert decision("git tag --delete v0.1.0") == "deny"
     assert decision("IRREVON_V010_LAUNCH=1 git tag --delete v0.1.0") == "deny"
     assert decision("IRREVON_V010_LAUNCH=1 git tag -d v0.1.1") == "deny"
     assert decision("IRREVON_V010_LAUNCH=1 git tag -d v0.1.0 v0.1.1") == "deny"
-    assert decision("IRREVON_V010_LAUNCH=1 git tag -a v0.1.0 origin/main -m release") == "allow"
+    assert decision("IRREVON_V010_LAUNCH=1 git tag -a v0.1.0 origin/main -m release") == "deny"
     assert decision("git tag --verify v0.1.0") == "allow"
     assert decision("git tag -a v0.1.0 deadbeef -m release") == "deny"
     assert decision("IRREVON_V010_LAUNCH=1 git tag -a v0.1.0 HEAD -m release") == "deny"
@@ -248,7 +248,7 @@ def test_tags_and_direct_publication_remain_fail_closed() -> None:
     assert decision("git tag -a v0.2.0 deadbeef -m release") == "deny"
     assert decision("git push origin v0.1.0") == "deny"
     assert decision("IRREVON_V010_LAUNCH=1 git push origin v0.1.0") == "deny"
-    assert decision("IRREVON_V010_LAUNCH=1 git push origin refs/tags/v0.1.0") == "allow"
+    assert decision("IRREVON_V010_LAUNCH=1 git push origin refs/tags/v0.1.0") == "deny"
     destination_override = "IRREVON_V010_LAUNCH=1 git push origin refs/tags/v0.1.0:refs/tags/latest"
     assert decision(destination_override) == "deny"
     assert decision("git push origin refs/tags/v0.2.0") == "deny"

@@ -8,18 +8,20 @@ The machine-readable status is [project-status.json](project-status.json) and
 
 ## Current release posture
 
-Irrevon is a public, Apache-2.0-licensed **research preview**. Source builds,
+Irrevon is public, Apache-2.0-licensed **Alpha software**. Version `0.1.0` is
+available from [PyPI](https://pypi.org/project/irrevon/0.1.0/) and its
+[immutable GitHub Release](https://github.com/PranavMishra28/irrevon/releases/tag/v0.1.0).
+Source builds,
 the deterministic flagship demo, the single-writer engine and worker, the
 loopback read-only Workbench, synthetic provider-contract tests, the benchmark
 development harness, and wheel/sdist construction are implemented.
 
-No package, tag, release, confirmatory benchmark result, preregistration freeze,
-or live-provider observation exists. The Stripe and EasyPost adapters are
+No confirmatory benchmark result, preregistration freeze, or live-provider
+observation exists. The Stripe and EasyPost adapters are
 credential-gated drafts and have never been live-called. The evaluated runtime
 boundary is self-hosted and single-writer, but it is not yet a supported
 production topology; multi-writer leasing is not implemented.
-The website is prepared as a static build, while deployment remains
-owner-controlled.
+The static website is deployed from protected `main`.
 
 ## What a source user can do now
 
@@ -28,7 +30,8 @@ owner-controlled.
   benchmark known-answer tests.
 - Inspect synthetic evidence in the Workbench or connect it to the local
   loopback read surface.
-- Build and inspect the unpublished wheel and sdist.
+- Install `irrevon==0.1.0` or independently inspect its wheel, sdist,
+  checksums, SPDX SBOM, and GitHub attestations.
 - Exercise the reference destination and synthetic Stripe/EasyPost transports.
 - Contribute through pull requests under Apache-2.0 with DCO 1.1 sign-off.
 
@@ -40,7 +43,7 @@ owner-controlled.
 | Evidence UI | Loopback-only, GET/HEAD-only, SELECT-only Workbench with digested upstream identifiers | Remote administrative console, browser-side mutation, authenticated multi-user service |
 | Destinations | Deterministic reference destination; draft sandbox-only Stripe C1/EasyPost C2 code under synthetic tests | Qualified live provider semantics, production credentials, provider conformance evidence |
 | Benchmark | Public synthetic development fixtures, harness, causal-history and metric cross-checks | Frozen registration, sealed confirmatory run, independent reproduction, scientific validation |
-| Distribution | Local wheel/sdist build, content inspection, clean-install smoke test, release dry run | Published PyPI package, GitHub release, release attestation already issued |
+| Distribution | Published PyPI wheel/sdist, immutable GitHub Release, checksums, SPDX SBOM, GitHub attestations, OIDC Trusted Publishing, and clean-install proof | Stable pre-1.0 APIs or a scientific-results publication |
 
 ## Repository-local launch gates
 
@@ -57,7 +60,7 @@ These are enforced by `make launch-audit` and CI:
 8. explicit refusal to claim a production profile until topology, fresh-cluster
    restore, catch-up sweeps, and supervisor/container evidence exist.
 
-## Owner-only release gates
+## Remaining owner-only gates
 
 Repository automation deliberately cannot complete these actions:
 
@@ -66,24 +69,18 @@ Repository automation deliberately cannot complete these actions:
 - review current provider terms, complete ADR-0010/ADR-0012 spikes, and authorize
   sandbox observations;
 - freeze Stage A or Stage B, timestamp registrations, or run confirmatory work;
-- enable/verify repository rulesets, secret scanning, private vulnerability
-  reporting, CodeQL/default setup, release-environment protection, and immutable
-  releases;
-- register a pending PyPI Trusted Publisher for first-project creation and bind
-  it to this repository, release workflow, and protected environment;
-- create an annotated version tag, approve the protected release environment, and
-  publish `0.1.0`;
-- deploy or unpause the owner-controlled Vercel project.
+- maintain repository rulesets, security settings, protected environments,
+  immutable releases, and the main-only Vercel project;
 
 Every item is independent: source users do not need a hosted account or hosted
 PostgreSQL service to run the demo.
 
 ## Roadmap
 
-### R1 — source launch
+### R1 — source launch (complete)
 
-Complete the repository-local gates, accept outside contributions, and keep
-claims aligned with synthetic evidence. This does not publish a package or
+The repository-local gates are complete, outside contributions are accepted,
+and claims remain aligned with synthetic evidence. This milestone did not
 generate scientific results.
 
 ### R2 — provider qualification
@@ -99,17 +96,17 @@ timestamps registrations before any confirmatory observation. Stage B then
 pins provider artifacts and holdout commitments. Results are published whether
 they favor Irrevon or falsify it.
 
-### R4 — distribution
+### R4 — distribution (complete for v0.1.0)
 
-The owner registers the pending PyPI trusted-publisher binding and protected
-GitHub release environment, pushes a version-matching annotated tag, reviews the dry-run
-artifacts, and authorizes publication. The workflow then produces checksums,
-SBOM, attestations, GitHub assets, and PyPI artifacts without a long-lived
-publishing token.
+The owner registered the PyPI trusted-publisher binding and protected GitHub
+release environment, pushed the version-matching annotated tag, reviewed the
+artifacts, and authorized publication. The workflow produced checksums, an SPDX
+SBOM, GitHub attestations, immutable GitHub assets, and PyPI artifacts without a
+long-lived publishing token.
 
 ## Version and compatibility
 
-The prepared launch version is `0.1.0`: an initial public alpha whose
+The published version is `0.1.0`: an initial public Alpha whose
 interfaces are explicitly pre-1.0. Compatibility, deprecation, migration, and
 rollback rules are in [operations.md](operations.md#compatibility-versioning-and-deprecation).
 Release procedure and verification are in

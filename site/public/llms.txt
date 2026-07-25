@@ -1,7 +1,8 @@
 # Irrevon
 
 > A benchmark drafted for preregistration (IrrevonBench) and reference reconciliation
-> engine for irreversible AI-agent actions. Pre-release; no benchmark
+> engine for irreversible AI-agent actions. v0.1.0 Alpha software is published;
+> no benchmark
 > results exist; confirmatory runs are mechanically refused before the
 > human preregistration freeze.
 

@@ -39,16 +39,21 @@ def _valid(release: dict[str, object]) -> bool:
     )
 
 
-def test_committed_candidate_has_no_publication_evidence() -> None:
+def test_committed_release_has_exact_publication_evidence() -> None:
     release = json.loads(STATUS_PATH.read_text())["software_release"]
-    assert release["state"] == "candidate"
+    assert release["state"] == "published"
     assert _valid(release)
-    assert release["published_at"] is None
-    assert release["commit_sha"] is None
+    assert release["published_at"] == "2026-07-25T01:20:05Z"
+    assert release["commit_sha"] == "3d2ce38630afe6f3233bf913be9d41dd5c6f4b32"
 
 
 def test_published_transition_requires_complete_external_evidence() -> None:
-    candidate = json.loads(STATUS_PATH.read_text())["software_release"]
+    published = json.loads(STATUS_PATH.read_text())["software_release"]
+    candidate = deepcopy(published)
+    candidate["state"] = "candidate"
+    candidate["published_at"] = None
+    candidate["commit_sha"] = None
+    assert _valid(candidate)
 
     incomplete = deepcopy(candidate)
     incomplete["state"] = "published"

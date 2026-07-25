@@ -9,7 +9,8 @@
 [![CI](https://github.com/PranavMishra28/irrevon/actions/workflows/ci.yml/badge.svg)](https://github.com/PranavMishra28/irrevon/actions/workflows/ci.yml)
 [![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-3776AB)](pyproject.toml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
-[![Release: v0.1.0 alpha](https://img.shields.io/badge/release-v0.1.0_alpha-5B5BD6)](https://irrevon.vercel.app/status/)
+[![PyPI](https://img.shields.io/pypi/v/irrevon?label=PyPI)](https://pypi.org/project/irrevon/0.1.0/)
+[![GitHub Release](https://img.shields.io/github/v/release/PranavMishra28/irrevon?label=release)](https://github.com/PranavMishra28/irrevon/releases/tag/v0.1.0)
 
 An agent asks an API to create a payment, shipment, order, or booking. The
 destination commits, the response disappears, and the agent cannot know whether
@@ -17,7 +18,10 @@ retrying will duplicate the real-world effect. Irrevon persists intent before
 dispatch, makes ambiguity explicit, and reconciles against destination evidence
 instead of guessing.
 
-> **Current status:** Apache-2.0 `v0.1.0` Alpha. The engine, continuous
+> **Current status:** Apache-2.0 `v0.1.0` Alpha is
+> [published on PyPI](https://pypi.org/project/irrevon/0.1.0/) with an
+> [immutable GitHub Release](https://github.com/PranavMishra28/irrevon/releases/tag/v0.1.0).
+> The engine, continuous
 > single-writer worker, local read-only Workbench, deterministic demo,
 > benchmark development harness, and distribution pipeline are implemented.
 > Development evidence is synthetic. The scientific preregistration remains a
@@ -28,7 +32,16 @@ instead of guessing.
 
 ## Quickstart
 
-You do **not** need a hosted Postgres account. The source quickstart uses the
+Install the published CLI into an isolated environment:
+
+```bash
+python -m pip install irrevon==0.1.0
+irrevon --version
+```
+
+Package installation provides the CLI and embedded Workbench. Running the
+engine or deterministic demo also needs PostgreSQL. You do **not** need a
+hosted Postgres account: the source quickstart below uses the
 digest-pinned PostgreSQL 17 container in this repository and binds it only to
 loopback. See the [Status page](https://irrevon.vercel.app/status/) for
 versioned package availability and provenance.
@@ -161,7 +174,7 @@ compensation into rollback, or make an incapable destination knowable.
 | Workbench | Read-only fixture/live evidence UI, causal history, findings, adapter and health views | Loopback-only; no mutations or remote auth |
 | IrrevonBench | Development fixtures, fault schedules, baselines, causal-history oracle, metrics, statistics, integrity refusals | No freeze, confirmatory run, result, or independent reproduction |
 | Adapters | Reference C1/C2/C3 capability declarations plus destination-specific integration drafts under synthetic transports | No live-destination qualification |
-| Distribution | Wheel/sdist build, exact-content checks, clean-install smoke tests, checksums, SBOM, attestations, and OIDC release path | Availability is reported by the Status page and release registry, not inferred from source |
+| Distribution | Published `0.1.0` wheel/sdist, exact-content checks, clean-install smoke tests, checksums, SPDX SBOM, GitHub attestations, and OIDC Trusted Publishing | Alpha interfaces are pre-1.0; verify artifacts through the release records |
 | Site | Static Astro product/docs build with claims, accessibility, link, privacy, and provenance gates | Vercel production builds only from protected `main`; `/version.json` identifies the served commit |
 
 The machine-readable source of current release truth is
@@ -239,7 +252,7 @@ include:
 - no CLI telemetry, update checks, crash reporting, or external browser assets;
 - sandbox/test credential gates on draft provider adapters;
 - full-history secret scanning, SHA-pinned Actions, dependency review, and
-  non-publishing release attestations/SBOM preparation.
+  protected release checksums, SBOM, attestations, and OIDC publication.
 
 Do not put production payloads, credentials, or private identifiers in public
 issues or fixtures. Report vulnerabilities privately as described in
@@ -247,7 +260,7 @@ issues or fixtures. Report vulnerabilities privately as described in
 
 ## Community and support
 
-Use [GitHub Discussions](https://github.com/PranavMishra28/irrevon/discussions)
+Use the [Welcome to the Irrevon community discussion](https://github.com/PranavMishra28/irrevon/discussions/25)
 for questions, ideas, and project conversation. Use
 [issue forms](https://github.com/PranavMishra28/irrevon/issues/new/choose) for
 reproducible defects, documentation problems, scoped proposals, and
