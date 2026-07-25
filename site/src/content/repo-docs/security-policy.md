@@ -2,8 +2,8 @@
 title: "Security policy — development process"
 description: "The development threat model and agent execution policy: what agents may do, what is human-only, and the enforcement layers."
 sourcePath: "docs/security-policy.md"
-sourceSha256: "c350be50a80aaa576e529580bb7152235697b886db5e0e8aa30df0864775be36"
-syncedAt: "2026-07-24"
+sourceSha256: "3b6d523fe83c0752295668975b813396c6056f55ecd87149c654df2ee38f2a78"
+syncedAt: "2026-07-25"
 section: "Governance"
 renderTitle: false
 ---
@@ -46,7 +46,10 @@ project's benchmark-integrity reputation.
    credential-file reads (shell and file-read paths). During the owner-ratified v0.1.0
    launch it permits a marked, single-command subset of REST mutations only for
    `PranavMishra28/irrevon` and the enumerated ruleset, security, Actions, Discussions,
-   `release`-environment, and pending-deployment endpoint families. Every neighboring
+   `release`-environment, pending-deployment, and exact failed-tag recovery endpoints.
+   The recovery endpoint can delete only
+   `PranavMishra28/irrevon`'s `refs/tags/v0.1.0`; raw Git remote-ref deletion
+   remains denied. Every neighboring
    repository, environment, version, endpoint, unmarked command, chained command, and
    GraphQL mutations remain denied except for one immutable, `jq`-validated
    payload that creates the launch welcome Discussion in the canonical
@@ -93,6 +96,21 @@ review, workflow guards, or post-mutation read-back. Package publication and the
 Release remain owned by the protected tag-triggered workflow. The authorization expires
 on the completion conditions in `AGENTS.md`, after which these operations return to
 human-only status `[VF]`.
+
+One recovery exception is active for the failed, unpublished
+`refs/tags/v0.1.0` `[DD]`. Immediately before using the exact marked REST
+deletion, the operator must verify that the canonical remote tag still peels to
+the failed release commit recorded in `AGENTS.md`, that GitHub's
+`/repos/PranavMishra28/irrevon/releases/tags/v0.1.0` endpoint returns exactly
+HTTP 404, and that PyPI's `/pypi/irrevon/0.1.0/json` endpoint returns exactly
+HTTP 404. Authentication, authorization, or transport errors do not satisfy
+either absence check. The exact remote ref must then read back as absent before
+the matching local tag is removed solely for recreation. The replacement must
+be an annotated `v0.1.0` tag at freshly resolved `origin/main` and must be
+pushed without force. The exception is void if either publication exists and
+expires after that replacement push. All other tag or remote-ref deletions,
+force pushes, history rewrites, repositories, packages, and versions remain
+prohibited `[DD]`.
 
 Repository-setting read-back on 2026-07-24 found secret scanning, push
 protection, CodeQL for Python and JavaScript/TypeScript, private vulnerability

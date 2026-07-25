@@ -96,6 +96,10 @@ def test_only_exact_welcome_discussion_graphql_payload_is_allowed() -> None:
 def test_exact_launch_api_surfaces_are_allowed() -> None:
     allowed = (
         (
+            f"IRREVON_V010_LAUNCH=1 gh api -X DELETE "
+            f"repos/{REPO}/git/refs/tags/v0.1.0"
+        ),
+        (
             f"IRREVON_V010_LAUNCH=1 gh api -X PUT repos/{REPO}/rulesets/19426315 "
             "--input /tmp/irrevon-v010-ruleset.json"
         ),
@@ -198,6 +202,44 @@ def test_direct_release_commands_remain_workflow_only() -> None:
 
 
 def test_tags_and_direct_publication_remain_fail_closed() -> None:
+    recovery_delete = (
+        f"IRREVON_V010_LAUNCH=1 gh api -X DELETE "
+        f"repos/{REPO}/git/refs/tags/v0.1.0"
+    )
+    assert decision(recovery_delete) == "allow"
+    recovery_neighbors = (
+        f"gh api -X DELETE repos/{REPO}/git/refs/tags/v0.1.0",
+        (
+            "IRREVON_V010_LAUNCH=1 gh api -X DELETE "
+            "repos/another-owner/irrevon/git/refs/tags/v0.1.0"
+        ),
+        f"IRREVON_V010_LAUNCH=1 gh api -X DELETE repos/{REPO}/git/refs/tags/v0.1.1",
+        f"IRREVON_V010_LAUNCH=1 gh api -X DELETE repos/{REPO}/git/refs/heads/main",
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X DELETE "
+            f"repos/{REPO}/git/refs/tags/v0.1.0/extra"
+        ),
+        f"IRREVON_V010_LAUNCH=1 gh api -X POST repos/{REPO}/git/refs/tags/v0.1.0",
+        f"IRREVON_V010_LAUNCH=1 gh api -X PATCH repos/{REPO}/git/refs/tags/v0.1.0",
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X DELETE "
+            f"repos/{REPO}/git/refs/tags/v0.1.0 -f force=true"
+        ),
+        (
+            f"IRREVON_V010_LAUNCH=1 gh api -X DELETE "
+            f"repos/{REPO}/git/refs/tags/v0.1.0 --input /tmp/payload.json"
+        ),
+        f"{recovery_delete}; gh api -X DELETE repos/{REPO}",
+    )
+    for command in recovery_neighbors:
+        assert decision(command) == "deny", command
+
+    assert decision("IRREVON_V010_LAUNCH=1 git tag -d v0.1.0") == "allow"
+    assert decision("git tag -d v0.1.0") == "deny"
+    assert decision("git tag --delete v0.1.0") == "deny"
+    assert decision("IRREVON_V010_LAUNCH=1 git tag --delete v0.1.0") == "deny"
+    assert decision("IRREVON_V010_LAUNCH=1 git tag -d v0.1.1") == "deny"
+    assert decision("IRREVON_V010_LAUNCH=1 git tag -d v0.1.0 v0.1.1") == "deny"
     assert decision("IRREVON_V010_LAUNCH=1 git tag -a v0.1.0 origin/main -m release") == "allow"
     assert decision("git tag --verify v0.1.0") == "allow"
     assert decision("git tag -a v0.1.0 deadbeef -m release") == "deny"
@@ -216,6 +258,8 @@ def test_tags_and_direct_publication_remain_fail_closed() -> None:
     assert decision("git push origin +HEAD:refs/heads/main") == "deny"
     assert decision("git push --delete origin old-branch") == "deny"
     assert decision("git push origin :old-branch") == "deny"
+    assert decision("IRREVON_V010_LAUNCH=1 git push --delete origin v0.1.0") == "deny"
+    assert decision("IRREVON_V010_LAUNCH=1 git push origin :refs/tags/v0.1.0") == "deny"
     assert decision("twine upload dist/*") == "deny"
     assert decision("uv publish") == "deny"
     assert decision("git push --force origin main") == "deny"

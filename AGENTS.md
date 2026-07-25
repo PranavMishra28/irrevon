@@ -86,6 +86,32 @@ Vercel tools, and the existing release workflow:
     publication are independently verified.
 17. Use GitHub and Vercel APIs to read back and prove the resulting state.
 
+### One-time failed-tag recovery
+
+The owner has additionally authorized one recovery of the failed, unpublished
+remote ref `refs/tags/v0.1.0`. This is not permission to move a tag by force.
+Immediately before deletion, authoritative read-back must prove all of the
+following:
+
+- the authenticated repository is exactly `PranavMishra28/irrevon`
+- the remote ref is an annotated `v0.1.0` tag whose peeled target is the failed
+  release commit `4ffdfbac8772306a88fc620433fcf5f951ac6629`
+- `GET /repos/PranavMishra28/irrevon/releases/tags/v0.1.0` returns exactly HTTP
+  404, not an authentication or transport error
+- `GET https://pypi.org/pypi/irrevon/0.1.0/json` returns exactly HTTP 404, not
+  an authentication or transport error
+
+Only after all four checks pass may the marked, repository-specific GitHub REST
+deletion remove `refs/tags/v0.1.0`. Read back that exact ref as absent before
+deleting the matching local tag solely to permit recreation. Fetch and resolve
+`origin/main` again, create a new annotated `v0.1.0` tag at that exact commit,
+and push it normally through the already authorized release path.
+
+This one-time exception authorizes no force push, tag update, history rewrite,
+other remote or local ref deletion, other repository, other package, or other
+version. It is void if either publication exists and expires as soon as the
+replacement `refs/tags/v0.1.0` is successfully pushed.
+
 The owner accepts proceeding with the software release without representing
 that trademark counsel, scientific validation, live-provider qualification, or
 production adoption has occurred. Public copy must not claim any of those
