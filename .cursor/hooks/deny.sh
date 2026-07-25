@@ -93,6 +93,10 @@ scoped_launch_api_mutation() {
     return 1
 
   case "$cmd" in
+    *"repos/${CANONICAL_REPO}/git/refs/tags/v0.1.0"*)
+      matches "^IRREVON_V010_LAUNCH=1 gh api -X DELETE repos/${CANONICAL_REPO}/git/refs/tags/v0[.]1[.]0[[:space:]]*$" &&
+        api_method DELETE &&
+        ! matches '(^|[[:space:]])(-f|-F|--field|--raw-field|--input)(=|[[:space:]])' ;;
     *"repos/${CANONICAL_REPO}/rulesets/"*)
       matches "repos/${CANONICAL_REPO}/rulesets/${MAIN_RULESET_ID}([[:space:]]|$)" &&
         api_method PUT &&
@@ -187,6 +191,9 @@ matches 'git[[:space:]]+push[^|;&]*[[:space:]]([^[:space:]]+:)?(refs/heads/)?mai
 # verification commands remain read-only and are not restricted here.
 if matches '(^|[[:space:]])git[[:space:]]+tag[[:space:]]'; then
   if matches 'git[[:space:]]+tag[[:space:]]+(--list|-l|--verify|-v)([[:space:]]|$)'; then
+    :
+  elif launch_marker &&
+    matches '^IRREVON_V010_LAUNCH=1 git[[:space:]]+tag[[:space:]]+-d[[:space:]]+v0[.]1[.]0[[:space:]]*$'; then
     :
   elif launch_marker &&
     matches 'git[[:space:]]+tag[[:space:]]+(-a|--annotate)[[:space:]]+v0[.]1[.]0[[:space:]]+origin/main[[:space:]]+(-m|--message)(=|[[:space:]]).+' &&

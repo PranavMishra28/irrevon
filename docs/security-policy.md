@@ -36,7 +36,10 @@ project's benchmark-integrity reputation.
    credential-file reads (shell and file-read paths). During the owner-ratified v0.1.0
    launch it permits a marked, single-command subset of REST mutations only for
    `PranavMishra28/irrevon` and the enumerated ruleset, security, Actions, Discussions,
-   `release`-environment, and pending-deployment endpoint families. Every neighboring
+   `release`-environment, pending-deployment, and exact failed-tag recovery endpoints.
+   The recovery endpoint can delete only
+   `PranavMishra28/irrevon`'s `refs/tags/v0.1.0`; raw Git remote-ref deletion
+   remains denied. Every neighboring
    repository, environment, version, endpoint, unmarked command, chained command, and
    GraphQL mutations remain denied except for one immutable, `jq`-validated
    payload that creates the launch welcome Discussion in the canonical
@@ -83,6 +86,21 @@ review, workflow guards, or post-mutation read-back. Package publication and the
 Release remain owned by the protected tag-triggered workflow. The authorization expires
 on the completion conditions in `AGENTS.md`, after which these operations return to
 human-only status `[VF]`.
+
+One recovery exception is active for the failed, unpublished
+`refs/tags/v0.1.0` `[DD]`. Immediately before using the exact marked REST
+deletion, the operator must verify that the canonical remote tag still peels to
+the failed release commit recorded in `AGENTS.md`, that GitHub's
+`/repos/PranavMishra28/irrevon/releases/tags/v0.1.0` endpoint returns exactly
+HTTP 404, and that PyPI's `/pypi/irrevon/0.1.0/json` endpoint returns exactly
+HTTP 404. Authentication, authorization, or transport errors do not satisfy
+either absence check. The exact remote ref must then read back as absent before
+the matching local tag is removed solely for recreation. The replacement must
+be an annotated `v0.1.0` tag at freshly resolved `origin/main` and must be
+pushed without force. The exception is void if either publication exists and
+expires after that replacement push. All other tag or remote-ref deletions,
+force pushes, history rewrites, repositories, packages, and versions remain
+prohibited `[DD]`.
 
 Repository-setting read-back on 2026-07-24 found secret scanning, push
 protection, CodeQL for Python and JavaScript/TypeScript, private vulnerability
