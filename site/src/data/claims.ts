@@ -146,7 +146,7 @@ export const claims = {
   },
   "implemented-first-slice": {
     claim:
-      "Implemented today: identity, append-oriented ledger with locked transition functions, commit gate, dispatcher, reconciliation, crash recovery, orphan sweep, continuous worker, reference destinations, read-only Workbench, benchmark development harness, and local package build. Stripe/EasyPost are never-live-called drafts; no package or result has been published.",
+      "Implemented today: identity, append-oriented ledger with locked transition functions, commit gate, dispatcher, reconciliation, crash recovery, orphan sweep, continuous worker, reference destinations, read-only Workbench, benchmark development harness, and the published 0.1.0 Alpha package. Stripe/EasyPost are never-live-called drafts; no scientific result has been published.",
     source: "docs/project-status.json + README.md + RFC-002 + migrations/",
     label: "VF",
   },
@@ -313,15 +313,15 @@ export const claims = {
   },
 
   // ── Status, licensing, availability ─────────────────────────────────────
-  "install-gated": {
+  "install-published": {
     claim:
-      "Release distribution is one PyPI package with the Workbench embedded. The install page conditions package-index commands on authoritative Status and registry records; tagged artifacts are built with checksums, an SBOM, attestations, and OIDC Trusted Publishing.",
-    source: "docs/decisions/0018-distribution-model.md + docs/release-process.md + .github/workflows/release.yml",
+      "Irrevon 0.1.0 is published as one PyPI package with the Workbench embedded. The protected release produced a wheel, sdist, SHA256SUMS, SPDX SBOM, and GitHub attestations through OIDC Trusted Publishing.",
+    source: "docs/project-status.json + docs/release-process.md + .github/workflows/release.yml",
     label: "VF",
   },
-  "no-releases": {
+  "release-history": {
     claim:
-      "Release history is derived from version-shaped annotated git tags rather than hard-coded marketing copy. The changelog renders only validated release tags, while the Status page and version manifest identify current availability and provenance.",
+      "Release history records the validated annotated v0.1.0 tag, while the Status page and version manifest identify current availability and provenance.",
     source: "site/src/pages/changelog.astro + docs/project-status.json + site/src/pages/version.json.ts",
     label: "VF",
   },
@@ -343,9 +343,9 @@ export const claims = {
     source: "README.md (Quickstart)",
     label: "VF",
   },
-  "not-published": {
+  "publication-provenance": {
     claim:
-      "Package availability is never inferred from marketing copy. The Status page points to the canonical registry and release records for the exact version; the source quickstart remains valid independently.",
+      "Package availability is proven by the canonical PyPI and immutable GitHub Release records for 0.1.0; the source quickstart remains valid independently.",
     source: "docs/project-status.json + docs/release-process.md + README.md",
     label: "VF",
   },

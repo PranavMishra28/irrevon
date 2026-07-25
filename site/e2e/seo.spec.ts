@@ -94,6 +94,9 @@ test("JSON-LD: home is SoftwareSourceCode + WebSite without retired SearchAction
   expect(source).toBeTruthy();
   expect(source!.license).toContain(`${source!.codeRepository}/blob/`);
   expect(source!.license).toMatch(/\/LICENSE$/);
+  expect(source!.softwareVersion).toBe("0.1.0");
+  expect(source!.datePublished).toBe("2026-07-25");
+  expect(source!.downloadUrl).toBe("https://pypi.org/project/irrevon/0.1.0/");
   const site = blocks.find((b) => b["@type"] === "WebSite");
   expect(site).toEqual(expect.objectContaining({ name: "Irrevon" }));
   expect(JSON.stringify(site)).not.toContain("SearchAction");

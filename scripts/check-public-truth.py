@@ -136,6 +136,19 @@ elif release_state == "published":
     for obsolete in ("release-unpublished", "not published", "alpha candidate"):
         if obsolete in readme.lower():
             fail(f"README.md retains obsolete published-state marker {obsolete!r}")
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    release_date = str(published_at)[:10]
+    if f"## [{release_version}] - {release_date}" not in changelog:
+        fail("CHANGELOG.md release date must match verified publication evidence")
+    readable_status = (ROOT / "docs/project-status.md").read_text(encoding="utf-8")
+    for marker in (
+        str(release["pypi_url"]),
+        str(release["github_release_url"]),
+        str(release_commit),
+        "https://github.com/PranavMishra28/irrevon/discussions/25",
+    ):
+        if marker not in readable_status:
+            fail(f"docs/project-status.md is missing published marker {marker!r}")
 if STATUS["contributions"] != {
     "open": True,
     "license": "Apache-2.0",

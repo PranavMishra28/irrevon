@@ -1,18 +1,18 @@
 {
   "schema_version": "1",
-  "as_of": "2026-07-24",
+  "as_of": "2026-07-25",
   "license": "Apache-2.0",
   "repository_visibility": "public",
   "software_release": {
-    "state": "candidate",
+    "state": "published",
     "package": "irrevon",
     "version": "0.1.0",
     "tag": "v0.1.0",
     "channel": "alpha",
     "pypi_url": "https://pypi.org/project/irrevon/0.1.0/",
     "github_release_url": "https://github.com/PranavMishra28/irrevon/releases/tag/v0.1.0",
-    "published_at": null,
-    "commit_sha": null
+    "published_at": "2026-07-25T01:20:05Z",
+    "commit_sha": "3d2ce38630afe6f3233bf913be9d41dd5c6f4b32"
   },
   "contributions": {
     "open": true,
@@ -69,7 +69,7 @@
       "enabled": true,
       "url": "https://github.com/PranavMishra28/irrevon/discussions",
       "public_links_exposed": true,
-      "welcome_url": null,
+      "welcome_url": "https://github.com/PranavMishra28/irrevon/discussions/25",
       "categories": [
         {
           "name": "Announcements",
@@ -104,7 +104,7 @@
     "owner_decision": "accept-exposure-or-coordinate-history-rewrite"
   },
   "owner_settings_readback": {
-    "as_of": "2026-07-24",
+    "as_of": "2026-07-25",
     "ruleset": "active-no-bypass-actors",
     "discussions": true,
     "non_provider_secret_scanning": false,
@@ -119,9 +119,7 @@
     "provider-sandbox-observations",
     "preregistration-freeze",
     "confirmatory-benchmark",
-    "package-publication",
-    "release-and-tag",
-    "vercel-deployment",
+    "vercel-project-settings",
     "repository-settings",
     "external-legal-actions"
   ]

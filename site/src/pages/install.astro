@@ -1,19 +1,22 @@
 ---
-// /install — source and release installation with one provenance boundary.
-// Package-index commands are conditional on the Status page reporting the
-// exact release; the install e2e also ensures that the old squatted name never
-// appears in an install command.
+// /install — published package and source installation with one provenance boundary.
 import Base from "../layouts/Base.astro";
 import Source from "../components/Source.astro";
 import { SITE_NAME, REPO_URL } from "../config";
+import {
+  GITHUB_RELEASE_URL,
+  PYPI_PROJECT_URL,
+  RELEASE_TAG,
+  RELEASE_VERSION,
+} from "../lib/release-provenance";
 import { href } from "../lib/url";
 
 const packageName = SITE_NAME.toLowerCase();
 const releaseInstalls = [
-  { cmd: `uvx ${packageName}`, note: "run without installing" },
-  { cmd: `uv tool install ${packageName}`, note: "recommended isolated CLI install" },
-  { cmd: `pipx install ${packageName}`, note: "isolated CLI install" },
-  { cmd: `pip install ${packageName}`, note: "install into the active Python environment" },
+  { cmd: `uvx ${packageName}==${RELEASE_VERSION}`, note: "run the exact release without installing" },
+  { cmd: `uv tool install ${packageName}==${RELEASE_VERSION}`, note: "recommended isolated CLI install" },
+  { cmd: `pipx install ${packageName}==${RELEASE_VERSION}`, note: "isolated CLI install" },
+  { cmd: `python -m pip install ${packageName}==${RELEASE_VERSION}`, note: "install into the active Python environment" },
 ];
 ---
 
@@ -27,17 +30,52 @@ const releaseInstalls = [
       <span class="kicker">Install</span>
       <h1>Install the Alpha. Verify what you run.</h1>
       <p class="lead" style="margin-top: 18px; max-width: 64ch;">
-        Release availability and build identity live on the <a href={href("/status/")}>Status page</a> and in{" "}
-        <a href={href("/version.json")}><code>/version.json</code></a>. Use a package command only when that
-        status identifies the exact version you intend to install. The Apache-2.0 source path remains available.
+        Version {RELEASE_VERSION} is published on <a href={PYPI_PROJECT_URL}>PyPI</a> with an{" "}
+        <a href={GITHUB_RELEASE_URL}>immutable GitHub Release</a>. Build identity also lives in{" "}
+        <a href={href("/version.json")}><code>/version.json</code></a>. The Apache-2.0 source path remains available.
       </p>
+    </div>
+  </section>
+
+  <section class="section" id="release-install">
+    <div class="container">
+      <div class="section-head">
+        <span class="kicker">Published package</span>
+        <h2>Install {RELEASE_TAG}</h2>
+        <p class="lead">
+          Irrevon distributes as one package with the Workbench embedded. Use an isolated tool environment
+          where practical; the pinned form makes the exact Alpha version explicit.
+        </p>
+      </div>
+      <div class="release-block" data-release-install>
+        <div class="release-head">
+          <span class="release-chip">PUBLISHED ON PYPI</span>
+          <span class="mono-chip">{RELEASE_TAG} Alpha</span>
+        </div>
+        <ul class="release-list">
+          {
+            releaseInstalls.map((releaseInstall) => (
+              <li>
+                <code>{releaseInstall.cmd}</code>
+                <span>{releaseInstall.note}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="release-note">
+          Verify the <a href={GITHUB_RELEASE_URL}>release assets, SHA256SUMS, SPDX SBOM, and attestations</a>.
+          PyPI publication used OIDC Trusted Publishing rather than a repository token. Running the engine or
+          demo requires PostgreSQL; package installation alone does not provision a database.
+        </p>
+        <Source id="install-published" also={["license-apache2"]} />
+      </div>
     </div>
   </section>
 
   <section class="section" id="from-source">
     <div class="container">
       <div class="section-head">
-        <span class="kicker">Source checkout</span>
+        <span class="kicker">Source checkout and database</span>
         <h2>Build and run locally</h2>
         <p class="lead">
           Prerequisites, honestly: <a href="https://docs.astral.sh/uv/">uv</a>, Docker (for a local,
@@ -61,41 +99,6 @@ uv run irrevon demo             # the two-leg flagship story</code></pre>
         Then step through what the demo recorded: <a href={href("/demo/")}>the One-Way Seat</a>, or follow the{" "}
         <a href={href("/docs/getting-started/")}>getting-started guide</a>.
       </p>
-    </div>
-  </section>
-
-  <section class="section" id="release-install">
-    <div class="container">
-      <div class="section-head">
-        <span class="kicker">Versioned release</span>
-        <h2>Use the package registry only after verification</h2>
-        <p class="lead">
-          Irrevon distributes as one package with the Workbench embedded. The Status page links the canonical
-          package and GitHub release records and identifies the release commit.
-        </p>
-      </div>
-      <div class="release-block" data-release-install>
-        <div class="release-head">
-          <span class="release-chip">VERIFY RELEASE STATUS</span>
-          <span class="mono-chip">v0.1.0 Alpha</span>
-        </div>
-        <ul class="release-list">
-          {
-            releaseInstalls.map((releaseInstall) => (
-              <li>
-                <code>{releaseInstall.cmd}</code>
-                <span>{releaseInstall.note}</span>
-              </li>
-            ))
-          }
-        </ul>
-        <p class="release-note">
-          Before installation, confirm the exact version on <a href={href("/status/")}>Status</a>. Published
-          artifacts are built by the protected release workflow with checksums, an SBOM, and attestations;
-          PyPI publication uses OIDC Trusted Publishing rather than a repository token.
-        </p>
-        <Source id="install-gated" also={["license-apache2"]} />
-      </div>
     </div>
   </section>
 

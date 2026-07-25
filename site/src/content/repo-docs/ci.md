@@ -2,8 +2,8 @@
 title: "CI — how this repository builds"
 description: "The CI workflow map: tiers, required checks, owner settings checklist, and local parity via make targets."
 sourcePath: "docs/ci.md"
-sourceSha256: "0bb582f67db37bdcde31d1fc389526a9e5cc884c369c93038a3edec9dddcb47d"
-syncedAt: "2026-07-24"
+sourceSha256: "8ab30087001a9fb71c3c3462a190ceb43594e8705511e7c558cd7be8957422a0"
+syncedAt: "2026-07-25"
 section: "Governance"
 renderTitle: false
 ---
@@ -24,7 +24,7 @@ that date.
 | [`nightly.yml`](../.github/workflows/nightly.yml) | cron 09:17 UTC + dispatch | Full local gate on a clean machine + online audits (external links, networked zizmor); grows the T3 suites at M3+; files/updates one title-deduplicated nightly-failure issue on red | active |
 | [`sandbox.yml`](../.github/workflows/sandbox.yml) | `workflow_dispatch` only | T4 sandbox contracts — fail-closed skeleton, gated by the `sandbox` environment; every dispatch is deliberately red until human M4 activation | skeleton (always refuses) |
 | [`benchmark.yml`](../.github/workflows/benchmark.yml) | `workflow_dispatch` only | IrrevonBench preregistered runs — fail-closed skeleton, gated by the `benchmark` environment; every dispatch is deliberately red until human Stage-B activation | skeleton (always refuses) |
-| [`release.yml`](../.github/workflows/release.yml) | PR + manual dry run; canonical `vMAJOR.MINOR.PATCH` tag | Non-publishing artifact dry run on PRs; clean tagged build, exact HEAD/tag/current-main identity, Node-24/content/renderer-hash/smoke gates, checksums, lock-aware SPDX SBOM, artifact attestation, then protected-environment PyPI/GitHub publication | prepared; no release exists |
+| [`release.yml`](../.github/workflows/release.yml) | PR + manual dry run; canonical `vMAJOR.MINOR.PATCH` tag | Non-publishing artifact dry run on PRs; clean tagged build, exact HEAD/tag/current-main identity, Node-24/content/renderer-hash/smoke gates, checksums, lock-aware SPDX SBOM, artifact attestation, then protected-environment PyPI/GitHub publication | active; published and attested `v0.1.0` |
 | [`scorecard.yml`](../.github/workflows/scorecard.yml) | main/protection change + weekly | OpenSSF Scorecard evidence and SARIF upload | active |
 | [`dependabot.yml`](../.github/dependabot.yml) | monthly routine + prompt security | One multi-ecosystem routine PR across Actions, uv, web npm, site npm, and Docker; security remediation remains grouped per ecosystem | active |
 
@@ -48,7 +48,7 @@ that date.
 | wheel smoke | `wheel-smoke` (nightly) | cron | `make dist-smoke` (= `make dist` + the Node-less container smoke; ADR-0018 chain, wheel + sdist legs) | active — nightly, not PR: needs docker + a second full web build + wheel build; the PR-side integration truth is `web-e2e-live` |
 | T4 sandbox | `sandbox-contract` (sandbox) | human dispatch + env approval | Today: exactly `make sandbox-stage-m4`, whose reserved recipe unconditionally refuses. M4 activation must replace it with the reviewed credentialed contract recipe | skeleton (always refuses) |
 | benchmark | `bench` (benchmark) | human dispatch + env approval | Today: exactly `make benchmark-stage-b`, whose reserved recipe unconditionally refuses. M7 activation must replace it with the complete preregistered, cache-free, sanitized-evidence recipe | skeleton (always refuses) |
-| package release | `dry-run` / `validate-build` / `build-attest` / publish jobs (release) | PR/manual is non-publishing; canonical version tag only for publication | locked Python validators + `make launch-audit` + Node-24 release dry run; privileged attestation/publish jobs download validated artifacts and never execute repository code | prepared; protected `release` environment and publisher binding are owner gates |
+| package release | `dry-run` / `validate-build` / `build-attest` / publish jobs (release) | PR/manual is non-publishing; canonical version tag only for publication | locked Python validators + `make launch-audit` + Node-24 release dry run; privileged attestation/publish jobs download validated artifacts and never execute repository code | active; protected `release` environment remains human-gated |
 
 The local `make check-all` ladder includes `web-check`, `web-test`, and `web-e2e`; F4
 pixel baselines remain the explicit container-only `make web-vrt` gate. The bench
@@ -103,7 +103,7 @@ the manual trigger and environment approval, and replace the static refusal cont
 tests of the real target. A green pre-activation dispatch is a workflow integrity failure,
 not a successful benchmark.
 
-### Prepared package release
+### Protected package release
 
 `[DD]` Pull requests and manual dispatches can only run the non-publishing dry
 run. Publication requires a canonical-repository tag that exactly matches a
@@ -120,9 +120,9 @@ without dependency resolution. Twine's `check --strict` PyPI
 long-description gate must leave the wheel/sdist hashes unchanged, after which
 the archive manifests are checked again. PyPI and GitHub publication are
 separate least-privilege jobs behind the owner-created and protected `release`
-environment. No long-lived publishing token is accepted. The workflow is
-prepared but has never produced a release or attestation; setup and execution
-remain the owner actions in
+environment. No long-lived publishing token is accepted. On 2026-07-25 this
+path published and attested `v0.1.0`; future publication still requires a
+canonical owner-pushed annotated tag and protected-environment approval. See
 [release-process.md](release-process.md).
 
 ### Dependabot update policy
@@ -227,9 +227,10 @@ After `ci-required` has reported on at least one PR (order matters — see traps
    **Additional read-back:** Discussions and all six default categories are
    enabled; immutable releases are enabled; and the protected `release`
    environment requires the owner reviewer with self-review permitted. Its
-   PyPI path uses OIDC and has no environment secret. The launch welcome post is
-   created through one exact, payload-validated operation after this branch
-   reaches `main`. The unrelated `sandbox` and `benchmark` environments remain
+   PyPI path uses OIDC and has no environment secret. The
+   [launch welcome post](https://github.com/PranavMishra28/irrevon/discussions/25)
+   was created through one exact, payload-validated operation. The unrelated
+   `sandbox` and `benchmark` environments remain
    absent and must be created before their first human-approved use.
 
 Site deploys (not a GitHub Actions workflow):

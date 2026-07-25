@@ -8,14 +8,16 @@ import Icon from "../components/Icon.astro";
 import { SITE_NAME, BENCH_NAME, REPO_URL } from "../config";
 import { href, asset } from "../lib/url";
 import { softwareSourceCode, webSite } from "../lib/jsonld";
+import { PYPI_PROJECT_URL, RELEASED_AT, RELEASE_VERSION } from "../lib/release-provenance";
 
 const siteUrl = new URL(href("/"), Astro.site);
+const releaseDate = RELEASED_AT?.slice(0, 10);
 const description =
-  "An open-source Alpha reconciliation engine and benchmark development harness for irreversible AI-agent actions. Stable identity, persist-before-dispatch, reconcile-by-query.";
+  `Published ${RELEASE_VERSION} Alpha reconciliation engine and benchmark development harness for irreversible AI-agent actions. Stable identity, persist-before-dispatch, reconcile-by-query.`;
 ---
 
 <Base
-  title={`${SITE_NAME} — honest handling of irreversible AI-agent actions`}
+  title={`${SITE_NAME} ${RELEASE_VERSION} — reconciliation for irreversible AI-agent actions`}
   description={description}
   jsonLd={[softwareSourceCode(siteUrl, description), webSite(siteUrl)]}
 >
@@ -34,11 +36,15 @@ const description =
         <div class="hero-ctas">
           <a
             class="btn btn-primary"
+            href={href("/install/")}>Install v{RELEASE_VERSION}</a
+          >
+          <a class="btn btn-secondary" href={href("/how-it-works/")}>How it works</a>
+          <a
+            class="btn btn-secondary"
             href={REPO_URL}
             data-analytics-event="repository_click"
             data-analytics-placement="hero">View the source</a
           >
-          <a class="btn btn-secondary" href={href("/how-it-works/")}>How it works</a>
           <a
             class="btn btn-secondary"
             href={`${REPO_URL}/discussions`}
@@ -47,7 +53,9 @@ const description =
           >
         </div>
         <p class="hero-note">
-          v0.1.0 Alpha · Apache-2.0 · draft benchmark methodology, synthetic development evidence
+          <a href={PYPI_PROJECT_URL}>v{RELEASE_VERSION} Alpha published on PyPI</a>
+          {releaseDate && <> on <time datetime={releaseDate}>{releaseDate}</time></>} · Apache-2.0 · draft
+          benchmark methodology, synthetic development evidence
         </p>
       </div>
       <aside class="hero-proof" aria-label="Recorded demo outcome">

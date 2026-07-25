@@ -1,13 +1,17 @@
 # Project status
 
-Irrevon is a public Apache-2.0 `v0.1.0` Alpha candidate. The source,
+Irrevon is a public Apache-2.0 `v0.1.0` Alpha. The
+[package](https://pypi.org/project/irrevon/0.1.0/) and
+[immutable GitHub Release](https://github.com/PranavMishra28/irrevon/releases/tag/v0.1.0)
+were published on 2026-07-25 from commit
+`3d2ce38630afe6f3233bf913be9d41dd5c6f4b32`. The source,
 deterministic synthetic demo, single-writer engine and worker, local read-only
 Workbench, benchmark development harness, and distribution pipeline are
 implemented. Contributions are open under inbound-equals-outbound Apache-2.0
 with mandatory DCO 1.1 sign-off and no CLA.
 
-The release-state source remains `candidate` until PyPI and GitHub provide
-verifiable publication evidence. The preregistration remains an unfrozen draft,
+The release-state source records the verified publication timestamp and commit.
+The preregistration remains an unfrozen draft,
 no confirmatory results exist, and no independent reproduction is claimed.
 Stripe C1 and EasyPost C2 adapters are test/sandbox-key-gated drafts that have
 never been live-called.
@@ -29,11 +33,12 @@ read-back after each merge.
 
 Public issue forms are ready for bugs, documentation, benchmark-integrity
 reports, and scoped proposals. GitHub Discussions and all six default
-categories are enabled and publicly linked; the exact welcome post is created
-after this candidate reaches `main`. Private vulnerability reporting is
+categories are enabled and publicly linked; the
+[welcome post](https://github.com/PranavMishra28/irrevon/discussions/25) is
+public. Private vulnerability reporting is
 enabled and remains the only vulnerability channel.
 
-The 2026-07-24 owner-settings read-back found an active default-branch ruleset
+The 2026-07-25 owner-settings read-back found an active default-branch ruleset
 with no bypass actors, immutable releases, selected Actions allowlisting,
 platform SHA-pin enforcement, and a protected `release` environment.
 Non-provider secret scanning remains unavailable; the unrelated `sandbox` and
@@ -52,9 +57,10 @@ in launch documentation.
 
 Implementation has landed for seven decisions that remain explicitly
 **proposed**, not accepted: ADR-0020, ADR-0021, ADR-0022, and ADR-0030 through
-ADR-0034. Before a release, the owner must review each decision against the
-implementation and either ratify it through the repository's human-only ADR
-process, request changes, or leave it proposed with the limitation disclosed.
+ADR-0034. The software release did not ratify them. The owner must review each
+decision against the implementation and either ratify it through the
+repository's human-only ADR process, request changes, or leave it proposed with
+the limitation disclosed.
 Repository automation and this status page never convert implementation into
 ratification.
 

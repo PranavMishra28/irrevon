@@ -4,8 +4,8 @@
 //      active package — installing it was the decisive naming collision).
 //      The strings below are the banned literals, present here ONLY to
 //      assert their absence.
-//   2. Package-index commands appear only on /install/ inside the release
-//      verification boundary, never as context-free marketing copy.
+//   2. Package-index commands appear only on /install/ inside the published
+//      release boundary, never as context-free marketing copy.
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -64,15 +64,20 @@ test("package-index commands stay inside the verified release boundary", () => {
   }
 });
 
-test("/install/ requires release verification and keeps source setup first", async ({ page }) => {
+test("/install/ leads with the exact published release and separates source setup", async ({ page }) => {
   await page.goto("/install/");
   const release = page.locator("[data-release-install]");
   await expect(release).toBeVisible();
-  await expect(release.locator(".release-chip")).toContainText("VERIFY RELEASE STATUS");
+  await expect(release.locator(".release-chip")).toContainText("PUBLISHED ON PYPI");
   await expect(release).toContainText("OIDC Trusted Publishing");
-  await expect(release.getByRole("link", { name: "Status" })).toHaveAttribute("href", /\/status\/$/);
-  // The source checkout section leads the page.
+  await expect(release.getByRole("link", { name: /release assets/i })).toHaveAttribute(
+    "href",
+    /github\.com\/PranavMishra28\/irrevon\/releases\/tag\/v0\.1\.0$/,
+  );
+  await expect(release).toContainText("irrevon==0.1.0");
+  // The published package section leads; database-backed source setup remains separate.
   const sections = page.locator("main section");
-  await expect(sections.nth(1)).toContainText("Build and run locally");
-  await expect(sections.nth(1)).toContainText("set -a && . ./.env && set +a");
+  await expect(sections.nth(1)).toContainText("Install v0.1.0");
+  await expect(sections.nth(2)).toContainText("Build and run locally");
+  await expect(sections.nth(2)).toContainText("set -a && . ./.env && set +a");
 });

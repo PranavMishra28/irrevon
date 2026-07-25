@@ -7,11 +7,8 @@ changelog, roadmap, install; full SEO/metadata). **Configured for Vercel at the 
 root** by owner directive ([ADR-0027](../docs/decisions/0027-site-vercel-deploy.md)).
 Repository policy permits production Git builds only from `main`
 ([ADR-0038](../docs/decisions/0038-main-vercel-auto-deploy.md); see
-[Deploy](#deploy) below). The linked project was paused when checked on
-2026-07-24, and its Production Branch was not exposed by the available
-authenticated read-back. Automatic deployment therefore starts only after the
-owner confirms Production Branch = `main`, reactivates the project, and verifies
-the launch checklist in `docs/discoverability.md`.
+[Deploy](#deploy) below). The linked project is active; main-only automatic
+production deployment and exact commit provenance were read back on 2026-07-25.
 The site never ships in the Python wheel (ADR-0018) and shares no build with `web/`.
 
 ## Page inventory
@@ -29,9 +26,9 @@ The site never ships in the Python wheel (ADR-0018) and shares no build with `we
 | `/docs/reference/<slug>/` | Manifest-selected, provenance-stamped repository documents (RFCs, benchmark and operations guides, contracts, governance, and ADRs) |
 | `/docs/search/` | Pagefind search (docs-scoped, loads on gesture, no-JS fallback) |
 | `/research/` (+2 posts, `/research/rss.xml`) | Preregistration story + prior-art credit; explicit no-preprint statement |
-| `/changelog` | Computed from `git tag --list` at build — honest empty state (zero tags) |
+| `/changelog` | Release-state-driven history with the published `v0.1.0` record |
 | `/roadmap` | Phases parsed from the rendered execution plan; no-dates banner |
-| `/install` | Works-today from source; planned distribution future-tense in a PLANNED block |
+| `/install` | Published PyPI installation plus the source/PostgreSQL development path |
 | `/status`, `/privacy`, `/contributing`, `/licensing` | Launch status, data posture, contribution path, and legal/attribution guidance |
 | `/404` | Not-found page (Vercel serves `404.html` for unmatched routes) |
 
@@ -63,7 +60,7 @@ surfaces.
   same JSON, including a 64-hex allowlist.
 - **What cannot appear anywhere:** pricing, customers, testimonials, SLAs, benchmark
   numbers, uncited numbers, any old-name install literal (e2e-banned), any
-  package-index command outside the PLANNED block, "exactly-once"/"rollback"
+    unverified package-index command, "exactly-once"/"rollback"
   unqualified, fake forms, employer identifiers.
 
 ## Architecture
@@ -160,9 +157,8 @@ optional navigation aid only; it is not a ranking, crawler, or licensing control
 
 ## Deploy
 
-The repository is ready for main-only Vercel Git deployment. Once the owner
-confirms Production Branch = `main` and reactivates the currently paused
-project, Vercel automatically builds each eligible `main` commit. Every other
+The repository uses main-only Vercel Git deployment. Vercel automatically
+builds each eligible `main` commit. Every other
 branch is disabled by the branch map in the repository-root
 [`vercel.json`](../vercel.json), and
 the fail-closed ignore command stops those refs before dependency installation.
@@ -172,10 +168,8 @@ only the resulting static `site/dist` files; Irrevon has no site runtime or
 server function.
 
 Vercel does not wait for the GitHub `ci-required` check. The normal branch
-ruleset routes pull requests through that check, but its 2026-07-24 read-back
-still showed an always-allowed repository-role bypass. The owner must remove
-that bypass before describing every deployable `main` commit as reviewed or
-CI-validated.
+ruleset routes pull requests through that check; its 2026-07-25 authoritative
+read-back showed an empty `bypass_actors` array.
 
 The equivalent local production rehearsal is:
 
@@ -197,11 +191,9 @@ headers, and cache rules (the applied form of
 [`docs/headers-spec.md`](docs/headers-spec.md)) and `trailingSlash: true` (canonical
 URLs end in `/`, matching the sitemap). The origin and repository URL are
 deployment-provided at build time—committed files never carry either. Vercel
-read-back on 2026-07-24 confirmed the existing project and Node 24 runtime; the
-committed configuration overrides its stale root-level Python framework
-autodetection. The same read-back reported the project paused and did not expose
-its Production Branch; both remain explicit owner checks rather than inferred
-repository facts.
+read-back on 2026-07-25 confirmed the active project, main production branch,
+and Node 24 runtime; the committed configuration overrides its stale root-level
+Python framework autodetection.
 Both install and build enter `site/` before invoking Corepack so
 `site/package.json`'s pinned pnpm version is authoritative on Vercel as well as
 locally.

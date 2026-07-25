@@ -8,7 +8,7 @@ All notable changes are recorded here. The format follows
 
 No changes yet.
 
-## [0.1.0] - 2026-07-24
+## [0.1.0] - 2026-07-25
 
 ### Added
 
