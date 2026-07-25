@@ -110,6 +110,7 @@ def test_untrusted_build_is_separate_from_oidc_and_publication_permissions() -> 
     assert "contents: write" in draft
     assert "id-token: write" not in draft
     assert "actions/checkout@" not in draft
+    assert "GH_REPO: ${{ github.repository }}" in draft
     assert "actions/download-artifact@" in draft
     assert 'gh release create "$TAG_NAME"' in draft
     assert "--draft --verify-tag" in draft
@@ -131,6 +132,8 @@ def test_untrusted_build_is_separate_from_oidc_and_publication_permissions() -> 
     assert "environment: release" in github_release
     assert "contents: write" in github_release
     assert "id-token: write" not in github_release
+    assert "actions/checkout@" not in github_release
+    assert "GH_REPO: ${{ github.repository }}" in github_release
     assert "https://pypi.org/pypi/irrevon/{version}/json" in github_release
     assert "published == expected" in github_release
     assert 'gh release edit "$TAG_NAME" --draft=false --latest' in github_release

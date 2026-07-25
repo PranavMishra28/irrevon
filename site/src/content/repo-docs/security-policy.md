@@ -2,7 +2,7 @@
 title: "Security policy — development process"
 description: "The development threat model and agent execution policy: what agents may do, what is human-only, and the enforcement layers."
 sourcePath: "docs/security-policy.md"
-sourceSha256: "3b6d523fe83c0752295668975b813396c6056f55ecd87149c654df2ee38f2a78"
+sourceSha256: "b4c085693bcb691b21aaae95e4893d922ed91f2b8a87cff147729c4d5be1964f"
 syncedAt: "2026-07-25"
 section: "Governance"
 renderTitle: false
@@ -111,6 +111,18 @@ pushed without force. The exception is void if either publication exists and
 expires after that replacement push. All other tag or remote-ref deletions,
 force pushes, history rewrites, repositories, packages, and versions remain
 prohibited `[DD]`.
+
+The first recovery was consumed by the replacement tag at
+`62fcb1f77f2db38ab480ee59af6aa40525a25f84`. Its release run passed
+validation and attestation, then failed before draft-Release creation because
+the no-checkout job had no explicit `gh` repository context; PyPI and final
+GitHub publication were skipped `[VF]`. After authenticated read-back proved
+that no draft or published Release and no PyPI `0.1.0` version existed, the
+owner authorized one second and final use of the identical recovery path
+`[DD]`. It additionally requires the remote annotated tag to peel to that exact
+failed commit and the authenticated releases list to contain no `v0.1.0`
+Release. The second exception expires on its replacement push and does not
+broaden any command, ref, repository, package, version, or prohibition.
 
 Repository-setting read-back on 2026-07-24 found secret scanning, push
 protection, CodeQL for Python and JavaScript/TypeScript, private vulnerability

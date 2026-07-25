@@ -112,6 +112,24 @@ other remote or local ref deletion, other repository, other package, or other
 version. It is void if either publication exists and expires as soon as the
 replacement `refs/tags/v0.1.0` is successfully pushed.
 
+The first recovery was consumed when the replacement tag was pushed at
+`62fcb1f77f2db38ab480ee59af6aa40525a25f84`. Release run `30136377469`
+then passed validation and artifact attestation but failed before creating a
+draft Release because the no-checkout release job did not provide `gh` an
+explicit repository. Its PyPI and final GitHub Release jobs were skipped.
+Authenticated read-back found no draft or published GitHub Release, and PyPI
+returned HTTP 404 for `irrevon==0.1.0`.
+
+One second and final recovery is authorized for that exact failed commit and
+run. Immediately before deletion, repeat every authoritative check above,
+require the authenticated GitHub releases list to contain no draft or published
+`v0.1.0` Release, and require the remote annotated tag to peel exactly to
+`62fcb1f77f2db38ab480ee59af6aa40525a25f84`. Only the same marked REST
+deletion and matching local `v0.1.0` cleanup are permitted. Recreate the
+annotated tag only at freshly resolved `origin/main` after the repository-context
+fix passes required CI and merges normally. This second exception has the same
+prohibitions and expires on the replacement push.
+
 The owner accepts proceeding with the software release without representing
 that trademark counsel, scientific validation, live-provider qualification, or
 production adoption has occurred. Public copy must not claim any of those
