@@ -45,13 +45,14 @@ links-online:
 # (make site-test). Nothing is exempted twice-unchecked.
 links: LYCHEE_EXCLUDES := --exclude-path site/src/content
 links-online: LYCHEE_EXCLUDES := --exclude-path site/src/content
-# Placeholder hosts are deliberately non-resolving. The SEC order is an
-# authoritative primary source that returns 403 to automated clients; exclude
-# that exact resource rather than teaching the checker to accept arbitrary 4xx.
+# Placeholder hosts are deliberately non-resolving. The SEC order and OpenAI
+# publisher FAQ can return 403 to automated clients; exclude those exact
+# resources rather than teaching the checker to accept arbitrary 4xx.
 links-online: LYCHEE_ONLINE_EXCLUDES := \
 	--exclude 'https://irrevon\.dev' \
 	--exclude 'https://example\.com' \
-	--exclude 'https://www\.sec\.gov/files/litigation/admin/2013/34-70694\.pdf'
+	--exclude 'https://www\.sec\.gov/files/litigation/admin/2013/34-70694\.pdf' \
+	--exclude 'https://help\.openai\.com/en/articles/12627856-publishers-and-developers-faq'
 
 # Every schema must be valid against its declared metaschema; every valid-*.json
 # example must pass; every invalid-*.json example must be REJECTED (the invalid
