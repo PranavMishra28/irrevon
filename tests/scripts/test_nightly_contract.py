@@ -22,6 +22,7 @@ def test_online_links_reuse_the_local_source_and_asset_rules() -> None:
     assert "file://$(CURDIR)/web/public/fonts/" in makefile
     assert "file://$(CURDIR)/web/public/brand/" in makefile
     assert "34-70694" in makefile
+    assert "12627856-publishers-and-developers-faq" in makefile
     assert "--accept" not in makefile
 
 
