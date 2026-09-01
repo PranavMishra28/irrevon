@@ -4,7 +4,7 @@
 # License: Apache-2.0 (ADR-0028, owner-ratified 2026-07-21).
 
 [build-system]
-requires = ["hatchling==1.31.0"]
+requires = ["hatchling==1.32.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -59,10 +59,10 @@ Release-notes = "https://github.com/PranavMishra28/irrevon/releases/tag/v0.1.0"
 # resolved transitively by uv.lock. The release workflow invokes this group only
 # through `uv run --locked`; never replace it with uvx/pip dynamic resolution.
 release-validation = [
-    "check-jsonschema==0.37.4",
+    "check-jsonschema==0.38.0",
     "pip-audit==2.10.1",
-    "spdx-tools==0.8.3",
-    "twine==6.2.0",
+    "spdx-tools==0.8.5",
+    "twine==7.0.0",
 ]
 dev = [
     "pytest>=8.4",
@@ -77,7 +77,7 @@ dev = [
     "pip-audit==2.10.1",
     # Also listed in release-validation: local development uses the same exact
     # official SPDX parser/validator as the locked release dry run.
-    "spdx-tools==0.8.3",
+    "spdx-tools==0.8.5",
 ]
 
 [project.scripts]
