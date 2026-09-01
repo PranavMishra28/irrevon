@@ -52,7 +52,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.10.12"
           enable-cache: false
@@ -75,7 +75,7 @@ jobs:
           uv run --locked --group release-validation make check py-check py-test
           make release-dry-run
           test -z "$(git status --porcelain --untracked-files=no)"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: irrevon-release-dry-run
           path: |
@@ -102,7 +102,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: "0.10.12"
           enable-cache: false
@@ -152,7 +152,7 @@ jobs:
           set -euo pipefail
           uv run --locked --group release-validation make launch-audit
           test -z "$(git status --porcelain --untracked-files=no)"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: irrevon-release-${{ github.ref_name }}
           path: |
@@ -178,12 +178,12 @@ jobs:
       id-token: write # sign the artifact attestation with GitHub OIDC
       attestations: write # publish provenance for the validated artifacts
     steps:
-      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: irrevon-release-${{ github.ref_name }}
           path: dist
       - name: Attest wheel, sdist, checksums, and SBOM
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: |
             dist/*.whl
@@ -205,7 +205,7 @@ jobs:
     permissions:
       contents: write # create a private draft and upload the reviewed artifacts
     steps:
-      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: irrevon-release-${{ github.ref_name }}
           path: dist
@@ -300,7 +300,7 @@ jobs:
     permissions:
       id-token: write # PyPI Trusted Publishing exchanges this OIDC token
     steps:
-      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: irrevon-release-${{ github.ref_name }}
           path: dist
@@ -355,7 +355,7 @@ jobs:
           PY
       - name: Publish to PyPI with Trusted Publishing
         if: steps.pypi-state.outputs.publish == 'true'
-        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # v1.14.1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
         with:
           packages-dir: packages
 
@@ -373,7 +373,7 @@ jobs:
     permissions:
       contents: write # publish the already-staged draft after PyPI succeeds
     steps:
-      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: irrevon-release-${{ github.ref_name }}
           path: dist
