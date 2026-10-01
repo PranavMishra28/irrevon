@@ -26,14 +26,14 @@
   },
   "dependencies": {
     "@astrojs/rss": "4.0.19",
-    "@astrojs/sitemap": "3.7.3",
-    "astro": "7.1.0"
+    "@astrojs/sitemap": "3.7.4",
+    "astro": "7.3.4"
   },
   "devDependencies": {
-    "@astrojs/check": "0.9.9",
-    "@astrojs/markdown-satteri": "0.3.4",
-    "@axe-core/playwright": "4.12.1",
-    "@playwright/test": "1.61.1",
+    "@astrojs/check": "0.9.10",
+    "@astrojs/markdown-satteri": "0.4.2",
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
     "pagefind": "1.5.2",
     "typescript": "5.9.3"
   }
